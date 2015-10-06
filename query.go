@@ -75,7 +75,7 @@ func (q Query) ToSQL(model *Model, addColumns ...string) (string, []interface{})
 				case string:
 					xargs[i] = fmt.Sprintf("%q", a)
 				default:
-					xargs[i] = fmt.Sprintf("%s", a)
+					xargs[i] = fmt.Sprintf("%v", a)
 				}
 			}
 			x = fmt.Sprintf("%s | %s", x, xargs)

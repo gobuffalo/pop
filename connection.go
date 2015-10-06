@@ -2,6 +2,7 @@ package pop
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/markbates/going/defaults"
@@ -12,6 +13,7 @@ var Connections = map[string]*Connection{}
 type Connection struct {
 	Store   Store
 	Dialect Dialect
+	Timings []time.Duration
 }
 
 func (c *Connection) String() string {
@@ -19,7 +21,9 @@ func (c *Connection) String() string {
 }
 
 func NewConnection(deets *ConnectionDetails) *Connection {
-	c := &Connection{}
+	c := &Connection{
+		Timings: []time.Duration{},
+	}
 	switch deets.Dialect {
 	case "postgres":
 		c.Dialect = NewPostgreSQL(deets)
@@ -52,6 +56,7 @@ func (c *Connection) Transaction(fn func(tx *Connection) error) error {
 	cn := &Connection{
 		Store:   tx,
 		Dialect: c.Dialect,
+		Timings: []time.Duration{},
 	}
 	err = fn(cn)
 	if err != nil {
@@ -70,10 +75,19 @@ func (c *Connection) Rollback(fn func(tx *Connection)) error {
 	cn := &Connection{
 		Store:   tx,
 		Dialect: c.Dialect,
+		Timings: []time.Duration{},
 	}
 	fn(cn)
 	return tx.Rollback()
 }
 func (c *Connection) Q() *Query {
 	return Q(c)
+}
+
+func (c *Connection) timeFunc(name string, fn func() error) error {
+	// fmt.Printf("timeFunc!: %s\n", name)
+	now := time.Now()
+	err := fn()
+	c.Timings = append(c.Timings, time.Now().Sub(now))
+	return err
 }
