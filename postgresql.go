@@ -1,0 +1,112 @@
+package pop
+
+import (
+	"fmt"
+	"log"
+	"os/exec"
+	"strconv"
+
+	_ "github.com/lib/pq"
+	"github.com/markbates/going/clam"
+)
+
+type PostgreSQL struct {
+	translateCache    map[string]string
+	ConnectionDetails *ConnectionDetails
+}
+
+func (p *PostgreSQL) Details() *ConnectionDetails {
+	return p.ConnectionDetails
+}
+
+func (p *PostgreSQL) Create(store Store, model *Model, cols Columns) error {
+	cols.Remove("id")
+	id := struct {
+		ID int `db:"id"`
+	}{}
+	w := cols.Writeable()
+	query := fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s) returning id", model.TableName(), w.String(), w.SymbolizedString())
+	if Debug {
+		log.Printf("[POP]: %s", query)
+	}
+	stmt, err := store.PrepareNamed(query)
+	if err != nil {
+		return err
+	}
+	err = stmt.Get(&id, model.Value)
+	if err == nil {
+		model.SetID(id.ID)
+	}
+	return err
+}
+
+func (p *PostgreSQL) Update(store Store, model *Model, cols Columns) error {
+	return genericUpdate(store, model, cols)
+}
+
+func (p *PostgreSQL) Destroy(store Store, model *Model) error {
+	return genericDestroy(store, model)
+}
+
+func (p *PostgreSQL) SelectOne(store Store, model *Model, query Query) error {
+	return genericSelectOne(store, model, query)
+}
+
+func (p *PostgreSQL) SelectMany(store Store, models *Model, query Query) error {
+	return genericSelectMany(store, models, query)
+}
+
+func (p *PostgreSQL) CreateDB() error {
+	cmd := exec.Command("createdb", "-e", p.ConnectionDetails.Database)
+	return clam.RunAndListen(cmd, func(s string) {
+		fmt.Println(s)
+	})
+}
+
+func (p *PostgreSQL) DropDB() error {
+	cmd := exec.Command("dropdb", "-e", p.ConnectionDetails.Database)
+	return clam.RunAndListen(cmd, func(s string) {
+		fmt.Println(s)
+	})
+}
+
+func (m *PostgreSQL) URL() string {
+	c := m.ConnectionDetails
+	if c.URL != "" {
+		return c.URL
+	}
+
+	s := "postgres://%s:%s@%s:%s/%s?sslmode=disable"
+	return fmt.Sprintf(s, c.User, c.Password, c.Host, c.Port, c.Database)
+}
+
+func (p *PostgreSQL) TranslateSQL(sql string) string {
+	if csql, ok := p.translateCache[sql]; ok {
+		return csql
+	}
+	curr := 1
+	out := make([]byte, 0, len(sql))
+	for i := 0; i < len(sql); i++ {
+		if sql[i] == '?' {
+			str := "$" + strconv.Itoa(curr)
+			for _, char := range str {
+				out = append(out, byte(char))
+			}
+			curr += 1
+		} else {
+			out = append(out, sql[i])
+		}
+	}
+	csql := string(out)
+	p.translateCache[sql] = csql
+	return csql
+}
+
+func NewPostgreSQL(deets *ConnectionDetails) Dialect {
+	deets.Parse("5432")
+	cd := &PostgreSQL{
+		ConnectionDetails: deets,
+		translateCache:    map[string]string{},
+	}
+	return cd
+}
