@@ -52,35 +52,35 @@ func Test_ToSQL(t *testing.T) {
 
 		query := pop.Q(tx)
 		q, _ := query.ToSQL(user)
-		a.Equal("SELECT alive, bio, birth_date, created_at, id, name, name as full_name, price, updated_at FROM users as users", q)
+		a.Equal("SELECT alive, bio, birth_date, created_at, id, name, name as full_name, price, updated_at FROM users AS users", q)
 
 		query.Order("id desc")
 		q, _ = query.ToSQL(user)
-		a.Equal(q, "SELECT alive, bio, birth_date, created_at, id, name, name as full_name, price, updated_at FROM users as users ORDER BY id desc")
+		a.Equal(q, "SELECT alive, bio, birth_date, created_at, id, name, name as full_name, price, updated_at FROM users AS users ORDER BY id desc")
 
 		query = tx.Where("id = 1")
 		q, _ = query.ToSQL(user)
-		a.Equal(q, "SELECT alive, bio, birth_date, created_at, id, name, name as full_name, price, updated_at FROM users as users WHERE id = 1")
+		a.Equal(q, "SELECT alive, bio, birth_date, created_at, id, name, name as full_name, price, updated_at FROM users AS users WHERE id = 1")
 
 		query = tx.Where("id = 1").Where("name = 'Mark'")
 		q, _ = query.ToSQL(user)
-		a.Equal(q, "SELECT alive, bio, birth_date, created_at, id, name, name as full_name, price, updated_at FROM users as users WHERE id = 1 AND name = 'Mark'")
+		a.Equal(q, "SELECT alive, bio, birth_date, created_at, id, name, name as full_name, price, updated_at FROM users AS users WHERE id = 1 AND name = 'Mark'")
 
 		query.Order("id desc")
 		q, _ = query.ToSQL(user)
-		a.Equal(q, "SELECT alive, bio, birth_date, created_at, id, name, name as full_name, price, updated_at FROM users as users WHERE id = 1 AND name = 'Mark' ORDER BY id desc")
+		a.Equal(q, "SELECT alive, bio, birth_date, created_at, id, name, name as full_name, price, updated_at FROM users AS users WHERE id = 1 AND name = 'Mark' ORDER BY id desc")
 
 		query.Order("name asc")
 		q, _ = query.ToSQL(user)
-		a.Equal(q, "SELECT alive, bio, birth_date, created_at, id, name, name as full_name, price, updated_at FROM users as users WHERE id = 1 AND name = 'Mark' ORDER BY id desc, name asc")
+		a.Equal(q, "SELECT alive, bio, birth_date, created_at, id, name, name as full_name, price, updated_at FROM users AS users WHERE id = 1 AND name = 'Mark' ORDER BY id desc, name asc")
 
 		query = tx.Limit(10)
 		q, _ = query.ToSQL(user)
-		a.Equal(q, "SELECT alive, bio, birth_date, created_at, id, name, name as full_name, price, updated_at FROM users as users LIMIT 10")
+		a.Equal(q, "SELECT alive, bio, birth_date, created_at, id, name, name as full_name, price, updated_at FROM users AS users LIMIT 10")
 
 		query = tx.Paginate(3, 10)
 		q, _ = query.ToSQL(user)
-		a.Equal(q, "SELECT alive, bio, birth_date, created_at, id, name, name as full_name, price, updated_at FROM users as users LIMIT 10 OFFSET 20")
+		a.Equal(q, "SELECT alive, bio, birth_date, created_at, id, name, name as full_name, price, updated_at FROM users AS users LIMIT 10 OFFSET 20")
 	})
 }
 
@@ -90,7 +90,7 @@ func Test_ToSQLInjection(t *testing.T) {
 		user := &pop.Model{Value: &User{}}
 		query := tx.Where("name = '?'", "\\\u0027 or 1=1 limit 1;\n-- ")
 		q, _ := query.ToSQL(user)
-		a.NotEqual("SELECT * FROM users as users WHERE name = '\\'' or 1=1 limit 1;\n-- '", q)
+		a.NotEqual("SELECT * FROM users AS users WHERE name = '\\'' or 1=1 limit 1;\n-- '", q)
 	})
 }
 

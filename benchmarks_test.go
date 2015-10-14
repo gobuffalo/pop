@@ -53,3 +53,15 @@ func Benchmark_Find(b *testing.B) {
 		}
 	})
 }
+
+func Benchmark_Find_Raw(b *testing.B) {
+	transaction(func(tx *pop.Connection) {
+		u := &User{
+			Name: nulls.NewString("Mark Bates"),
+		}
+		tx.Create(u)
+		for n := 0; n < b.N; n++ {
+			tx.Store.Get(u, "select * from users where id = ?", u.ID)
+		}
+	})
+}

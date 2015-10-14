@@ -11,6 +11,7 @@ type Query struct {
 	LimitResults int
 	WhereClauses Clauses
 	OrderClauses Clauses
+	FromClauses  FromClauses
 	Paginator    *Paginator
 	Connection   *Connection
 }
@@ -90,7 +91,15 @@ func (q Query) ToSQL(model *Model, addColumns ...string) (string, []interface{})
 func (q Query) buildSQL(model *Model, addColumns ...string) (sql string, args []interface{}) {
 	tableName := model.TableName()
 	cols := q.buildColumns(model, addColumns...)
-	sql = fmt.Sprintf("SELECT %s FROM %s as %s", cols.Readable().SelectString(), tableName, strings.Replace(tableName, ".", "_", -1))
+	if len(q.FromClauses) == 0 {
+		q.FromClauses = FromClauses{
+			FromClause{
+				From: tableName,
+				As:   strings.Replace(tableName, ".", "_", -1),
+			},
+		}
+	}
+	sql = fmt.Sprintf("SELECT %s FROM %s", cols.Readable().SelectString(), q.FromClauses)
 	if len(q.WhereClauses) > 0 {
 		sql = fmt.Sprintf("%s WHERE %s", sql, q.WhereClauses.Join(" AND "))
 		for _, arg := range q.WhereClauses.Args() {
