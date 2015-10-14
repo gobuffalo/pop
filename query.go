@@ -91,14 +91,12 @@ func (q Query) ToSQL(model *Model, addColumns ...string) (string, []interface{})
 func (q Query) buildSQL(model *Model, addColumns ...string) (sql string, args []interface{}) {
 	tableName := model.TableName()
 	cols := q.buildColumns(model, addColumns...)
-	if len(q.FromClauses) == 0 {
-		q.FromClauses = FromClauses{
-			FromClause{
-				From: tableName,
-				As:   strings.Replace(tableName, ".", "_", -1),
-			},
-		}
-	}
+
+	q.FromClauses = append(q.FromClauses, FromClause{
+		From: tableName,
+		As:   strings.Replace(tableName, ".", "_", -1),
+	})
+
 	sql = fmt.Sprintf("SELECT %s FROM %s", cols.Readable().SelectString(), q.FromClauses)
 	if len(q.WhereClauses) > 0 {
 		sql = fmt.Sprintf("%s WHERE %s", sql, q.WhereClauses.Join(" AND "))
