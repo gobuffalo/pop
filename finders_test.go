@@ -29,16 +29,39 @@ func Test_First(t *testing.T) {
 	transaction(func(tx *pop.Connection) {
 		a := require.New(t)
 
-		user := User{Name: nulls.NewString("Mark")}
-		err := tx.Create(&user)
+		first := User{Name: nulls.NewString("Mark")}
+		err := tx.Create(&first)
+		a.NoError(err)
+
+		last := User{Name: nulls.NewString("Mark")}
+		err = tx.Create(&last)
 		a.NoError(err)
 
 		u := User{}
 		err = tx.Where("name = 'Mark'").First(&u)
 		a.NoError(err)
 
-		a.NotEqual(u.ID, 0)
-		a.Equal(u.Name.String, "Mark")
+		a.Equal(first.ID, u.ID)
+	})
+}
+
+func Test_Last(t *testing.T) {
+	transaction(func(tx *pop.Connection) {
+		a := require.New(t)
+
+		first := User{Name: nulls.NewString("Mark")}
+		err := tx.Create(&first)
+		a.NoError(err)
+
+		last := User{Name: nulls.NewString("Mark")}
+		err = tx.Create(&last)
+		a.NoError(err)
+
+		u := User{}
+		err = tx.Where("name = 'Mark'").Last(&u)
+		a.NoError(err)
+
+		a.Equal(last.ID, u.ID)
 	})
 }
 

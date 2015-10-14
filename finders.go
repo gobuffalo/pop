@@ -19,6 +19,19 @@ func (q *Query) First(model interface{}) error {
 	})
 }
 
+func (c *Connection) Last(model interface{}) error {
+	return Q(c).Last(model)
+}
+
+func (q *Query) Last(model interface{}) error {
+	return q.Connection.timeFunc("Last", func() error {
+		q.Limit(1)
+		q.Order("id desc")
+		m := &Model{Value: model}
+		return q.Connection.Dialect.SelectOne(q.Connection.Store, m, *q)
+	})
+}
+
 func (c *Connection) All(models interface{}) error {
 	return Q(c).All(models)
 }
