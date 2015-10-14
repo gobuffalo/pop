@@ -1,6 +1,7 @@
 package pop_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/markbates/pop"
@@ -50,37 +51,39 @@ func Test_ToSQL(t *testing.T) {
 	transaction(func(tx *pop.Connection) {
 		user := &pop.Model{Value: &User{}}
 
+		s := "SELECT alive, bio, birth_date, created_at, id, name, name as full_name, price, updated_at FROM users AS users"
+
 		query := pop.Q(tx)
 		q, _ := query.ToSQL(user)
-		a.Equal("SELECT alive, bio, birth_date, created_at, id, name, name as full_name, price, updated_at FROM users AS users", q)
+		a.Equal(s, q)
 
 		query.Order("id desc")
 		q, _ = query.ToSQL(user)
-		a.Equal(q, "SELECT alive, bio, birth_date, created_at, id, name, name as full_name, price, updated_at FROM users AS users ORDER BY id desc")
+		a.Equal(fmt.Sprintf("%s ORDER BY id desc", s), q)
 
 		query = tx.Where("id = 1")
 		q, _ = query.ToSQL(user)
-		a.Equal(q, "SELECT alive, bio, birth_date, created_at, id, name, name as full_name, price, updated_at FROM users AS users WHERE id = 1")
+		a.Equal(fmt.Sprintf("%s WHERE id = 1", s), q)
 
 		query = tx.Where("id = 1").Where("name = 'Mark'")
 		q, _ = query.ToSQL(user)
-		a.Equal(q, "SELECT alive, bio, birth_date, created_at, id, name, name as full_name, price, updated_at FROM users AS users WHERE id = 1 AND name = 'Mark'")
+		a.Equal(fmt.Sprintf("%s WHERE id = 1 AND name = 'Mark'", s), q)
 
 		query.Order("id desc")
 		q, _ = query.ToSQL(user)
-		a.Equal(q, "SELECT alive, bio, birth_date, created_at, id, name, name as full_name, price, updated_at FROM users AS users WHERE id = 1 AND name = 'Mark' ORDER BY id desc")
+		a.Equal(fmt.Sprintf("%s WHERE id = 1 AND name = 'Mark' ORDER BY id desc", s), q)
 
 		query.Order("name asc")
 		q, _ = query.ToSQL(user)
-		a.Equal(q, "SELECT alive, bio, birth_date, created_at, id, name, name as full_name, price, updated_at FROM users AS users WHERE id = 1 AND name = 'Mark' ORDER BY id desc, name asc")
+		a.Equal(fmt.Sprintf("%s WHERE id = 1 AND name = 'Mark' ORDER BY id desc, name asc", s), q)
 
 		query = tx.Limit(10)
 		q, _ = query.ToSQL(user)
-		a.Equal(q, "SELECT alive, bio, birth_date, created_at, id, name, name as full_name, price, updated_at FROM users AS users LIMIT 10")
+		a.Equal(fmt.Sprintf("%s LIMIT 10", s), q)
 
 		query = tx.Paginate(3, 10)
 		q, _ = query.ToSQL(user)
-		a.Equal(q, "SELECT alive, bio, birth_date, created_at, id, name, name as full_name, price, updated_at FROM users AS users LIMIT 10 OFFSET 20")
+		a.Equal(fmt.Sprintf("%s LIMIT 10 OFFSET 20", s), q)
 	})
 }
 
