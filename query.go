@@ -1,11 +1,5 @@
 package pop
 
-import (
-	"fmt"
-	"log"
-	"strings"
-)
-
 type Query struct {
 	RawSQL       *Clause
 	LimitResults int
@@ -60,82 +54,6 @@ func Q(c *Connection) *Query {
 }
 
 func (q Query) ToSQL(model *Model, addColumns ...string) (string, []interface{}) {
-	sql := q.RawSQL.Fragment
-	args := q.RawSQL.Arguments
-	if sql == "" {
-		sql, args = q.buildSQL(model, addColumns...)
-	}
-	sql = q.Connection.Dialect.TranslateSQL(sql)
-	if Debug {
-		x := fmt.Sprintf("[POP]: %s", sql)
-
-		if len(args) > 0 {
-			xargs := make([]string, len(args))
-			for i, a := range args {
-				switch a.(type) {
-				case string:
-					xargs[i] = fmt.Sprintf("%q", a)
-				default:
-					xargs[i] = fmt.Sprintf("%v", a)
-				}
-			}
-			x = fmt.Sprintf("%s | %s", x, xargs)
-		}
-
-		log.Println(x)
-
-	}
-	return sql, args
-}
-
-func (q Query) buildSQL(model *Model, addColumns ...string) (sql string, args []interface{}) {
-	tableName := model.TableName()
-	cols := q.buildColumns(model, addColumns...)
-
-	q.FromClauses = append(q.FromClauses, FromClause{
-		From: tableName,
-		As:   strings.Replace(tableName, ".", "_", -1),
-	})
-
-	sql = fmt.Sprintf("SELECT %s FROM %s", cols.Readable().SelectString(), q.FromClauses)
-	if len(q.WhereClauses) > 0 {
-		sql = fmt.Sprintf("%s WHERE %s", sql, q.WhereClauses.Join(" AND "))
-		for _, arg := range q.WhereClauses.Args() {
-			args = append(args, arg)
-		}
-	}
-	if len(q.OrderClauses) > 0 {
-		sql = fmt.Sprintf("%s ORDER BY %s", sql, q.OrderClauses.Join(", "))
-		for _, arg := range q.OrderClauses.Args() {
-			args = append(args, arg)
-		}
-	}
-	if q.LimitResults > 0 && q.Paginator == nil {
-		sql = fmt.Sprintf("%s LIMIT %d", sql, q.LimitResults)
-	}
-	if q.Paginator != nil {
-		sql = fmt.Sprintf("%s LIMIT %d", sql, q.Paginator.PerPage)
-		sql = fmt.Sprintf("%s OFFSET %d", sql, q.Paginator.Offset)
-	}
-	return sql, args
-}
-
-var columnCache = map[string]Columns{}
-
-func (q Query) buildColumns(model *Model, addColumns ...string) Columns {
-	tableName := model.TableName()
-	acl := len(addColumns)
-	if acl <= 0 {
-		cols, ok := columnCache[tableName]
-		if ok {
-			return cols
-		}
-		cols = ColumnsForStruct(model.Value)
-		columnCache[tableName] = cols
-		return cols
-	} else {
-		cols := NewColumns()
-		cols.Add(addColumns...)
-		return cols
-	}
+	sb := NewSQLBuilder(q, model, addColumns...)
+	return sb.String(), sb.Args()
 }

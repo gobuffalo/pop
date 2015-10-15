@@ -7,7 +7,7 @@ import (
 	"github.com/markbates/pop"
 )
 
-func Benchmark_Create(b *testing.B) {
+func Benchmark_Create_Pop(b *testing.B) {
 	transaction(func(tx *pop.Connection) {
 		for n := 0; n < b.N; n++ {
 			u := &User{
@@ -42,7 +42,7 @@ func Benchmark_Update(b *testing.B) {
 	})
 }
 
-func Benchmark_Find(b *testing.B) {
+func Benchmark_Find_Pop(b *testing.B) {
 	transaction(func(tx *pop.Connection) {
 		u := &User{
 			Name: nulls.NewString("Mark Bates"),
