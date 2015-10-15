@@ -31,6 +31,11 @@ func (m *Model) FieldByName(s string) (reflect.Value, error) {
 	return fbn, nil
 }
 
+func (m *Model) AssociationName() string {
+	tn := inflect.Singularize(m.TableName())
+	return fmt.Sprintf("%s_id", tn)
+}
+
 func (m *Model) Validate(*Connection) (*validate.Errors, error) {
 	return validate.NewErrors(), nil
 }

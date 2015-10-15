@@ -1,5 +1,7 @@
 package pop
 
+import . "github.com/markbates/pop/columns"
+
 func (c *Connection) Reload(model interface{}) error {
 	sm := Model{Value: model}
 	return c.Find(model, sm.ID())
@@ -26,7 +28,7 @@ func (c *Connection) Create(model interface{}, excludeColumns ...string) error {
 	return c.timeFunc("Create", func() error {
 		sm := &Model{Value: model}
 
-		cols := ColumnsForStruct(model)
+		cols := ColumnsForStruct(model, sm.TableName())
 		cols.Remove(excludeColumns...)
 
 		sm.TouchCreatedAt()
@@ -40,7 +42,7 @@ func (c *Connection) Update(model interface{}, excludeColumns ...string) error {
 	return c.timeFunc("Update", func() error {
 		sm := &Model{Value: model}
 
-		cols := ColumnsForStruct(model)
+		cols := ColumnsForStruct(model, sm.TableName())
 		cols.Remove("id", "created_at")
 		cols.Remove(excludeColumns...)
 

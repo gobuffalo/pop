@@ -1,13 +1,14 @@
 package pop
 
 type Query struct {
-	RawSQL       *Clause
-	LimitResults int
-	WhereClauses Clauses
-	OrderClauses Clauses
-	FromClauses  FromClauses
-	Paginator    *Paginator
-	Connection   *Connection
+	RawSQL                  *Clause
+	LimitResults            int
+	WhereClauses            Clauses
+	OrderClauses            Clauses
+	FromClauses             FromClauses
+	BelongsToThroughClauses BelongsToThroughClauses
+	Paginator               *Paginator
+	Connection              *Connection
 }
 
 func (c *Connection) RawQuery(stmt string, args ...interface{}) *Query {

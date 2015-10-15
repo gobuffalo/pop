@@ -47,3 +47,10 @@ func (c FromClauses) String() string {
 	}
 	return strings.Join(cs, ", ")
 }
+
+type BelongsToThroughClause struct {
+	BelongsTo *Model
+	Through   *Model
+}
+
+type BelongsToThroughClauses []BelongsToThroughClause

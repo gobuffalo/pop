@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log"
 	"strings"
+
+	. "github.com/markbates/pop/columns"
 )
 
 type SQLBuilder struct {
@@ -56,7 +58,7 @@ func (sq *SQLBuilder) compile() {
 
 func (sq *SQLBuilder) log() {
 	if Debug {
-		args := sq.Args()
+		args := sq.args
 		x := fmt.Sprintf("[POP]: %s", sq.sql)
 
 		if len(args) > 0 {
@@ -76,22 +78,46 @@ func (sq *SQLBuilder) log() {
 }
 
 func (sq *SQLBuilder) buildSQL() string {
-	tableName := sq.Model.TableName()
 	cols := sq.buildColumns()
 
-	fc := append(sq.Query.FromClauses, FromClause{
-		From: tableName,
-		As:   strings.Replace(tableName, ".", "_", -1),
-	})
+	fc := sq.buildFromClauses()
 
 	sql := fmt.Sprintf("SELECT %s FROM %s", cols.Readable().SelectString(), fc)
+
 	sql = sq.buildWhereClauses(sql)
 	sql = sq.buildOrderClauses(sql)
 	sql = sq.buildPaginationClauses(sql)
+
 	return sql
 }
 
+func (sq *SQLBuilder) buildFromClauses() FromClauses {
+	models := []*Model{
+		sq.Model,
+	}
+	for _, mc := range sq.Query.BelongsToThroughClauses {
+		models = append(models, mc.Through)
+	}
+
+	fc := sq.Query.FromClauses
+	for _, m := range models {
+		tableName := m.TableName()
+		fc = append(fc, FromClause{
+			From: tableName,
+			As:   strings.Replace(tableName, ".", "_", -1),
+		})
+	}
+
+	return fc
+}
+
 func (sq *SQLBuilder) buildWhereClauses(sql string) string {
+	mcs := sq.Query.BelongsToThroughClauses
+	for _, mc := range mcs {
+		sq.Query.Where(fmt.Sprintf("%s.%s = ?", mc.Through.TableName(), mc.BelongsTo.AssociationName()), mc.BelongsTo.ID())
+		sq.Query.Where(fmt.Sprintf("%s.id = %s.%s", sq.Model.TableName(), mc.Through.TableName(), sq.Model.AssociationName()))
+	}
+
 	wc := sq.Query.WhereClauses
 	if len(wc) > 0 {
 		sql = fmt.Sprintf("%s WHERE %s", sql, wc.Join(" AND "))
@@ -134,11 +160,11 @@ func (sq *SQLBuilder) buildColumns() Columns {
 		if ok {
 			return cols
 		}
-		cols = ColumnsForStruct(sq.Model.Value)
+		cols = ColumnsForStruct(sq.Model.Value, tableName)
 		columnCache[tableName] = cols
 		return cols
 	} else {
-		cols := NewColumns()
+		cols := NewColumns("")
 		cols.Add(sq.AddColumns...)
 		return cols
 	}

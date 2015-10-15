@@ -94,7 +94,6 @@ func Test_Count(t *testing.T) {
 		user := User{Name: nulls.NewString("Mark")}
 		err := tx.Create(&user)
 		a.NoError(err)
-
 		c, err := tx.Count(&user)
 		a.NoError(err)
 		a.Equal(c, 1)

@@ -10,7 +10,7 @@ import (
 
 func Test_Scopes(t *testing.T) {
 	r := require.New(t)
-	oql := "SELECT alive, bio, birth_date, created_at, id, name, name as full_name, price, updated_at FROM users AS users"
+	oql := "SELECT name as full_name, users.alive, users.bio, users.birth_date, users.created_at, users.id, users.name, users.price, users.updated_at FROM users AS users"
 
 	transaction(func(tx *pop.Connection) {
 		u := &pop.Model{Value: &User{}}

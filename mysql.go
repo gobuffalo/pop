@@ -6,6 +6,7 @@ import (
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/markbates/going/clam"
+	. "github.com/markbates/pop/columns"
 )
 
 type MySQL struct {

@@ -4,6 +4,7 @@ import (
 	"os"
 	"path/filepath"
 
+	. "github.com/markbates/pop/columns"
 	_ "github.com/mattn/go-sqlite3"
 )
 

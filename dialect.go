@@ -3,6 +3,8 @@ package pop
 import (
 	"fmt"
 	"log"
+
+	. "github.com/markbates/pop/columns"
 )
 
 type Dialect interface {

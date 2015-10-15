@@ -58,4 +58,5 @@ type Friend struct {
 type Friends []Friend
 
 type Enemy struct {
+	A string
 }

@@ -8,6 +8,7 @@ import (
 
 	_ "github.com/lib/pq"
 	"github.com/markbates/going/clam"
+	. "github.com/markbates/pop/columns"
 )
 
 type PostgreSQL struct {
