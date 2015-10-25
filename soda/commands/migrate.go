@@ -3,54 +3,177 @@ package commands
 import (
 	"fmt"
 	"os"
-	"os/exec"
+	"time"
 
 	"github.com/codegangsta/cli"
-	"github.com/markbates/going/clam"
+	"github.com/fatih/color"
 	"github.com/markbates/going/defaults"
 	"github.com/markbates/pop"
-	_ "github.com/mattes/migrate/migrate"
+	"github.com/mattes/migrate/file"
+	"github.com/mattes/migrate/migrate"
+	"github.com/mattes/migrate/migrate/direction"
+	pipep "github.com/mattes/migrate/pipe"
 )
 
-var Migrate = cli.Command{
-	Name: "migrate",
-	Flags: []cli.Flag{
-		cli.StringFlag{
-			Name:  "path",
-			Value: "./migrations",
-			Usage: "Path to the migrations folder",
+var timerStart time.Time
+var url string
+var path string
+
+/*
+Migrate runs migration commands against the database. The code for this command was inspired by
+the code found in http://github.com/mattes/migrate. Thanks to this code we don't need to rely on
+the `migrate` binary being installed, and this makes life a lot nicer.
+*/
+func Migrate() cli.Command {
+	return cli.Command{
+		Name: "migrate",
+		Flags: []cli.Flag{
+			cli.StringFlag{
+				Name:  "path",
+				Value: "./migrations",
+				Usage: "Path to the migrations folder",
+			},
+			EnvFlag,
 		},
-		cli.StringFlag{
-			Name:  "e",
-			Value: "development",
-			Usage: "The environment you want to run migrations against. Will use $GO_ENV if set.",
+		Usage: "Runs migrations against your database.",
+		Action: func(c *cli.Context) {
+			env := defaults.String(os.Getenv("GO_ENV"), c.String("e"))
+
+			conn := pop.Connections[env]
+			fmt.Printf("Database: %s\n", conn)
+			url = conn.String()
+
+			path = c.String("path")
+			os.Mkdir(path, 0755)
+			fmt.Printf("Migrations path: %s\n", path)
+
+			cmd := "up"
+			if len(c.Args()) > 0 {
+				cmd = c.Args().Get(0)
+			}
+
+			switch cmd {
+			case "create":
+				name := c.Args().Get(1)
+				if name == "" {
+					fmt.Println("Please specify name.")
+					os.Exit(1)
+				}
+
+				mf, err := migrate.Create(url, path, name)
+				if err != nil {
+					fmt.Println(err)
+					os.Exit(1)
+				}
+
+				fmt.Printf("Version %v migration files created in %v:\n", mf.Version, path)
+				fmt.Println(mf.UpFile.FileName)
+				fmt.Println(mf.DownFile.FileName)
+
+			case "up":
+				handlePipeFunc(migrate.Up)
+
+			case "down":
+				handlePipeFunc(migrate.Down)
+
+			case "redo":
+				handlePipeFunc(migrate.Redo)
+
+			case "reset":
+				handlePipeFunc(migrate.Reset)
+
+			case "version":
+				version, err := migrate.Version(url, path)
+				if err != nil {
+					fmt.Println(err)
+					os.Exit(1)
+				}
+				fmt.Println(version)
+
+			default:
+				fallthrough
+			case "help":
+				helpCmd()
+			}
 		},
-	},
-	Usage: "Runs migrations against your database. This just wraps https://github.com/mattes/migrate with good defaults.",
-	Action: func(c *cli.Context) {
-		env := defaults.String(os.Getenv("GO_ENV"), c.String("e"))
+	}
+}
 
-		conn := pop.Connections[env]
-		fmt.Printf("database: %s\n", conn)
-		os.Mkdir("migrations", 0755)
+type pipeFunc func(chan interface{}, string, string)
 
-		name := "migrate"
-		args := []string{"-url", conn.String(), "-path", c.String("path")}
-		if len(c.Args()) == 0 {
-			args = append(args, "up")
-		} else {
-			args = append(args, c.Args()...)
+func handlePipeFunc(fn pipeFunc) {
+	timerStart = time.Now()
+	pipe := pipep.New()
+	go fn(pipe, url, path)
+	ok := writePipe(pipe)
+	printTimer()
+	if !ok {
+		os.Exit(1)
+	}
+}
+
+func writePipe(pipe chan interface{}) (ok bool) {
+	okFlag := true
+	if pipe != nil {
+		for {
+			select {
+			case item, more := <-pipe:
+				if !more {
+					return okFlag
+				} else {
+					switch item.(type) {
+
+					case string:
+						fmt.Println(item.(string))
+
+					case error:
+						c := color.New(color.FgRed)
+						c.Println(item.(error).Error(), "\n")
+						okFlag = false
+
+					case file.File:
+						f := item.(file.File)
+						c := color.New(color.FgBlue)
+						if f.Direction == direction.Up {
+							c.Print(">")
+						} else if f.Direction == direction.Down {
+							c.Print("<")
+						}
+						fmt.Printf(" %s\n", f.FileName)
+
+					default:
+						text := fmt.Sprint(item)
+						fmt.Println(text)
+					}
+				}
+			}
 		}
-		cmd := exec.Command(name, args...)
+	}
+	return okFlag
+}
 
-		err := clam.RunAndListen(cmd, func(s string) {
-			fmt.Println(s)
-		})
+func printTimer() {
+	diff := time.Now().Sub(timerStart).Seconds()
+	if diff > 60 {
+		fmt.Printf("\n%.4f minutes\n", diff/60)
+	} else {
+		fmt.Printf("\n%.4f seconds\n", diff)
+	}
+}
 
-		if err != nil {
-			fmt.Fprintln(os.Stderr, err)
-			os.Exit(1)
-		}
+func helpCmd() {
+	os.Stderr.WriteString(
+		`usage: pop migrate [-path=<path>]  <command> [<args>]
 
-	},
+Commands:
+   create <name>  Create a new migration
+   up             Apply all -up- migrations
+   down           Apply all -down- migrations
+   reset          Down followed by Up
+   redo           Roll back most recent migration, then apply it again
+   version        Show current migration version
+   help           Show this help
+
+'-path' defaults to ./migrations.
+`)
 }
