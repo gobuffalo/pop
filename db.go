@@ -2,18 +2,18 @@ package pop
 
 import "github.com/jmoiron/sqlx"
 
-type DB struct {
+type dB struct {
 	*sqlx.DB
 }
 
-func (db *DB) Transaction() (*TX, error) {
-	return NewTX(db)
+func (db *dB) Transaction() (*tX, error) {
+	return newTX(db)
 }
 
-func (db *DB) Rollback() error {
+func (db *dB) Rollback() error {
 	return nil
 }
 
-func (db *DB) Commit() error {
+func (db *dB) Commit() error {
 	return nil
 }

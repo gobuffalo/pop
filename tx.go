@@ -11,13 +11,13 @@ func init() {
 	rand.Seed(time.Now().UnixNano())
 }
 
-type TX struct {
+type tX struct {
 	ID int
 	*sqlx.Tx
 }
 
-func NewTX(db *DB) (*TX, error) {
-	t := &TX{
+func newTX(db *dB) (*tX, error) {
+	t := &tX{
 		ID: rand.Int(),
 	}
 	tx, err := db.Beginx()
@@ -25,6 +25,6 @@ func NewTX(db *DB) (*TX, error) {
 	return t, err
 }
 
-func (tx *TX) Transaction() (*TX, error) {
+func (tx *tX) Transaction() (*tX, error) {
 	return tx, nil
 }

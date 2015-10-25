@@ -12,7 +12,7 @@ type Store interface {
 	NamedExec(query string, arg interface{}) (sql.Result, error)
 	Exec(query string, args ...interface{}) (sql.Result, error)
 	PrepareNamed(query string) (*sqlx.NamedStmt, error)
-	Transaction() (*TX, error)
+	Transaction() (*tX, error)
 	Rollback() error
 	Commit() error
 }

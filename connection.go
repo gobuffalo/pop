@@ -43,7 +43,7 @@ func Connect(e string) (*Connection, error) {
 	}
 	db, err := sqlx.Open(c.Dialect.Details().Dialect, c.Dialect.URL())
 	if err == nil {
-		c.Store = &DB{db}
+		c.Store = &dB{db}
 	}
 	return c, nil
 }

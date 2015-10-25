@@ -16,9 +16,9 @@ import (
 )
 
 func init() {
-	path, err := FindConfigPath()
+	path, err := findConfigPath()
 	if err == nil {
-		LoadConfig(path)
+		loadConfig(path)
 	}
 }
 
@@ -48,7 +48,7 @@ func (cd *ConnectionDetails) Parse(port string) error {
 	return nil
 }
 
-func FindConfigPath() (string, error) {
+func findConfigPath() (string, error) {
 	pwd, err := getAppPath()
 	if err != nil {
 		return "", err
@@ -77,7 +77,7 @@ func getAppPath() (string, error) {
 	return strings.TrimSuffix(pwd, "\n"), nil
 }
 
-func LoadConfig(path string) error {
+func loadConfig(path string) error {
 	// fmt.Printf("path: %s\n", path)
 	b, err := ioutil.ReadFile(path)
 	if err != nil {
