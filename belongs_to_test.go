@@ -1,7 +1,6 @@
 package pop_test
 
 import (
-	"fmt"
 	"os"
 	"strings"
 	"testing"
@@ -37,7 +36,6 @@ func Test_BelongsToThrough(t *testing.T) {
 
 		sql, args := q.ToSQL(&pop.Model{Value: &Enemy{}})
 		r.Equal(qs, sql)
-		fmt.Printf("args: %s\n", args)
 		r.Equal([]interface{}{1}, args)
 	})
 }

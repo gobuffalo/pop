@@ -85,7 +85,6 @@ func (c *Connection) Q() *Query {
 }
 
 func (c *Connection) timeFunc(name string, fn func() error) error {
-	// fmt.Printf("timeFunc!: %s\n", name)
 	now := time.Now()
 	err := fn()
 	c.Timings = append(c.Timings, time.Now().Sub(now))
