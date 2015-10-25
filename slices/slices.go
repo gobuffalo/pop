@@ -1,4 +1,4 @@
-package pop
+package slices
 
 import (
 	"database/sql/driver"
@@ -9,39 +9,39 @@ import (
 )
 
 // For reading in arrays from postgres
-type FloatSlice []float64
-type IntSlice []int
-type StringSlice []string
+type Float []float64
+type Int []int
+type String []string
 
-func (s *StringSlice) Scan(src interface{}) error {
+func (s *String) Scan(src interface{}) error {
 	b, ok := src.([]byte)
 	if !ok {
 		return error(errors.New("Scan source was not []byte"))
 	}
-	(*s) = strToStringSlice(string(b))
+	(*s) = strToString(string(b))
 	return nil
 }
 
-func (s StringSlice) Value() (driver.Value, error) {
+func (s String) Value() (driver.Value, error) {
 	return fmt.Sprintf("{%s}", strings.Join(s, ",")), nil
 }
 
-func strToStringSlice(s string) []string {
+func strToString(s string) []string {
 	r := strings.Trim(s, "{}")
 	return strings.Split(r, ",")
 }
 
-func (s *IntSlice) Scan(src interface{}) error {
+func (s *Int) Scan(src interface{}) error {
 	b, ok := src.([]byte)
 	if !ok {
 		return error(errors.New("Scan source was not []byte"))
 	}
 	str := string(b)
-	(*s) = strToIntSlice(str)
+	(*s) = strToInt(str)
 	return nil
 }
 
-func (s IntSlice) Value() (driver.Value, error) {
+func (s Int) Value() (driver.Value, error) {
 	sa := make([]string, len(s))
 	for x, i := range s {
 		sa[x] = strconv.Itoa(i)
@@ -49,7 +49,7 @@ func (s IntSlice) Value() (driver.Value, error) {
 	return fmt.Sprintf("{%s}", strings.Join(sa, ",")), nil
 }
 
-func strToIntSlice(s string) []int {
+func strToInt(s string) []int {
 	r := strings.Trim(s, "{}")
 	a := make([]int, 0, 10)
 	for _, t := range strings.Split(r, ",") {
@@ -59,18 +59,18 @@ func strToIntSlice(s string) []int {
 	return a
 }
 
-func (s *FloatSlice) Scan(src interface{}) error {
+func (s *Float) Scan(src interface{}) error {
 	fmt.Printf("src: %s\n", src)
 	b, ok := src.([]byte)
 	if !ok {
 		return error(errors.New("Scan source was not []byte"))
 	}
 	str := string(b)
-	(*s) = strToFloatSlice(str, *s)
+	(*s) = strToFloat(str, *s)
 	return nil
 }
 
-func (s FloatSlice) Value() (driver.Value, error) {
+func (s Float) Value() (driver.Value, error) {
 	sa := make([]string, len(s))
 	for x, i := range s {
 		sa[x] = strconv.FormatFloat(i, 'f', -1, 64)
@@ -78,7 +78,7 @@ func (s FloatSlice) Value() (driver.Value, error) {
 	return fmt.Sprintf("{%s}", strings.Join(sa, ",")), nil
 }
 
-func strToFloatSlice(s string, a []float64) []float64 {
+func strToFloat(s string, a []float64) []float64 {
 	r := strings.Trim(s, "{}")
 	if a == nil {
 		a = make([]float64, 0, 10)
