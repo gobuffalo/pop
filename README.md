@@ -48,10 +48,10 @@ Note that the `database.yml` file is also a Go template, so you can use Go templ
 Once you have a configuration file defined you can easily connect to one of these connections in your application.
 
 ```go
-	db, err := pop.Connect("development")
-	if err != nil {
-		log.Panic(err)
-	}
+db, err := pop.Connect("development")
+if err != nil {
+  log.Panic(err)
+}
 ```
 
 Now that you have your connection to the database you can start executing queries against it.
