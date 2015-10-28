@@ -38,4 +38,20 @@ production:
   url: {{ env "DATABASE_URL" }}
 ```
 
-asdf
+Note that the `database.yml` file is also a Go template, so you can use Go template syntax. There are two special functions that are included, `env` and `envOr`.
+
+* `env` - This function will look for the named environment variable and insert it into your file. This is useful for configuration production databases without having to store secret information in your repository. `{{ env "DATABASE_URL" }}`
+* `envOr` - This function will look for the named environment variable and use it. If the variable can not be found a default value will be used. `{{ envOr "MYSQL_HOST" "localhost" }}`
+
+### In your code
+
+Once you have a configuration file defined you can easily connect to one of these connections in your application.
+
+```go
+	db, err := pop.Connect("development")
+	if err != nil {
+		log.Panic(err)
+	}
+```
+
+Now that you have your connection to the database you can start executing queries against it.
