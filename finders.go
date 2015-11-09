@@ -3,8 +3,11 @@ package pop
 import "reflect"
 
 func (c *Connection) Find(model interface{}, id int) error {
-	q := Q(c).Where("id = ?", id)
-	return q.First(model)
+	return Q(c).Find(model, id)
+}
+
+func (q *Query) Find(model interface{}, id int) error {
+	return q.Where("id = ?", id).First(model)
 }
 
 func (c *Connection) First(model interface{}) error {
