@@ -1,6 +1,11 @@
 package commands
 
-import "github.com/codegangsta/cli"
+import (
+	"github.com/codegangsta/cli"
+	_ "github.com/mattes/migrate/driver/mysql"
+	_ "github.com/mattes/migrate/driver/postgres"
+	_ "github.com/mattes/migrate/driver/sqlite3"
+)
 
 var EnvFlag = cli.StringFlag{
 	Name:  "e",
