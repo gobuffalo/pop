@@ -2,7 +2,6 @@ package pop
 
 import (
 	"fmt"
-	"log"
 	"os/exec"
 	"strconv"
 
@@ -27,9 +26,7 @@ func (p *PostgreSQL) Create(store Store, model *Model, cols Columns) error {
 	}{}
 	w := cols.Writeable()
 	query := fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s) returning id", model.TableName(), w.String(), w.SymbolizedString())
-	if Debug {
-		log.Printf("[POP]: %s", query)
-	}
+	Log(query)
 	stmt, err := store.PrepareNamed(query)
 	if err != nil {
 		return err

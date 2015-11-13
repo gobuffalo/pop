@@ -2,7 +2,6 @@ package pop
 
 import (
 	"fmt"
-	"log"
 	"strings"
 
 	. "github.com/markbates/pop/columns"
@@ -59,7 +58,7 @@ func (sq *SQLBuilder) compile() {
 func (sq *SQLBuilder) log() {
 	if Debug {
 		args := sq.args
-		x := fmt.Sprintf("[POP]: %s", sq.sql)
+		x := sq.sql
 
 		if len(args) > 0 {
 			xargs := make([]string, len(args))
@@ -73,7 +72,7 @@ func (sq *SQLBuilder) log() {
 			}
 			x = fmt.Sprintf("%s | %s", x, xargs)
 		}
-		log.Println(x)
+		Log(x)
 	}
 }
 

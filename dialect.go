@@ -2,7 +2,6 @@ package pop
 
 import (
 	"fmt"
-	"log"
 
 	. "github.com/markbates/pop/columns"
 )
@@ -25,7 +24,7 @@ func genericCreate(store Store, model *Model, cols Columns) error {
 	w := cols.Writeable()
 	query := fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s)", model.TableName(), w.String(), w.SymbolizedString())
 	if Debug {
-		log.Printf("[POP]: %s", query)
+		Log(query)
 	}
 	res, err := store.NamedExec(query, model.Value)
 	if err != nil {
@@ -41,11 +40,11 @@ func genericCreate(store Store, model *Model, cols Columns) error {
 func genericUpdate(store Store, model *Model, cols Columns) error {
 	stmt := fmt.Sprintf("UPDATE %s SET %s where id = %d", model.TableName(), cols.Writeable().UpdateString(), model.ID())
 	if Debug {
-		log.Printf("[POP]: %s", stmt)
+		Log(stmt)
 	}
 	_, err := store.NamedExec(stmt, model.Value)
 	if err != nil {
-		log.Printf("Error: Update: %q", err)
+		Log(fmt.Sprintf("Error: Update: %q", err))
 	}
 	return err
 }
@@ -53,7 +52,7 @@ func genericUpdate(store Store, model *Model, cols Columns) error {
 func genericDestroy(store Store, model *Model) error {
 	stmt := fmt.Sprintf("DELETE FROM %s WHERE id = %d", model.TableName(), model.ID())
 	if Debug {
-		log.Printf("[POP]: %s", stmt)
+		Log(stmt)
 	}
 	_, err := store.Exec(stmt)
 	return err
