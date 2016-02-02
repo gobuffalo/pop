@@ -25,6 +25,8 @@ func newTX(db *dB) (*tX, error) {
 	return t, err
 }
 
+// Transaction simply returns the current transaction,
+// this is defined so it implements the `Store` interface.
 func (tx *tX) Transaction() (*tX, error) {
 	return tx, nil
 }
