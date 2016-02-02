@@ -1,4 +1,4 @@
-# POP
+# POP [![GoDoc](https://godoc.org/github.com/markbates/pop?status.svg)](https://godoc.org/github.com/markbates/pop) [![Build Status](https://travis-ci.org/markbates/pop.svg)](https://travis-ci.org/markbates/pop)
 
 ## A Tasty Treat For All Your Database Needs
 

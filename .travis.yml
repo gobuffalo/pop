@@ -1,0 +1,35 @@
+language: go
+
+sudo: false
+
+go:
+  - 1.4
+  - 1.5
+  - tip
+
+before_script:
+  - mysql -e 'create database pop_test;'
+  - mysql -u travis --password= pop_test < sql_scripts/mysql-pop_test.sql
+  - psql -c 'create database pop_test;' -U postgres
+  - psql pop_test < sql_scripts/postgres-pop_test.sql
+
+# script: ./test.sh
+script: go test -v ./...
+
+global_env:
+  - MYSQL_USER="travis"
+  - MYSQL_PASSWORD=""
+  - POSTGRES_PASSWORD=""
+
+env:
+  - SODA_DIALECT="postgres"
+  - SODA_DIALECT="mysql_travis"
+  - SODA_DIALECT="sqlite"
+
+addons:
+  postgresql: "9.3"
+
+matrix:
+  allow_failures:
+    - go: 'tip'
+
