@@ -1,12 +1,12 @@
 package pop
 
 type Query struct {
-	RawSQL                  *Clause
-	LimitResults            int
-	WhereClauses            Clauses
-	OrderClauses            Clauses
-	FromClauses             FromClauses
-	BelongsToThroughClauses BelongsToThroughClauses
+	RawSQL                  *clause
+	limitResults            int
+	whereClauses            clauses
+	orderClauses            clauses
+	fromClauses             fromClauses
+	belongsToThroughClauses belongsToThroughClauses
 	Paginator               *Paginator
 	Connection              *Connection
 }
@@ -16,7 +16,7 @@ func (c *Connection) RawQuery(stmt string, args ...interface{}) *Query {
 }
 
 func (q *Query) RawQuery(stmt string, args ...interface{}) *Query {
-	q.RawSQL = &Clause{stmt, args}
+	q.RawSQL = &clause{stmt, args}
 	return q
 }
 
@@ -25,7 +25,7 @@ func (c *Connection) Where(stmt string, args ...interface{}) *Query {
 }
 
 func (q *Query) Where(stmt string, args ...interface{}) *Query {
-	q.WhereClauses = append(q.WhereClauses, Clause{stmt, args})
+	q.whereClauses = append(q.whereClauses, clause{stmt, args})
 	return q
 }
 
@@ -34,7 +34,7 @@ func (c *Connection) Order(stmt string) *Query {
 }
 
 func (q *Query) Order(stmt string) *Query {
-	q.OrderClauses = append(q.OrderClauses, Clause{stmt, []interface{}{}})
+	q.orderClauses = append(q.orderClauses, clause{stmt, []interface{}{}})
 	return q
 }
 
@@ -43,13 +43,13 @@ func (c *Connection) Limit(limit int) *Query {
 }
 
 func (q *Query) Limit(limit int) *Query {
-	q.LimitResults = limit
+	q.limitResults = limit
 	return q
 }
 
 func Q(c *Connection) *Query {
 	return &Query{
-		RawSQL:     &Clause{},
+		RawSQL:     &clause{},
 		Connection: c,
 	}
 }
@@ -57,4 +57,8 @@ func Q(c *Connection) *Query {
 func (q Query) ToSQL(model *Model, addColumns ...string) (string, []interface{}) {
 	sb := NewSQLBuilder(q, model, addColumns...)
 	return sb.String(), sb.Args()
+}
+
+func (q Query) ToSQLBuilder(model *Model, addColumns ...string) *SQLBuilder {
+	return NewSQLBuilder(q, model, addColumns...)
 }

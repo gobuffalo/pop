@@ -36,6 +36,10 @@ func transaction(fn func(tx *pop.Connection)) {
 	})
 }
 
+func ts(s string) string {
+	return PDB.Dialect.TranslateSQL(s)
+}
+
 type User struct {
 	ID        int           `db:"id"`
 	Name      nulls.String  `db:"name"`

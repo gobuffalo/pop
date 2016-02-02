@@ -79,7 +79,7 @@ func (sq *SQLBuilder) log() {
 func (sq *SQLBuilder) buildSQL() string {
 	cols := sq.buildColumns()
 
-	fc := sq.buildFromClauses()
+	fc := sq.buildfromClauses()
 
 	sql := fmt.Sprintf("SELECT %s FROM %s", cols.Readable().SelectString(), fc)
 
@@ -90,18 +90,18 @@ func (sq *SQLBuilder) buildSQL() string {
 	return sql
 }
 
-func (sq *SQLBuilder) buildFromClauses() FromClauses {
+func (sq *SQLBuilder) buildfromClauses() fromClauses {
 	models := []*Model{
 		sq.Model,
 	}
-	for _, mc := range sq.Query.BelongsToThroughClauses {
+	for _, mc := range sq.Query.belongsToThroughClauses {
 		models = append(models, mc.Through)
 	}
 
-	fc := sq.Query.FromClauses
+	fc := sq.Query.fromClauses
 	for _, m := range models {
 		tableName := m.TableName()
-		fc = append(fc, FromClause{
+		fc = append(fc, fromClause{
 			From: tableName,
 			As:   strings.Replace(tableName, ".", "_", -1),
 		})
@@ -111,13 +111,13 @@ func (sq *SQLBuilder) buildFromClauses() FromClauses {
 }
 
 func (sq *SQLBuilder) buildWhereClauses(sql string) string {
-	mcs := sq.Query.BelongsToThroughClauses
+	mcs := sq.Query.belongsToThroughClauses
 	for _, mc := range mcs {
 		sq.Query.Where(fmt.Sprintf("%s.%s = ?", mc.Through.TableName(), mc.BelongsTo.AssociationName()), mc.BelongsTo.ID())
 		sq.Query.Where(fmt.Sprintf("%s.id = %s.%s", sq.Model.TableName(), mc.Through.TableName(), sq.Model.AssociationName()))
 	}
 
-	wc := sq.Query.WhereClauses
+	wc := sq.Query.whereClauses
 	if len(wc) > 0 {
 		sql = fmt.Sprintf("%s WHERE %s", sql, wc.Join(" AND "))
 		for _, arg := range wc.Args() {
@@ -128,7 +128,7 @@ func (sq *SQLBuilder) buildWhereClauses(sql string) string {
 }
 
 func (sq *SQLBuilder) buildOrderClauses(sql string) string {
-	oc := sq.Query.OrderClauses
+	oc := sq.Query.orderClauses
 	if len(oc) > 0 {
 		sql = fmt.Sprintf("%s ORDER BY %s", sql, oc.Join(", "))
 		for _, arg := range oc.Args() {
@@ -139,8 +139,8 @@ func (sq *SQLBuilder) buildOrderClauses(sql string) string {
 }
 
 func (sq *SQLBuilder) buildPaginationClauses(sql string) string {
-	if sq.Query.LimitResults > 0 && sq.Query.Paginator == nil {
-		sql = fmt.Sprintf("%s LIMIT %d", sql, sq.Query.LimitResults)
+	if sq.Query.limitResults > 0 && sq.Query.Paginator == nil {
+		sql = fmt.Sprintf("%s LIMIT %d", sql, sq.Query.limitResults)
 	}
 	if sq.Query.Paginator != nil {
 		sql = fmt.Sprintf("%s LIMIT %d", sql, sq.Query.Paginator.PerPage)

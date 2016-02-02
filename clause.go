@@ -5,14 +5,14 @@ import (
 	"strings"
 )
 
-type Clause struct {
+type clause struct {
 	Fragment  string
 	Arguments []interface{}
 }
 
-type Clauses []Clause
+type clauses []clause
 
-func (c Clauses) Join(sep string) string {
+func (c clauses) Join(sep string) string {
 	out := make([]string, 0, len(c))
 	for _, clause := range c {
 		out = append(out, clause.Fragment)
@@ -20,7 +20,7 @@ func (c Clauses) Join(sep string) string {
 	return strings.Join(out, sep)
 }
 
-func (c Clauses) Args() (args []interface{}) {
+func (c clauses) Args() (args []interface{}) {
 	for _, clause := range c {
 		for _, arg := range clause.Arguments {
 			args = append(args, arg)
@@ -29,18 +29,18 @@ func (c Clauses) Args() (args []interface{}) {
 	return
 }
 
-type FromClause struct {
+type fromClause struct {
 	From string
 	As   string
 }
 
-type FromClauses []FromClause
+type fromClauses []fromClause
 
-func (c FromClause) String() string {
+func (c fromClause) String() string {
 	return fmt.Sprintf("%s AS %s", c.From, c.As)
 }
 
-func (c FromClauses) String() string {
+func (c fromClauses) String() string {
 	cs := []string{}
 	for _, cl := range c {
 		cs = append(cs, cl.String())
@@ -48,9 +48,9 @@ func (c FromClauses) String() string {
 	return strings.Join(cs, ", ")
 }
 
-type BelongsToThroughClause struct {
+type belongsToThroughClause struct {
 	BelongsTo *Model
 	Through   *Model
 }
 
-type BelongsToThroughClauses []BelongsToThroughClause
+type belongsToThroughClauses []belongsToThroughClause

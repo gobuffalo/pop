@@ -25,7 +25,7 @@ func (c *Connection) BelongsToThrough(bt, thru interface{}) *Query {
 // BelongsToThrough adds a "where" clause that connects the "bt" model
 // through the associated "thru" model.
 func (q *Query) BelongsToThrough(bt, thru interface{}) *Query {
-	q.BelongsToThroughClauses = append(q.BelongsToThroughClauses, BelongsToThroughClause{
+	q.belongsToThroughClauses = append(q.belongsToThroughClauses, belongsToThroughClause{
 		BelongsTo: &Model{Value: bt},
 		Through:   &Model{Value: thru},
 	})

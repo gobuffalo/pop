@@ -10,40 +10,30 @@ import (
 
 func Test_Where(t *testing.T) {
 	a := require.New(t)
+	m := &pop.Model{Value: &Enemy{}}
 
-	query := PDB.Where("id = ?", 1)
-	a.Equal(query.WhereClauses, pop.Clauses{pop.Clause{"id = ?", []interface{}{1}}})
+	q := PDB.Where("id = ?", 1)
+	a.Equal(ts("SELECT enemies.A FROM enemies AS enemies WHERE id = ?"), q.ToSQLBuilder(m).String())
 
-	query.Where("first_name = ? and last_name = ?", "Mark", "Bates")
-	a.Equal(query.WhereClauses, pop.Clauses{
-		pop.Clause{"id = ?", []interface{}{1}},
-		pop.Clause{"first_name = ? and last_name = ?", []interface{}{"Mark", "Bates"}},
-	})
+	q.Where("first_name = ? and last_name = ?", "Mark", "Bates")
+	a.Equal(ts("SELECT enemies.A FROM enemies AS enemies WHERE id = ? AND first_name = ? and last_name = ?"), q.ToSQLBuilder(m).String())
 
-	query = PDB.Where("name = ?", "Mark 'Awesome' Bates")
-	a.Equal(query.WhereClauses, pop.Clauses{
-		pop.Clause{"name = ?", []interface{}{"Mark 'Awesome' Bates"}},
-	})
+	q = PDB.Where("name = ?", "Mark 'Awesome' Bates")
+	a.Equal(ts("SELECT enemies.A FROM enemies AS enemies WHERE name = ?"), q.ToSQLBuilder(m).String())
 
-	query = PDB.Where("name = ?", "'; truncate users; --")
-	a.Equal(query.WhereClauses, pop.Clauses{
-		pop.Clause{"name = ?", []interface{}{"'; truncate users; --"}},
-	})
+	q = PDB.Where("name = ?", "'; truncate users; --")
+	a.Equal(ts("SELECT enemies.A FROM enemies AS enemies WHERE name = ?"), q.ToSQLBuilder(m).String())
 }
 
 func Test_Order(t *testing.T) {
 	a := require.New(t)
 
-	query := PDB.Order("id desc")
-	a.Equal(query.OrderClauses, pop.Clauses{
-		pop.Clause{"id desc", []interface{}{}},
-	})
+	m := &pop.Model{Value: &Enemy{}}
+	q := PDB.Order("id desc")
+	a.Equal(ts("SELECT enemies.A FROM enemies AS enemies ORDER BY id desc"), q.ToSQLBuilder(m).String())
 
-	query.Order("name desc")
-	a.Equal(query.OrderClauses, pop.Clauses{
-		pop.Clause{"id desc", []interface{}{}},
-		pop.Clause{"name desc", []interface{}{}},
-	})
+	q.Order("name desc")
+	a.Equal(ts("SELECT enemies.A FROM enemies AS enemies ORDER BY id desc, name desc"), q.ToSQLBuilder(m).String())
 }
 
 func Test_ToSQL(t *testing.T) {
