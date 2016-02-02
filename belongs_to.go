@@ -12,7 +12,7 @@ func (c *Connection) BelongsTo(model interface{}) *Query {
 // "model" passed into it.
 func (q *Query) BelongsTo(model interface{}) *Query {
 	m := &Model{Value: model}
-	q.Where(fmt.Sprintf("%s = ?", m.AssociationName()), m.ID())
+	q.Where(fmt.Sprintf("%s = ?", m.associationName()), m.ID())
 	return q
 }
 

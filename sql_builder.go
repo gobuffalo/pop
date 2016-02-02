@@ -113,8 +113,8 @@ func (sq *SQLBuilder) buildfromClauses() fromClauses {
 func (sq *SQLBuilder) buildWhereClauses(sql string) string {
 	mcs := sq.Query.belongsToThroughClauses
 	for _, mc := range mcs {
-		sq.Query.Where(fmt.Sprintf("%s.%s = ?", mc.Through.TableName(), mc.BelongsTo.AssociationName()), mc.BelongsTo.ID())
-		sq.Query.Where(fmt.Sprintf("%s.id = %s.%s", sq.Model.TableName(), mc.Through.TableName(), sq.Model.AssociationName()))
+		sq.Query.Where(fmt.Sprintf("%s.%s = ?", mc.Through.TableName(), mc.BelongsTo.associationName()), mc.BelongsTo.ID())
+		sq.Query.Where(fmt.Sprintf("%s.id = %s.%s", sq.Model.TableName(), mc.Through.TableName(), sq.Model.associationName()))
 	}
 
 	wc := sq.Query.whereClauses

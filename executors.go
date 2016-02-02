@@ -31,8 +31,8 @@ func (c *Connection) Create(model interface{}, excludeColumns ...string) error {
 		cols := ColumnsForStruct(model, sm.TableName())
 		cols.Remove(excludeColumns...)
 
-		sm.TouchCreatedAt()
-		sm.TouchUpdatedAt()
+		sm.touchCreatedAt()
+		sm.touchUpdatedAt()
 
 		return c.Dialect.Create(c.Store, sm, cols)
 	})
@@ -46,7 +46,7 @@ func (c *Connection) Update(model interface{}, excludeColumns ...string) error {
 		cols.Remove("id", "created_at")
 		cols.Remove(excludeColumns...)
 
-		sm.TouchUpdatedAt()
+		sm.touchUpdatedAt()
 
 		return c.Dialect.Update(c.Store, sm, cols)
 	})

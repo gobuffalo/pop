@@ -2,18 +2,30 @@ package pop
 
 import "reflect"
 
+// Find the first record of the model in the database with a particular id.
+//
+//	c.Find(&User{}, 1)
 func (c *Connection) Find(model interface{}, id int) error {
 	return Q(c).Find(model, id)
 }
 
+// Find the first record of the model in the database with a particular id.
+//
+//	q.Find(&User{}, 1)
 func (q *Query) Find(model interface{}, id int) error {
 	return q.Where("id = ?", id).First(model)
 }
 
+// First record of the model in the database that matches the query.
+//
+//	c.First(&User{})
 func (c *Connection) First(model interface{}) error {
 	return Q(c).First(model)
 }
 
+// First record of the model in the database that matches the query.
+//
+//	q.Where("name = ?", "mark").First(&User{})
 func (q *Query) First(model interface{}) error {
 	return q.Connection.timeFunc("First", func() error {
 		q.Limit(1)
@@ -22,10 +34,16 @@ func (q *Query) First(model interface{}) error {
 	})
 }
 
+// Last record of the model in the database that matches the query.
+//
+//	c.Last(&User{})
 func (c *Connection) Last(model interface{}) error {
 	return Q(c).Last(model)
 }
 
+// Last record of the model in the database that matches the query.
+//
+//	q.Where("name = ?", "mark").Last(&User{})
 func (q *Query) Last(model interface{}) error {
 	return q.Connection.timeFunc("Last", func() error {
 		q.Limit(1)
@@ -35,10 +53,16 @@ func (q *Query) Last(model interface{}) error {
 	})
 }
 
+// All retrieves all of the records in the database that match the query.
+//
+//	c.All(&[]User{})
 func (c *Connection) All(models interface{}) error {
 	return Q(c).All(models)
 }
 
+// All retrieves all of the records in the database that match the query.
+//
+//	q.Where("name = ?", "mark").All(&[]User{})
 func (q *Query) All(models interface{}) error {
 	return q.Connection.timeFunc("All", func() error {
 		m := &Model{Value: models}
@@ -59,19 +83,25 @@ func (q *Query) All(models interface{}) error {
 	})
 }
 
-func (c *Connection) Exists(model interface{}) (bool, error) {
-	return Q(c).Exists(model)
-}
-
+// Exists returns true/false if a record exists in the database that matches
+// the query.
+//
+// 	q.Where("name = ?", "mark").Exists(&User{})
 func (q *Query) Exists(model interface{}) (bool, error) {
 	i, err := q.Count(model)
 	return i != 0, err
 }
 
+// Count the number of records in the database.
+//
+//	c.Count(&User{})
 func (c *Connection) Count(model interface{}) (int, error) {
 	return Q(c).Count(model)
 }
 
+// Count the number of records in the database.
+//
+//	q.Where("name = ?", "mark").Count(&User{})
 func (q Query) Count(model interface{}) (int, error) {
 	res := &rowCount{}
 	err := q.Connection.timeFunc("Count", func() error {

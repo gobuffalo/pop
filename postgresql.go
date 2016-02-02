@@ -33,7 +33,7 @@ func (p *PostgreSQL) Create(store Store, model *Model, cols Columns) error {
 	}
 	err = stmt.Get(&id, model.Value)
 	if err == nil {
-		model.SetID(id.ID)
+		model.setID(id.ID)
 	}
 	return err
 }

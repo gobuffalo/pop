@@ -32,7 +32,7 @@ func genericCreate(store Store, model *Model, cols Columns) error {
 	}
 	id, err = res.LastInsertId()
 	if err == nil {
-		model.SetID(int(id))
+		model.setID(int(id))
 	}
 	return err
 }
