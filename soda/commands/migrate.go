@@ -37,20 +37,30 @@ func Migrate() cli.Command {
 		},
 		Usage: "Runs migrations against your database.",
 		Action: func(c *cli.Context) {
+			cmd := "up"
+			if len(c.Args()) > 0 {
+				cmd = c.Args().Get(0)
+			}
+
 			env := defaults.String(os.Getenv("GO_ENV"), c.String("e"))
 
 			conn := pop.Connections[env]
+			if conn == nil {
+				if cmd == "help" {
+					helpCmd()
+					return
+				} else {
+					fmt.Printf("The database connection '%s' is not defined!\n", env)
+					os.Exit(1)
+				}
+			}
+
 			fmt.Printf("Database: %s\n", conn)
 			url = conn.String()
 
 			path = c.String("path")
 			os.Mkdir(path, 0755)
 			fmt.Printf("Migrations path: %s\n", path)
-
-			cmd := "up"
-			if len(c.Args()) > 0 {
-				cmd = c.Args().Get(0)
-			}
 
 			switch cmd {
 			case "create":
@@ -163,7 +173,7 @@ func printTimer() {
 
 func helpCmd() {
 	os.Stderr.WriteString(
-		`usage: pop migrate [-path=<path>]  <command> [<args>]
+		`usage: pop migrate [-path=<path> -e=<connection>]  <command> [<args>]
 
 Commands:
    create <name>  Create a new migration
@@ -174,6 +184,7 @@ Commands:
    version        Show current migration version
    help           Show this help
 
-'-path' defaults to ./migrations.
+'-path' defaults to "./migrations".
+'-e' defaults to "development".
 `)
 }

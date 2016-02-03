@@ -2,7 +2,7 @@
 
 ## A Tasty Treat For All Your Database Needs
 
-So what does Pop do exactly? Well, it wraps the absolutely amazing [https://github.com/jmoiron/sqlx](https://github.com/jmoiron/sqlx) library. It cleans up some of the common patterns and workflows usually associated with dealing with databases in Go.
+So what does Pop do exactly? Well, it wraps the absolutely amazing [https://github.com/jmoiron/sqlx](https://github.com/jmoiron/sqlx) and [https://github.com/mattes/migrate](https://github.com/mattes/migrate) libraries. It cleans up some of the common patterns and workflows usually associated with dealing with databases in Go.
 
 Pop makes it easy to do CRUD operations, run migrations, and build/execute queries. Is Pop an ORM? I'll leave that up to you, the reader, to decide.
 
@@ -12,10 +12,6 @@ Pop, by default, follows conventions that were defined by the ActiveRecord Ruby 
 * If there is a timestamp column named "created_at", "CreatedAt" on the `struct`, it will be set with the current time when the record is created.
 * If there is a timestamp column named "updated_at", "UpdatedAt" on the `struct`, it will be set with the current time when the record is updated.
 * Default databases are lowercase, underscored versions of the `struct` name. Examples: User{} is "users", FooBar{} is "foo_bars", etc...
-
-## Docs
-
-The API docs can be found at [http://godoc.org/github.com/markbates/pop](http://godoc.org/github.com/markbates/pop)
 
 ## Connecting to Databases
 
@@ -66,3 +62,93 @@ if err != nil {
 ```
 
 Now that you have your connection to the database you can start executing queries against it.
+
+## CLI Support
+
+Pop features CLI support via the `soda` for the following operations:
+
+* creating databases
+* dropping databases
+* migrating databases
+
+### Installing CLI Support
+
+```bash
+$ go get -d -t -u github.com/markbates/pop/...
+$ go install github.com/markbates/pop/soda
+```
+
+### Creating Databases
+
+Assuming you defined a configuration file like that described in the above section you can automatically create those databases using the `soda` command:
+
+#### Create All Databases
+
+```bash
+$ soda create -all
+```
+
+#### Create a Specific Database
+
+```bash
+$ soda create -e development
+```
+
+### Dropping Databases
+
+Assuming you defined a configuration file like that described in the above section you can automatically drop those databases using the `soda` command:
+
+#### Drop All Databases
+
+```bash
+$ soda drop -all
+```
+
+#### Drop a Specific Database
+
+```bash
+$ soda drop -e development
+```
+
+### Migrations
+
+The `soda` command supports the creation and running of SQL migrations. Yes, I said SQL! There is no fancy DSL for writing these files, just plain old SQL, which, personally, I think is DSL enough.
+
+A full list of commands available for migration can be found by asking for help:
+
+```bash
+$ soda migrate help
+```
+
+#### Create Migrations
+
+The `soda` command will generate SQL migrations (both the up and down) files for you.
+
+```bash
+$ soda migrate create name_of_migration
+```
+
+Running this command with generate the following files:
+
+```text
+./migrations/0001_name_of_migration.up.sql
+./migrations/0001_name_of_migration.down.sql
+```
+
+It is up to you to fill these files with the appropriate SQL to do whatever it is you need done.
+
+#### Running Migrations
+
+The `soda` command will run the migrations using the following command:
+
+```bash
+$ soda migrate up
+```
+
+Migrations will be run in sequential order. The previously run migrations will be kept track of in a table named `schema_migrations` in the database.
+
+Migrations can also be run reverse to rollback the schema.
+
+```bash
+$ soda migrate down
+```

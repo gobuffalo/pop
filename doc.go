@@ -1,5 +1,5 @@
 /*
-So what does Pop do exactly? Well, it wraps the absolutely amazing https://github.com/jmoiron/sqlx library. It cleans up some of the common patterns and workflows usually associated with dealing with databases in Go.
+So what does Pop do exactly? Well, it wraps the absolutely amazing https://github.com/jmoiron/sqlx and https://github.com/mattes/migrate libraries. It cleans up some of the common patterns and workflows usually associated with dealing with databases in Go.
 
 Pop makes it easy to do CRUD operations, run migrations, and build/execute queries. Is Pop an ORM? I'll leave that up to you, the reader, to decide.
 
