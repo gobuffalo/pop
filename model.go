@@ -65,22 +65,27 @@ func (m *Model) TableName() string {
 	}
 
 	t := reflect.TypeOf(m.Value)
-	kind := t.Kind().String()
-	var name string
-	switch kind {
-	case "ptr":
-		st := reflect.ValueOf(m.Value).Elem()
-		name = st.Type().Name()
-	case "string":
-		return m.Value.(string)
-	default:
-		name = t.Name()
-	}
+	name := m.typeName(t)
 	if tableMap[name] == "" {
 		m.tableName = inflect.Tableize(name)
 		tableMap[name] = m.tableName
 	}
 	return tableMap[name]
+}
+
+func (m *Model) typeName(t reflect.Type) string {
+	kind := t.Kind().String()
+	switch kind {
+	case "ptr":
+		st := reflect.ValueOf(m.Value).Elem()
+		return m.typeName(st.Type())
+	case "string":
+		return m.Value.(string)
+	case "slice":
+		return t.Elem().Name()
+	default:
+		return t.Name()
+	}
 }
 
 func (m *Model) fieldByName(s string) (reflect.Value, error) {
