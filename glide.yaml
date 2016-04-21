@@ -17,7 +17,6 @@ import:
   subpackages:
   - driver/mysql
   - driver/postgres
-  - driver/sqlite3
   - file
   - migrate
   - migrate/direction

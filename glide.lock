@@ -1,5 +1,5 @@
-hash: b87f264fcb36b9e971f472b17299712f3d2463689ac5f9c04737b12ef8f67e78
-updated: 2016-04-21T11:15:40.292310099-04:00
+hash: ddf2e1b595aedf100015a6c025fd29afad4d40430200f1840fb3b8176c350fe7
+updated: 2016-04-21T14:39:31.707383491-04:00
 imports:
 - name: github.com/codegangsta/cli
   version: 71f57d300dd6a780ac1856c005c4b518cfd498ec
@@ -46,7 +46,6 @@ imports:
   subpackages:
   - driver/mysql
   - driver/postgres
-  - driver/sqlite3
   - file
   - migrate
   - migrate/direction
@@ -58,8 +57,6 @@ imports:
 - name: github.com/mattn/go-isatty
   version: 56b76bdf51f7708750eac80fa38b952bb9f32639
   repo: https://github.com/mattn/go-isatty
-- name: github.com/mattn/go-sqlite3
-  version: 467f50b0c026317ad28fc2c0a08aab6f755cfc7a
 - name: github.com/pilu/fresh
   version: 7261a962d4340e348cda4f98bd43a327be23c93e
   subpackages:
