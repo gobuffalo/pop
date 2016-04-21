@@ -1,5 +1,5 @@
-hash: 9a6ad2c8f453df8fb2118a57a7dab11f625be76b8ad03f2f049f443d8f9c0885
-updated: 2016-04-21T10:52:56.150401566-04:00
+hash: b87f264fcb36b9e971f472b17299712f3d2463689ac5f9c04737b12ef8f67e78
+updated: 2016-04-21T11:15:40.292310099-04:00
 imports:
 - name: github.com/codegangsta/cli
   version: 71f57d300dd6a780ac1856c005c4b518cfd498ec
@@ -64,6 +64,10 @@ imports:
   version: 7261a962d4340e348cda4f98bd43a327be23c93e
   subpackages:
   - runner/runnerutils
+- name: github.com/stretchr/testify
+  version: c5d7a69bf8a2c9c374798160849c071093e41dd1
+  subpackages:
+  - require
 - name: github.com/valyala/fasttemplate
   version: 3b874956e03f1636d171bda64b130f9135f42cff
 - name: golang.org/x/net
