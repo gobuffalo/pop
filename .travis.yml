@@ -3,7 +3,6 @@ language: go
 sudo: false
 
 go:
-  - 1.4
   - 1.5
   - 1.6
   - tip
@@ -15,7 +14,7 @@ before_script:
   - psql pop_test < sql_scripts/postgres-pop_test.sql
 
 # script: ./test.sh
-script: go test -v ./...
+script: ./travis.sh
 
 global_env:
   - MYSQL_USER="travis"
