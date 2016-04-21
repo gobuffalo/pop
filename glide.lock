@@ -1,0 +1,80 @@
+hash: 9a6ad2c8f453df8fb2118a57a7dab11f625be76b8ad03f2f049f443d8f9c0885
+updated: 2016-04-21T10:52:56.150401566-04:00
+imports:
+- name: github.com/codegangsta/cli
+  version: 71f57d300dd6a780ac1856c005c4b518cfd498ec
+- name: github.com/fatih/color
+  version: 533cd7fd8a85905f67a1753afb4deddc85ea174f
+- name: github.com/flosch/go-humanize
+  version: 3ba51eabe50663842d569003bab93fc256883173
+- name: github.com/flosch/pongo2
+  version: 7f5515449ea9bbeb00256d9cbb654c556e7d0146
+- name: github.com/go-sql-driver/mysql
+  version: 7ebe0a500653eeb1859664bed5e48dec1e164e73
+- name: github.com/gorilla/context
+  version: 1ea25387ff6f684839d82767c1733ff4d4d15d0a
+- name: github.com/jmoiron/sqlx
+  version: 398dd5876282499cdfd4cb8ea0f31a672abe9495
+  subpackages:
+  - reflectx
+- name: github.com/labstack/echo
+  version: f12d77f9cf7a374fa39e2e029a439c55e59dbc91
+- name: github.com/labstack/gommon
+  version: f8343700e8769e645b5f9949ec2e3a69f9fd71eb
+  subpackages:
+  - log
+  - color
+- name: github.com/lib/pq
+  version: 3cd0097429be7d611bb644ef85b42bfb102ceea4
+  subpackages:
+  - oid
+- name: github.com/markbates/going
+  version: a1da2ae5969b4c18a368f1bfef5e154be169c47c
+  subpackages:
+  - clam
+  - defaults
+  - imt
+  - randx
+  - validate
+  - wait
+- name: github.com/markbates/inflect
+  version: 11b13376c881947e01213b942e7ed8721d6d720e
+- name: github.com/markbates/reverb
+  version: 59ba3270fe952a4567485fc4bb6a33cc287756c9
+- name: github.com/mattes/migrate
+  version: ce1b59bb819416ca67422929b1cb48bb342720b6
+  subpackages:
+  - driver/mysql
+  - driver/postgres
+  - driver/sqlite3
+  - file
+  - migrate
+  - migrate/direction
+  - pipe
+  - driver
+- name: github.com/mattn/go-colorable
+  version: 9cbef7c35391cca05f15f8181dc0b18bc9736dbb
+  repo: https://github.com/mattn/go-colorable
+- name: github.com/mattn/go-isatty
+  version: 56b76bdf51f7708750eac80fa38b952bb9f32639
+  repo: https://github.com/mattn/go-isatty
+- name: github.com/mattn/go-sqlite3
+  version: 467f50b0c026317ad28fc2c0a08aab6f755cfc7a
+- name: github.com/pilu/fresh
+  version: 7261a962d4340e348cda4f98bd43a327be23c93e
+  subpackages:
+  - runner/runnerutils
+- name: github.com/valyala/fasttemplate
+  version: 3b874956e03f1636d171bda64b130f9135f42cff
+- name: golang.org/x/net
+  version: 815d315ead425c4365077d904a2331ee9e179820
+  subpackages:
+  - context
+  - websocket
+- name: golang.org/x/sys
+  version: f64b50fbea64174967a8882830d621a18ee1548e
+  subpackages:
+  - unix
+- name: gopkg.in/yaml.v2
+  version: a83829b6f1293c91addabc89d0571c246397bbf4
+devImports: []

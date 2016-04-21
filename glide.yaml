@@ -1,0 +1,25 @@
+package: github.com/markbates/pop
+import:
+- package: github.com/codegangsta/cli
+- package: github.com/fatih/color
+- package: github.com/go-sql-driver/mysql
+- package: github.com/jmoiron/sqlx
+- package: github.com/labstack/echo
+  version: v1
+- package: github.com/lib/pq
+- package: github.com/markbates/going
+  subpackages:
+  - clam
+  - defaults
+- package: github.com/markbates/inflect
+- package: github.com/markbates/reverb
+- package: github.com/mattes/migrate
+  subpackages:
+  - driver/mysql
+  - driver/postgres
+  - driver/sqlite3
+  - file
+  - migrate
+  - migrate/direction
+  - pipe
+- package: gopkg.in/yaml.v2
