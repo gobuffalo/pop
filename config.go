@@ -3,6 +3,7 @@ package pop
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"html/template"
 	"io/ioutil"
 	"net/url"
@@ -15,7 +16,22 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+var lookupPaths = []string{"", "/config", "../", "../config", "../..", "../../config"}
+var ConfigName = "database.yml"
+
 func init() {
+	path, err := findConfigPath()
+	if err == nil {
+		loadConfig(path)
+	}
+}
+
+func LookupPaths() []string {
+	return lookupPaths
+}
+
+func AddLookupPaths(paths ...string) {
+	lookupPaths = append(paths, lookupPaths...)
 	path, err := findConfigPath()
 	if err == nil {
 		loadConfig(path)
@@ -49,20 +65,19 @@ func (cd *ConnectionDetails) Parse(port string) error {
 }
 
 func findConfigPath() (string, error) {
-	pwd, err := getAppPath()
-	if err != nil {
-		return "", err
-	}
-
+	// pwd, err := getAppPath()
+	// if err != nil {
+	// 	return "", err
+	// }
+	//
 	// lookup paths
-	paths := []string{"", "/config", "../", "../config", "../..", "../../config"}
-	for _, p := range paths {
-		path, _ := filepath.Abs(pwd + p + "/database.yml")
+	for _, p := range LookupPaths() {
+		path, _ := filepath.Abs(filepath.Join(p, ConfigName))
 		if _, err := os.Stat(path); err == nil {
 			return path, err
 		}
 	}
-	return "", errors.New("[POP]: Tried to load database.yml, but couldn't find it.")
+	return "", errors.New("[POP]: Tried to load configuration file, but couldn't find it.")
 }
 
 func getAppPath() (string, error) {
@@ -78,7 +93,7 @@ func getAppPath() (string, error) {
 }
 
 func loadConfig(path string) error {
-	// fmt.Printf("path: %s\n", path)
+	fmt.Printf("[POP]: Loading config file from %s\n", path)
 	b, err := ioutil.ReadFile(path)
 	if err != nil {
 		return err

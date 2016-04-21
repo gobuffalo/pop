@@ -5,7 +5,6 @@ import (
 	"os"
 
 	"github.com/codegangsta/cli"
-	"github.com/markbates/going/defaults"
 	"github.com/markbates/pop"
 )
 
@@ -14,6 +13,7 @@ func Drop() cli.Command {
 		Name: "drop",
 		Flags: []cli.Flag{
 			EnvFlag,
+			ConfigFlag,
 			cli.BoolFlag{
 				Name:  "all",
 				Usage: "Drops all of the databases in the database.yml",
@@ -21,18 +21,12 @@ func Drop() cli.Command {
 		},
 		Usage: "Drops databases for you",
 		Action: func(c *cli.Context) {
-			env := defaults.String(os.Getenv("GO_ENV"), c.String("e"))
 			if c.Bool("all") {
 				for _, conn := range pop.Connections {
 					dropDB(conn)
 				}
 			} else {
-				conn := pop.Connections[env]
-				if conn == nil {
-					fmt.Fprintf(os.Stderr, "%s is not a valid environment!\n", env)
-					return
-				}
-				dropDB(conn)
+				dropDB(getConn(c))
 			}
 		},
 	}

@@ -13,3 +13,9 @@ func Test_LoadsConnectionsFromConfig(t *testing.T) {
 	conns := pop.Connections
 	r.Equal(4, len(conns))
 }
+
+func Test_AddLookupPaths(t *testing.T) {
+	r := require.New(t)
+	pop.AddLookupPaths("./foo")
+	r.Contains(pop.LookupPaths(), "./foo")
+}

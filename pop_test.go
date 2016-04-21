@@ -17,6 +17,7 @@ var PDB *pop.Connection
 
 func init() {
 	pop.Debug = false
+	pop.AddLookupPaths("./")
 
 	dialect := os.Getenv("SODA_DIALECT")
 

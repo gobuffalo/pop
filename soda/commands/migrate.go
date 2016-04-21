@@ -7,8 +7,6 @@ import (
 
 	"github.com/codegangsta/cli"
 	"github.com/fatih/color"
-	"github.com/markbates/going/defaults"
-	"github.com/markbates/pop"
 	"github.com/mattes/migrate/file"
 	"github.com/mattes/migrate/migrate"
 	"github.com/mattes/migrate/migrate/direction"
@@ -34,6 +32,7 @@ func Migrate() cli.Command {
 				Usage: "Path to the migrations folder",
 			},
 			EnvFlag,
+			ConfigFlag,
 		},
 		Usage: "Runs migrations against your database.",
 		Action: func(c *cli.Context) {
@@ -42,19 +41,12 @@ func Migrate() cli.Command {
 				cmd = c.Args().Get(0)
 			}
 
-			env := defaults.String(os.Getenv("GO_ENV"), c.String("e"))
-
-			conn := pop.Connections[env]
-			if conn == nil {
-				if cmd == "help" {
-					helpCmd()
-					return
-				} else {
-					fmt.Printf("The database connection '%s' is not defined!\n", env)
-					os.Exit(1)
-				}
+			if cmd == "help" {
+				helpCmd()
+				return
 			}
 
+			conn := getConn(c)
 			fmt.Printf("Database: %s\n", conn)
 			url = conn.String()
 
