@@ -20,6 +20,10 @@ var lookupPaths = []string{"", "/config", "../", "../config", "../..", "../../co
 var ConfigName = "database.yml"
 
 func init() {
+	LoadConfig()
+}
+
+func LoadConfig() {
 	path, err := findConfigPath()
 	if err == nil {
 		loadConfig(path)
@@ -32,10 +36,7 @@ func LookupPaths() []string {
 
 func AddLookupPaths(paths ...string) {
 	lookupPaths = append(paths, lookupPaths...)
-	path, err := findConfigPath()
-	if err == nil {
-		loadConfig(path)
-	}
+	LoadConfig()
 }
 
 type ConnectionDetails struct {
