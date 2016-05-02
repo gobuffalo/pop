@@ -11,18 +11,15 @@ import (
 func Create() cli.Command {
 	return cli.Command{
 		Name: "create",
-		Flags: []cli.Flag{
-			EnvFlag,
-			ConfigFlag,
+		Flags: append(commonFlags,
 			cli.BoolFlag{
 				Name:  "all",
 				Usage: "Creates all of the databases in the database.yml",
 			},
-			DebugFlag,
-		},
+		),
 		Usage: "Creates databases for you",
 		Action: func(c *cli.Context) {
-			pop.Debug = c.Bool("d")
+			commandInit(c)
 			if c.Bool("all") {
 				for _, conn := range pop.Connections {
 					createDB(conn)

@@ -26,19 +26,16 @@ the `migrate` binary being installed, and this makes life a lot nicer.
 func Migrate() cli.Command {
 	return cli.Command{
 		Name: "migrate",
-		Flags: []cli.Flag{
+		Flags: append(commonFlags,
 			cli.StringFlag{
 				Name:  "path",
 				Value: "./migrations",
 				Usage: "Path to the migrations folder",
 			},
-			EnvFlag,
-			ConfigFlag,
-			DebugFlag,
-		},
+		),
 		Usage: "Runs migrations against your database.",
 		Action: func(c *cli.Context) {
-			pop.Debug = c.Bool("d")
+			commandInit(c)
 			cmd := "up"
 			if len(c.Args()) > 0 {
 				cmd = c.Args().Get(0)

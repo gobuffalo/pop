@@ -11,30 +11,27 @@ import (
 func Drop() cli.Command {
 	return cli.Command{
 		Name: "drop",
-		Flags: []cli.Flag{
-			EnvFlag,
-			ConfigFlag,
+		Flags: append(commonFlags,
 			cli.BoolFlag{
 				Name:  "all",
 				Usage: "Drops all of the databases in the database.yml",
 			},
-			DebugFlag,
-		},
+		),
 		Usage: "Drops databases for you",
 		Action: func(c *cli.Context) {
-			pop.Debug = c.Bool("d")
+			commandInit(c)
 			if c.Bool("all") {
 				for _, conn := range pop.Connections {
-					dropDB(conn)
+					Dropper(conn)
 				}
 			} else {
-				dropDB(getConn(c))
+				Dropper(getConn(c))
 			}
 		},
 	}
 }
 
-func dropDB(c *pop.Connection) error {
+func Dropper(c *pop.Connection) error {
 	var err error
 	if c.Dialect.Details().Database != "" {
 		err = c.Dialect.DropDB()

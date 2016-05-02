@@ -13,6 +13,12 @@ import (
 	// _ "github.com/mattes/migrate/driver/sqlite3"
 )
 
+var commonFlags = []cli.Flag{
+	EnvFlag,
+	ConfigFlag,
+	DebugFlag,
+}
+
 var EnvFlag = cli.StringFlag{
 	Name:  "e",
 	Value: "development",
@@ -28,6 +34,11 @@ var ConfigFlag = cli.StringFlag{
 var DebugFlag = cli.BoolFlag{
 	Name:  "d",
 	Usage: "Debug/verbose mode",
+}
+
+func commandInit(c *cli.Context) {
+	pop.Debug = c.Bool("d")
+	setConfigLocation(c)
 }
 
 func getEnv(c *cli.Context) string {
