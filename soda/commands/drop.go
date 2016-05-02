@@ -1,9 +1,6 @@
 package commands
 
 import (
-	"fmt"
-	"os"
-
 	"github.com/codegangsta/cli"
 	"github.com/markbates/pop"
 )
@@ -22,22 +19,11 @@ func Drop() cli.Command {
 			commandInit(c)
 			if c.Bool("all") {
 				for _, conn := range pop.Connections {
-					Dropper(conn)
+					pop.DropDB(conn)
 				}
 			} else {
-				Dropper(getConn(c))
+				pop.DropDB(getConn(c))
 			}
 		},
 	}
-}
-
-func Dropper(c *pop.Connection) error {
-	var err error
-	if c.Dialect.Details().Database != "" {
-		err = c.Dialect.DropDB()
-		if err != nil {
-			fmt.Fprint(os.Stderr, err)
-		}
-	}
-	return err
 }

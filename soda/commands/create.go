@@ -1,9 +1,6 @@
 package commands
 
 import (
-	"fmt"
-	"os"
-
 	"github.com/codegangsta/cli"
 	"github.com/markbates/pop"
 )
@@ -22,22 +19,11 @@ func Create() cli.Command {
 			commandInit(c)
 			if c.Bool("all") {
 				for _, conn := range pop.Connections {
-					createDB(conn)
+					pop.CreateDB(conn)
 				}
 			} else {
-				createDB(getConn(c))
+				pop.CreateDB(getConn(c))
 			}
 		},
 	}
-}
-
-func createDB(c *pop.Connection) error {
-	var err error
-	if c.Dialect.Details().Database != "" {
-		err = c.Dialect.CreateDB()
-		if err != nil {
-			fmt.Fprint(os.Stderr, err)
-		}
-	}
-	return err
 }
