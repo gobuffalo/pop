@@ -18,9 +18,11 @@ func Create() cli.Command {
 				Name:  "all",
 				Usage: "Creates all of the databases in the database.yml",
 			},
+			DebugFlag,
 		},
 		Usage: "Creates databases for you",
 		Action: func(c *cli.Context) {
+			pop.Debug = c.Bool("d")
 			if c.Bool("all") {
 				for _, conn := range pop.Connections {
 					createDB(conn)

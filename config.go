@@ -94,7 +94,9 @@ func getAppPath() (string, error) {
 }
 
 func loadConfig(path string) error {
-	fmt.Printf("[POP]: Loading config file from %s\n", path)
+	if Debug {
+		fmt.Printf("[POP]: Loading config file from %s\n", path)
+	}
 	b, err := ioutil.ReadFile(path)
 	if err != nil {
 		return err

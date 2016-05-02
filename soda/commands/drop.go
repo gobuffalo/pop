@@ -18,9 +18,11 @@ func Drop() cli.Command {
 				Name:  "all",
 				Usage: "Drops all of the databases in the database.yml",
 			},
+			DebugFlag,
 		},
 		Usage: "Drops databases for you",
 		Action: func(c *cli.Context) {
+			pop.Debug = c.Bool("d")
 			if c.Bool("all") {
 				for _, conn := range pop.Connections {
 					dropDB(conn)

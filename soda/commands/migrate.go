@@ -7,6 +7,7 @@ import (
 
 	"github.com/codegangsta/cli"
 	"github.com/fatih/color"
+	"github.com/markbates/pop"
 	"github.com/mattes/migrate/file"
 	"github.com/mattes/migrate/migrate"
 	"github.com/mattes/migrate/migrate/direction"
@@ -33,9 +34,11 @@ func Migrate() cli.Command {
 			},
 			EnvFlag,
 			ConfigFlag,
+			DebugFlag,
 		},
 		Usage: "Runs migrations against your database.",
 		Action: func(c *cli.Context) {
+			pop.Debug = c.Bool("d")
 			cmd := "up"
 			if len(c.Args()) > 0 {
 				cmd = c.Args().Get(0)
@@ -47,12 +50,16 @@ func Migrate() cli.Command {
 			}
 
 			conn := getConn(c)
-			fmt.Printf("Database: %s\n", conn)
+			if pop.Debug {
+				fmt.Printf("[POP] Database: %s\n", conn)
+			}
 			url = conn.String()
 
 			path = c.String("path")
 			os.Mkdir(path, 0755)
-			fmt.Printf("Migrations path: %s\n", path)
+			if pop.Debug {
+				fmt.Printf("[POP] Migrations path: %s\n", path)
+			}
 
 			switch cmd {
 			case "create":

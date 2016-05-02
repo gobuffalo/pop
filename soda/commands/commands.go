@@ -25,6 +25,11 @@ var ConfigFlag = cli.StringFlag{
 	Usage: "The configuration file you would like to use.",
 }
 
+var DebugFlag = cli.BoolFlag{
+	Name:  "d",
+	Usage: "Debug/verbose mode",
+}
+
 func getEnv(c *cli.Context) string {
 	return defaults.String(os.Getenv("GO_ENV"), c.String("e"))
 }
