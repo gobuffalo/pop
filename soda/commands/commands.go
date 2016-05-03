@@ -8,9 +8,6 @@ import (
 	"github.com/codegangsta/cli"
 	"github.com/markbates/going/defaults"
 	"github.com/markbates/pop"
-	_ "github.com/mattes/migrate/driver/mysql"
-	_ "github.com/mattes/migrate/driver/postgres"
-	// _ "github.com/mattes/migrate/driver/sqlite3"
 )
 
 var commonFlags = []cli.Flag{
