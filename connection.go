@@ -23,6 +23,10 @@ func (c *Connection) String() string {
 	return c.Dialect.URL()
 }
 
+func (c *Connection) URL() string {
+	return c.String()
+}
+
 // NewConnection creates a new connection, and sets it's `Dialect`
 // appropriately based on the `ConnectionDetails` passed into it.
 func NewConnection(deets *ConnectionDetails) *Connection {
