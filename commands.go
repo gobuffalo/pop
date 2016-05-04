@@ -9,9 +9,7 @@ func CreateDB(c *Connection) error {
 	var err error
 	deets := c.Dialect.Details()
 	if deets.Database != "" {
-		if Debug {
-			fmt.Printf("[POP] Create %s (%s)\n", deets.Database, c.URL())
-		}
+		fmt.Printf("[POP] Create %s (%s)\n", deets.Database, c.URL())
 		err = c.Dialect.CreateDB()
 		if err != nil {
 			fmt.Fprint(os.Stderr, err)
@@ -24,9 +22,7 @@ func DropDB(c *Connection) error {
 	var err error
 	deets := c.Dialect.Details()
 	if deets.Database != "" {
-		if Debug {
-			fmt.Printf("[POP] Drop %s (%s)\n", deets.Database, c.URL())
-		}
+		fmt.Printf("[POP] Drop %s (%s)\n", deets.Database, c.URL())
 		err = c.Dialect.DropDB()
 		if err != nil {
 			fmt.Fprint(os.Stderr, err)
