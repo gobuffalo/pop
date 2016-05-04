@@ -55,14 +55,17 @@ func (p *PostgreSQL) SelectMany(store Store, models *Model, query Query) error {
 }
 
 func (p *PostgreSQL) CreateDB() error {
-	cmd := exec.Command("createdb", "-e", p.ConnectionDetails.Database)
+	// createdb -h db -p 5432 -U postgres enterprise_development
+	deets := p.ConnectionDetails
+	cmd := exec.Command("createdb", "-e", "-h", deets.Host, "-p", deets.Port, "-U", deets.User, deets.Database)
 	return clam.RunAndListen(cmd, func(s string) {
 		fmt.Println(s)
 	})
 }
 
 func (p *PostgreSQL) DropDB() error {
-	cmd := exec.Command("dropdb", "-e", p.ConnectionDetails.Database)
+	deets := p.ConnectionDetails
+	cmd := exec.Command("dropdb", "-e", "-h", deets.Host, "-p", deets.Port, "-U", deets.User, deets.Database)
 	return clam.RunAndListen(cmd, func(s string) {
 		fmt.Println(s)
 	})

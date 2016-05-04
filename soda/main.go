@@ -11,7 +11,7 @@ func main() {
 	app := cli.NewApp()
 	app.Name = "soda"
 	app.Usage = "A tasty treat for all your database needs"
-	app.Version = "2.7.3"
+	app.Version = "2.7.4"
 
 	app.Commands = []cli.Command{
 		commands.Migrate(),
