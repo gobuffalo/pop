@@ -35,6 +35,7 @@ var DebugFlag = cli.BoolFlag{
 
 func commandInit(c *cli.Context) {
 	pop.Debug = c.Bool("d")
+	fmt.Printf("Soda %s\n", c.App.Version)
 	setConfigLocation(c)
 }
 
