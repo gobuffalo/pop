@@ -6,6 +6,7 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	"github.com/markbates/going/defaults"
+	"github.com/markbates/going/randx"
 )
 
 // Connections contains all of the available connections
@@ -14,6 +15,7 @@ var Connections = map[string]*Connection{}
 // Connection represents all of the necessary details for
 // talking with a datastore
 type Connection struct {
+	ID      string
 	Store   Store
 	Dialect Dialect
 	Timings []time.Duration
@@ -31,6 +33,7 @@ func (c *Connection) URL() string {
 // appropriately based on the `ConnectionDetails` passed into it.
 func NewConnection(deets *ConnectionDetails) *Connection {
 	c := &Connection{
+		ID:      randx.String(30),
 		Timings: []time.Duration{},
 	}
 	switch deets.Dialect {
@@ -74,6 +77,7 @@ func (c *Connection) Transaction(fn func(tx *Connection) error) error {
 		return err
 	}
 	cn := &Connection{
+		ID:      randx.String(30),
 		Store:   tx,
 		Dialect: c.Dialect,
 		Timings: []time.Duration{},
@@ -95,6 +99,7 @@ func (c *Connection) Rollback(fn func(tx *Connection)) error {
 		return err
 	}
 	cn := &Connection{
+		ID:      randx.String(30),
 		Store:   tx,
 		Dialect: c.Dialect,
 		Timings: []time.Duration{},

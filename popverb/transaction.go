@@ -18,7 +18,7 @@ var Transaction = func(db *pop.Connection) echo.MiddlewareFunc {
 					lg = clg.(*reverb.Logger)
 					pop.Log = func(s string) {
 						if pop.Debug {
-							lg.Println(s)
+							lg.Printf("[tx:%s]: %s", tx.ID, s)
 						}
 					}
 				}
