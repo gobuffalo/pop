@@ -19,7 +19,7 @@ type Connection struct {
 	Store   Store
 	Dialect Dialect
 	Timings []time.Duration
-	tX      *tX
+	TX      *tX
 }
 
 func (c *Connection) String() string {
@@ -73,36 +73,44 @@ func Connect(e string) (*Connection, error) {
 // returns an error then the transaction will be rolled back, otherwise the transaction
 // will automatically commit at the end.
 func (c *Connection) Transaction(fn func(tx *Connection) error) error {
+	cn, err := c.NewTransaction()
+	if err != nil {
+		return err
+	}
+	err = fn(cn)
+	if err != nil {
+		err = cn.TX.Rollback()
+	} else {
+		err = cn.TX.Commit()
+	}
+	return err
+}
+
+func (c *Connection) NewTransaction() (*Connection, error) {
 	var cn *Connection
-	if c.tX == nil {
+	if c.TX == nil {
 		tx, err := c.Store.Transaction()
 		if err != nil {
-			return err
+			return cn, err
 		}
 		cn = &Connection{
 			ID:      randx.String(30),
 			Store:   tx,
 			Dialect: c.Dialect,
 			Timings: []time.Duration{},
-			tX:      tx,
+			TX:      tx,
 		}
 	} else {
 		cn = c
 	}
-	err := fn(cn)
-	if err != nil {
-		err = cn.tX.Rollback()
-	} else {
-		err = cn.tX.Commit()
-	}
-	return err
+	return cn, nil
 }
 
 // Rollback will open a new transaction and automatically rollback that transaction
 // when the inner function returns, regardless. This can be useful for tests, etc...
 func (c *Connection) Rollback(fn func(tx *Connection)) error {
 	var cn *Connection
-	if c.tX == nil {
+	if c.TX == nil {
 		tx, err := c.Store.Transaction()
 		if err != nil {
 			return err
@@ -112,13 +120,13 @@ func (c *Connection) Rollback(fn func(tx *Connection)) error {
 			Store:   tx,
 			Dialect: c.Dialect,
 			Timings: []time.Duration{},
-			tX:      tx,
+			TX:      tx,
 		}
 	} else {
 		cn = c
 	}
 	fn(cn)
-	return cn.tX.Rollback()
+	return cn.TX.Rollback()
 }
 
 // Q creates a new "empty" query for the current connection.
