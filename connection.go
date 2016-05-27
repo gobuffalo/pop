@@ -73,17 +73,21 @@ func Connect(e string) (*Connection, error) {
 // returns an error then the transaction will be rolled back, otherwise the transaction
 // will automatically commit at the end.
 func (c *Connection) Transaction(fn func(tx *Connection) error) error {
+	var dberr error
 	cn, err := c.NewTransaction()
 	if err != nil {
 		return err
 	}
 	err = fn(cn)
 	if err != nil {
-		err = cn.TX.Rollback()
+		dberr = cn.TX.Rollback()
 	} else {
-		err = cn.TX.Commit()
+		dberr = cn.TX.Commit()
 	}
-	return err
+	if err != nil {
+		return err
+	}
+	return dberr
 }
 
 func (c *Connection) NewTransaction() (*Connection, error) {
