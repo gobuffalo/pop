@@ -49,12 +49,14 @@ type ConnectionDetails struct {
 	URL      string
 }
 
+// Parse extracts the various components of a connection string.
 func (cd *ConnectionDetails) Parse(port string) error {
 	if cd.URL != "" {
 		u, err := url.Parse(cd.URL)
 		if err != nil {
 			return err
 		}
+		cd.Dialect = u.Scheme
 		cd.Database = strings.TrimPrefix(u.Path, "/")
 		hp := strings.Split(u.Host, ":")
 		cd.Host = hp[0]
