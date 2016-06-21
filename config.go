@@ -60,9 +60,13 @@ func (cd *ConnectionDetails) Parse(port string) error {
 		cd.Database = strings.TrimPrefix(u.Path, "/")
 		hp := strings.Split(u.Host, ":")
 		cd.Host = hp[0]
-		cd.Port = defaults.String(hp[1], port)
-		cd.User = u.User.Username()
-		cd.Password, _ = u.User.Password()
+		if len(hp) > 1 {
+			cd.Port = defaults.String(hp[1], port)
+		}
+		if u.User != nil {
+			cd.User = u.User.Username()
+			cd.Password, _ = u.User.Password()
+		}
 	}
 	return nil
 }
