@@ -10,7 +10,7 @@ import (
 	"github.com/markbates/going/nulls"
 	"github.com/markbates/pop"
 	_ "github.com/mattes/migrate/migrate"
-	// _ "github.com/mattn/go-sqlite3"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 var PDB *pop.Connection

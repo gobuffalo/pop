@@ -8,10 +8,10 @@ import (
 	"github.com/fatih/color"
 	_ "github.com/mattes/migrate/driver/mysql"
 	_ "github.com/mattes/migrate/driver/postgres"
+	_ "github.com/mattes/migrate/driver/sqlite3"
 	"github.com/mattes/migrate/file"
 	"github.com/mattes/migrate/migrate"
 	"github.com/mattes/migrate/migrate/direction"
-	// _ "github.com/mattes/migrate/driver/sqlite3"
 	pipep "github.com/mattes/migrate/pipe"
 )
 
