@@ -3,6 +3,8 @@ package pop
 // SQLite is currently not supported due to cgo issues
 
 import (
+	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 
@@ -43,12 +45,16 @@ func (m *SQLite) SelectMany(store Store, models *Model, query Query) error {
 }
 
 func (m *SQLite) CreateDB() error {
-	d := filepath.Dir(m.ConnectionDetails.URL)
-	return os.MkdirAll(d, 0755)
+	d := filepath.Dir(m.ConnectionDetails.Database)
+	err := os.MkdirAll(d, 0755)
+	if err != nil {
+		log.Println(err)
+	}
+	return err
 }
 
 func (m *SQLite) DropDB() error {
-	return os.Remove(m.ConnectionDetails.URL)
+	return os.Remove(m.ConnectionDetails.Database)
 }
 
 func (m *SQLite) TranslateSQL(sql string) string {
@@ -56,6 +62,8 @@ func (m *SQLite) TranslateSQL(sql string) string {
 }
 
 func NewSQLite(deets *ConnectionDetails) Dialect {
+	// deets.Database = deets.URL
+	deets.URL = fmt.Sprintf("sqlite3://%s", deets.Database)
 	cd := &SQLite{
 		ConnectionDetails: deets,
 	}

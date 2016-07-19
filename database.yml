@@ -20,4 +20,4 @@ postgres:
 
 sqlite:
   dialect: "sqlite3"
-  url: "./sql_scripts/sqlite/test.sqlite"
+  database: "./sql_scripts/sqlite/test.sqlite"
