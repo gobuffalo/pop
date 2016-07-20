@@ -28,7 +28,7 @@ global_env:
 env:
   - SODA_DIALECT="postgres"
   - SODA_DIALECT="mysql_travis"
-  # - SODA_DIALECT="sqlite"
+  - SODA_DIALECT="sqlite"
 
 addons:
   postgresql: "9.3"
