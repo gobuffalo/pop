@@ -3,6 +3,11 @@ package pop
 import (
 	"errors"
 	"fmt"
+	"html/template"
+	"io/ioutil"
+	"log"
+	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/fatih/color"
@@ -20,7 +25,7 @@ func (c *Connection) MigrationCreate(path, name string) error {
 		return errors.New("Please specify name.")
 	}
 
-	mf, err := migrate.Create(c.URL(), path, name)
+	mf, err := migrate.Create(c.MigrationURL(), path, name)
 	if err != nil {
 		return err
 	}
@@ -32,23 +37,31 @@ func (c *Connection) MigrationCreate(path, name string) error {
 }
 
 func (c *Connection) MigrateUp(path string) bool {
-	return handlePipeFunc(migrate.Up, c.URL(), path)
+	return wrapWithTemplates(path, c, func(dir string) bool {
+		return handlePipeFunc(migrate.Up, c.MigrationURL(), dir)
+	})
 }
 
 func (c *Connection) MigrateDown(path string) bool {
-	return handlePipeFunc(migrate.Down, c.URL(), path)
+	return wrapWithTemplates(path, c, func(dir string) bool {
+		return handlePipeFunc(migrate.Down, c.MigrationURL(), dir)
+	})
 }
 
 func (c *Connection) MigrateRedo(path string) bool {
-	return handlePipeFunc(migrate.Redo, c.URL(), path)
+	return wrapWithTemplates(path, c, func(dir string) bool {
+		return handlePipeFunc(migrate.Redo, c.MigrationURL(), dir)
+	})
 }
 
 func (c *Connection) MigrateReset(path string) bool {
-	return handlePipeFunc(migrate.Reset, c.URL(), path)
+	return wrapWithTemplates(path, c, func(dir string) bool {
+		return handlePipeFunc(migrate.Reset, c.MigrationURL(), dir)
+	})
 }
 
 func (c *Connection) MigrationVersion(path string) (uint64, error) {
-	return migrate.Version(c.URL(), path)
+	return migrate.Version(c.MigrationURL(), path)
 }
 
 type pipeFunc func(chan interface{}, string, string)
@@ -109,4 +122,32 @@ func printTimer(timerStart time.Time) {
 	} else {
 		fmt.Printf("\n%.4f seconds\n", diff)
 	}
+}
+
+func wrapWithTemplates(path string, c *Connection, fn func(dir string) bool) bool {
+	dir, err := ioutil.TempDir("", "pop")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer os.RemoveAll(dir) // clean up
+	files, err := ioutil.ReadDir(path)
+	if err != nil {
+		log.Fatal(err)
+	}
+	for _, file := range files {
+		tfn := filepath.Join(dir, file.Name())
+		content, _ := ioutil.ReadFile(filepath.Join(path, file.Name()))
+		t := template.Must(template.New("letter").Parse(string(content)))
+		f, err := os.Create(tfn)
+		if err != nil {
+			fmt.Println(err)
+			return false
+		}
+		err = t.Execute(f, c.Dialect.Details())
+		if err != nil {
+			fmt.Println(err)
+			return false
+		}
+	}
+	return fn(dir)
 }

@@ -81,6 +81,10 @@ func (m *PostgreSQL) URL() string {
 	return fmt.Sprintf(s, c.User, c.Password, c.Host, c.Port, c.Database)
 }
 
+func (m *PostgreSQL) MigrationURL() string {
+	return m.URL()
+}
+
 func (p *PostgreSQL) TranslateSQL(sql string) string {
 	if csql, ok := p.translateCache[sql]; ok {
 		return csql

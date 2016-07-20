@@ -21,6 +21,10 @@ func (m *SQLite) Details() *ConnectionDetails {
 }
 
 func (m *SQLite) URL() string {
+	return m.ConnectionDetails.Database + "?cache=shared&mode=rwc"
+}
+
+func (m *SQLite) MigrationURL() string {
 	return m.ConnectionDetails.URL
 }
 

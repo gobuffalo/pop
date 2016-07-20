@@ -8,6 +8,7 @@ import (
 
 type Dialect interface {
 	URL() string
+	MigrationURL() string
 	Details() *ConnectionDetails
 	TranslateSQL(sql string) string
 	Create(store Store, model *Model, cols Columns) error
