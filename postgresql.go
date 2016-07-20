@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os/exec"
 	"strconv"
+	"sync"
 
 	_ "github.com/lib/pq"
 	"github.com/markbates/going/clam"
@@ -12,6 +13,7 @@ import (
 
 type PostgreSQL struct {
 	translateCache    map[string]string
+	mu                sync.Mutex
 	ConnectionDetails *ConnectionDetails
 }
 
@@ -82,6 +84,9 @@ func (m *PostgreSQL) URL() string {
 }
 
 func (p *PostgreSQL) TranslateSQL(sql string) string {
+	defer p.mu.Unlock()
+	p.mu.Lock()
+
 	if csql, ok := p.translateCache[sql]; ok {
 		return csql
 	}
@@ -108,6 +113,7 @@ func NewPostgreSQL(deets *ConnectionDetails) Dialect {
 	cd := &PostgreSQL{
 		ConnectionDetails: deets,
 		translateCache:    map[string]string{},
+		mu:                sync.Mutex{},
 	}
 	return cd
 }
