@@ -8,7 +8,7 @@ go:
   - tip
 
 install:
- - go get -u -t -v ./...
+ - go get -t -v ./...
 
 before_script:
   - mysql -e 'create database pop_test;'
