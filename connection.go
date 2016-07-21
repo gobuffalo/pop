@@ -2,6 +2,7 @@ package pop
 
 import (
 	"fmt"
+	"sync/atomic"
 	"time"
 
 	"github.com/jmoiron/sqlx"
@@ -18,7 +19,7 @@ type Connection struct {
 	ID      string
 	Store   Store
 	Dialect Dialect
-	Timings []time.Duration
+	Elapsed int64
 	TX      *tX
 }
 
@@ -38,8 +39,7 @@ func (c *Connection) MigrationURL() string {
 // appropriately based on the `ConnectionDetails` passed into it.
 func NewConnection(deets *ConnectionDetails) *Connection {
 	c := &Connection{
-		ID:      randx.String(30),
-		Timings: []time.Duration{},
+		ID: randx.String(30),
 	}
 	switch deets.Dialect {
 	case "postgres":
@@ -105,7 +105,6 @@ func (c *Connection) NewTransaction() (*Connection, error) {
 			ID:      randx.String(30),
 			Store:   tx,
 			Dialect: c.Dialect,
-			Timings: []time.Duration{},
 			TX:      tx,
 		}
 	} else {
@@ -127,7 +126,6 @@ func (c *Connection) Rollback(fn func(tx *Connection)) error {
 			ID:      randx.String(30),
 			Store:   tx,
 			Dialect: c.Dialect,
-			Timings: []time.Duration{},
 			TX:      tx,
 		}
 	} else {
@@ -145,6 +143,6 @@ func (c *Connection) Q() *Query {
 func (c *Connection) timeFunc(name string, fn func() error) error {
 	now := time.Now()
 	err := fn()
-	c.Timings = append(c.Timings, time.Now().Sub(now))
+	atomic.AddInt64(&c.Elapsed, int64(time.Now().Sub(now)))
 	return err
 }

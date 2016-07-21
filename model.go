@@ -3,12 +3,14 @@ package pop
 import (
 	"fmt"
 	"reflect"
+	"sync"
 	"time"
 
 	"github.com/markbates/inflect"
 )
 
 var tableMap = map[string]string{}
+var tableMapMu = sync.RWMutex{}
 
 // MapTableName allows for the customize table mapping
 // between a name and the database. For example the value
@@ -22,6 +24,8 @@ var tableMap = map[string]string{}
 //	m = &pop.Model{Value: User{}}
 //	m.TableName() // "people"
 func MapTableName(name string, tableName string) {
+	defer tableMapMu.Unlock()
+	tableMapMu.Lock()
 	tableMap[name] = tableName
 }
 
@@ -66,6 +70,10 @@ func (m *Model) TableName() string {
 
 	t := reflect.TypeOf(m.Value)
 	name := m.typeName(t)
+
+	defer tableMapMu.Unlock()
+	tableMapMu.Lock()
+
 	if tableMap[name] == "" {
 		m.tableName = inflect.Tableize(name)
 		tableMap[name] = m.tableName
