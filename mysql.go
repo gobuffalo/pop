@@ -27,6 +27,10 @@ func (m *MySQL) URL() string {
 	return fmt.Sprintf(s, c.User, c.Password, c.Host, c.Port, c.Database)
 }
 
+func (m *MySQL) MigrationURL() string {
+	return m.URL()
+}
+
 func (m *MySQL) Create(store Store, model *Model, cols Columns) error {
 	return genericCreate(store, model, cols)
 }

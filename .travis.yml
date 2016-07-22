@@ -8,10 +8,7 @@ go:
   - tip
 
 install:
- - export GO15VENDOREXPERIMENT=1
- - go get -u -d -t -v github.com/Masterminds/glide
- - go install github.com/Masterminds/glide
- - glide install
+ - go get -t -v ./...
 
 before_script:
   - mysql -e 'create database pop_test;'
@@ -21,7 +18,7 @@ before_script:
 
 # script: ./test.sh
 # script: ./travis.sh
-script: go test $(glide novendor)
+script: go test ./...
 
 global_env:
   - MYSQL_USER="travis"
@@ -31,7 +28,7 @@ global_env:
 env:
   - SODA_DIALECT="postgres"
   - SODA_DIALECT="mysql_travis"
-  # - SODA_DIALECT="sqlite"
+  - SODA_DIALECT="sqlite"
 
 addons:
   postgresql: "9.3"

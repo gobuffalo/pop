@@ -5,10 +5,10 @@ set +e
 clear
 
 echo "postgres"
-SODA_DIALECT=postgres go test $(glide novendor)
+SODA_DIALECT=postgres go test ./...
 echo "--------------------"
 echo "mysql"
-SODA_DIALECT=mysql go test $(glide novendor)
-# echo "--------------------"
-# echo "sqlite"
-# SODA_DIALECT=sqlite go test ./...
+SODA_DIALECT=mysql go test ./...
+echo "--------------------"
+echo "sqlite"
+SODA_DIALECT=sqlite go test ./...

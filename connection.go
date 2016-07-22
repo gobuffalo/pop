@@ -24,11 +24,15 @@ type Connection struct {
 }
 
 func (c *Connection) String() string {
-	return c.Dialect.URL()
+	return c.URL()
 }
 
 func (c *Connection) URL() string {
-	return c.String()
+	return c.Dialect.URL()
+}
+
+func (c *Connection) MigrationURL() string {
+	return c.Dialect.MigrationURL()
 }
 
 // NewConnection creates a new connection, and sets it's `Dialect`
@@ -42,8 +46,8 @@ func NewConnection(deets *ConnectionDetails) *Connection {
 		c.Dialect = NewPostgreSQL(deets)
 	case "mysql":
 		c.Dialect = NewMySQL(deets)
-		// case "sqlite3":
-		// 	c.Dialect = NewSQLite(deets)
+	case "sqlite3":
+		c.Dialect = NewSQLite(deets)
 	}
 	return c
 }
@@ -66,7 +70,7 @@ func Connect(e string) (*Connection, error) {
 	if err == nil {
 		c.Store = &dB{db}
 	}
-	return c, nil
+	return c, err
 }
 
 // Transaction will start a new transaction on the connection. If the inner function
