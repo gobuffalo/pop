@@ -7,12 +7,15 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"sync"
+	"time"
 
+	"github.com/markbates/going/defaults"
 	. "github.com/markbates/pop/columns"
-	_ "github.com/mattn/go-sqlite3"
 )
 
 type SQLite struct {
+	gil               *sync.Mutex
 	ConnectionDetails *ConnectionDetails
 }
 
@@ -29,23 +32,52 @@ func (m *SQLite) MigrationURL() string {
 }
 
 func (m *SQLite) Create(store Store, model *Model, cols Columns) error {
-	return genericCreate(store, model, cols)
+	return m.withLock(func() error {
+		return genericCreate(store, model, cols)
+	})
+
 }
 
 func (m *SQLite) Update(store Store, model *Model, cols Columns) error {
-	return genericUpdate(store, model, cols)
+	return m.withLock(func() error {
+		return genericUpdate(store, model, cols)
+	})
+
 }
 
 func (m *SQLite) Destroy(store Store, model *Model) error {
-	return genericDestroy(store, model)
+	return m.withLock(func() error {
+		return genericDestroy(store, model)
+	})
+
 }
 
 func (m *SQLite) SelectOne(store Store, model *Model, query Query) error {
-	return genericSelectOne(store, model, query)
+	return m.withLock(func() error {
+		return genericSelectOne(store, model, query)
+	})
 }
 
 func (m *SQLite) SelectMany(store Store, models *Model, query Query) error {
-	return genericSelectMany(store, models, query)
+	return m.withLock(func() error {
+		return genericSelectMany(store, models, query)
+	})
+}
+
+func (m *SQLite) withLock(fn func() error) error {
+	if defaults.String(m.Details().Options["lock"], "true") == "true" {
+		defer func() {
+			m.gil.Unlock()
+		}()
+		m.gil.Lock()
+	}
+	err := fn()
+	attempts := 0
+	for err != nil && err.Error() == "database is locked" && attempts <= m.Details().RetryLimit() {
+		time.Sleep(m.Details().RetrySleep())
+		err = fn()
+	}
+	return err
 }
 
 func (m *SQLite) CreateDB() error {
@@ -66,9 +98,9 @@ func (m *SQLite) TranslateSQL(sql string) string {
 }
 
 func NewSQLite(deets *ConnectionDetails) Dialect {
-	// deets.Database = deets.URL
 	deets.URL = fmt.Sprintf("sqlite3://%s", deets.Database)
 	cd := &SQLite{
+		gil:               &sync.Mutex{},
 		ConnectionDetails: deets,
 	}
 

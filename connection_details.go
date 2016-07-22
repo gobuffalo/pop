@@ -2,7 +2,9 @@ package pop
 
 import (
 	"net/url"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/markbates/going/defaults"
 )
@@ -15,6 +17,7 @@ type ConnectionDetails struct {
 	User     string
 	Password string
 	URL      string
+	Options  map[string]string
 }
 
 // Parse extracts the various components of a connection string.
@@ -37,4 +40,20 @@ func (cd *ConnectionDetails) Parse(port string) error {
 		}
 	}
 	return nil
+}
+
+func (cd *ConnectionDetails) RetrySleep() time.Duration {
+	d, err := time.ParseDuration(defaults.String(cd.Options["retry_sleep"], "1ms"))
+	if err != nil {
+		return 1 * time.Millisecond
+	}
+	return d
+}
+
+func (cd *ConnectionDetails) RetryLimit() int {
+	i, err := strconv.Atoi(defaults.String(cd.Options["retry_limit"], "100"))
+	if err != nil {
+		return 100
+	}
+	return i
 }
