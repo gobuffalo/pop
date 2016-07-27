@@ -44,14 +44,15 @@ func genericUpdate(store Store, model *Model, cols Columns) error {
 		Log(stmt)
 	}
 	_, err := store.NamedExec(stmt, model.Value)
-	if err != nil {
-		Log(fmt.Sprintf("Error: Update: %q", err))
-	}
 	return err
 }
 
 func genericDestroy(store Store, model *Model) error {
 	stmt := fmt.Sprintf("DELETE FROM %s WHERE id = %d", model.TableName(), model.ID())
+	return genericExec(store, stmt)
+}
+
+func genericExec(store Store, stmt string) error {
 	if Debug {
 		Log(stmt)
 	}

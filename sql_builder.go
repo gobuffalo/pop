@@ -48,7 +48,7 @@ func (sq *SQLBuilder) compile() {
 		if sq.Query.RawSQL.Fragment != "" {
 			sq.sql = sq.Query.RawSQL.Fragment
 		} else {
-			sq.sql = sq.buildSQL()
+			sq.sql = sq.buildSelectSQL()
 		}
 		sq.sql = sq.Query.Connection.Dialect.TranslateSQL(sq.sql)
 	}
@@ -76,7 +76,7 @@ func (sq *SQLBuilder) log() {
 	}
 }
 
-func (sq *SQLBuilder) buildSQL() string {
+func (sq *SQLBuilder) buildSelectSQL() string {
 	cols := sq.buildColumns()
 
 	fc := sq.buildfromClauses()
