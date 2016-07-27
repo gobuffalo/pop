@@ -28,7 +28,10 @@ func (cd *ConnectionDetails) Parse(port string) error {
 			return err
 		}
 		cd.Dialect = u.Scheme
-		cd.Database = strings.TrimPrefix(u.Path, "/")
+		cd.Database = u.Path
+		if cd.Dialect != "sqlite3" {
+			cd.Database = strings.TrimPrefix(u.Path, "/")
+		}
 		hp := strings.Split(u.Host, ":")
 		cd.Host = hp[0]
 		if len(hp) > 1 {
