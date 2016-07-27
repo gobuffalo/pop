@@ -1,11 +1,6 @@
 package columns
 
-import (
-	"reflect"
-	"strings"
-)
-
-var columnsCache = map[string]Columns{}
+import "reflect"
 
 // ColumnsForStruct returns a Columns instance for
 // the struct passed in.
@@ -30,7 +25,6 @@ func ColumnsForStruct(s interface{}, tableName string) (columns Columns) {
 		return ColumnsForStruct(n.Interface(), tableName)
 	}
 
-	key := strings.Join([]string{st.PkgPath(), st.Name()}, ".")
 	field_count := st.NumField()
 
 	for i := 0; i < field_count; i++ {
@@ -53,8 +47,6 @@ func ColumnsForStruct(s interface{}, tableName string) (columns Columns) {
 			}
 		}
 	}
-
-	columnsCache[key] = columns
 
 	return columns
 }
