@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/jmoiron/sqlx"
 	. "github.com/markbates/pop/columns"
 )
 
@@ -50,7 +51,11 @@ func (sq *SQLBuilder) compile() {
 		} else {
 			sq.sql = sq.buildSelectSQL()
 		}
-		sq.sql = sq.Query.Connection.Dialect.TranslateSQL(sq.sql)
+		s, _, err := sqlx.In(sq.sql, sq.Args())
+		if err != nil {
+			s = sq.sql
+		}
+		sq.sql = sq.Query.Connection.Dialect.TranslateSQL(s)
 	}
 	sq.log()
 }
