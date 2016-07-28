@@ -82,7 +82,7 @@ func (m *SQLite) withLock(fn func() error) error {
 
 func (m *SQLite) CreateDB() error {
 	d := filepath.Dir(m.ConnectionDetails.Database)
-	err := os.MkdirAll(d, 0755)
+	err := os.MkdirAll(d, 0766)
 	if err != nil {
 		log.Println(err)
 	}
