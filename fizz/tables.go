@@ -14,6 +14,11 @@ func (t *Table) Column(name string, colType string, options map[string]interface
 	t.Columns = append(t.Columns, c)
 }
 
+func init() {
+	fizzers["create_table"] = CreateTable
+	fizzers["drop_table"] = DropTable
+}
+
 func CreateTable(ch chan Bubble) interface{} {
 	return func(name string, fn func(t *Table)) {
 		t := &Table{

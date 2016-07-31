@@ -8,6 +8,12 @@ import (
 	"github.com/mattn/anko/vm"
 )
 
+type Options map[string]interface{}
+
+type fizzer func(chan Bubble) interface{}
+
+var fizzers = map[string]fizzer{}
+
 func AFile(p string) chan Bubble {
 	b, err := ioutil.ReadFile(p)
 	if err != nil {
@@ -21,10 +27,9 @@ func AString(s string) chan Bubble {
 	go func() {
 		env := core.Import(vm.NewEnv())
 
-		env.Define("raw", RawSQL(ch))
-		env.Define("create_table", CreateTable(ch))
-		env.Define("drop_table", DropTable(ch))
-		env.Define("add_column", AddColumn(ch))
+		for k, v := range fizzers {
+			env.Define(k, v(ch))
+		}
 
 		_, err := env.Execute(s)
 		if err != nil {
@@ -33,6 +38,10 @@ func AString(s string) chan Bubble {
 		close(ch)
 	}()
 	return ch
+}
+
+func init() {
+	fizzers["raw"] = RawSQL
 }
 
 func RawSQL(ch chan Bubble) interface{} {

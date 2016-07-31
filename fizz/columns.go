@@ -4,10 +4,10 @@ var ID_COL = Column{
 	Name:    "id",
 	Primary: true,
 	ColType: "integer",
-	Options: map[string]interface{}{},
+	Options: Options{},
 }
-var CREATED_COL = Column{Name: "created_at", ColType: "timestamp", Options: map[string]interface{}{}}
-var UPDATED_COL = Column{Name: "updated_at", ColType: "timestamp", Options: map[string]interface{}{}}
+var CREATED_COL = Column{Name: "created_at", ColType: "timestamp", Options: Options{}}
+var UPDATED_COL = Column{Name: "updated_at", ColType: "timestamp", Options: Options{}}
 
 type Column struct {
 	Name    string
@@ -16,8 +16,12 @@ type Column struct {
 	Options map[string]interface{}
 }
 
+func init() {
+	fizzers["add_column"] = AddColumn
+}
+
 func AddColumn(ch chan Bubble) interface{} {
-	return func(table, name, ctype string, options map[string]interface{}) {
+	return func(table, name, ctype string, options Options) {
 		t := &Table{
 			Name: table,
 			Columns: []Column{
