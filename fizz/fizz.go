@@ -10,11 +10,11 @@ import (
 
 type Options map[string]interface{}
 
-type fizzer func(chan Bubble) interface{}
+type fizzer func(chan *Bubble) interface{}
 
 var fizzers = map[string]fizzer{}
 
-func AFile(p string) chan Bubble {
+func AFile(p string) Bubbler {
 	b, err := ioutil.ReadFile(p)
 	if err != nil {
 		log.Fatal(err)
@@ -22,8 +22,9 @@ func AFile(p string) chan Bubble {
 	return AString(string(b))
 }
 
-func AString(s string) chan Bubble {
-	ch := make(chan Bubble)
+func AString(s string) Bubbler {
+	ch := make(chan *Bubble)
+	b := Bubbler{Bubbles: ch}
 	go func() {
 		env := core.Import(vm.NewEnv())
 
@@ -37,15 +38,5 @@ func AString(s string) chan Bubble {
 		}
 		close(ch)
 	}()
-	return ch
-}
-
-func init() {
-	fizzers["raw"] = RawSQL
-}
-
-func RawSQL(ch chan Bubble) interface{} {
-	return func(sql string) {
-		ch <- Bubble{Type: E_RAW_SQL, Data: sql}
-	}
+	return b
 }

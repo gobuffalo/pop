@@ -12,7 +12,7 @@ func Test_RawSQL(t *testing.T) {
 
 	ddl := `raw("select * from users")`
 
-	ch := fizz.AString(ddl)
+	ch := fizz.AString(ddl).Bubbles
 	b := <-ch
 	s := b.Data.(string)
 	r.Equal("select * from users", s)

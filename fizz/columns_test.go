@@ -11,11 +11,40 @@ func Test_AddColumn(t *testing.T) {
 	r := require.New(t)
 	ddl := `add_column("users", "age", "integer", {"null": false, "default":0})`
 
-	ch := fizz.AString(ddl)
-	b := <-ch
+	b := <-fizz.AString(ddl).Bubbles
+	r.Equal(fizz.E_ADD_COLUMN, b.BubbleType)
+
 	tl := b.Data.(*fizz.Table)
 	r.Equal("users", tl.Name)
 
 	c := tl.Columns[0]
 	r.Equal("age", c.Name)
+}
+
+func Test_DropColumn(t *testing.T) {
+	r := require.New(t)
+	ddl := `drop_column("users", "email")`
+	b := <-fizz.AString(ddl).Bubbles
+	r.Equal(fizz.E_DROP_COLUMN, b.BubbleType)
+
+	tl := b.Data.(*fizz.Table)
+	r.Equal("users", tl.Name)
+
+	c := tl.Columns[0]
+	r.Equal("email", c.Name)
+}
+
+func Test_RenameColumn(t *testing.T) {
+	r := require.New(t)
+	ddl := `rename_column("users", "email", "email_address")`
+	b := <-fizz.AString(ddl).Bubbles
+	r.Equal(fizz.E_RENAME_COLUMN, b.BubbleType)
+
+	tl := b.Data.(*fizz.Table)
+	r.Equal("users", tl.Name)
+
+	c := tl.Columns[0]
+	r.Equal("email", c.Name)
+	c = tl.Columns[1]
+	r.Equal("email_address", c.Name)
 }
