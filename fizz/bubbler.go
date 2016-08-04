@@ -60,17 +60,6 @@ func (b *Bubbler) Bubble(s string) error {
 	env.Define("drop_table", f.DropTable())
 	env.Define("rename_table", f.RenameTable())
 
-	// t := reflect.TypeOf(f)
-	// v := reflect.ValueOf(f)
-	// for i := 0; i < t.NumMethod(); i++ {
-	// 	m := t.Method(i)
-	// 	k := inflect.Underscore(m.Name)
-	// 	fmt.Printf("### k -> %#v\n", k)
-	// 	fmt.Printf("### m -> %#v\n", m)
-	// 	mv := v.MethodByName(m.Name)
-	// 	env.Define(k, mv.Call([]reflect.Value{}))
-	// }
-
 	_, err := env.Execute(s)
 	fmt.Printf("### err -> %#v\n", err)
 	return err
