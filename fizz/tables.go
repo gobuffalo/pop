@@ -22,24 +22,21 @@ func (f fizzer) CreateTable() interface{} {
 			Columns: []Column{ID_COL, CREATED_COL, UPDATED_COL},
 		}
 		fn(&t)
-		f.add(Bubble{BubbleType: E_CREATE_TABLE, Data: t})
+		f.add(f.Bubbler.CreateTable(t))
 	}
 }
 
 func (f fizzer) DropTable() interface{} {
 	return func(name string) {
-		f.add(Bubble{BubbleType: E_DROP_TABLE, Data: Table{Name: name}})
+		f.add(f.Bubbler.DropTable(Table{Name: name}))
 	}
 }
 
 func (f fizzer) RenameTable() interface{} {
 	return func(old, new string) {
-		f.add(Bubble{
-			BubbleType: E_RENAME_TABLE,
-			Data: []Table{
-				{Name: old},
-				{Name: new},
-			},
-		})
+		f.add(f.Bubbler.RenameTable([]Table{
+			{Name: old},
+			{Name: new},
+		}))
 	}
 }

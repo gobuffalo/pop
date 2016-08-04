@@ -34,33 +34,24 @@ func (f fizzer) AddIndex() interface{} {
 			i.Name = fmt.Sprintf("%s_%s_idx", table, strings.Join(i.Columns, "_"))
 		}
 		i.Unique = options["unique"] != nil
-		f.add(Bubble{
-			BubbleType: E_ADD_INDEX,
-			Data: Table{
-				Name:    table,
-				Indexes: []Index{i},
-			},
-		})
+		f.add(f.Bubbler.AddIndex(Table{
+			Name:    table,
+			Indexes: []Index{i},
+		}))
 	}
 }
 
 func (f fizzer) DropIndex() interface{} {
 	return func(name string) {
-		f.add(Bubble{
-			BubbleType: E_DROP_INDEX,
-			Data:       Index{Name: name},
-		})
+		f.add(f.Bubbler.DropIndex(Index{Name: name}))
 	}
 }
 
 func (f fizzer) RenameIndex() interface{} {
 	return func(old, new string) {
-		f.add(Bubble{
-			BubbleType: E_RENAME_INDEX,
-			Data: []Index{
-				{Name: old},
-				{Name: new},
-			},
-		})
+		f.add(f.Bubbler.RenameIndex([]Index{
+			{Name: old},
+			{Name: new},
+		}))
 	}
 }

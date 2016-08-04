@@ -9,6 +9,8 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/markbates/going/clam"
 	. "github.com/markbates/pop/columns"
+	"github.com/markbates/pop/fizz"
+	"github.com/markbates/pop/fizz/translators"
 )
 
 type PostgreSQL struct {
@@ -110,6 +112,10 @@ func (p *PostgreSQL) TranslateSQL(sql string) string {
 	csql := string(out)
 	p.translateCache[sql] = csql
 	return csql
+}
+
+func (p *PostgreSQL) FizzTranslator() fizz.Translator {
+	return translators.Postgres{}
 }
 
 func NewPostgreSQL(deets *ConnectionDetails) Dialect {

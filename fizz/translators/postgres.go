@@ -93,7 +93,7 @@ func (p Postgres) buildColumn(c fizz.Column) string {
 		s = fmt.Sprintf("%s NOT NULL", s)
 	}
 	if c.Options["default"] != nil {
-		s = fmt.Sprintf("%s DEFAULT '%s'", s, c.Options["default"])
+		s = fmt.Sprintf("%s DEFAULT '%v'", s, c.Options["default"])
 	}
 	return s
 }
@@ -106,8 +106,6 @@ func (p Postgres) colType(c fizz.Column) string {
 			s = fmt.Sprintf("%d", c.Options["size"])
 		}
 		return fmt.Sprintf("VARCHAR (%s)", s)
-	case "text":
-		return "BLOB"
 	default:
 		return c.ColType
 	}

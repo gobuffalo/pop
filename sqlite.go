@@ -12,6 +12,7 @@ import (
 
 	"github.com/markbates/going/defaults"
 	. "github.com/markbates/pop/columns"
+	"github.com/markbates/pop/fizz"
 )
 
 type SQLite struct {
@@ -95,6 +96,11 @@ func (m *SQLite) DropDB() error {
 
 func (m *SQLite) TranslateSQL(sql string) string {
 	return sql
+}
+
+func (m *SQLite) FizzTranslator() fizz.Translator {
+	panic("Not Implemented!!!")
+	return nil
 }
 
 func NewSQLite(deets *ConnectionDetails) Dialect {

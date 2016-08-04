@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	. "github.com/markbates/pop/columns"
+	"github.com/markbates/pop/fizz"
 )
 
 type Dialect interface {
@@ -18,6 +19,7 @@ type Dialect interface {
 	SelectMany(store Store, models *Model, query Query) error
 	CreateDB() error
 	DropDB() error
+	FizzTranslator() fizz.Translator
 }
 
 func genericCreate(store Store, model *Model, cols Columns) error {

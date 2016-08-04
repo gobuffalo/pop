@@ -5,10 +5,13 @@ import (
 	"html/template"
 	"io/ioutil"
 	"os"
+	"path"
 	"path/filepath"
 	"regexp"
+	"strings"
 	"time"
 
+	"github.com/markbates/pop/fizz"
 	_ "github.com/mattes/migrate/driver/mysql"
 	_ "github.com/mattes/migrate/driver/postgres"
 	_ "github.com/mattes/migrate/driver/sqlite3"
@@ -176,27 +179,37 @@ func printTimer(timerStart time.Time) {
 	}
 }
 
-func wrapWithTemplates(path string, c *Connection, fn func(dir string) error) error {
+func wrapWithTemplates(p string, c *Connection, fn func(dir string) error) error {
 	dir, err := ioutil.TempDir("", "pop")
 	if err != nil {
 		return err
 	}
 	defer os.RemoveAll(dir) // clean up
-	files, err := ioutil.ReadDir(path)
+	files, err := ioutil.ReadDir(p)
 	if err != nil {
 		return err
 	}
 	for _, file := range files {
-		tfn := filepath.Join(dir, file.Name())
-		content, _ := ioutil.ReadFile(filepath.Join(path, file.Name()))
-		t := template.Must(template.New("letter").Parse(string(content)))
+		ext := path.Ext(file.Name())
+		tfn := filepath.Join(dir, strings.Replace(file.Name(), ".fizz", ".sql", 1))
+		content, _ := ioutil.ReadFile(filepath.Join(p, file.Name()))
 		f, err := os.Create(tfn)
 		if err != nil {
 			return err
 		}
-		err = t.Execute(f, c.Dialect.Details())
-		if err != nil {
-			return err
+		switch ext {
+		case ".fizz":
+			s, _ := fizz.AString(string(content), c.Dialect.FizzTranslator())
+			if err != nil {
+				return err
+			}
+			fmt.Fprint(f, s)
+		case ".sql":
+			t := template.Must(template.New("letter").Parse(string(content)))
+			err = t.Execute(f, c.Dialect.Details())
+			if err != nil {
+				return err
+			}
 		}
 	}
 	err = fn(dir)

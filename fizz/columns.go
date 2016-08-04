@@ -24,7 +24,7 @@ func (f fizzer) AddColumn() interface{} {
 				{Name: name, ColType: ctype, Options: options},
 			},
 		}
-		f.add(Bubble{BubbleType: E_ADD_COLUMN, Data: t})
+		f.add(f.Bubbler.AddColumn(t))
 	}
 }
 
@@ -36,7 +36,7 @@ func (f fizzer) DropColumn() interface{} {
 				{Name: name},
 			},
 		}
-		f.add(Bubble{BubbleType: E_DROP_COLUMN, Data: t})
+		f.add(f.Bubbler.DropColumn(t))
 	}
 }
 
@@ -49,6 +49,6 @@ func (f fizzer) RenameColumn() interface{} {
 				{Name: new},
 			},
 		}
-		f.add(Bubble{BubbleType: E_RENAME_COLUMN, Data: t})
+		f.add(f.Bubbler.RenameColumn(t))
 	}
 }

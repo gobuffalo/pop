@@ -7,6 +7,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/markbates/going/clam"
 	. "github.com/markbates/pop/columns"
+	"github.com/markbates/pop/fizz"
 )
 
 type MySQL struct {
@@ -69,6 +70,11 @@ func (m *MySQL) DropDB() error {
 
 func (m *MySQL) TranslateSQL(sql string) string {
 	return sql
+}
+
+func (m *MySQL) FizzTranslator() fizz.Translator {
+	panic("Not Implemented!!!")
+	return nil
 }
 
 func NewMySQL(deets *ConnectionDetails) Dialect {
