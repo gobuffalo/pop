@@ -8,6 +8,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+var _ translators.FizzTranslator = (*translators.Postgres)(nil)
+
 func Test_Postgres_CreateTable(t *testing.T) {
 	r := require.New(t)
 	ddl := `CREATE TABLE IF NOT EXISTS "users" (
@@ -178,5 +180,20 @@ func Test_Postgres_DropIndex(t *testing.T) {
 
 	p := translators.Postgres{}
 	res, _ := p.DropIndex(tl)
+	r.Equal(ddl, res)
+}
+
+func Test_Postgres_RenameIndex(t *testing.T) {
+	r := require.New(t)
+
+	ddl := `ALTER INDEX "old_ix" RENAME TO "new_ix";`
+
+	bub, _ := fizz.AString(`rename_index("old_ix", "new_ix")`)
+	b := bub.Bubbles[0]
+
+	tl := b.Data.([]fizz.Index)
+
+	p := translators.Postgres{}
+	res, _ := p.RenameIndex(tl)
 	r.Equal(ddl, res)
 }

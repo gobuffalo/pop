@@ -11,5 +11,5 @@ type FizzTranslator interface {
 	RenameColumn(fizz.Table) (string, error)
 	AddIndex(fizz.Table) (string, error)
 	DropIndex(fizz.Index) (string, error)
-	RenameIndex(fizz.Index) (string, error)
+	RenameIndex([]fizz.Index) (string, error)
 }

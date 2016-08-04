@@ -78,6 +78,15 @@ func (p Postgres) DropIndex(i fizz.Index) (string, error) {
 	return fmt.Sprintf("DROP INDEX IF EXISTS \"%s\";", i.Name), nil
 }
 
+func (p Postgres) RenameIndex(ix []fizz.Index) (string, error) {
+	if len(ix) < 2 {
+		return "", errors.New("Not enough indexes supplied!")
+	}
+	oi := ix[0]
+	ni := ix[1]
+	return fmt.Sprintf("ALTER INDEX \"%s\" RENAME TO \"%s\";", oi.Name, ni.Name), nil
+}
+
 func (p Postgres) buildColumn(c fizz.Column) string {
 	s := fmt.Sprintf("\"%s\" %s", c.Name, p.colType(c))
 	if c.Options["null"] == nil {
