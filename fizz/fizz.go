@@ -3,18 +3,19 @@ package fizz
 import (
 	"io/ioutil"
 	"log"
-
-	"github.com/mattn/anko/builtins"
-	"github.com/mattn/anko/vm"
 )
 
 type Options map[string]interface{}
 
-type fizzer func(chan *Bubble) interface{}
+type fizzer struct {
+	Bubbler *Bubbler
+}
 
-var fizzers = map[string]fizzer{}
+func (f fizzer) add(b Bubble) {
+	f.Bubbler.Bubbles = append(f.Bubbler.Bubbles, b)
+}
 
-func AFile(p string) Bubbler {
+func AFile(p string) (*Bubbler, error) {
 	b, err := ioutil.ReadFile(p)
 	if err != nil {
 		log.Fatal(err)
@@ -22,21 +23,8 @@ func AFile(p string) Bubbler {
 	return AString(string(b))
 }
 
-func AString(s string) Bubbler {
-	ch := make(chan *Bubble)
-	b := Bubbler{Bubbles: ch}
-	go func() {
-		env := core.Import(vm.NewEnv())
-
-		for k, v := range fizzers {
-			env.Define(k, v(ch))
-		}
-
-		_, err := env.Execute(s)
-		if err != nil {
-			log.Fatal(err)
-		}
-		close(ch)
-	}()
-	return b
+func AString(s string) (*Bubbler, error) {
+	b := NewBubbler()
+	err := b.Bubble(s)
+	return b, err
 }

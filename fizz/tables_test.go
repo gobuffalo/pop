@@ -17,10 +17,11 @@ create_table("users", func(t) {
 })
 `
 
-	b := <-fizz.AString(ddl).Bubbles
+	bub, _ := fizz.AString(ddl)
+	b := bub.Bubbles[0]
 	r.Equal(fizz.E_CREATE_TABLE, b.BubbleType)
 
-	tl := b.Data.(*fizz.Table)
+	tl := b.Data.(fizz.Table)
 	r.Equal("users", tl.Name)
 	r.Equal(6, len(tl.Columns))
 
@@ -34,9 +35,10 @@ func Test_DropTable(t *testing.T) {
 	r := require.New(t)
 	ddl := `drop_table("users")`
 
-	b := <-fizz.AString(ddl).Bubbles
+	bub, _ := fizz.AString(ddl)
+	b := bub.Bubbles[0]
 	r.Equal(fizz.E_DROP_TABLE, b.BubbleType)
-	tl := b.Data.(*fizz.Table)
+	tl := b.Data.(fizz.Table)
 	r.Equal("users", tl.Name)
 }
 
@@ -45,9 +47,10 @@ func Test_RenameTable(t *testing.T) {
 
 	ddl := `rename_table("users", "people")`
 
-	b := <-fizz.AString(ddl).Bubbles
+	bub, _ := fizz.AString(ddl)
+	b := bub.Bubbles[0]
 	r.Equal(fizz.E_RENAME_TABLE, b.BubbleType)
 
-	tables := b.Data.([]*fizz.Table)
+	tables := b.Data.([]fizz.Table)
 	r.Len(tables, 2)
 }
