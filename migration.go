@@ -203,6 +203,7 @@ func wrapWithTemplates(p string, c *Connection, fn func(dir string) error) error
 			if err != nil {
 				return err
 			}
+			fmt.Println(s)
 			fmt.Fprint(f, s)
 		case ".sql":
 			t := template.Must(template.New("letter").Parse(string(content)))

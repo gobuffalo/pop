@@ -13,6 +13,7 @@ import (
 	"github.com/markbates/going/defaults"
 	. "github.com/markbates/pop/columns"
 	"github.com/markbates/pop/fizz"
+	"github.com/markbates/pop/fizz/translators"
 )
 
 type SQLite struct {
@@ -99,8 +100,7 @@ func (m *SQLite) TranslateSQL(sql string) string {
 }
 
 func (m *SQLite) FizzTranslator() fizz.Translator {
-	panic("Not Implemented!!!")
-	return nil
+	return translators.SQLite{URL: m.Details().Database}
 }
 
 func NewSQLite(deets *ConnectionDetails) Dialect {
