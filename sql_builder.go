@@ -29,7 +29,6 @@ func (sq *SQLBuilder) String() string {
 	if sq.sql == "" {
 		sq.compile()
 	}
-	sq.log()
 	return sq.sql
 }
 
@@ -56,28 +55,6 @@ func (sq *SQLBuilder) compile() {
 			s = sq.sql
 		}
 		sq.sql = sq.Query.Connection.Dialect.TranslateSQL(s)
-	}
-	sq.log()
-}
-
-func (sq *SQLBuilder) log() {
-	if Debug {
-		args := sq.args
-		x := sq.sql
-
-		if len(args) > 0 {
-			xargs := make([]string, len(args))
-			for i, a := range args {
-				switch a.(type) {
-				case string:
-					xargs[i] = fmt.Sprintf("%q", a)
-				default:
-					xargs[i] = fmt.Sprintf("%v", a)
-				}
-			}
-			x = fmt.Sprintf("%s | %s", x, xargs)
-		}
-		Log(x)
 	}
 }
 

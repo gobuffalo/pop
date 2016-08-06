@@ -24,9 +24,7 @@ func genericCreate(store Store, model *Model, cols Columns) error {
 	var id int64
 	w := cols.Writeable()
 	query := fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s)", model.TableName(), w.String(), w.SymbolizedString())
-	if Debug {
-		Log(query)
-	}
+	Log(query)
 	res, err := store.NamedExec(query, model.Value)
 	if err != nil {
 		return err
@@ -40,9 +38,7 @@ func genericCreate(store Store, model *Model, cols Columns) error {
 
 func genericUpdate(store Store, model *Model, cols Columns) error {
 	stmt := fmt.Sprintf("UPDATE %s SET %s where id = %d", model.TableName(), cols.Writeable().UpdateString(), model.ID())
-	if Debug {
-		Log(stmt)
-	}
+	Log(stmt)
 	_, err := store.NamedExec(stmt, model.Value)
 	return err
 }
@@ -53,9 +49,7 @@ func genericDestroy(store Store, model *Model) error {
 }
 
 func genericExec(store Store, stmt string) error {
-	if Debug {
-		Log(stmt)
-	}
+	Log(stmt)
 	_, err := store.Exec(stmt)
 	return err
 }

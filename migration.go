@@ -1,118 +1,170 @@
 package pop
 
 import (
-	"errors"
 	"fmt"
 	"html/template"
 	"io/ioutil"
-	"log"
 	"os"
 	"path/filepath"
+	"regexp"
 	"time"
 
-	"github.com/fatih/color"
 	_ "github.com/mattes/migrate/driver/mysql"
 	_ "github.com/mattes/migrate/driver/postgres"
 	_ "github.com/mattes/migrate/driver/sqlite3"
-	"github.com/mattes/migrate/file"
-	"github.com/mattes/migrate/migrate"
-	"github.com/mattes/migrate/migrate/direction"
-	pipep "github.com/mattes/migrate/pipe"
 )
 
-func (c *Connection) MigrationCreate(path, name string) error {
-	if name == "" {
-		return errors.New("Please specify name.")
-	}
+var mrx = regexp.MustCompile("(\\d+)_(.+)\\.(up|down)\\.(sql|fizz)")
 
-	mf, err := migrate.Create(c.MigrationURL(), path, name)
+var smSQL = `CREATE TABLE IF NOT EXISTS "schema_migrations"(
+	"version" TEXT NOT NULL,
+	PRIMARY KEY("version")
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS "version_idx" ON "schema_migrations"("version");`
+
+func (c *Connection) MigrationCreate(path, name, ext string) error {
+	n := time.Now().UTC()
+	s := n.Format("20060102150405")
+
+	up := filepath.Join(path, (fmt.Sprintf("%s_%s.up.%s", s, name, ext)))
+	err := ioutil.WriteFile(up, []byte(""), 0666)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("> %s\n", up)
+
+	down := filepath.Join(path, (fmt.Sprintf("%s_%s.down.%s", s, name, ext)))
+	err = ioutil.WriteFile(down, []byte(""), 0666)
 	if err != nil {
 		return err
 	}
 
-	fmt.Printf("Version %v migration files created in %v:\n", mf.Version, path)
-	fmt.Println(mf.UpFile.FileName)
-	fmt.Println(mf.DownFile.FileName)
-	return nil
+	fmt.Printf("> %s\n", down)
+	return err
 }
 
-func (c *Connection) MigrateUp(path string) bool {
-	return wrapWithTemplates(path, c, func(dir string) bool {
-		return handlePipeFunc(migrate.Up, c.MigrationURL(), dir)
-	})
+type migrationFile struct {
+	Path      string
+	FileName  string
+	Version   string
+	Name      string
+	Direction string
+	FileType  string
 }
 
-func (c *Connection) MigrateDown(path string) bool {
-	return wrapWithTemplates(path, c, func(dir string) bool {
-		return handlePipeFunc(migrate.Down, c.MigrationURL(), dir)
-	})
+func (m migrationFile) execute(c *Connection) error {
+	b, err := ioutil.ReadFile(m.Path)
+	if err != nil {
+		return err
+	}
+	if len(b) == 0 {
+		return nil
+	}
+	return c.RawQuery(string(b)).Exec()
 }
 
-func (c *Connection) MigrateRedo(path string) bool {
-	return wrapWithTemplates(path, c, func(dir string) bool {
-		return handlePipeFunc(migrate.Redo, c.MigrationURL(), dir)
-	})
-}
-
-func (c *Connection) MigrateReset(path string) bool {
-	return wrapWithTemplates(path, c, func(dir string) bool {
-		return handlePipeFunc(migrate.Reset, c.MigrationURL(), dir)
-	})
-}
-
-func (c *Connection) MigrationVersion(path string) (uint64, error) {
-	return migrate.Version(c.MigrationURL(), path)
-}
-
-type pipeFunc func(chan interface{}, string, string)
-
-func handlePipeFunc(fn pipeFunc, url string, path string) bool {
-	timerStart := time.Now()
-	pipe := pipep.New()
-	go fn(pipe, url, path)
-	ok := writePipe(pipe)
-	printTimer(timerStart)
-	return ok
-}
-
-func writePipe(pipe chan interface{}) (ok bool) {
-	okFlag := true
-	if pipe != nil {
-		for {
-			select {
-			case item, more := <-pipe:
-				if !more {
-					return okFlag
-				} else {
-					switch item.(type) {
-
-					case string:
-						fmt.Println(item.(string))
-
-					case error:
-						c := color.New(color.FgRed)
-						c.Println(item.(error).Error(), "\n")
-						okFlag = false
-
-					case file.File:
-						f := item.(file.File)
-						c := color.New(color.FgBlue)
-						if f.Direction == direction.Up {
-							c.Print(">")
-						} else if f.Direction == direction.Down {
-							c.Print("<")
-						}
-						fmt.Printf(" %s\n", f.FileName)
-
-					default:
-						text := fmt.Sprint(item)
-						fmt.Println(text)
-					}
+func findMigrations(dir string, direction string, fn func(migrationFile) error) error {
+	return filepath.Walk(dir, func(p string, info os.FileInfo, err error) error {
+		if !info.IsDir() {
+			matches := mrx.FindAllStringSubmatch(info.Name(), -1)
+			if len(matches) >= 0 {
+				m := matches[0]
+				mf := migrationFile{
+					Path:      p,
+					FileName:  m[0],
+					Version:   m[1],
+					Name:      m[2],
+					Direction: m[3],
+					FileType:  m[4],
+				}
+				if mf.Direction == direction {
+					return fn(mf)
 				}
 			}
 		}
+		return nil
+	})
+}
+
+func (c *Connection) MigrateUp(path string) error {
+	now := time.Now()
+	defer printTimer(now)
+
+	err := c.createSchemaMigrations()
+	if err != nil {
+		return err
 	}
-	return okFlag
+	return wrapWithTemplates(path, c, func(dir string) error {
+		return findMigrations(dir, "up", func(m migrationFile) error {
+			i, err := c.Where("version = ?", m.Version).Count("schema_migrations")
+			if err != nil {
+				return err
+			}
+			if i == 0 {
+				err = c.Transaction(func(tx *Connection) error {
+					err := m.execute(tx)
+					if err != nil {
+						return err
+					}
+					_, err = tx.Store.Exec("insert into schema_migrations (version) values(?)", m.Version)
+					return err
+				})
+				if err == nil {
+					fmt.Printf("> %s\n", m.FileName)
+				}
+				return err
+			}
+			return nil
+		})
+	})
+}
+
+func (c *Connection) MigrateDown(path string) error {
+	now := time.Now()
+	defer printTimer(now)
+
+	err := c.createSchemaMigrations()
+	if err != nil {
+		return err
+	}
+	return wrapWithTemplates(path, c, func(dir string) error {
+		return findMigrations(dir, "down", func(m migrationFile) error {
+			i, err := c.Where("version = ?", m.Version).Count("schema_migrations")
+			if err != nil {
+				return err
+			}
+			if i > 0 {
+				err = c.Transaction(func(tx *Connection) error {
+					err := m.execute(tx)
+					if err != nil {
+						return err
+					}
+					_, err = tx.Store.Exec("delete from schema_migrations where version = ?", m.Version)
+					return err
+				})
+				if err == nil {
+					fmt.Printf("< %s\n", m.FileName)
+				}
+				return err
+			}
+			return nil
+		})
+	})
+}
+
+func (c *Connection) MigrateReset(path string) error {
+	err := c.MigrateDown(path)
+	if err != nil {
+		return err
+	}
+	return c.MigrateUp(path)
+}
+
+func (c *Connection) createSchemaMigrations() error {
+	return c.Transaction(func(tx *Connection) error {
+		return tx.RawQuery(smSQL).Exec()
+	})
 }
 
 func printTimer(timerStart time.Time) {
@@ -124,15 +176,15 @@ func printTimer(timerStart time.Time) {
 	}
 }
 
-func wrapWithTemplates(path string, c *Connection, fn func(dir string) bool) bool {
+func wrapWithTemplates(path string, c *Connection, fn func(dir string) error) error {
 	dir, err := ioutil.TempDir("", "pop")
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	defer os.RemoveAll(dir) // clean up
 	files, err := ioutil.ReadDir(path)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	for _, file := range files {
 		tfn := filepath.Join(dir, file.Name())
@@ -140,14 +192,16 @@ func wrapWithTemplates(path string, c *Connection, fn func(dir string) bool) boo
 		t := template.Must(template.New("letter").Parse(string(content)))
 		f, err := os.Create(tfn)
 		if err != nil {
-			fmt.Println(err)
-			return false
+			return err
 		}
 		err = t.Execute(f, c.Dialect.Details())
 		if err != nil {
-			fmt.Println(err)
-			return false
+			return err
 		}
 	}
-	return fn(dir)
+	err = fn(dir)
+	if err != nil {
+		return err
+	}
+	return nil
 }
