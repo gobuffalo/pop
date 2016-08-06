@@ -115,7 +115,7 @@ func (p *PostgreSQL) TranslateSQL(sql string) string {
 }
 
 func (p *PostgreSQL) FizzTranslator() fizz.Translator {
-	return translators.Postgres{}
+	return translators.NewPostgres()
 }
 
 func NewPostgreSQL(deets *ConnectionDetails) Dialect {

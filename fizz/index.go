@@ -48,10 +48,13 @@ func (f fizzer) DropIndex() interface{} {
 }
 
 func (f fizzer) RenameIndex() interface{} {
-	return func(old, new string) {
-		f.add(f.Bubbler.RenameIndex([]Index{
-			{Name: old},
-			{Name: new},
+	return func(table, old, new string) {
+		f.add(f.Bubbler.RenameIndex(Table{
+			Name: table,
+			Indexes: []Index{
+				{Name: old},
+				{Name: new},
+			},
 		}))
 	}
 }

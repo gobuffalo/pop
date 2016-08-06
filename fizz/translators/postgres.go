@@ -8,9 +8,17 @@ import (
 	"github.com/markbates/pop/fizz"
 )
 
-type Postgres struct{}
+type Postgres struct {
+	sql []string
+}
 
-func (p Postgres) CreateTable(t fizz.Table) (string, error) {
+func NewPostgres() *Postgres {
+	return &Postgres{
+		sql: []string{},
+	}
+}
+
+func (p *Postgres) CreateTable(t fizz.Table) (string, error) {
 	cols := []string{}
 	var s string
 	for _, c := range t.Columns {
@@ -21,21 +29,21 @@ func (p Postgres) CreateTable(t fizz.Table) (string, error) {
 		}
 		cols = append(cols, s)
 	}
-	return fmt.Sprintf("CREATE TABLE IF NOT EXISTS \"%s\" (\n%s\n);", t.Name, strings.Join(cols, ",\n")), nil
+	return fmt.Sprintf("CREATE TABLE \"%s\" (\n%s\n);", t.Name, strings.Join(cols, ",\n")), nil
 }
 
-func (p Postgres) DropTable(t fizz.Table) (string, error) {
-	return fmt.Sprintf("DROP TABLE IF EXISTS \"%s\";", t.Name), nil
+func (p *Postgres) DropTable(t fizz.Table) (string, error) {
+	return fmt.Sprintf("DROP TABLE \"%s\";", t.Name), nil
 }
 
-func (p Postgres) RenameTable(t []fizz.Table) (string, error) {
+func (p *Postgres) RenameTable(t []fizz.Table) (string, error) {
 	if len(t) < 2 {
 		return "", errors.New("Not enough table names supplied!")
 	}
 	return fmt.Sprintf("ALTER TABLE \"%s\" RENAME TO \"%s\";", t[0].Name, t[1].Name), nil
 }
 
-func (p Postgres) AddColumn(t fizz.Table) (string, error) {
+func (p *Postgres) AddColumn(t fizz.Table) (string, error) {
 	if len(t.Columns) == 0 {
 		return "", errors.New("Not enough columns supplied!")
 	}
@@ -44,7 +52,7 @@ func (p Postgres) AddColumn(t fizz.Table) (string, error) {
 	return s, nil
 }
 
-func (p Postgres) DropColumn(t fizz.Table) (string, error) {
+func (p *Postgres) DropColumn(t fizz.Table) (string, error) {
 	if len(t.Columns) == 0 {
 		return "", errors.New("Not enough columns supplied!")
 	}
@@ -52,7 +60,7 @@ func (p Postgres) DropColumn(t fizz.Table) (string, error) {
 	return fmt.Sprintf("ALTER TABLE \"%s\" DROP COLUMN \"%s\";", t.Name, c.Name), nil
 }
 
-func (p Postgres) RenameColumn(t fizz.Table) (string, error) {
+func (p *Postgres) RenameColumn(t fizz.Table) (string, error) {
 	if len(t.Columns) < 2 {
 		return "", errors.New("Not enough columns supplied!")
 	}
@@ -62,7 +70,7 @@ func (p Postgres) RenameColumn(t fizz.Table) (string, error) {
 	return s, nil
 }
 
-func (p Postgres) AddIndex(t fizz.Table) (string, error) {
+func (p *Postgres) AddIndex(t fizz.Table) (string, error) {
 	if len(t.Indexes) == 0 {
 		return "", errors.New("Not enough indexes supplied!")
 	}
@@ -74,11 +82,12 @@ func (p Postgres) AddIndex(t fizz.Table) (string, error) {
 	return s, nil
 }
 
-func (p Postgres) DropIndex(i fizz.Index) (string, error) {
-	return fmt.Sprintf("DROP INDEX IF EXISTS \"%s\";", i.Name), nil
+func (p *Postgres) DropIndex(i fizz.Index) (string, error) {
+	return fmt.Sprintf("DROP INDEX \"%s\";", i.Name), nil
 }
 
-func (p Postgres) RenameIndex(ix []fizz.Index) (string, error) {
+func (p *Postgres) RenameIndex(t fizz.Table) (string, error) {
+	ix := t.Indexes
 	if len(ix) < 2 {
 		return "", errors.New("Not enough indexes supplied!")
 	}
@@ -87,7 +96,7 @@ func (p Postgres) RenameIndex(ix []fizz.Index) (string, error) {
 	return fmt.Sprintf("ALTER INDEX \"%s\" RENAME TO \"%s\";", oi.Name, ni.Name), nil
 }
 
-func (p Postgres) buildColumn(c fizz.Column) string {
+func (p *Postgres) buildColumn(c fizz.Column) string {
 	s := fmt.Sprintf("\"%s\" %s", c.Name, p.colType(c))
 	if c.Options["null"] == nil {
 		s = fmt.Sprintf("%s NOT NULL", s)
@@ -98,7 +107,7 @@ func (p Postgres) buildColumn(c fizz.Column) string {
 	return s
 }
 
-func (p Postgres) colType(c fizz.Column) string {
+func (p *Postgres) colType(c fizz.Column) string {
 	switch c.ColType {
 	case "string":
 		s := "255"

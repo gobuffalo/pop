@@ -63,14 +63,23 @@ func Connect(e string) (*Connection, error) {
 	if c == nil {
 		return c, fmt.Errorf("Could not find connection named %s!", e)
 	}
+	err := c.Open()
+	return c, err
+}
+
+func (c *Connection) Open() error {
 	if c.Store != nil {
-		return c, nil
+		return nil
 	}
 	db, err := sqlx.Open(c.Dialect.Details().Dialect, c.Dialect.URL())
 	if err == nil {
 		c.Store = &dB{db}
 	}
-	return c, err
+	return nil
+}
+
+func (c *Connection) Close() error {
+	return c.Store.Close()
 }
 
 // Transaction will start a new transaction on the connection. If the inner function

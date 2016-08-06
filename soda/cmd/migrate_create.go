@@ -23,5 +23,5 @@ var migrateCreateCmd = &cobra.Command{
 
 func init() {
 	migrateCmd.AddCommand(migrateCreateCmd)
-	migrateCreateCmd.Flags().StringVarP(&migrationType, "type", "t", "sql", "Which type of migration file do you want? fizz or sql?")
+	migrateCreateCmd.Flags().StringVarP(&migrationType, "type", "t", "fizz", "Which type of migration file do you want? fizz or sql?")
 }

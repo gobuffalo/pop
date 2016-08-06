@@ -14,7 +14,7 @@ type fizzer struct {
 
 func (f fizzer) add(s string, err error) error {
 	if err != nil {
-		return err
+		panic(err.Error())
 	}
 	f.Bubbler.data = append(f.Bubbler.data, s)
 	return nil

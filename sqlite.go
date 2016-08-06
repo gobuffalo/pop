@@ -100,7 +100,7 @@ func (m *SQLite) TranslateSQL(sql string) string {
 }
 
 func (m *SQLite) FizzTranslator() fizz.Translator {
-	return translators.SQLite{URL: m.Details().Database}
+	return translators.NewSQLite(m.Details().Database)
 }
 
 func NewSQLite(deets *ConnectionDetails) Dialect {

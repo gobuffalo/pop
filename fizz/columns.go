@@ -41,7 +41,7 @@ func (f fizzer) DropColumn() interface{} {
 }
 
 func (f fizzer) RenameColumn() interface{} {
-	return func(table, old, new string) {
+	return func(table, old, new string) error {
 		t := Table{
 			Name: table,
 			Columns: []Column{
@@ -49,6 +49,6 @@ func (f fizzer) RenameColumn() interface{} {
 				{Name: new},
 			},
 		}
-		f.add(f.Bubbler.RenameColumn(t))
+		return f.add(f.Bubbler.RenameColumn(t))
 	}
 }

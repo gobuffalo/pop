@@ -11,7 +11,6 @@ var logger = log.New(os.Stdout, "[POP] ", log.LstdFlags)
 
 var Log = func(s string, args ...interface{}) {
 	if Debug {
-
 		if len(args) > 0 {
 			xargs := make([]string, len(args))
 			for i, a := range args {

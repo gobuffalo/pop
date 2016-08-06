@@ -9,5 +9,5 @@ type Translator interface {
 	RenameColumn(Table) (string, error)
 	AddIndex(Table) (string, error)
 	DropIndex(Index) (string, error)
-	RenameIndex([]Index) (string, error)
+	RenameIndex(Table) (string, error)
 }

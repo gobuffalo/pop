@@ -13,7 +13,7 @@ var sqt = translators.SQLite{}
 
 func Test_SQLite_CreateTable(t *testing.T) {
 	r := require.New(t)
-	ddl := `CREATE TABLE IF NOT EXISTS "users" (
+	ddl := `CREATE TABLE "users" (
 "id" INTEGER PRIMARY KEY AUTOINCREMENT,
 "created_at" DATETIME NOT NULL,
 "updated_at" DATETIME NOT NULL,
@@ -39,7 +39,7 @@ func Test_SQLite_CreateTable(t *testing.T) {
 func Test_SQLite_DropTable(t *testing.T) {
 	r := require.New(t)
 
-	ddl := `DROP TABLE IF EXISTS "users";`
+	ddl := `DROP TABLE "users";`
 
 	res, _ := fizz.AString(`drop_table("users")`, sqt)
 	r.Equal(ddl, res)
@@ -121,7 +121,7 @@ func Test_SQLite_AddIndex_CustomName(t *testing.T) {
 
 func Test_SQLite_DropIndex(t *testing.T) {
 	r := require.New(t)
-	ddl := `DROP INDEX IF EXISTS "my_idx";`
+	ddl := `DROP INDEX "my_idx";`
 
 	res, _ := fizz.AString(`drop_index("my_idx")`, sqt)
 	r.Equal(ddl, res)

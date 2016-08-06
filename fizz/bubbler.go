@@ -51,7 +51,7 @@ func (b *Bubbler) Bubble(s string) (string, error) {
 
 	_, err := env.Execute(s)
 	if err != nil {
-		fmt.Printf("### err -> %#v\n", err)
+		fmt.Printf("ParseError: err -> %#v\n", err)
 	}
 	return b.String(), err
 }
