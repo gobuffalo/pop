@@ -9,7 +9,7 @@ import (
 )
 
 var _ fizz.Translator = (*translators.Postgres)(nil)
-var pgt = translators.Postgres{}
+var pgt = translators.NewPostgres()
 
 func Test_Postgres_CreateTable(t *testing.T) {
 	r := require.New(t)
@@ -132,6 +132,6 @@ func Test_Postgres_RenameIndex(t *testing.T) {
 
 	ddl := `ALTER INDEX "old_ix" RENAME TO "new_ix";`
 
-	res, _ := fizz.AString(`rename_index("old_ix", "new_ix")`, pgt)
+	res, _ := fizz.AString(`rename_index("table", "old_ix", "new_ix")`, pgt)
 	r.Equal(ddl, res)
 }

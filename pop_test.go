@@ -56,8 +56,11 @@ type User struct {
 type Users []User
 
 type Friend struct {
-	FirstName string `db:"first_name"`
-	LastName  string `db:"last_name"`
+	ID        int       `db:"id"`
+	FirstName string    `db:"first_name"`
+	LastName  string    `db:"last_name"`
+	CreatedAt time.Time `db:"created_at"`
+	UpdatedAt time.Time `db:"updated_at"`
 }
 
 type Friends []Friend

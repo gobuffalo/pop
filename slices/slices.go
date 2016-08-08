@@ -60,7 +60,6 @@ func strToInt(s string) []int {
 }
 
 func (s *Float) Scan(src interface{}) error {
-	fmt.Printf("src: %s\n", src)
 	b, ok := src.([]byte)
 	if !ok {
 		return error(errors.New("Scan source was not []byte"))
@@ -80,9 +79,7 @@ func (s Float) Value() (driver.Value, error) {
 
 func strToFloat(s string, a []float64) []float64 {
 	r := strings.Trim(s, "{}")
-	if a == nil {
-		a = make([]float64, 0, 10)
-	}
+	a = make([]float64, 0, 10)
 	for _, t := range strings.Split(r, ",") {
 		i, _ := strconv.ParseFloat(t, 64)
 		a = append(a, i)

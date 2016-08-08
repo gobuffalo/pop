@@ -6,10 +6,18 @@ import (
 	"os"
 )
 
+var Debug bool
+
 type Options map[string]interface{}
 
 type fizzer struct {
 	Bubbler *Bubbler
+}
+
+func (f fizzer) log(msg string, args ...interface{}) {
+	// if Debug {
+	// 	fmt.Printf(fmt.Sprintf("-- %s --\n", msg), args...)
+	// }
 }
 
 func (f fizzer) add(s string, err error) error {

@@ -3,6 +3,7 @@ package pop_test
 import (
 	"os"
 	"testing"
+	"time"
 
 	"github.com/markbates/pop"
 	"github.com/markbates/pop/slices"
@@ -10,9 +11,12 @@ import (
 )
 
 type Cake struct {
-	Int    slices.Int    `db:"int_slice"`
-	Float  slices.Float  `db:"float_slice"`
-	String slices.String `db:"string_slice"`
+	ID        int           `db:"id"`
+	Int       slices.Int    `db:"int_slice"`
+	Float     slices.Float  `db:"float_slice"`
+	String    slices.String `db:"string_slice"`
+	CreatedAt time.Time     `json:"created_at" db:"created_at"`
+	UpdatedAt time.Time     `json:"updated_at" db:"updated_at"`
 }
 
 func Test_String(t *testing.T) {
@@ -41,7 +45,6 @@ func Test_Int(t *testing.T) {
 
 			c := &Cake{
 				Int: slices.Int{1, 2, 3},
-				// Float: pop.Float{1.0, 2.1, 3.2},
 			}
 			err := tx.Create(c)
 			r.NoError(err)
@@ -66,6 +69,7 @@ func Test_Float(t *testing.T) {
 			r.NoError(err)
 
 			err = tx.Reload(c)
+			r.NoError(err)
 			r.Equal(slices.Float{1.0, 2.1, 3.2}, c.Float)
 		})
 	} else {

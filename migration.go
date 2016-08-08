@@ -23,7 +23,7 @@ var smSQL = `CREATE TABLE IF NOT EXISTS "schema_migrations"(
 
 CREATE UNIQUE INDEX IF NOT EXISTS "version_idx" ON "schema_migrations"("version");`
 
-func (c *Connection) MigrationCreate(path, name, ext string) error {
+func MigrationCreate(path, name, ext string) error {
 	n := time.Now().UTC()
 	s := n.Format("20060102150405")
 
@@ -63,7 +63,7 @@ func (c *Connection) MigrateUp(path string) error {
 				if err != nil {
 					return err
 				}
-				_, err = tx.Store.Exec("insert into schema_migrations (version) values(?)", m.Version)
+				_, err = tx.Store.Exec(fmt.Sprintf("insert into schema_migrations (version) values ('%s')", m.Version))
 				return err
 			})
 			if err == nil {
@@ -115,6 +115,10 @@ func (c *Connection) MigrateReset(path string) error {
 }
 
 func (c *Connection) createSchemaMigrations() error {
+	err := c.Open()
+	if err != nil {
+		return err
+	}
 	return c.Transaction(func(tx *Connection) error {
 		return tx.RawQuery(smSQL).Exec()
 	})

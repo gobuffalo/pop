@@ -2,6 +2,7 @@ package pop
 
 import (
 	"bytes"
+	"fmt"
 	"html/template"
 	"io/ioutil"
 	"path"
@@ -56,8 +57,17 @@ func (m migrationFile) Content(c *Connection) (string, error) {
 
 func (m migrationFile) Execute(c *Connection) error {
 	content, err := m.Content(c)
-	if err != nil || content == "" {
-		return err
+	if err != nil {
+		return fmt.Errorf("Error processing %s: %s", m.FileName, err)
 	}
-	return c.RawQuery(content).Exec()
+
+	if content == "" {
+		return nil
+	}
+
+	err = c.RawQuery(content).Exec()
+	if err != nil {
+		return fmt.Errorf("Error executing %s: %s", m.FileName, err)
+	}
+	return nil
 }

@@ -8,6 +8,7 @@ import (
 	"github.com/markbates/going/clam"
 	. "github.com/markbates/pop/columns"
 	"github.com/markbates/pop/fizz"
+	"github.com/markbates/pop/fizz/translators"
 )
 
 type MySQL struct {
@@ -73,8 +74,7 @@ func (m *MySQL) TranslateSQL(sql string) string {
 }
 
 func (m *MySQL) FizzTranslator() fizz.Translator {
-	panic("Not Implemented!!!")
-	return nil
+	return translators.NewPostgres()
 }
 
 func NewMySQL(deets *ConnectionDetails) Dialect {

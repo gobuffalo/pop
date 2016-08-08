@@ -3,6 +3,7 @@ package cmd
 import (
 	"errors"
 
+	"github.com/markbates/pop"
 	"github.com/spf13/cobra"
 )
 
@@ -16,8 +17,7 @@ var migrateCreateCmd = &cobra.Command{
 			return errors.New("You must supply a name for your migration!")
 		}
 
-		c := getConn()
-		return c.MigrationCreate(migrationPath, args[0], migrationType)
+		return pop.MigrationCreate(migrationPath, args[0], migrationType)
 	},
 }
 

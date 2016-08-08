@@ -7,6 +7,7 @@ import (
 
 	"github.com/markbates/going/defaults"
 	"github.com/markbates/pop"
+	"github.com/markbates/pop/fizz"
 	"github.com/spf13/cobra"
 )
 
@@ -21,6 +22,7 @@ var RootCmd = &cobra.Command{
 	PersistentPreRun: func(c *cobra.Command, args []string) {
 		fmt.Printf("Soda v%s\n\n", Version)
 		pop.Debug = debugMode
+		fizz.Debug = debugMode
 		env = defaults.String(os.Getenv("GO_ENV"), env)
 		setConfigLocation()
 	},
@@ -56,9 +58,9 @@ func setConfigLocation() {
 }
 
 func getConn() *pop.Connection {
-	conn, err := pop.Connect(env)
-	if err != nil {
-		fmt.Println(err)
+	conn := pop.Connections[env]
+	if conn == nil {
+		fmt.Printf("There is no connection named %s defined!\n", env)
 		os.Exit(1)
 	}
 	return conn
