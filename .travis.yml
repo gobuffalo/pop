@@ -17,12 +17,15 @@ install:
 #   - psql pop_test < sql_scripts/postgres-pop_test.sql
 before_script:
   - go build -o tsoda ./soda
-  - ./tsoda create -e $SODA_DIALECT -c database.yml
-  - ./tsoda migrate -e $SODA_DIALECT -c database.yml
+  # - ./tsoda create -e $SODA_DIALECT -c database.yml
+  # - ./tsoda migrate -e $SODA_DIALECT -c database.yml
 
 # script: ./test.sh
 # script: ./travis.sh
-script: go test ./...
+script:
+  - ./tsoda create -e $SODA_DIALECT -c database.yml
+  - ./tsoda migrate -e $SODA_DIALECT -c database.yml
+  - go test ./...
 
 global_env:
   - MYSQL_USER="travis"
