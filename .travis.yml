@@ -38,7 +38,7 @@ env:
   - SODA_DIALECT="sqlite"
 
 addons:
-  postgresql: "9.5"
+  postgresql: "9.3"
 
 matrix:
   allow_failures:
