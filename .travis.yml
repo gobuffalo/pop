@@ -23,9 +23,9 @@ before_script:
 # script: ./test.sh
 # script: ./travis.sh
 script:
-  - ./tsoda create -e $SODA_DIALECT -c database.yml
-  - ./tsoda migrate -e $SODA_DIALECT -c database.yml
-  - go test ./...
+  - ./tsoda create -e $SODA_DIALECT -c database.yml -d
+  - ./tsoda migrate -e $SODA_DIALECT -c database.yml -d
+  - go test ./... -v
 
 global_env:
   - MYSQL_USER="travis"
@@ -38,7 +38,7 @@ env:
   - SODA_DIALECT="sqlite"
 
 addons:
-  postgresql: "9.3"
+  postgresql: "9.4"
 
 matrix:
   allow_failures:
