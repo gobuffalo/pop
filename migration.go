@@ -9,9 +9,7 @@ import (
 	"sort"
 	"time"
 
-	_ "github.com/mattes/migrate/driver/mysql"
-	_ "github.com/mattes/migrate/driver/postgres"
-	_ "github.com/mattes/migrate/driver/sqlite3"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 var mrx = regexp.MustCompile("(\\d+)_(.+)\\.(up|down)\\.(sql|fizz)")

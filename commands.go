@@ -6,7 +6,10 @@ import (
 )
 
 func CreateDB(c *Connection) error {
-	var err error
+	err := c.Open()
+	if err != nil {
+		return err
+	}
 	deets := c.Dialect.Details()
 	if deets.Database != "" {
 		fmt.Printf("[POP] Create %s (%s)\n", deets.Database, c.URL())
@@ -19,7 +22,10 @@ func CreateDB(c *Connection) error {
 }
 
 func DropDB(c *Connection) error {
-	var err error
+	err := c.Open()
+	if err != nil {
+		return err
+	}
 	deets := c.Dialect.Details()
 	if deets.Database != "" {
 		fmt.Printf("[POP] Drop %s (%s)\n", deets.Database, c.URL())

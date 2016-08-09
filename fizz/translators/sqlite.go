@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/markbates/pop/fizz"
-	_ "github.com/mattes/migrate/driver/sqlite3"
 )
 
 type SQLite struct {

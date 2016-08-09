@@ -9,7 +9,6 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/markbates/going/nulls"
 	"github.com/markbates/pop"
-	_ "github.com/mattes/migrate/migrate"
 	_ "github.com/mattn/go-sqlite3"
 )
 
