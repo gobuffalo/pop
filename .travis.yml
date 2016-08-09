@@ -10,15 +10,15 @@ go:
 install:
  - go get -t -v ./...
 
-before_script:
-  - mysql -e 'create database pop_test;'
-  - mysql -u travis --password= pop_test < sql_scripts/mysql-pop_test.sql
-  - psql -c 'create database pop_test;' -U postgres
-  - psql pop_test < sql_scripts/postgres-pop_test.sql
+# before_script:
+#   - mysql -e 'create database pop_test;'
+#   - mysql -u travis --password= pop_test < sql_scripts/mysql-pop_test.sql
+#   - psql -c 'create database pop_test;' -U postgres
+#   - psql pop_test < sql_scripts/postgres-pop_test.sql
 
-# script: ./test.sh
+script: ./test.sh
 # script: ./travis.sh
-script: go test ./...
+# script: go test ./...
 
 global_env:
   - MYSQL_USER="travis"
