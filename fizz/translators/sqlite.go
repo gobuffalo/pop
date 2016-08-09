@@ -5,22 +5,17 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/jmoiron/sqlx"
-	"github.com/markbates/going/randx"
 	"github.com/markbates/pop/fizz"
 	_ "github.com/mattes/migrate/driver/sqlite3"
 )
 
 type SQLite struct {
-	URL    string
-	schema schema
-	db     *sqlx.DB
+	Schema Schema
 }
 
 func NewSQLite(url string) *SQLite {
 	return &SQLite{
-		URL:    url,
-		schema: schema{},
+		Schema: &sqliteSchema{URL: url},
 	}
 }
 
@@ -54,7 +49,7 @@ func (p *SQLite) CreateTable(t fizz.Table) (string, error) {
 }
 
 func (p *SQLite) DropTable(t fizz.Table) (string, error) {
-	delete(p.schema, t.Name)
+	p.Schema.Delete(t.Name)
 	s := fmt.Sprintf("DROP TABLE \"%s\";", t.Name)
 	return s, nil
 }
@@ -65,7 +60,7 @@ func (p *SQLite) RenameTable(t []fizz.Table) (string, error) {
 	}
 	oldName := t[0].Name
 	newName := t[1].Name
-	tableInfo, err := p.TableInfo(oldName)
+	tableInfo, err := p.Schema.TableInfo(oldName)
 	if err != nil {
 		return "", err
 	}
@@ -80,7 +75,7 @@ func (p *SQLite) AddColumn(t fizz.Table) (string, error) {
 	}
 	c := t.Columns[0]
 
-	tableInfo, err := p.TableInfo(t.Name)
+	tableInfo, err := p.Schema.TableInfo(t.Name)
 	if err != nil {
 		return "", err
 	}
@@ -96,7 +91,7 @@ func (p *SQLite) DropColumn(t fizz.Table) (string, error) {
 		return "", errors.New("Not enough columns supplied!")
 	}
 
-	tableInfo, err := p.TableInfo(t.Name)
+	tableInfo, err := p.Schema.TableInfo(t.Name)
 	if err != nil {
 		return "", err
 	}
@@ -149,7 +144,7 @@ func (p *SQLite) RenameColumn(t fizz.Table) (string, error) {
 		return "", errors.New("Not enough columns supplied!")
 	}
 
-	tableInfo, err := p.TableInfo(t.Name)
+	tableInfo, err := p.Schema.TableInfo(t.Name)
 	if err != nil {
 		return "", err
 	}
@@ -220,7 +215,7 @@ func (p *SQLite) RenameIndex(t fizz.Table) (string, error) {
 		return "", errors.New("Not enough indexes supplied!")
 	}
 
-	tableInfo, err := p.TableInfo(t.Name)
+	tableInfo, err := p.Schema.TableInfo(t.Name)
 	if err != nil {
 		return "", err
 	}
@@ -261,7 +256,7 @@ func (p *SQLite) RenameIndex(t fizz.Table) (string, error) {
 }
 
 func (p *SQLite) withTempTable(table string, fn func(fizz.Table) (string, error)) (string, error) {
-	tempTable := fizz.Table{Name: fmt.Sprintf("%s_%s_tmp", table, randx.String(20))}
+	tempTable := fizz.Table{Name: fmt.Sprintf("_%s_tmp", table)}
 
 	sql := []string{fmt.Sprintf("ALTER TABLE \"%s\" RENAME TO \"%s\";", table, tempTable.Name)}
 	s, err := fn(tempTable)

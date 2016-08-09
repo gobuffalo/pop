@@ -8,6 +8,11 @@ import (
 	"github.com/markbates/pop/fizz"
 )
 
+type Schema interface {
+	TableInfo(string) (*fizz.Table, error)
+	Delete(string)
+}
+
 type sqliteIndexListInfo struct {
 	Seq     int    `db:"seq"`
 	Name    string `db:"name"`
@@ -47,7 +52,17 @@ func (t sqliteTableInfo) ToColumn() fizz.Column {
 	return c
 }
 
-func (p *SQLite) TableInfo(table string) (*fizz.Table, error) {
+type sqliteSchema struct {
+	URL    string
+	db     *sqlx.DB
+	schema map[string]*fizz.Table
+}
+
+func (p *sqliteSchema) Delete(table string) {
+	delete(p.schema, table)
+}
+
+func (p *sqliteSchema) TableInfo(table string) (*fizz.Table, error) {
 	if ti, ok := p.schema[table]; ok {
 		return ti, nil
 	}
@@ -61,7 +76,7 @@ func (p *SQLite) TableInfo(table string) (*fizz.Table, error) {
 	return nil, fmt.Errorf("Could not find table data for %s!", table)
 }
 
-func (p *SQLite) buildSchema() error {
+func (p *sqliteSchema) buildSchema() error {
 	var err error
 	p.db, err = sqlx.Open("sqlite3", p.URL)
 	if err != nil {
@@ -93,7 +108,7 @@ func (p *SQLite) buildSchema() error {
 	return nil
 }
 
-func (p *SQLite) buildTableData(table *fizz.Table) error {
+func (p *sqliteSchema) buildTableData(table *fizz.Table) error {
 	prag := fmt.Sprintf("PRAGMA table_info(%s)", table.Name)
 
 	res, err := p.db.Queryx(prag)
@@ -117,7 +132,7 @@ func (p *SQLite) buildTableData(table *fizz.Table) error {
 	return nil
 }
 
-func (p *SQLite) buildTableIndexes(t *fizz.Table) error {
+func (p *sqliteSchema) buildTableIndexes(t *fizz.Table) error {
 	prag := fmt.Sprintf("PRAGMA index_list(%s)", t.Name)
 	res, err := p.db.Queryx(prag)
 	if err != nil {
