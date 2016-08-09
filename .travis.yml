@@ -15,10 +15,14 @@ install:
 #   - mysql -u travis --password= pop_test < sql_scripts/mysql-pop_test.sql
 #   - psql -c 'create database pop_test;' -U postgres
 #   - psql pop_test < sql_scripts/postgres-pop_test.sql
+before_script:
+  - go build -o tsoda ./soda
+  - ./tsoda create -e $SODA_DIALECT -c database.yml
+  - ./tsoda migrate -e $SODA_DIALECT -c database.yml
 
-script: ./test.sh
+# script: ./test.sh
 # script: ./travis.sh
-# script: go test ./...
+script: go test ./...
 
 global_env:
   - MYSQL_USER="travis"
@@ -31,7 +35,7 @@ env:
   - SODA_DIALECT="sqlite"
 
 addons:
-  postgresql: "9.3"
+  postgresql: "9.5"
 
 matrix:
   allow_failures:
