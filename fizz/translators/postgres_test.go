@@ -123,7 +123,7 @@ func Test_Postgres_DropIndex(t *testing.T) {
 	r := require.New(t)
 	ddl := `DROP INDEX "my_idx";`
 
-	res, _ := fizz.AString(`drop_index("my_idx")`, pgt)
+	res, _ := fizz.AString(`drop_index("users", "my_idx")`, pgt)
 	r.Equal(ddl, res)
 }
 

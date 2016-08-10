@@ -43,9 +43,14 @@ func (f fizzer) AddIndex() interface{} {
 }
 
 func (f fizzer) DropIndex() interface{} {
-	return func(name string) {
-		f.log("drop_index %s", name)
-		f.add(f.Bubbler.DropIndex(Index{Name: name}))
+	return func(table, name string) {
+		f.log("drop_index %s, %s", table, name)
+		f.add(f.Bubbler.DropIndex(Table{
+			Name: table,
+			Indexes: []Index{
+				{Name: name},
+			},
+		}))
 	}
 }
 

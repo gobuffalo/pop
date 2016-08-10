@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -15,9 +16,13 @@ var migrateCmd = &cobra.Command{
 		RootCmd.PersistentPreRun(cmd, args)
 		return os.MkdirAll(migrationPath, 0766)
 	},
-	RunE: func(cmd *cobra.Command, args []string) error {
+	Run: func(cmd *cobra.Command, args []string) {
 		c := getConn()
-		return c.MigrateUp(migrationPath)
+		err := c.MigrateUp(migrationPath)
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(-1)
+		}
 	},
 }
 

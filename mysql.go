@@ -8,6 +8,7 @@ import (
 	"github.com/markbates/going/clam"
 	. "github.com/markbates/pop/columns"
 	"github.com/markbates/pop/fizz"
+	"github.com/markbates/pop/fizz/translators"
 )
 
 type MySQL struct {
@@ -24,7 +25,7 @@ func (m *MySQL) URL() string {
 		return c.URL
 	}
 
-	s := "%s:%s@(%s:%s)/%s?parseTime=true"
+	s := "%s:%s@(%s:%s)/%s?parseTime=true&multiStatements=true"
 	return fmt.Sprintf(s, c.User, c.Password, c.Host, c.Port, c.Database)
 }
 
@@ -73,8 +74,7 @@ func (m *MySQL) TranslateSQL(sql string) string {
 }
 
 func (m *MySQL) FizzTranslator() fizz.Translator {
-	panic("Not Implemented!!!")
-	return nil
+	return translators.NewMySQL(m.Details().URL, m.Details().Database)
 }
 
 func NewMySQL(deets *ConnectionDetails) Dialect {

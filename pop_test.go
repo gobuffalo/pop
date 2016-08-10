@@ -42,6 +42,7 @@ func ts(s string) string {
 
 type User struct {
 	ID        int           `db:"id"`
+	Email     string        `db:"email"`
 	Name      nulls.String  `db:"name"`
 	Alive     nulls.Bool    `db:"alive"`
 	CreatedAt time.Time     `db:"created_at"`

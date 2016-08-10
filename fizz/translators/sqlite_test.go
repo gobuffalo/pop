@@ -171,7 +171,7 @@ func Test_SQLite_DropIndex(t *testing.T) {
 	r := require.New(t)
 	ddl := `DROP INDEX IF EXISTS "my_idx";`
 
-	res, _ := fizz.AString(`drop_index("my_idx")`, sqt)
+	res, _ := fizz.AString(`drop_index("my_table", "my_idx")`, sqt)
 	r.Equal(ddl, res)
 }
 

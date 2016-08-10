@@ -108,7 +108,10 @@ func (p *SQLite) DropColumn(t fizz.Table) (string, error) {
 
 	newIndexes := []fizz.Index{}
 	for _, i := range tableInfo.Indexes {
-		s, err := p.DropIndex(i)
+		s, err := p.DropIndex(fizz.Table{
+			Name:    tableInfo.Name,
+			Indexes: []fizz.Index{i},
+		})
 		if err != nil {
 			return "", err
 		}
@@ -161,7 +164,10 @@ func (p *SQLite) RenameColumn(t fizz.Table) (string, error) {
 	}
 
 	for _, i := range tableInfo.Indexes {
-		s, err := p.DropIndex(i)
+		s, err := p.DropIndex(fizz.Table{
+			Name:    tableInfo.Name,
+			Indexes: []fizz.Index{i},
+		})
 		if err != nil {
 			return "", err
 		}
@@ -204,7 +210,11 @@ func (p *SQLite) AddIndex(t fizz.Table) (string, error) {
 	return s, nil
 }
 
-func (p *SQLite) DropIndex(i fizz.Index) (string, error) {
+func (p *SQLite) DropIndex(t fizz.Table) (string, error) {
+	if len(t.Indexes) == 0 {
+		return "", errors.New("Not enough indexes supplied!")
+	}
+	i := t.Indexes[0]
 	s := fmt.Sprintf("DROP INDEX IF EXISTS \"%s\";", i.Name)
 	return s, nil
 }
@@ -232,7 +242,10 @@ func (p *SQLite) RenameIndex(t fizz.Table) (string, error) {
 		}
 	}
 
-	s, err := p.DropIndex(oldIndex)
+	s, err := p.DropIndex(fizz.Table{
+		Name:    tableInfo.Name,
+		Indexes: []fizz.Index{oldIndex},
+	})
 
 	if err != nil {
 		return "", err

@@ -61,7 +61,6 @@ func (p *PostgreSQL) SelectMany(store Store, models *Model, query Query) error {
 func (p *PostgreSQL) CreateDB() error {
 	// createdb -h db -p 5432 -U postgres enterprise_development
 	deets := p.ConnectionDetails
-	fmt.Printf("### deets -> %#v\n", deets)
 	cmd := exec.Command("createdb", "-e", "-h", deets.Host, "-p", deets.Port, "-U", deets.User, deets.Database)
 	return clam.RunAndListen(cmd, func(s string) {
 		fmt.Println(s)

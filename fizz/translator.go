@@ -8,6 +8,6 @@ type Translator interface {
 	DropColumn(Table) (string, error)
 	RenameColumn(Table) (string, error)
 	AddIndex(Table) (string, error)
-	DropIndex(Index) (string, error)
+	DropIndex(Table) (string, error)
 	RenameIndex(Table) (string, error)
 }

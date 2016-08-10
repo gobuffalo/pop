@@ -40,17 +40,20 @@ func (m migrationFile) Content(c *Connection) (string, error) {
 	}
 	content := string(b)
 	ext := path.Ext(m.FileName)
-	switch ext {
-	case ".fizz":
-		return fizz.AString(content, c.Dialect.FizzTranslator())
-	case ".sql":
-		t := template.Must(template.New("sql").Parse(content))
-		var bb bytes.Buffer
-		err = t.Execute(&bb, c.Dialect.Details())
+
+	t := template.Must(template.New("sql").Parse(content))
+	var bb bytes.Buffer
+	err = t.Execute(&bb, c.Dialect.Details())
+	if err != nil {
+		return "", err
+	}
+	content = bb.String()
+
+	if ext == ".fizz" {
+		content, err = fizz.AString(content, c.Dialect.FizzTranslator())
 		if err != nil {
 			return "", err
 		}
-		return bb.String(), nil
 	}
 	return content, nil
 }

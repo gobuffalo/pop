@@ -41,7 +41,7 @@ func Test_ToSQL(t *testing.T) {
 	transaction(func(tx *pop.Connection) {
 		user := &pop.Model{Value: &User{}}
 
-		s := "SELECT name as full_name, users.alive, users.bio, users.birth_date, users.created_at, users.id, users.name, users.price, users.updated_at FROM users AS users"
+		s := "SELECT name as full_name, users.alive, users.bio, users.birth_date, users.created_at, users.email, users.id, users.name, users.price, users.updated_at FROM users AS users"
 
 		query := pop.Q(tx)
 		q, _ := query.ToSQL(user)

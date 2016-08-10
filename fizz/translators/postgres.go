@@ -9,16 +9,14 @@ import (
 )
 
 type Postgres struct {
-	sql []string
 }
 
 func NewPostgres() *Postgres {
-	return &Postgres{
-		sql: []string{},
-	}
+	return &Postgres{}
 }
 
 func (p *Postgres) CreateTable(t fizz.Table) (string, error) {
+	sql := []string{}
 	cols := []string{}
 	var s string
 	for _, c := range t.Columns {
@@ -29,7 +27,21 @@ func (p *Postgres) CreateTable(t fizz.Table) (string, error) {
 		}
 		cols = append(cols, s)
 	}
-	return fmt.Sprintf("CREATE TABLE \"%s\" (\n%s\n);", t.Name, strings.Join(cols, ",\n")), nil
+	s = fmt.Sprintf("CREATE TABLE \"%s\" (\n%s\n);", t.Name, strings.Join(cols, ",\n"))
+	sql = append(sql, s)
+
+	for _, i := range t.Indexes {
+		s, err := p.AddIndex(fizz.Table{
+			Name:    t.Name,
+			Indexes: []fizz.Index{i},
+		})
+		if err != nil {
+			return "", err
+		}
+		sql = append(sql, s)
+	}
+
+	return strings.Join(sql, "\n"), nil
 }
 
 func (p *Postgres) DropTable(t fizz.Table) (string, error) {
@@ -82,7 +94,11 @@ func (p *Postgres) AddIndex(t fizz.Table) (string, error) {
 	return s, nil
 }
 
-func (p *Postgres) DropIndex(i fizz.Index) (string, error) {
+func (p *Postgres) DropIndex(t fizz.Table) (string, error) {
+	if len(t.Indexes) == 0 {
+		return "", errors.New("Not enough indexes supplied!")
+	}
+	i := t.Indexes[0]
 	return fmt.Sprintf("DROP INDEX \"%s\";", i.Name), nil
 }
 

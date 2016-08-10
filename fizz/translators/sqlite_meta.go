@@ -8,11 +8,6 @@ import (
 	"github.com/markbates/pop/fizz"
 )
 
-type Schema interface {
-	TableInfo(string) (*fizz.Table, error)
-	Delete(string)
-}
-
 type sqliteIndexListInfo struct {
 	Seq     int    `db:"seq"`
 	Name    string `db:"name"`

@@ -11,12 +11,12 @@ function test {
   echo $SODA_DIALECT
   ! ./tsoda drop -e $SODA_DIALECT -c ./database.yml
   ! ./tsoda create -e $SODA_DIALECT -c ./database.yml
-  ./tsoda migrate -e $SODA_DIALECT -c ./database.yml
+  ./tsoda migrate -e $SODA_DIALECT -c ./database.yml -d
   go test ./...
 }
 
 test "postgres"
 test "sqlite"
-# test "mysql"
+test "mysql"
 
 rm tsoda
