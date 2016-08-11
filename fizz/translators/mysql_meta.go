@@ -28,7 +28,8 @@ func (ti mysqlTableInfo) ToColumn() fizz.Column {
 		c.Options["null"] = true
 	}
 	if ti.Default != nil {
-		c.Options["default"] = fmt.Sprintf("%s", ti.Default)
+		d := fmt.Sprintf("%s", ti.Default)
+		c.Options["default"] = d
 	}
 	return c
 }

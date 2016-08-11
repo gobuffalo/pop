@@ -3,6 +3,7 @@ package translators
 import (
 	"errors"
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/markbates/pop/fizz"
@@ -132,8 +133,10 @@ func (p *MySQL) buildColumn(c fizz.Column) string {
 		s = fmt.Sprintf("%s NOT NULL", s)
 	}
 	if c.Options["default"] != nil {
-		d := c.Options["default"]
-		s = fmt.Sprintf("%s DEFAULT '%v'", s, d)
+		d := fmt.Sprintf("%#v", c.Options["default"])
+		re := regexp.MustCompile("^(\")(.+)(\")$")
+		d = re.ReplaceAllString(d, "'$2'")
+		s = fmt.Sprintf("%s DEFAULT %s", s, d)
 	}
 	if c.Primary && c.ColType == "integer" {
 		s = fmt.Sprintf("%s AUTO_INCREMENT", s)

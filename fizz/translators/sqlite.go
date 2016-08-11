@@ -14,7 +14,10 @@ type SQLite struct {
 
 func NewSQLite(url string) *SQLite {
 	return &SQLite{
-		Schema: &sqliteSchema{URL: url},
+		Schema: &sqliteSchema{
+			URL:    url,
+			schema: map[string]*fizz.Table{},
+		},
 	}
 }
 

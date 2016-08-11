@@ -74,7 +74,8 @@ func (m *MySQL) TranslateSQL(sql string) string {
 }
 
 func (m *MySQL) FizzTranslator() fizz.Translator {
-	return translators.NewMySQL(m.Details().URL, m.Details().Database)
+	t := translators.NewMySQL(m.URL(), m.Details().Database)
+	return t
 }
 
 func NewMySQL(deets *ConnectionDetails) Dialect {
