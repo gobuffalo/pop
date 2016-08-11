@@ -82,16 +82,19 @@ func (c *Connection) Transaction(fn func(tx *Connection) error) error {
 	if err != nil {
 		return err
 	}
-	err = fn(cn)
-	if err != nil {
-		dberr = cn.TX.Rollback()
-	} else {
-		dberr = cn.TX.Commit()
-	}
-	if err != nil {
-		return err
-	}
-	return dberr
+	return c.Dialect.WithRetry(func() error {
+		err = fn(cn)
+
+		if err != nil {
+			dberr = cn.TX.Rollback()
+		} else {
+			dberr = cn.TX.Commit()
+		}
+		if err != nil {
+			return err
+		}
+		return dberr
+	})
 }
 
 func (c *Connection) NewTransaction() (*Connection, error) {

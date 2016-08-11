@@ -67,6 +67,10 @@ func (m *MySQL) DropDB() error {
 	})
 }
 
+func (m *MySQL) WithRetry(fn func() error) error {
+	return fn()
+}
+
 func (m *MySQL) TranslateSQL(sql string) string {
 	return sql
 }

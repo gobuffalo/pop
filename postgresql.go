@@ -87,6 +87,10 @@ func (m *PostgreSQL) MigrationURL() string {
 	return m.URL()
 }
 
+func (m *PostgreSQL) WithRetry(fn func() error) error {
+	return fn()
+}
+
 func (p *PostgreSQL) TranslateSQL(sql string) string {
 	defer p.mu.Unlock()
 	p.mu.Lock()

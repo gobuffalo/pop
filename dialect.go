@@ -18,6 +18,7 @@ type Dialect interface {
 	SelectMany(store Store, models *Model, query Query) error
 	CreateDB() error
 	DropDB() error
+	WithRetry(func() error) error
 }
 
 func genericCreate(store Store, model *Model, cols Columns) error {
