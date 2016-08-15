@@ -12,10 +12,10 @@ install:
 
 before_script:
     - go build -o tsoda ./soda
-    - ./tsoda create -e "mysql"
+    - ./tsoda create -e "mysql_travis"
     - ./tsoda create -e "postgres"
     - ./tsoda create -e "sqlite"
-    - ./tsoda migrate -e "mysql"
+    - ./tsoda migrate -e "mysql_travis"
     - ./tsoda migrate -e "postgres"
     - ./tsoda migrate -e "sqlite"
     # - mysql -e 'create database pop_test;'
