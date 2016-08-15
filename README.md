@@ -2,7 +2,7 @@
 
 ## A Tasty Treat For All Your Database Needs
 
-So what does Pop do exactly? Well, it wraps the absolutely amazing [https://github.com/jmoiron/sqlx](https://github.com/jmoiron/sqlx) and [https://github.com/mattes/migrate](https://github.com/mattes/migrate) libraries. It cleans up some of the common patterns and workflows usually associated with dealing with databases in Go.
+So what does Pop do exactly? Well, it wraps the absolutely amazing [https://github.com/jmoiron/sqlx](https://github.com/jmoiron/sqlx) library. It cleans up some of the common patterns and workflows usually associated with dealing with databases in Go.
 
 Pop makes it easy to do CRUD operations, run migrations, and build/execute queries. Is Pop an ORM? I'll leave that up to you, the reader, to decide.
 
@@ -12,6 +12,12 @@ Pop, by default, follows conventions that were defined by the ActiveRecord Ruby 
 * If there is a timestamp column named "created_at", "CreatedAt" on the `struct`, it will be set with the current time when the record is created.
 * If there is a timestamp column named "updated_at", "UpdatedAt" on the `struct`, it will be set with the current time when the record is updated.
 * Default databases are lowercase, underscored versions of the `struct` name. Examples: User{} is "users", FooBar{} is "foo_bars", etc...
+
+## Supported Databases
+
+* PostgreSQL (>= 9.3)
+* MySQL (>= 5.7)
+* SQLite (>= 3.x)
 
 ## Connecting to Databases
 
@@ -74,7 +80,7 @@ Pop features CLI support via the `soda` for the following operations:
 ### Installing CLI Support
 
 ```bash
-$ go get -d -t -u github.com/markbates/pop/...
+$ go get github.com/markbates/pop/...
 $ go install github.com/markbates/pop/soda
 ```
 
@@ -85,7 +91,7 @@ Assuming you defined a configuration file like that described in the above secti
 #### Create All Databases
 
 ```bash
-$ soda create -all
+$ soda create -a
 ```
 
 #### Create a Specific Database
@@ -101,7 +107,7 @@ Assuming you defined a configuration file like that described in the above secti
 #### Drop All Databases
 
 ```bash
-$ soda drop -all
+$ soda drop -a
 ```
 
 #### Drop a Specific Database
@@ -131,11 +137,26 @@ $ soda migrate create name_of_migration
 Running this command with generate the following files:
 
 ```text
-./migrations/0001_name_of_migration.up.sql
-./migrations/0001_name_of_migration.down.sql
+./migrations/20160815134952_name_of_migration.up.fizz
+./migrations/20160815134952_name_of_migration.down.fizz
 ```
 
-It is up to you to fill these files with the appropriate SQL to do whatever it is you need done.
+The generated files are `fizz` files. [Fizz](./fizz/README.md) lets you use a common DSL for generating migrations. This means the same `.fizz` file can be run against any of the supported dialects of Pop! Find out more about [Fizz](./fizz/README.md)
+
+If you want to generate old fashion `.sql` files you can use the `-t` flag for that:
+
+```bash
+$ soda migrate create name_of_migration -t sql
+```
+
+Running this command with generate the following files:
+
+```text
+./migrations/20160815134952_name_of_migration.up.sql
+./migrations/20160815134952_name_of_migration.down.sql
+```
+
+The `soda migrate` command supports both `.fizz` and `.sql` files, so you can mix and match them to suit your needs.
 
 #### Running Migrations
 

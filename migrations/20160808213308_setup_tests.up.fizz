@@ -1,0 +1,21 @@
+create_table("users", func(t) {
+  t.Column("name", "string", {})
+  t.Column("alive", "boolean", {"null": true})
+  t.Column("birth_date", "timestamp", {"null": true})
+  t.Column("bio", "text", {"null": true})
+  t.Column("price", "numeric", {"null": true, "default": "1.00"})
+  t.Column("email", "string", {"default": "foo@example.com", "size": 50})
+})
+
+create_table("good_friends", func(t) {
+  t.Column("first_name", "string", {})
+  t.Column("last_name", "string", {})
+})
+
+{{ if eq .Dialect "postgres" }}
+create_table("cakes", func(t) {
+  t.Column("int_slice", "int[]", {"null": true})
+  t.Column("float_slice", "numeric[]", {"null": true})
+  t.Column("string_slice", "varchar[]", {"null": true})
+})
+{{ end }}

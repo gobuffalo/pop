@@ -3,17 +3,41 @@ package pop_test
 import (
 	"log"
 	"os"
+	"testing"
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/lib/pq"
 	"github.com/markbates/going/nulls"
 	"github.com/markbates/pop"
-	_ "github.com/mattes/migrate/migrate"
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/stretchr/testify/suite"
 )
 
 var PDB *pop.Connection
+
+type PostgreSQLSuite struct {
+	suite.Suite
+}
+
+type MySQLSuite struct {
+	suite.Suite
+}
+
+type SQLiteSuite struct {
+	suite.Suite
+}
+
+func TestSpecificSuites(t *testing.T) {
+	switch os.Getenv("SODA_DIALECT") {
+	case "postgres":
+		suite.Run(t, &PostgreSQLSuite{})
+	case "mysql":
+		suite.Run(t, &MySQLSuite{})
+	case "sqlite":
+		suite.Run(t, &SQLiteSuite{})
+	}
+}
 
 func init() {
 	pop.Debug = false
@@ -43,6 +67,7 @@ func ts(s string) string {
 
 type User struct {
 	ID        int           `db:"id"`
+	Email     string        `db:"email"`
 	Name      nulls.String  `db:"name"`
 	Alive     nulls.Bool    `db:"alive"`
 	CreatedAt time.Time     `db:"created_at"`
@@ -56,8 +81,11 @@ type User struct {
 type Users []User
 
 type Friend struct {
-	FirstName string `db:"first_name"`
-	LastName  string `db:"last_name"`
+	ID        int       `db:"id"`
+	FirstName string    `db:"first_name"`
+	LastName  string    `db:"last_name"`
+	CreatedAt time.Time `db:"created_at"`
+	UpdatedAt time.Time `db:"updated_at"`
 }
 
 type Friends []Friend

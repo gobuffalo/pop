@@ -30,3 +30,7 @@ func newTX(db *dB) (*tX, error) {
 func (tx *tX) Transaction() (*tX, error) {
 	return tx, nil
 }
+
+func (tx *tX) Close() error {
+	return nil
+}

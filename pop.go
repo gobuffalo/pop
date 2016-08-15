@@ -1,6 +1,7 @@
 package pop
 
 import (
+	"fmt"
 	"log"
 	"os"
 )
@@ -8,8 +9,20 @@ import (
 var Debug = false
 var logger = log.New(os.Stdout, "[POP] ", log.LstdFlags)
 
-var Log = func(s string) {
+var Log = func(s string, args ...interface{}) {
 	if Debug {
+		if len(args) > 0 {
+			xargs := make([]string, len(args))
+			for i, a := range args {
+				switch a.(type) {
+				case string:
+					xargs[i] = fmt.Sprintf("%q", a)
+				default:
+					xargs[i] = fmt.Sprintf("%v", a)
+				}
+			}
+			s = fmt.Sprintf("%s | %s", s, xargs)
+		}
 		logger.Println(s)
 	}
 }

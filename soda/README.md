@@ -1,7 +1,0 @@
-# SODA
-
-## migrate
-
-## create
-
-## drop

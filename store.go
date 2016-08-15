@@ -17,4 +17,5 @@ type Store interface {
 	Transaction() (*tX, error)
 	Rollback() error
 	Commit() error
+	Close() error
 }

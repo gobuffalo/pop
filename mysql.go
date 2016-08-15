@@ -7,6 +7,8 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/markbates/going/clam"
 	. "github.com/markbates/pop/columns"
+	"github.com/markbates/pop/fizz"
+	"github.com/markbates/pop/fizz/translators"
 )
 
 type MySQL struct {
@@ -23,7 +25,7 @@ func (m *MySQL) URL() string {
 		return c.URL
 	}
 
-	s := "%s:%s@(%s:%s)/%s?parseTime=true"
+	s := "%s:%s@(%s:%s)/%s?parseTime=true&multiStatements=true"
 	return fmt.Sprintf(s, c.User, c.Password, c.Host, c.Port, c.Database)
 }
 
@@ -53,7 +55,7 @@ func (m *MySQL) SelectMany(store Store, models *Model, query Query) error {
 
 func (m *MySQL) CreateDB() error {
 	c := m.ConnectionDetails
-	cmd := exec.Command("mysql", "-u"+c.User, "-p"+c.Password, "-e", fmt.Sprintf("create database %s", c.Database))
+	cmd := exec.Command("mysql", "-u "+c.User, "--password"+c.Password, "-e", fmt.Sprintf("create database %s", c.Database))
 	return clam.RunAndListen(cmd, func(s string) {
 		fmt.Println(s)
 	})
@@ -69,6 +71,11 @@ func (m *MySQL) DropDB() error {
 
 func (m *MySQL) TranslateSQL(sql string) string {
 	return sql
+}
+
+func (m *MySQL) FizzTranslator() fizz.Translator {
+	t := translators.NewMySQL(m.URL(), m.Details().Database)
+	return t
 }
 
 func NewMySQL(deets *ConnectionDetails) Dialect {
