@@ -114,7 +114,7 @@ drop_index("table_name", "index_name")
 ## Raw SQL
 
 ``` javascript
-raw_sql("select * from users;")
+raw("select * from users;")
 ```
 
-*All calls to `raw_sql` must end with a `;`!*
+*All calls to `raw` must end with a `;`!*
