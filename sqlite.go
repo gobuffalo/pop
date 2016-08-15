@@ -66,6 +66,7 @@ func (m *SQLite) Lock(fn func() error) error {
 	for err != nil && err.Error() == "database is locked" && attempts <= m.Details().RetryLimit() {
 		time.Sleep(m.Details().RetrySleep())
 		err = fn()
+		attempts++
 	}
 	return err
 }
