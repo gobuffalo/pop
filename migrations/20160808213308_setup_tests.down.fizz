@@ -1,0 +1,6 @@
+drop_table("users")
+drop_table("good_friends")
+
+{{ if eq .Dialect "postgres" }}
+drop_table("cakes")
+{{ end }}
