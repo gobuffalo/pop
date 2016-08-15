@@ -86,21 +86,24 @@ func (c *Connection) Close() error {
 // returns an error then the transaction will be rolled back, otherwise the transaction
 // will automatically commit at the end.
 func (c *Connection) Transaction(fn func(tx *Connection) error) error {
-	var dberr error
-	cn, err := c.NewTransaction()
-	if err != nil {
-		return err
-	}
-	err = fn(cn)
-	if err != nil {
-		dberr = cn.TX.Rollback()
-	} else {
-		dberr = cn.TX.Commit()
-	}
-	if err != nil {
-		return err
-	}
-	return dberr
+	return c.Dialect.Lock(func() error {
+		var dberr error
+		cn, err := c.NewTransaction()
+		if err != nil {
+			return err
+		}
+		err = fn(cn)
+		if err != nil {
+			dberr = cn.TX.Rollback()
+		} else {
+			dberr = cn.TX.Commit()
+		}
+		if err != nil {
+			return err
+		}
+		return dberr
+	})
+
 }
 
 func (c *Connection) NewTransaction() (*Connection, error) {

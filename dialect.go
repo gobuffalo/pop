@@ -20,6 +20,7 @@ type Dialect interface {
 	CreateDB() error
 	DropDB() error
 	FizzTranslator() fizz.Translator
+	Lock(func() error) error
 }
 
 func genericCreate(store Store, model *Model, cols Columns) error {

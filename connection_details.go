@@ -54,7 +54,7 @@ func (cd *ConnectionDetails) RetrySleep() time.Duration {
 }
 
 func (cd *ConnectionDetails) RetryLimit() int {
-	i, err := strconv.Atoi(defaults.String(cd.Options["retry_limit"], "100"))
+	i, err := strconv.Atoi(defaults.String(cd.Options["retry_limit"], "1000"))
 	if err != nil {
 		return 100
 	}

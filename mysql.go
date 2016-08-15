@@ -55,7 +55,7 @@ func (m *MySQL) SelectMany(store Store, models *Model, query Query) error {
 
 func (m *MySQL) CreateDB() error {
 	c := m.ConnectionDetails
-	cmd := exec.Command("mysql", "-u "+c.User, "--password"+c.Password, "-e", fmt.Sprintf("create database %s", c.Database))
+	cmd := exec.Command("mysql", "-u "+c.User, "-p"+c.Password, "-e", fmt.Sprintf("create database %s", c.Database))
 	return clam.RunAndListen(cmd, func(s string) {
 		fmt.Println(s)
 	})
@@ -76,6 +76,10 @@ func (m *MySQL) TranslateSQL(sql string) string {
 func (m *MySQL) FizzTranslator() fizz.Translator {
 	t := translators.NewMySQL(m.URL(), m.Details().Database)
 	return t
+}
+
+func (m *MySQL) Lock(fn func() error) error {
+	return fn()
 }
 
 func NewMySQL(deets *ConnectionDetails) Dialect {

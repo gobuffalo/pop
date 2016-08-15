@@ -34,43 +34,31 @@ func (m *SQLite) MigrationURL() string {
 }
 
 func (m *SQLite) Create(store Store, model *Model, cols Columns) error {
-	return m.withLock(func() error {
-		return genericCreate(store, model, cols)
-	})
+	return genericCreate(store, model, cols)
 
 }
 
 func (m *SQLite) Update(store Store, model *Model, cols Columns) error {
-	return m.withLock(func() error {
-		return genericUpdate(store, model, cols)
-	})
+	return genericUpdate(store, model, cols)
 
 }
 
 func (m *SQLite) Destroy(store Store, model *Model) error {
-	return m.withLock(func() error {
-		return genericDestroy(store, model)
-	})
+	return genericDestroy(store, model)
 
 }
 
 func (m *SQLite) SelectOne(store Store, model *Model, query Query) error {
-	return m.withLock(func() error {
-		return genericSelectOne(store, model, query)
-	})
+	return genericSelectOne(store, model, query)
 }
 
 func (m *SQLite) SelectMany(store Store, models *Model, query Query) error {
-	return m.withLock(func() error {
-		return genericSelectMany(store, models, query)
-	})
+	return genericSelectMany(store, models, query)
 }
 
-func (m *SQLite) withLock(fn func() error) error {
+func (m *SQLite) Lock(fn func() error) error {
 	if defaults.String(m.Details().Options["lock"], "true") == "true" {
-		defer func() {
-			m.gil.Unlock()
-		}()
+		defer m.gil.Unlock()
 		m.gil.Lock()
 	}
 	err := fn()

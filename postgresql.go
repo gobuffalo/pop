@@ -118,6 +118,10 @@ func (p *PostgreSQL) FizzTranslator() fizz.Translator {
 	return translators.NewPostgres()
 }
 
+func (p *PostgreSQL) Lock(fn func() error) error {
+	return fn()
+}
+
 func NewPostgreSQL(deets *ConnectionDetails) Dialect {
 	deets.Parse("5432")
 	cd := &PostgreSQL{

@@ -2,6 +2,16 @@
 set -e
 clear
 
+verbose=""
+
+echo $@
+
+if [[ "$@" == "-v" ]]
+then
+  verbose="-v"
+fi
+
+
 go build -o tsoda ./soda
 
 function test {
@@ -12,7 +22,7 @@ function test {
   ! ./tsoda drop -e $SODA_DIALECT -c ./database.yml
   ! ./tsoda create -e $SODA_DIALECT -c ./database.yml
   ./tsoda migrate -e $SODA_DIALECT -c ./database.yml -d
-  go test ./...
+  go test ./... $verbose
 }
 
 test "postgres"
