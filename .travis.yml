@@ -12,18 +12,14 @@ install:
 
 before_script:
     - go build -o tsoda ./soda
+    # travis hangs when trying to create mysql db using soda. not sure why
     - mysql -e 'create database pop_test;'
     - ./tsoda create -e "postgres"
     - ./tsoda create -e "sqlite"
     - ./tsoda migrate -e "mysql_travis"
     - ./tsoda migrate -e "postgres"
     - ./tsoda migrate -e "sqlite"
-    # - mysql -u travis --password= pop_test < sql_scripts/mysql-pop_test.sql
-    # - psql -c 'create database pop_test;' -U postgres
-    # - psql pop_test < sql_scripts/postgres-pop_test.sql
 
-# script: ./test.sh
-# script: ./travis.sh
 script: go test ./... -v
 
 global_env:

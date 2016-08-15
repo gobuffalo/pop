@@ -56,7 +56,6 @@ func (m *MySQL) SelectMany(store Store, models *Model, query Query) error {
 func (m *MySQL) CreateDB() error {
 	c := m.ConnectionDetails
 	cmd := exec.Command("mysql", "-u "+c.User, "--password"+c.Password, "-e", fmt.Sprintf("create database %s", c.Database))
-	fmt.Printf("### cmd -> %#v\n", cmd)
 	return clam.RunAndListen(cmd, func(s string) {
 		fmt.Println(s)
 	})
