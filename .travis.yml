@@ -1,19 +1,6 @@
 language: go
 
-sudo: required
-
-services:
-  - postgresql
-addons:
-  apt:
-    sources:
-      - precise-pgdg-9.5
-    packages:
-      - postgresql-9.5
-      - postgresql-contrib-9.5
-    postgresql: 9.5
-
-# sudo: false
+sudo: false
 
 go:
   - 1.5
@@ -21,26 +8,24 @@ go:
   - tip
 
 install:
-  - go get -t -v ./...
+ - go get -t -v ./...
 
-# before_script:
-#   - mysql -e 'create database pop_test;'
-#   - mysql -u travis --password= pop_test < sql_scripts/mysql-pop_test.sql
-#   - psql -c 'create database pop_test;' -U postgres
-#   - psql pop_test < sql_scripts/postgres-pop_test.sql
 before_script:
-  - sudo cp /etc/postgresql/9.4/main/pg_hba.conf /etc/postgresql/9.5/main/pg_hba.conf
-  - sudo /etc/init.d/postgresql restart
-  - go build -o tsoda ./soda
-    # - ./tsoda create -e $SODA_DIALECT -c database.yml
-    # - ./tsoda migrate -e $SODA_DIALECT -c database.yml
+    - go build -o tsoda ./soda
+    - ./tsoda create -e "mysql"
+    - ./tsoda create -e "postgres"
+    - ./tsoda create -e "sqlite"
+    - ./tsoda migrate -e "mysql"
+    - ./tsoda migrate -e "postgres"
+    - ./tsoda migrate -e "sqlite"
+    # - mysql -e 'create database pop_test;'
+    # - mysql -u travis --password= pop_test < sql_scripts/mysql-pop_test.sql
+    # - psql -c 'create database pop_test;' -U postgres
+    # - psql pop_test < sql_scripts/postgres-pop_test.sql
 
 # script: ./test.sh
 # script: ./travis.sh
-script:
-  - ./tsoda create -e $SODA_DIALECT -c database.yml -d
-  - ./tsoda migrate -e $SODA_DIALECT -c database.yml -d
-  - go test ./... -v
+script: go test ./...
 
 global_env:
   - MYSQL_USER="travis"
@@ -53,9 +38,8 @@ env:
   - SODA_DIALECT="sqlite"
 
 addons:
-  postgresql: "9.4"
+  postgresql: "9.3"
 
 matrix:
   allow_failures:
     - go: 'tip'
-
