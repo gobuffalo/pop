@@ -1,12 +1,9 @@
 package translators_test
 
 import (
-	"testing"
-
 	"github.com/markbates/pop"
 	"github.com/markbates/pop/fizz"
 	"github.com/markbates/pop/fizz/translators"
-	"github.com/stretchr/testify/require"
 )
 
 var _ fizz.Translator = (*translators.MySQL)(nil)
@@ -21,8 +18,8 @@ func init() {
 	myt = translators.NewMySQL(myconn.URL(), deets.Database)
 }
 
-func Test_MySQL_SchemaMigration(t *testing.T) {
-	r := require.New(t)
+func (p *MySQLSuite) Test_MySQL_SchemaMigration() {
+	r := p.Require()
 	ddl := `CREATE TABLE schema_migrations (
 version VARCHAR (255) NOT NULL
 ) ENGINE=InnoDB;
@@ -41,8 +38,8 @@ CREATE UNIQUE INDEX version_idx ON schema_migrations (version);`
 	r.Equal(ddl, res)
 }
 
-func Test_MySQL_CreateTable(t *testing.T) {
-	r := require.New(t)
+func (p *MySQLSuite) Test_MySQL_CreateTable() {
+	r := p.Require()
 	ddl := `CREATE TABLE users (
 id integer NOT NULL AUTO_INCREMENT,
 PRIMARY KEY(id),
@@ -67,8 +64,8 @@ age integer DEFAULT 40
 	r.Equal(ddl, res)
 }
 
-func Test_MySQL_DropTable(t *testing.T) {
-	r := require.New(t)
+func (p *MySQLSuite) Test_MySQL_DropTable() {
+	r := p.Require()
 
 	ddl := `DROP TABLE "users";`
 
@@ -76,8 +73,8 @@ func Test_MySQL_DropTable(t *testing.T) {
 	r.Equal(ddl, res)
 }
 
-func Test_MySQL_RenameTable(t *testing.T) {
-	r := require.New(t)
+func (p *MySQLSuite) Test_MySQL_RenameTable() {
+	r := p.Require()
 
 	ddl := `ALTER TABLE "users" RENAME TO "people";`
 
@@ -85,15 +82,15 @@ func Test_MySQL_RenameTable(t *testing.T) {
 	r.Equal(ddl, res)
 }
 
-func Test_MySQL_RenameTable_NotEnoughValues(t *testing.T) {
-	r := require.New(t)
+func (p *MySQLSuite) Test_MySQL_RenameTable_NotEnoughValues() {
+	r := p.Require()
 
 	_, err := myt.RenameTable([]fizz.Table{})
 	r.Error(err)
 }
 
-func Test_MySQL_AddColumn(t *testing.T) {
-	r := require.New(t)
+func (p *MySQLSuite) Test_MySQL_AddColumn() {
+	r := p.Require()
 	ddl := `ALTER TABLE users ADD COLUMN mycolumn VARCHAR (50) NOT NULL DEFAULT 'foo';`
 
 	res, _ := fizz.AString(`add_column("users", "mycolumn", "string", {"default": "foo", "size": 50})`, myt)
@@ -101,8 +98,8 @@ func Test_MySQL_AddColumn(t *testing.T) {
 	r.Equal(ddl, res)
 }
 
-func Test_MySQL_DropColumn(t *testing.T) {
-	r := require.New(t)
+func (p *MySQLSuite) Test_MySQL_DropColumn() {
+	r := p.Require()
 	ddl := `ALTER TABLE users DROP COLUMN mycolumn;`
 
 	res, _ := fizz.AString(`drop_column("users", "mycolumn")`, myt)
@@ -110,56 +107,56 @@ func Test_MySQL_DropColumn(t *testing.T) {
 	r.Equal(ddl, res)
 }
 
-func Test_MySQL_RenameColumn(t *testing.T) {
-	r := require.New(t)
+func (p *MySQLSuite) Test_MySQL_RenameColumn() {
+	r := p.Require()
 	ddl := `ALTER TABLE users CHANGE email email_address varchar(50) NOT NULL DEFAULT 'foo@example.com';`
 
 	res, _ := fizz.AString(`rename_column("users", "email", "email_address")`, myt)
 	r.Equal(ddl, res)
 }
 
-func Test_MySQL_AddIndex(t *testing.T) {
-	r := require.New(t)
+func (p *MySQLSuite) Test_MySQL_AddIndex() {
+	r := p.Require()
 	ddl := `CREATE INDEX users_email_idx ON users (email);`
 
 	res, _ := fizz.AString(`add_index("users", "email", {})`, myt)
 	r.Equal(ddl, res)
 }
 
-func Test_MySQL_AddIndex_Unique(t *testing.T) {
-	r := require.New(t)
+func (p *MySQLSuite) Test_MySQL_AddIndex_Unique() {
+	r := p.Require()
 	ddl := `CREATE UNIQUE INDEX users_email_idx ON users (email);`
 
 	res, _ := fizz.AString(`add_index("users", "email", {"unique": true})`, myt)
 	r.Equal(ddl, res)
 }
 
-func Test_MySQL_AddIndex_MultiColumn(t *testing.T) {
-	r := require.New(t)
+func (p *MySQLSuite) Test_MySQL_AddIndex_MultiColumn() {
+	r := p.Require()
 	ddl := `CREATE INDEX users_id_email_idx ON users (id, email);`
 
 	res, _ := fizz.AString(`add_index("users", ["id", "email"], {})`, myt)
 	r.Equal(ddl, res)
 }
 
-func Test_MySQL_AddIndex_CustomName(t *testing.T) {
-	r := require.New(t)
+func (p *MySQLSuite) Test_MySQL_AddIndex_CustomName() {
+	r := p.Require()
 	ddl := `CREATE INDEX email_index ON users (email);`
 
 	res, _ := fizz.AString(`add_index("users", "email", {"name": "email_index"})`, myt)
 	r.Equal(ddl, res)
 }
 
-func Test_MySQL_DropIndex(t *testing.T) {
-	r := require.New(t)
+func (p *MySQLSuite) Test_MySQL_DropIndex() {
+	r := p.Require()
 	ddl := `DROP INDEX email_idx ON users;`
 
 	res, _ := fizz.AString(`drop_index("users", "email_idx")`, myt)
 	r.Equal(ddl, res)
 }
 
-func Test_MySQL_RenameIndex(t *testing.T) {
-	r := require.New(t)
+func (p *MySQLSuite) Test_MySQL_RenameIndex() {
+	r := p.Require()
 
 	ddl := `ALTER TABLE users RENAME INDEX email_idx TO email_address_ix;`
 

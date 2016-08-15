@@ -1,18 +1,15 @@
 package translators_test
 
 import (
-	"testing"
-
 	"github.com/markbates/pop/fizz"
 	"github.com/markbates/pop/fizz/translators"
-	"github.com/stretchr/testify/require"
 )
 
 var _ fizz.Translator = (*translators.Postgres)(nil)
 var pgt = translators.NewPostgres()
 
-func Test_Postgres_CreateTable(t *testing.T) {
-	r := require.New(t)
+func (p *PostgreSQLSuite) Test_Postgres_CreateTable() {
+	r := p.Require()
 	ddl := `CREATE TABLE "users" (
 "id" SERIAL PRIMARY KEY,
 "created_at" timestamp NOT NULL,
@@ -36,8 +33,8 @@ func Test_Postgres_CreateTable(t *testing.T) {
 	r.Equal(ddl, res)
 }
 
-func Test_Postgres_DropTable(t *testing.T) {
-	r := require.New(t)
+func (p *PostgreSQLSuite) Test_Postgres_DropTable() {
+	r := p.Require()
 
 	ddl := `DROP TABLE "users";`
 
@@ -45,8 +42,8 @@ func Test_Postgres_DropTable(t *testing.T) {
 	r.Equal(ddl, res)
 }
 
-func Test_Postgres_RenameTable(t *testing.T) {
-	r := require.New(t)
+func (p *PostgreSQLSuite) Test_Postgres_RenameTable() {
+	r := p.Require()
 
 	ddl := `ALTER TABLE "users" RENAME TO "people";`
 
@@ -54,15 +51,15 @@ func Test_Postgres_RenameTable(t *testing.T) {
 	r.Equal(ddl, res)
 }
 
-func Test_Postgres_RenameTable_NotEnoughValues(t *testing.T) {
-	r := require.New(t)
+func (p *PostgreSQLSuite) Test_Postgres_RenameTable_NotEnoughValues() {
+	r := p.Require()
 
 	_, err := pgt.RenameTable([]fizz.Table{})
 	r.Error(err)
 }
 
-func Test_Postgres_AddColumn(t *testing.T) {
-	r := require.New(t)
+func (p *PostgreSQLSuite) Test_Postgres_AddColumn() {
+	r := p.Require()
 	ddl := `ALTER TABLE "mytable" ADD COLUMN "mycolumn" VARCHAR (50) NOT NULL DEFAULT 'foo';`
 
 	res, _ := fizz.AString(`add_column("mytable", "mycolumn", "string", {"default": "foo", "size": 50})`, pgt)
@@ -70,8 +67,8 @@ func Test_Postgres_AddColumn(t *testing.T) {
 	r.Equal(ddl, res)
 }
 
-func Test_Postgres_DropColumn(t *testing.T) {
-	r := require.New(t)
+func (p *PostgreSQLSuite) Test_Postgres_DropColumn() {
+	r := p.Require()
 	ddl := `ALTER TABLE "table_name" DROP COLUMN "column_name";`
 
 	res, _ := fizz.AString(`drop_column("table_name", "column_name")`, pgt)
@@ -79,56 +76,56 @@ func Test_Postgres_DropColumn(t *testing.T) {
 	r.Equal(ddl, res)
 }
 
-func Test_Postgres_RenameColumn(t *testing.T) {
-	r := require.New(t)
+func (p *PostgreSQLSuite) Test_Postgres_RenameColumn() {
+	r := p.Require()
 	ddl := `ALTER TABLE "table_name" RENAME COLUMN "old_column" TO "new_column";`
 
 	res, _ := fizz.AString(`rename_column("table_name", "old_column", "new_column")`, pgt)
 	r.Equal(ddl, res)
 }
 
-func Test_Postgres_AddIndex(t *testing.T) {
-	r := require.New(t)
+func (p *PostgreSQLSuite) Test_Postgres_AddIndex() {
+	r := p.Require()
 	ddl := `CREATE INDEX "table_name_column_name_idx" ON "table_name" (column_name);`
 
 	res, _ := fizz.AString(`add_index("table_name", "column_name", {})`, pgt)
 	r.Equal(ddl, res)
 }
 
-func Test_Postgres_AddIndex_Unique(t *testing.T) {
-	r := require.New(t)
+func (p *PostgreSQLSuite) Test_Postgres_AddIndex_Unique() {
+	r := p.Require()
 	ddl := `CREATE UNIQUE INDEX "table_name_column_name_idx" ON "table_name" (column_name);`
 
 	res, _ := fizz.AString(`add_index("table_name", "column_name", {"unique": true})`, pgt)
 	r.Equal(ddl, res)
 }
 
-func Test_Postgres_AddIndex_MultiColumn(t *testing.T) {
-	r := require.New(t)
+func (p *PostgreSQLSuite) Test_Postgres_AddIndex_MultiColumn() {
+	r := p.Require()
 	ddl := `CREATE INDEX "table_name_col1_col2_col3_idx" ON "table_name" (col1, col2, col3);`
 
 	res, _ := fizz.AString(`add_index("table_name", ["col1", "col2", "col3"], {})`, pgt)
 	r.Equal(ddl, res)
 }
 
-func Test_Postgres_AddIndex_CustomName(t *testing.T) {
-	r := require.New(t)
+func (p *PostgreSQLSuite) Test_Postgres_AddIndex_CustomName() {
+	r := p.Require()
 	ddl := `CREATE INDEX "custom_name" ON "table_name" (column_name);`
 
 	res, _ := fizz.AString(`add_index("table_name", "column_name", {"name": "custom_name"})`, pgt)
 	r.Equal(ddl, res)
 }
 
-func Test_Postgres_DropIndex(t *testing.T) {
-	r := require.New(t)
+func (p *PostgreSQLSuite) Test_Postgres_DropIndex() {
+	r := p.Require()
 	ddl := `DROP INDEX "my_idx";`
 
 	res, _ := fizz.AString(`drop_index("users", "my_idx")`, pgt)
 	r.Equal(ddl, res)
 }
 
-func Test_Postgres_RenameIndex(t *testing.T) {
-	r := require.New(t)
+func (p *PostgreSQLSuite) Test_Postgres_RenameIndex() {
+	r := p.Require()
 
 	ddl := `ALTER INDEX "old_ix" RENAME TO "new_ix";`
 

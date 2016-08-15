@@ -3,6 +3,7 @@ package pop_test
 import (
 	"log"
 	"os"
+	"testing"
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -10,9 +11,33 @@ import (
 	"github.com/markbates/going/nulls"
 	"github.com/markbates/pop"
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/stretchr/testify/suite"
 )
 
 var PDB *pop.Connection
+
+type PostgreSQLSuite struct {
+	suite.Suite
+}
+
+type MySQLSuite struct {
+	suite.Suite
+}
+
+type SQLiteSuite struct {
+	suite.Suite
+}
+
+func TestSpecificSuites(t *testing.T) {
+	switch os.Getenv("SODA_DIALECT") {
+	case "postgres":
+		suite.Run(t, &PostgreSQLSuite{})
+	case "mysql":
+		suite.Run(t, &MySQLSuite{})
+	case "sqlite":
+		suite.Run(t, &SQLiteSuite{})
+	}
+}
 
 func init() {
 	pop.Debug = false

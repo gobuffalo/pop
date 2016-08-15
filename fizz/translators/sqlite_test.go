@@ -2,11 +2,9 @@ package translators_test
 
 import (
 	"fmt"
-	"testing"
 
 	"github.com/markbates/pop/fizz"
 	"github.com/markbates/pop/fizz/translators"
-	"github.com/stretchr/testify/require"
 )
 
 var _ fizz.Translator = (*translators.SQLite)(nil)
@@ -28,8 +26,8 @@ func (p *fauxSchema) TableInfo(table string) (*fizz.Table, error) {
 	return nil, fmt.Errorf("Could not find table data for %s!", table)
 }
 
-func Test_SQLite_CreateTable(t *testing.T) {
-	r := require.New(t)
+func (p *SQLiteSuite) Test_SQLite_CreateTable() {
+	r := p.Require()
 	ddl := `CREATE TABLE "users" (
 "id" INTEGER PRIMARY KEY AUTOINCREMENT,
 "created_at" DATETIME NOT NULL,
@@ -53,8 +51,8 @@ func Test_SQLite_CreateTable(t *testing.T) {
 	r.Equal(ddl, res)
 }
 
-func Test_SQLite_DropTable(t *testing.T) {
-	r := require.New(t)
+func (p *SQLiteSuite) Test_SQLite_DropTable() {
+	r := p.Require()
 
 	ddl := `DROP TABLE "users";`
 
@@ -62,8 +60,8 @@ func Test_SQLite_DropTable(t *testing.T) {
 	r.Equal(ddl, res)
 }
 
-func Test_SQLite_RenameTable(t *testing.T) {
-	r := require.New(t)
+func (p *SQLiteSuite) Test_SQLite_RenameTable() {
+	r := p.Require()
 
 	ddl := `ALTER TABLE "users" RENAME TO "people";`
 	schema.schema["users"] = &fizz.Table{}
@@ -72,24 +70,26 @@ func Test_SQLite_RenameTable(t *testing.T) {
 	r.Equal(ddl, res)
 }
 
-func Test_SQLite_RenameTable_NotEnoughValues(t *testing.T) {
-	r := require.New(t)
+func (p *SQLiteSuite) Test_SQLite_RenameTable_NotEnoughValues() {
+	r := p.Require()
 
 	_, err := sqt.RenameTable([]fizz.Table{})
 	r.Error(err)
 }
 
-func Test_SQLite_AddColumn(t *testing.T) {
-	r := require.New(t)
+func (p *SQLiteSuite) Test_SQLite_AddColumn() {
+	r := p.Require()
+
 	ddl := `ALTER TABLE "users" ADD COLUMN "mycolumn" TEXT NOT NULL DEFAULT 'foo';`
+	schema.schema["users"] = &fizz.Table{}
 
 	res, _ := fizz.AString(`add_column("users", "mycolumn", "string", {"default": "foo", "size": 50})`, sqt)
 
 	r.Equal(ddl, res)
 }
 
-func Test_SQLite_DropColumn(t *testing.T) {
-	r := require.New(t)
+func (p *SQLiteSuite) Test_SQLite_DropColumn() {
+	r := p.Require()
 	ddl := `ALTER TABLE "users" RENAME TO "_users_tmp";
 CREATE TABLE "users" (
 "id" INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -111,8 +111,8 @@ DROP TABLE "_users_tmp";`
 	r.Equal(ddl, res)
 }
 
-func Test_SQLite_RenameColumn(t *testing.T) {
-	r := require.New(t)
+func (p *SQLiteSuite) Test_SQLite_RenameColumn() {
+	r := p.Require()
 	ddl := `ALTER TABLE "users" RENAME TO "_users_tmp";
 CREATE TABLE "users" (
 "id" INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -135,48 +135,48 @@ DROP TABLE "_users_tmp";`
 	r.Equal(ddl, res)
 }
 
-func Test_SQLite_AddIndex(t *testing.T) {
-	r := require.New(t)
+func (p *SQLiteSuite) Test_SQLite_AddIndex() {
+	r := p.Require()
 	ddl := `CREATE INDEX "table_name_column_name_idx" ON "table_name" (column_name);`
 
 	res, _ := fizz.AString(`add_index("table_name", "column_name", {})`, sqt)
 	r.Equal(ddl, res)
 }
 
-func Test_SQLite_AddIndex_Unique(t *testing.T) {
-	r := require.New(t)
+func (p *SQLiteSuite) Test_SQLite_AddIndex_Unique() {
+	r := p.Require()
 	ddl := `CREATE UNIQUE INDEX "table_name_column_name_idx" ON "table_name" (column_name);`
 
 	res, _ := fizz.AString(`add_index("table_name", "column_name", {"unique": true})`, sqt)
 	r.Equal(ddl, res)
 }
 
-func Test_SQLite_AddIndex_MultiColumn(t *testing.T) {
-	r := require.New(t)
+func (p *SQLiteSuite) Test_SQLite_AddIndex_MultiColumn() {
+	r := p.Require()
 	ddl := `CREATE INDEX "table_name_col1_col2_col3_idx" ON "table_name" (col1, col2, col3);`
 
 	res, _ := fizz.AString(`add_index("table_name", ["col1", "col2", "col3"], {})`, sqt)
 	r.Equal(ddl, res)
 }
 
-func Test_SQLite_AddIndex_CustomName(t *testing.T) {
-	r := require.New(t)
+func (p *SQLiteSuite) Test_SQLite_AddIndex_CustomName() {
+	r := p.Require()
 	ddl := `CREATE INDEX "custom_name" ON "table_name" (column_name);`
 
 	res, _ := fizz.AString(`add_index("table_name", "column_name", {"name": "custom_name"})`, sqt)
 	r.Equal(ddl, res)
 }
 
-func Test_SQLite_DropIndex(t *testing.T) {
-	r := require.New(t)
+func (p *SQLiteSuite) Test_SQLite_DropIndex() {
+	r := p.Require()
 	ddl := `DROP INDEX IF EXISTS "my_idx";`
 
 	res, _ := fizz.AString(`drop_index("my_table", "my_idx")`, sqt)
 	r.Equal(ddl, res)
 }
 
-func Test_SQLite_RenameIndex(t *testing.T) {
-	r := require.New(t)
+func (p *SQLiteSuite) Test_SQLite_RenameIndex() {
+	r := p.Require()
 
 	ddl := `DROP INDEX IF EXISTS "old_ix";
 CREATE UNIQUE INDEX "new_ix" ON "users" (id, created_at);`

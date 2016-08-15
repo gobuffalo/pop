@@ -1,13 +1,10 @@
 package pop_test
 
 import (
-	"os"
-	"testing"
 	"time"
 
 	"github.com/markbates/pop"
 	"github.com/markbates/pop/slices"
-	"github.com/stretchr/testify/require"
 )
 
 type Cake struct {
@@ -19,60 +16,48 @@ type Cake struct {
 	UpdatedAt time.Time     `json:"updated_at" db:"updated_at"`
 }
 
-func Test_String(t *testing.T) {
-	if os.Getenv("SODA_DIALECT") == "postgres" {
-		transaction(func(tx *pop.Connection) {
-			r := require.New(t)
+func (p *PostgreSQLSuite) Test_String() {
+	transaction(func(tx *pop.Connection) {
+		r := p.Require()
 
-			c := &Cake{
-				String: slices.String{"a", "b", "c"},
-			}
-			err := tx.Create(c)
-			r.NoError(err)
+		c := &Cake{
+			String: slices.String{"a", "b", "c"},
+		}
+		err := tx.Create(c)
+		r.NoError(err)
 
-			err = tx.Reload(c)
-			r.Equal(slices.String{"a", "b", "c"}, c.String)
-		})
-	} else {
-		t.SkipNow()
-	}
+		err = tx.Reload(c)
+		r.Equal(slices.String{"a", "b", "c"}, c.String)
+	})
 }
 
-func Test_Int(t *testing.T) {
-	if os.Getenv("SODA_DIALECT") == "postgres" {
-		transaction(func(tx *pop.Connection) {
-			r := require.New(t)
+func (p *PostgreSQLSuite) Test_Int() {
+	transaction(func(tx *pop.Connection) {
+		r := p.Require()
 
-			c := &Cake{
-				Int: slices.Int{1, 2, 3},
-			}
-			err := tx.Create(c)
-			r.NoError(err)
+		c := &Cake{
+			Int: slices.Int{1, 2, 3},
+		}
+		err := tx.Create(c)
+		r.NoError(err)
 
-			err = tx.Reload(c)
-			r.Equal(slices.Int{1, 2, 3}, c.Int)
-		})
-	} else {
-		t.SkipNow()
-	}
+		err = tx.Reload(c)
+		r.Equal(slices.Int{1, 2, 3}, c.Int)
+	})
 }
 
-func Test_Float(t *testing.T) {
-	if os.Getenv("SODA_DIALECT") == "postgres" {
-		transaction(func(tx *pop.Connection) {
-			r := require.New(t)
+func (p *PostgreSQLSuite) Test_Float() {
+	transaction(func(tx *pop.Connection) {
+		r := p.Require()
 
-			c := &Cake{
-				Float: slices.Float{1.0, 2.1, 3.2},
-			}
-			err := tx.Create(c)
-			r.NoError(err)
+		c := &Cake{
+			Float: slices.Float{1.0, 2.1, 3.2},
+		}
+		err := tx.Create(c)
+		r.NoError(err)
 
-			err = tx.Reload(c)
-			r.NoError(err)
-			r.Equal(slices.Float{1.0, 2.1, 3.2}, c.Float)
-		})
-	} else {
-		t.SkipNow()
-	}
+		err = tx.Reload(c)
+		r.NoError(err)
+		r.Equal(slices.Float{1.0, 2.1, 3.2}, c.Float)
+	})
 }
