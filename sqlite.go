@@ -34,33 +34,26 @@ func (m *SQLite) MigrationURL() string {
 }
 
 func (m *SQLite) Create(store Store, model *Model, cols Columns) error {
-	return m.Lock(func() error {
-		return genericCreate(store, model, cols)
-	})
+	return genericCreate(store, model, cols)
+
 }
 
 func (m *SQLite) Update(store Store, model *Model, cols Columns) error {
-	return m.Lock(func() error {
-		return genericUpdate(store, model, cols)
-	})
+	return genericUpdate(store, model, cols)
+
 }
 
 func (m *SQLite) Destroy(store Store, model *Model) error {
-	return m.Lock(func() error {
-		return genericDestroy(store, model)
-	})
+	return genericDestroy(store, model)
+
 }
 
 func (m *SQLite) SelectOne(store Store, model *Model, query Query) error {
-	return m.Lock(func() error {
-		return genericSelectOne(store, model, query)
-	})
+	return genericSelectOne(store, model, query)
 }
 
 func (m *SQLite) SelectMany(store Store, models *Model, query Query) error {
-	return m.Lock(func() error {
-		return genericSelectMany(store, models, query)
-	})
+	return genericSelectMany(store, models, query)
 }
 
 func (m *SQLite) Lock(fn func() error) error {
