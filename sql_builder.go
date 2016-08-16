@@ -2,6 +2,7 @@ package pop
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/jmoiron/sqlx"
@@ -50,11 +51,14 @@ func (sq *SQLBuilder) compile() {
 		} else {
 			sq.sql = sq.buildSelectSQL()
 		}
-		s, _, err := sqlx.In(sq.sql, sq.Args())
-		if err != nil {
-			s = sq.sql
+		re := regexp.MustCompile(`(?i)in\s*\(\s*\?\s*\)`)
+		if re.MatchString(sq.sql) {
+			s, _, err := sqlx.In(sq.sql, sq.Args())
+			if err == nil {
+				sq.sql = s
+			}
 		}
-		sq.sql = sq.Query.Connection.Dialect.TranslateSQL(s)
+		sq.sql = sq.Query.Connection.Dialect.TranslateSQL(sq.sql)
 	}
 }
 
