@@ -18,6 +18,7 @@ import (
 
 type SQLite struct {
 	gil               *sync.Mutex
+	smGil             *sync.Mutex
 	ConnectionDetails *ConnectionDetails
 }
 
@@ -26,7 +27,7 @@ func (m *SQLite) Details() *ConnectionDetails {
 }
 
 func (m *SQLite) URL() string {
-	return m.ConnectionDetails.Database + "?cache=shared&mode=rwc"
+	return m.ConnectionDetails.Database + "?_busy_timeout=5000"
 }
 
 func (m *SQLite) MigrationURL() string {
@@ -34,32 +35,43 @@ func (m *SQLite) MigrationURL() string {
 }
 
 func (m *SQLite) Create(store Store, model *Model, cols Columns) error {
-	return genericCreate(store, model, cols)
-
+	return m.locker(m.smGil, func() error {
+		return genericCreate(store, model, cols)
+	})
 }
 
 func (m *SQLite) Update(store Store, model *Model, cols Columns) error {
-	return genericUpdate(store, model, cols)
-
+	return m.locker(m.smGil, func() error {
+		return genericUpdate(store, model, cols)
+	})
 }
 
 func (m *SQLite) Destroy(store Store, model *Model) error {
-	return genericDestroy(store, model)
-
+	return m.locker(m.smGil, func() error {
+		return genericDestroy(store, model)
+	})
 }
 
 func (m *SQLite) SelectOne(store Store, model *Model, query Query) error {
-	return genericSelectOne(store, model, query)
+	return m.locker(m.smGil, func() error {
+		return genericSelectOne(store, model, query)
+	})
 }
 
 func (m *SQLite) SelectMany(store Store, models *Model, query Query) error {
-	return genericSelectMany(store, models, query)
+	return m.locker(m.smGil, func() error {
+		return genericSelectMany(store, models, query)
+	})
 }
 
 func (m *SQLite) Lock(fn func() error) error {
+	return m.locker(m.gil, fn)
+}
+
+func (m *SQLite) locker(l *sync.Mutex, fn func() error) error {
 	if defaults.String(m.Details().Options["lock"], "true") == "true" {
-		defer m.gil.Unlock()
-		m.gil.Lock()
+		defer l.Unlock()
+		l.Lock()
 	}
 	err := fn()
 	attempts := 0
@@ -96,6 +108,7 @@ func NewSQLite(deets *ConnectionDetails) Dialect {
 	deets.URL = fmt.Sprintf("sqlite3://%s", deets.Database)
 	cd := &SQLite{
 		gil:               &sync.Mutex{},
+		smGil:             &sync.Mutex{},
 		ConnectionDetails: deets,
 	}
 
