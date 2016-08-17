@@ -56,6 +56,14 @@ Note that the `database.yml` file is also a Go template, so you can use Go templ
 * `env` - This function will look for the named environment variable and insert it into your file. This is useful for configuration production databases without having to store secret information in your repository. `{{ env "DATABASE_URL" }}`
 * `envOr` - This function will look for the named environment variable and use it. If the variable can not be found a default value will be used. `{{ envOr "MYSQL_HOST" "localhost" }}`
 
+You can generate a default configuration file using the `init` command:
+
+```
+$ soda init
+```
+
+The default will generate a `database.yml` file in the current directory for a PostgreSQL database. You can override the type of database using the `-t` flag and passing in any of the supported database types: `postgres`, `mysql`, or `sqlite3`.
+
 ### In your code
 
 Once you have a configuration file defined you can easily connect to one of these connections in your application.
