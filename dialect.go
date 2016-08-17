@@ -59,12 +59,14 @@ func genericExec(store Store, stmt string) error {
 
 func genericSelectOne(store Store, model *Model, query Query) error {
 	sql, args := query.ToSQL(model)
+	Log(sql, args...)
 	err := store.Get(model.Value, sql, args...)
 	return err
 }
 
 func genericSelectMany(store Store, models *Model, query Query) error {
 	sql, args := query.ToSQL(models)
+	Log(sql, args...)
 	err := store.Select(models.Value, sql, args...)
 	return err
 }

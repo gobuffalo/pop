@@ -90,6 +90,9 @@ func (m *Model) typeName(t reflect.Type) string {
 	case "string":
 		return m.Value.(string)
 	case "slice":
+		if t.Elem().Kind().String() == "ptr" {
+			return m.typeName(t.Elem().Elem())
+		}
 		return t.Elem().Name()
 	default:
 		return t.Name()

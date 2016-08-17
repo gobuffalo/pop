@@ -24,6 +24,10 @@ func Test_Model_TableName(t *testing.T) {
 
 	m = pop.Model{Value: &[]User{}}
 	r.Equal(m.TableName(), "users")
+
+	m = pop.Model{Value: []*User{}}
+	r.Equal(m.TableName(), "users")
+
 }
 
 func Test_MapTableName(t *testing.T) {
