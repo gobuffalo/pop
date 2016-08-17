@@ -42,19 +42,21 @@ func Execute() {
 
 func init() {
 	RootCmd.Flags().BoolVarP(&version, "version", "v", false, "Show version information")
-	RootCmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", "config/database.yml", "The configuration file you would like to use.")
+	RootCmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", "", "The configuration file you would like to use.")
 	RootCmd.PersistentFlags().StringVarP(&env, "env", "e", "development", "The environment you want to run migrations against. Will use $GO_ENV if set.")
 	RootCmd.PersistentFlags().BoolVarP(&debugMode, "debug", "d", false, "Use debug/verbose mode")
 }
 
 func setConfigLocation() {
-	abs, err := filepath.Abs(cfgFile)
-	if err != nil {
-		return
+	if cfgFile != "" {
+		abs, err := filepath.Abs(cfgFile)
+		if err != nil {
+			return
+		}
+		dir, file := filepath.Split(abs)
+		pop.AddLookupPaths(dir)
+		pop.ConfigName = file
 	}
-	dir, file := filepath.Split(abs)
-	pop.AddLookupPaths(dir)
-	pop.ConfigName = file
 }
 
 func getConn() *pop.Connection {

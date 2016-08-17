@@ -15,7 +15,7 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-var lookupPaths = []string{"", "/config", "../", "../config", "../..", "../../config"}
+var lookupPaths = []string{"", "./config", "/config", "../", "../config", "../..", "../../config"}
 var ConfigName = "database.yml"
 
 func init() {
@@ -39,12 +39,6 @@ func AddLookupPaths(paths ...string) {
 }
 
 func findConfigPath() (string, error) {
-	// pwd, err := getAppPath()
-	// if err != nil {
-	// 	return "", err
-	// }
-	//
-	// lookup paths
 	for _, p := range LookupPaths() {
 		path, _ := filepath.Abs(filepath.Join(p, ConfigName))
 		if _, err := os.Stat(path); err == nil {
