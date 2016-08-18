@@ -14,5 +14,6 @@ func init() {
 	generateCmd.AddCommand(generate.ConfigCmd)
 	generateCmd.AddCommand(generate.FizzCmd)
 	generateCmd.AddCommand(generate.SQLCmd)
+	generateCmd.AddCommand(generate.ModelCmd)
 	RootCmd.AddCommand(generateCmd)
 }
