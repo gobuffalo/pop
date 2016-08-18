@@ -17,6 +17,6 @@ var SQLCmd = &cobra.Command{
 		}
 		cflag := cmd.Flag("path")
 		migrationPath := defaults.String(cflag.Value.String(), "./migrates")
-		return pop.MigrationCreate(migrationPath, args[0], "sql")
+		return pop.MigrationCreate(migrationPath, args[0], "sql", nil, nil)
 	},
 }

@@ -10,9 +10,19 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/markbates/going/defaults"
 	"github.com/markbates/inflect"
+	"github.com/markbates/pop"
 	"github.com/spf13/cobra"
 )
+
+var skipMigration bool
+
+func init() {
+	ModelCmd.Flags().BoolVarP(&skipMigration, "skip-migration", "s", false, "Skip creating a new fizz migration for this model.")
+}
+
+var nrx = regexp.MustCompile(`^nulls.(.+)`)
 
 type names struct {
 	Original string
@@ -36,6 +46,7 @@ type attribute struct {
 	Names        names
 	OriginalType string
 	GoType       string
+	Nullable     bool
 }
 
 func (a attribute) String() string {
@@ -72,6 +83,23 @@ func (m model) String() string {
 	return strings.Join(s, "\n")
 }
 
+func (m model) Fizz() string {
+	s := []string{fmt.Sprintf("create_table(\"%s\", func(t) {", m.Names.Table)}
+	for _, a := range m.Attributes {
+		switch a.Names.Original {
+		case "id", "created_at", "updated_at":
+		default:
+			x := fmt.Sprintf("\tt.Column(\"%s\", \"%s\", {})", a.Names.Original, fizzColType(a.OriginalType))
+			if a.Nullable {
+				x = strings.Replace(x, "{}", `{"null": true}`, -1)
+			}
+			s = append(s, x)
+		}
+	}
+	s = append(s, "})")
+	return strings.Join(s, "\n")
+}
+
 func newModel(name string) model {
 	id := newName("id")
 	id.Proper = "ID"
@@ -98,14 +126,14 @@ var ModelCmd = &cobra.Command{
 
 		model := newModel(args[0])
 
-		nrx := regexp.MustCompile(`^nulls.(.+)`)
 		hasNulls := false
 		for _, def := range args[1:] {
 			col := strings.Split(def, ":")
 			if len(col) == 1 {
 				col = append(col, "string")
 			}
-			if !hasNulls && nrx.MatchString(col[1]) {
+			nullable := nrx.MatchString(col[1])
+			if !hasNulls && nullable {
 				hasNulls = true
 				model.Imports = append(model.Imports, "github.com/markbates/going/nulls")
 			}
@@ -113,6 +141,7 @@ var ModelCmd = &cobra.Command{
 				Names:        newName(col[0]),
 				OriginalType: col[1],
 				GoType:       colType(col[1]),
+				Nullable:     nullable,
 			})
 		}
 
@@ -122,12 +151,12 @@ var ModelCmd = &cobra.Command{
 		}
 
 		fname := filepath.Join("models", model.Names.File+".go")
-		err = ioutil.WriteFile(fname, []byte(model.String()), 0766)
+		err = ioutil.WriteFile(fname, []byte(model.String()), 0666)
 		if err != nil {
 			return err
 		}
 
-		err = ioutil.WriteFile(filepath.Join("models", model.Names.File+"_test.go"), []byte(`package models_test`), 0766)
+		err = ioutil.WriteFile(filepath.Join("models", model.Names.File+"_test.go"), []byte(`package models_test`), 0666)
 		if err != nil {
 			return err
 		}
@@ -147,6 +176,15 @@ var ModelCmd = &cobra.Command{
 
 		fmt.Println(string(b))
 
+		if !skipMigration {
+			cflag := cmd.Flag("path")
+			migrationPath := defaults.String(cflag.Value.String(), "./migrations")
+			err = pop.MigrationCreate(migrationPath, fmt.Sprintf("create_%s", model.Names.Table), "fizz", []byte(model.Fizz()), []byte(fmt.Sprintf("drop_table(\"%s\")", model.Names.Table)))
+			if err != nil {
+				return err
+			}
+		}
+
 		return nil
 	},
 }
@@ -159,6 +197,21 @@ func colType(s string) string {
 		return "time.Time"
 	default:
 		return s
+	}
+	return s
+}
+
+func fizzColType(s string) string {
+	if nrx.MatchString(s) {
+		return fizzColType(strings.Replace(s, "nulls.", "", -1))
+	}
+	switch strings.ToLower(s) {
+	case "int":
+		return "integer"
+	case "time":
+		return "timestamp"
+	default:
+		return strings.ToLower(s)
 	}
 	return s
 }

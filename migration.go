@@ -25,7 +25,7 @@ var schemaMigrations = fizz.Table{
 	},
 }
 
-func MigrationCreate(path, name, ext string) error {
+func MigrationCreate(path, name, ext string, up, down []byte) error {
 	n := time.Now().UTC()
 	s := n.Format("20060102150405")
 
@@ -34,20 +34,20 @@ func MigrationCreate(path, name, ext string) error {
 		return err
 	}
 
-	up := filepath.Join(path, (fmt.Sprintf("%s_%s.up.%s", s, name, ext)))
-	err = ioutil.WriteFile(up, []byte(""), 0666)
+	upf := filepath.Join(path, (fmt.Sprintf("%s_%s.up.%s", s, name, ext)))
+	err = ioutil.WriteFile(upf, up, 0666)
 	if err != nil {
 		return err
 	}
-	fmt.Printf("> %s\n", up)
+	fmt.Printf("> %s\n", upf)
 
-	down := filepath.Join(path, (fmt.Sprintf("%s_%s.down.%s", s, name, ext)))
-	err = ioutil.WriteFile(down, []byte(""), 0666)
+	downf := filepath.Join(path, (fmt.Sprintf("%s_%s.down.%s", s, name, ext)))
+	err = ioutil.WriteFile(downf, down, 0666)
 	if err != nil {
 		return err
 	}
 
-	fmt.Printf("> %s\n", down)
+	fmt.Printf("> %s\n", downf)
 	return err
 }
 

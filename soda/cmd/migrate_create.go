@@ -21,7 +21,7 @@ var migrateCreateCmd = &cobra.Command{
 			return errors.New("You must supply a name for your migration!")
 		}
 
-		return pop.MigrationCreate(migrationPath, args[0], migrationType)
+		return pop.MigrationCreate(migrationPath, args[0], migrationType, nil, nil)
 	},
 }
 
