@@ -14,6 +14,79 @@ import (
 	"github.com/spf13/cobra"
 )
 
+type names struct {
+	Original string
+	Table    string
+	Proper   string
+	File     string
+	Plural   string
+}
+
+func newName(name string) names {
+	return names{
+		Original: name,
+		File:     name,
+		Table:    inflect.Tableize(name),
+		Proper:   inflect.Camelize(name),
+		Plural:   inflect.Pluralize(inflect.Camelize(name)),
+	}
+}
+
+type attribute struct {
+	Names        names
+	OriginalType string
+	GoType       string
+}
+
+func (a attribute) String() string {
+	return fmt.Sprintf("\t%s %s `json:\"%s\" db:\"%s\"`", a.Names.Proper, a.GoType, a.Names.Original, a.Names.Original)
+}
+
+type model struct {
+	Package    string
+	Imports    []string
+	Names      names
+	Attributes []attribute
+}
+
+func (m model) String() string {
+	s := []string{fmt.Sprintf("package %s\n", m.Package)}
+	if len(m.Imports) == 1 {
+		s = append(s, fmt.Sprintf("import \"%s\"\n", m.Imports[0]))
+	} else {
+		s = append(s, "import (")
+		for _, im := range m.Imports {
+			s = append(s, fmt.Sprintf("\t\"%s\"", im))
+		}
+		s = append(s, ")\n")
+	}
+
+	s = append(s, fmt.Sprintf("// %s maps to the database table '%s'", m.Names.Proper, m.Names.Table))
+	s = append(s, fmt.Sprintf("type %s struct {", m.Names.Proper))
+	for _, a := range m.Attributes {
+		s = append(s, a.String())
+	}
+	s = append(s, "}")
+	s = append(s, fmt.Sprintf("\ntype %s []%s", m.Names.Plural, m.Names.Proper))
+
+	return strings.Join(s, "\n")
+}
+
+func newModel(name string) model {
+	id := newName("id")
+	id.Proper = "ID"
+	return model{
+		Package: "models",
+		Imports: []string{"time"},
+		Names:   newName(name),
+		Attributes: []attribute{
+			{Names: id, OriginalType: "int", GoType: "int"},
+			{Names: newName("created_at"), OriginalType: "time.Time", GoType: "time.Time"},
+			{Names: newName("updated_at"), OriginalType: "time.Time", GoType: "time.Time"},
+		},
+	}
+}
+
 var ModelCmd = &cobra.Command{
 	Use:     "model [name]",
 	Aliases: []string{"m"},
@@ -22,14 +95,8 @@ var ModelCmd = &cobra.Command{
 		if len(args) == 0 {
 			return errors.New("You must supply a name for your model!")
 		}
-		name := args[0]
-		table := inflect.Tableize(name)
-		mname := inflect.Camelize(name)
 
-		s := []string{"package models\n", "import \"time\"\n"}
-		s = append(s, fmt.Sprintf("// %s models the database table '%s'", mname, table))
-		s = append(s, fmt.Sprintf("type %s struct {", mname))
-		s = append(s, fmt.Sprintf("\tID int `json:\"id\" db:\"id\"`"))
+		model := newModel(args[0])
 
 		nrx := regexp.MustCompile(`^nulls.(.+)`)
 		hasNulls := false
@@ -38,35 +105,29 @@ var ModelCmd = &cobra.Command{
 			if len(col) == 1 {
 				col = append(col, "string")
 			}
-			if nrx.MatchString(col[1]) {
+			if !hasNulls && nrx.MatchString(col[1]) {
 				hasNulls = true
+				model.Imports = append(model.Imports, "github.com/markbates/going/nulls")
 			}
-			s = append(s, fmt.Sprintf("\t%s %s `json:\"%s\" db:\"%s\"`", inflect.Camelize(col[0]), colType(col[1]), col[0], col[0]))
+			model.Attributes = append(model.Attributes, attribute{
+				Names:        newName(col[0]),
+				OriginalType: col[1],
+				GoType:       colType(col[1]),
+			})
 		}
-		s = append(s, fmt.Sprintf("\tCreatedAt time.Time `json:\"created_at\" db:\"created_at\"`"))
-		s = append(s, fmt.Sprintf("\tUpdatedAt time.Time `json:\"updated_at\" db:\"updated_at\"`"))
 
-		pname := inflect.Pluralize(mname)
-		s = append(s, "}")
-		s = append(s, fmt.Sprintf("\ntype %s []%s", pname, mname))
-
-		if hasNulls {
-			s2 := []string{s[0], `import "github.com/markbates/going/nulls"`}
-			s = append(s2, s[1:]...)
-		}
 		err := os.MkdirAll("models", 0766)
 		if err != nil {
 			return err
 		}
 
-		uname := inflect.Underscore(name)
-		fname := filepath.Join("models", uname+".go")
-		err = ioutil.WriteFile(fname, []byte(strings.Join(s, "\n")), 0766)
+		fname := filepath.Join("models", model.Names.File+".go")
+		err = ioutil.WriteFile(fname, []byte(model.String()), 0766)
 		if err != nil {
 			return err
 		}
 
-		err = ioutil.WriteFile(filepath.Join("models", uname+"_test.go"), []byte(`package models_test`), 0766)
+		err = ioutil.WriteFile(filepath.Join("models", model.Names.File+"_test.go"), []byte(`package models_test`), 0766)
 		if err != nil {
 			return err
 		}
