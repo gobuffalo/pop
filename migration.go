@@ -29,8 +29,13 @@ func MigrationCreate(path, name, ext string) error {
 	n := time.Now().UTC()
 	s := n.Format("20060102150405")
 
+	err := os.MkdirAll(path, 0766)
+	if err != nil {
+		return err
+	}
+
 	up := filepath.Join(path, (fmt.Sprintf("%s_%s.up.%s", s, name, ext)))
-	err := ioutil.WriteFile(up, []byte(""), 0666)
+	err = ioutil.WriteFile(up, []byte(""), 0666)
 	if err != nil {
 		return err
 	}

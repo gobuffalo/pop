@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/markbates/pop"
 	"github.com/spf13/cobra"
@@ -9,10 +10,13 @@ import (
 
 var migrationType string
 
+var depWarning = "[DEPRACTION WARNING] This command is deprecated. Please use `soda generate fizz` or `soda generate sql` instead."
+
 var migrateCreateCmd = &cobra.Command{
 	Use:   "create [name]",
-	Short: "Generates Up/Down migrations for your database.",
+	Short: depWarning,
 	RunE: func(cmd *cobra.Command, args []string) error {
+		fmt.Println(depWarning)
 		if len(args) == 0 {
 			return errors.New("You must supply a name for your migration!")
 		}

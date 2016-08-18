@@ -10,8 +10,9 @@ import (
 var migrationPath string
 
 var migrateCmd = &cobra.Command{
-	Use:   "migrate",
-	Short: "Runs migrations against your database.",
+	Use:     "migrate",
+	Aliases: []string{"m"},
+	Short:   "Runs migrations against your database.",
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 		RootCmd.PersistentPreRun(cmd, args)
 		return os.MkdirAll(migrationPath, 0766)
@@ -28,5 +29,5 @@ var migrateCmd = &cobra.Command{
 
 func init() {
 	RootCmd.AddCommand(migrateCmd)
-	migrateCmd.PersistentFlags().StringVarP(&migrationPath, "path", "p", "./migrations", "Path to the migrations folder")
+	RootCmd.PersistentFlags().StringVarP(&migrationPath, "path", "p", "./migrations", "Path to the migrations folder")
 }
