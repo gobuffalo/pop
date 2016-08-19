@@ -25,7 +25,7 @@ func (m *MySQL) URL() string {
 		return c.URL
 	}
 
-	s := "%s:%s@(%s:%s)/%s?parseTime=true&multiStatements=true"
+	s := "%s:%s@(%s:%s)/%s?parseTime=true&multiStatements=true&readTimeout=1s"
 	return fmt.Sprintf(s, c.User, c.Password, c.Host, c.Port, c.Database)
 }
 
