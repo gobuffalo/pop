@@ -59,7 +59,7 @@ Note that the `database.yml` file is also a Go template, so you can use Go templ
 You can generate a default configuration file using the `init` command:
 
 ```
-$ soda init
+$ soda g config
 ```
 
 The default will generate a `database.yml` file in the current directory for a PostgreSQL database. You can override the type of database using the `-t` flag and passing in any of the supported database types: `postgres`, `mysql`, or `sqlite3`.
