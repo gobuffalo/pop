@@ -15,8 +15,13 @@ import (
 
 var mrx = regexp.MustCompile("(\\d+)_(.+)\\.(up|down)\\.(sql|fizz)")
 
+func init() {
+	MapTableName("schema_migrations", "schema_migration")
+	MapTableName("schema_migration", "schema_migration")
+}
+
 var schemaMigrations = fizz.Table{
-	Name: "schema_migrations",
+	Name: "schema_migration",
 	Columns: []fizz.Column{
 		{Name: "version", ColType: "string"},
 	},
@@ -60,26 +65,22 @@ func (c *Connection) MigrateUp(path string) error {
 		return err
 	}
 	return findMigrations(path, "up", func(m migrationFile) error {
-		i, err := c.Where("version = ?", m.Version).Count("schema_migrations")
-		if err != nil {
+		exists, err := c.Where("version = ?", m.Version).Exists("schema_migration")
+		if err != nil || exists {
 			return err
 		}
-		if i == 0 {
-			err = c.Transaction(func(tx *Connection) error {
-				err := m.Execute(tx)
-				if err != nil {
-					fmt.Printf("### err -> %#v\n", err)
-					return err
-				}
-				_, err = tx.Store.Exec(fmt.Sprintf("insert into schema_migrations (version) values ('%s')", m.Version))
+		err = c.Transaction(func(tx *Connection) error {
+			err := m.Execute(tx)
+			if err != nil {
 				return err
-			})
-			if err == nil {
-				fmt.Printf("> %s\n", m.FileName)
 			}
+			_, err = tx.Store.Exec(fmt.Sprintf("insert into schema_migration (version) values ('%s')", m.Version))
 			return err
+		})
+		if err == nil {
+			fmt.Printf("> %s\n", m.FileName)
 		}
-		return nil
+		return err
 	})
 }
 
@@ -92,25 +93,22 @@ func (c *Connection) MigrateDown(path string) error {
 		return err
 	}
 	return findMigrations(path, "down", func(m migrationFile) error {
-		i, err := c.Where("version = ?", m.Version).Count("schema_migrations")
-		if err != nil {
+		exists, err := c.Where("version = ?", m.Version).Exists("schema_migration")
+		if err != nil || !exists {
 			return err
 		}
-		if i > 0 {
-			err = c.Transaction(func(tx *Connection) error {
-				err := m.Execute(tx)
-				if err != nil {
-					return err
-				}
-				_, err = tx.Store.Exec("delete from schema_migrations where version = ?", m.Version)
+		err = c.Transaction(func(tx *Connection) error {
+			err := m.Execute(tx)
+			if err != nil {
 				return err
-			})
-			if err == nil {
-				fmt.Printf("< %s\n", m.FileName)
 			}
+			_, err = tx.Store.Exec("delete from schema_migration where version = ?", m.Version)
 			return err
+		})
+		if err == nil {
+			fmt.Printf("< %s\n", m.FileName)
 		}
-		return nil
+		return err
 	})
 }
 
@@ -127,7 +125,7 @@ func (c *Connection) createSchemaMigrations() error {
 	if err != nil {
 		return err
 	}
-	_, err = c.Store.Exec("select * from schema_migrations")
+	_, err = c.Store.Exec("select * from schema_migration")
 	if err == nil {
 		return nil
 	}
