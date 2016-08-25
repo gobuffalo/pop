@@ -78,7 +78,7 @@ func Test_TypesMarshalProperly(t *testing.T) {
 	a.Equal(f.Name.String, "Mark")
 	a.Equal(f.Alive.Bool, true)
 	a.Equal(f.Price.Float64, 9.99)
-	a.Equal(f.Birth.Time, now)
+	a.Equal(f.Birth.Time.Nanosecond(), now.Nanosecond())
 	a.Equal(f.Price32.Float32, float32(3.33))
 	a.Equal(f.Bytes.ByteSlice, ba)
 	a.Equal(f.IntType.Int, 2)
