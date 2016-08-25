@@ -135,7 +135,7 @@ var ModelCmd = &cobra.Command{
 			nullable := nrx.MatchString(col[1])
 			if !hasNulls && nullable {
 				hasNulls = true
-				model.Imports = append(model.Imports, "github.com/markbates/going/nulls")
+				model.Imports = append(model.Imports, "github.com/markbates/pop/nulls")
 			}
 			model.Attributes = append(model.Attributes, attribute{
 				Names:        newName(col[0]),
