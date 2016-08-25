@@ -13,16 +13,20 @@ func Test_Where(t *testing.T) {
 	m := &pop.Model{Value: &Enemy{}}
 
 	q := PDB.Where("id = ?", 1)
-	a.Equal(ts("SELECT enemies.A FROM enemies AS enemies WHERE id = ?"), q.ToSQLBuilder(m).String())
+	sql, _ := q.ToSQL(m)
+	a.Equal(ts("SELECT enemies.A FROM enemies AS enemies WHERE id = ?"), sql)
 
 	q.Where("first_name = ? and last_name = ?", "Mark", "Bates")
-	a.Equal(ts("SELECT enemies.A FROM enemies AS enemies WHERE id = ? AND first_name = ? and last_name = ?"), q.ToSQLBuilder(m).String())
+	sql, _ = q.ToSQL(m)
+	a.Equal(ts("SELECT enemies.A FROM enemies AS enemies WHERE id = ? AND first_name = ? and last_name = ?"), sql)
 
 	q = PDB.Where("name = ?", "Mark 'Awesome' Bates")
-	a.Equal(ts("SELECT enemies.A FROM enemies AS enemies WHERE name = ?"), q.ToSQLBuilder(m).String())
+	sql, _ = q.ToSQL(m)
+	a.Equal(ts("SELECT enemies.A FROM enemies AS enemies WHERE name = ?"), sql)
 
 	q = PDB.Where("name = ?", "'; truncate users; --")
-	a.Equal(ts("SELECT enemies.A FROM enemies AS enemies WHERE name = ?"), q.ToSQLBuilder(m).String())
+	sql, _ = q.ToSQL(m)
+	a.Equal(ts("SELECT enemies.A FROM enemies AS enemies WHERE name = ?"), sql)
 }
 
 func Test_Order(t *testing.T) {
@@ -30,10 +34,12 @@ func Test_Order(t *testing.T) {
 
 	m := &pop.Model{Value: &Enemy{}}
 	q := PDB.Order("id desc")
-	a.Equal(ts("SELECT enemies.A FROM enemies AS enemies ORDER BY id desc"), q.ToSQLBuilder(m).String())
+	sql, _ := q.ToSQL(m)
+	a.Equal(ts("SELECT enemies.A FROM enemies AS enemies ORDER BY id desc"), sql)
 
 	q.Order("name desc")
-	a.Equal(ts("SELECT enemies.A FROM enemies AS enemies ORDER BY id desc, name desc"), q.ToSQLBuilder(m).String())
+	sql, _ = q.ToSQL(m)
+	a.Equal(ts("SELECT enemies.A FROM enemies AS enemies ORDER BY id desc, name desc"), sql)
 }
 
 func Test_ToSQL(t *testing.T) {

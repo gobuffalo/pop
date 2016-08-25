@@ -14,7 +14,8 @@ func Test_BelongsTo(t *testing.T) {
 
 	m := &pop.Model{Value: &Enemy{}}
 
-	r.Equal(ts("SELECT enemies.A FROM enemies AS enemies WHERE user_id = ?"), q.ToSQLBuilder(m).String())
+	sql, _ := q.ToSQL(m)
+	r.Equal(ts("SELECT enemies.A FROM enemies AS enemies WHERE user_id = ?"), sql)
 }
 
 func Test_BelongsToThrough(t *testing.T) {
@@ -24,5 +25,6 @@ func Test_BelongsToThrough(t *testing.T) {
 	qs := "SELECT enemies.A FROM enemies AS enemies, good_friends AS good_friends WHERE good_friends.user_id = ? AND enemies.id = good_friends.enemy_id"
 
 	m := &pop.Model{Value: &Enemy{}}
-	r.Equal(ts(qs), q.ToSQLBuilder(m).String())
+	sql, _ := q.ToSQL(m)
+	r.Equal(ts(qs), sql)
 }

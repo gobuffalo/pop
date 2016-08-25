@@ -11,15 +11,15 @@ import (
 	"github.com/markbates/pop/fizz/translators"
 )
 
-type MySQL struct {
+type mysql struct {
 	ConnectionDetails *ConnectionDetails
 }
 
-func (m *MySQL) Details() *ConnectionDetails {
+func (m *mysql) Details() *ConnectionDetails {
 	return m.ConnectionDetails
 }
 
-func (m *MySQL) URL() string {
+func (m *mysql) URL() string {
 	c := m.ConnectionDetails
 	if c.URL != "" {
 		return c.URL
@@ -29,31 +29,31 @@ func (m *MySQL) URL() string {
 	return fmt.Sprintf(s, c.User, c.Password, c.Host, c.Port, c.Database)
 }
 
-func (m *MySQL) MigrationURL() string {
+func (m *mysql) MigrationURL() string {
 	return m.URL()
 }
 
-func (m *MySQL) Create(store Store, model *Model, cols Columns) error {
-	return genericCreate(store, model, cols)
+func (m *mysql) Create(s store, model *Model, cols Columns) error {
+	return genericCreate(s, model, cols)
 }
 
-func (m *MySQL) Update(store Store, model *Model, cols Columns) error {
-	return genericUpdate(store, model, cols)
+func (m *mysql) Update(s store, model *Model, cols Columns) error {
+	return genericUpdate(s, model, cols)
 }
 
-func (m *MySQL) Destroy(store Store, model *Model) error {
-	return genericDestroy(store, model)
+func (m *mysql) Destroy(s store, model *Model) error {
+	return genericDestroy(s, model)
 }
 
-func (m *MySQL) SelectOne(store Store, model *Model, query Query) error {
-	return genericSelectOne(store, model, query)
+func (m *mysql) SelectOne(s store, model *Model, query Query) error {
+	return genericSelectOne(s, model, query)
 }
 
-func (m *MySQL) SelectMany(store Store, models *Model, query Query) error {
-	return genericSelectMany(store, models, query)
+func (m *mysql) SelectMany(s store, models *Model, query Query) error {
+	return genericSelectMany(s, models, query)
 }
 
-func (m *MySQL) CreateDB() error {
+func (m *mysql) CreateDB() error {
 	c := m.ConnectionDetails
 	cmd := exec.Command("mysql", "-u", c.User, "-p"+c.Password, "-e", fmt.Sprintf("create database %s", c.Database))
 	return clam.RunAndListen(cmd, func(s string) {
@@ -61,7 +61,7 @@ func (m *MySQL) CreateDB() error {
 	})
 }
 
-func (m *MySQL) DropDB() error {
+func (m *mysql) DropDB() error {
 	c := m.ConnectionDetails
 	cmd := exec.Command("mysql", "-u", c.User, "-p"+c.Password, "-e", fmt.Sprintf("drop database %s", c.Database))
 	return clam.RunAndListen(cmd, func(s string) {
@@ -69,22 +69,22 @@ func (m *MySQL) DropDB() error {
 	})
 }
 
-func (m *MySQL) TranslateSQL(sql string) string {
+func (m *mysql) TranslateSQL(sql string) string {
 	return sql
 }
 
-func (m *MySQL) FizzTranslator() fizz.Translator {
+func (m *mysql) FizzTranslator() fizz.Translator {
 	t := translators.NewMySQL(m.URL(), m.Details().Database)
 	return t
 }
 
-func (m *MySQL) Lock(fn func() error) error {
+func (m *mysql) Lock(fn func() error) error {
 	return fn()
 }
 
-func NewMySQL(deets *ConnectionDetails) Dialect {
+func newMySQL(deets *ConnectionDetails) dialect {
 	deets.Parse("3306")
-	cd := &MySQL{
+	cd := &mysql{
 		ConnectionDetails: deets,
 	}
 

@@ -1,7 +1,5 @@
 package pop
 
-// SQLite is currently not supported due to cgo issues
-
 import (
 	"fmt"
 	"log"
@@ -16,59 +14,59 @@ import (
 	"github.com/markbates/pop/fizz/translators"
 )
 
-type SQLite struct {
+type sqlite struct {
 	gil               *sync.Mutex
 	smGil             *sync.Mutex
 	ConnectionDetails *ConnectionDetails
 }
 
-func (m *SQLite) Details() *ConnectionDetails {
+func (m *sqlite) Details() *ConnectionDetails {
 	return m.ConnectionDetails
 }
 
-func (m *SQLite) URL() string {
+func (m *sqlite) URL() string {
 	return m.ConnectionDetails.Database + "?_busy_timeout=5000"
 }
 
-func (m *SQLite) MigrationURL() string {
+func (m *sqlite) MigrationURL() string {
 	return m.ConnectionDetails.URL
 }
 
-func (m *SQLite) Create(store Store, model *Model, cols Columns) error {
+func (m *sqlite) Create(s store, model *Model, cols Columns) error {
 	return m.locker(m.smGil, func() error {
-		return genericCreate(store, model, cols)
+		return genericCreate(s, model, cols)
 	})
 }
 
-func (m *SQLite) Update(store Store, model *Model, cols Columns) error {
+func (m *sqlite) Update(s store, model *Model, cols Columns) error {
 	return m.locker(m.smGil, func() error {
-		return genericUpdate(store, model, cols)
+		return genericUpdate(s, model, cols)
 	})
 }
 
-func (m *SQLite) Destroy(store Store, model *Model) error {
+func (m *sqlite) Destroy(s store, model *Model) error {
 	return m.locker(m.smGil, func() error {
-		return genericDestroy(store, model)
+		return genericDestroy(s, model)
 	})
 }
 
-func (m *SQLite) SelectOne(store Store, model *Model, query Query) error {
+func (m *sqlite) SelectOne(s store, model *Model, query Query) error {
 	return m.locker(m.smGil, func() error {
-		return genericSelectOne(store, model, query)
+		return genericSelectOne(s, model, query)
 	})
 }
 
-func (m *SQLite) SelectMany(store Store, models *Model, query Query) error {
+func (m *sqlite) SelectMany(s store, models *Model, query Query) error {
 	return m.locker(m.smGil, func() error {
-		return genericSelectMany(store, models, query)
+		return genericSelectMany(s, models, query)
 	})
 }
 
-func (m *SQLite) Lock(fn func() error) error {
+func (m *sqlite) Lock(fn func() error) error {
 	return m.locker(m.gil, fn)
 }
 
-func (m *SQLite) locker(l *sync.Mutex, fn func() error) error {
+func (m *sqlite) locker(l *sync.Mutex, fn func() error) error {
 	if defaults.String(m.Details().Options["lock"], "true") == "true" {
 		defer l.Unlock()
 		l.Lock()
@@ -83,7 +81,7 @@ func (m *SQLite) locker(l *sync.Mutex, fn func() error) error {
 	return err
 }
 
-func (m *SQLite) CreateDB() error {
+func (m *sqlite) CreateDB() error {
 	d := filepath.Dir(m.ConnectionDetails.Database)
 	err := os.MkdirAll(d, 0766)
 	if err != nil {
@@ -92,21 +90,21 @@ func (m *SQLite) CreateDB() error {
 	return err
 }
 
-func (m *SQLite) DropDB() error {
+func (m *sqlite) DropDB() error {
 	return os.Remove(m.ConnectionDetails.Database)
 }
 
-func (m *SQLite) TranslateSQL(sql string) string {
+func (m *sqlite) TranslateSQL(sql string) string {
 	return sql
 }
 
-func (m *SQLite) FizzTranslator() fizz.Translator {
+func (m *sqlite) FizzTranslator() fizz.Translator {
 	return translators.NewSQLite(m.Details().Database)
 }
 
-func NewSQLite(deets *ConnectionDetails) Dialect {
+func newSQLite(deets *ConnectionDetails) dialect {
 	deets.URL = fmt.Sprintf("sqlite3://%s", deets.Database)
-	cd := &SQLite{
+	cd := &sqlite{
 		gil:               &sync.Mutex{},
 		smGil:             &sync.Mutex{},
 		ConnectionDetails: deets,

@@ -17,8 +17,8 @@ var Connections = map[string]*Connection{}
 // talking with a datastore
 type Connection struct {
 	ID      string
-	Store   Store
-	Dialect Dialect
+	Store   store
+	Dialect dialect
 	Elapsed int64
 	TX      *tX
 }
@@ -43,11 +43,11 @@ func NewConnection(deets *ConnectionDetails) *Connection {
 	}
 	switch deets.Dialect {
 	case "postgres":
-		c.Dialect = NewPostgreSQL(deets)
+		c.Dialect = newPostgreSQL(deets)
 	case "mysql":
-		c.Dialect = NewMySQL(deets)
+		c.Dialect = newMySQL(deets)
 	case "sqlite3":
-		c.Dialect = NewSQLite(deets)
+		c.Dialect = newSQLite(deets)
 	}
 	return c
 }

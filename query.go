@@ -86,12 +86,12 @@ func Q(c *Connection) *Query {
 // ToSQL will generate SQL and the appropriate arguments for that SQL
 // from the `Model` passed in.
 func (q Query) ToSQL(model *Model, addColumns ...string) (string, []interface{}) {
-	sb := q.ToSQLBuilder(model, addColumns...)
+	sb := q.toSQLBuilder(model, addColumns...)
 	return sb.String(), sb.Args()
 }
 
 // ToSQLBuilder returns a new `SQLBuilder` that can be used to generate SQL,
 // get arguments, and more.
-func (q Query) ToSQLBuilder(model *Model, addColumns ...string) *SQLBuilder {
-	return NewSQLBuilder(q, model, addColumns...)
+func (q Query) toSQLBuilder(model *Model, addColumns ...string) *sqlBuilder {
+	return newSQLBuilder(q, model, addColumns...)
 }

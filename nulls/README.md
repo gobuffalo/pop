@@ -12,13 +12,13 @@ $ go get github.com/markbates/pop/nulls
 
 ## Supported Datatypes
 
-* `string` (`nulls.NullString`) - Replaces `sql.NullString`
-* `int64` (`nulls.NullInt64`) - Replaces `sql.NullInt64`
-* `float64` (`nulls.NullFloat64`) - Replaces `sql.NullFloat64`
-* `bool` (`nulls.NullBool`) - Replaces `sql.NullBool`
-* `[]byte` (`nulls.NullByteSlice`)
-* `float32` (`nulls.NullFloat32`)
-* `int` (`nulls.NullInt`)
-* `int32` (`nulls.NullInt32`)
-* `uint32` (`nulls.NullUInt32`)
-* `time.Time` (`nulls.NullTime`)
+* `string` (`nulls.String`) - Replaces `sql.NullString`
+* `int64` (`nulls.Int64`) - Replaces `sql.NullInt64`
+* `float64` (`nulls.Float64`) - Replaces `sql.NullFloat64`
+* `bool` (`nulls.Bool`) - Replaces `sql.NullBool`
+* `[]byte` (`nulls.ByteSlice`)
+* `float32` (`nulls.Float32`)
+* `int` (`nulls.Int`)
+* `int32` (`nulls.Int32`)
+* `uint32` (`nulls.UInt32`)
+* `time.Time` (`nulls.Time`)

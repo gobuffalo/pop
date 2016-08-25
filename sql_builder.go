@@ -9,7 +9,7 @@ import (
 	. "github.com/markbates/pop/columns"
 )
 
-type SQLBuilder struct {
+type sqlBuilder struct {
 	Query      Query
 	Model      *Model
 	AddColumns []string
@@ -17,8 +17,8 @@ type SQLBuilder struct {
 	args       []interface{}
 }
 
-func NewSQLBuilder(q Query, m *Model, addColumns ...string) *SQLBuilder {
-	return &SQLBuilder{
+func newSQLBuilder(q Query, m *Model, addColumns ...string) *sqlBuilder {
+	return &sqlBuilder{
 		Query:      q,
 		Model:      m,
 		AddColumns: addColumns,
@@ -26,14 +26,14 @@ func NewSQLBuilder(q Query, m *Model, addColumns ...string) *SQLBuilder {
 	}
 }
 
-func (sq *SQLBuilder) String() string {
+func (sq *sqlBuilder) String() string {
 	if sq.sql == "" {
 		sq.compile()
 	}
 	return sq.sql
 }
 
-func (sq *SQLBuilder) Args() []interface{} {
+func (sq *sqlBuilder) Args() []interface{} {
 	if len(sq.args) == 0 {
 		if len(sq.Query.RawSQL.Arguments) > 0 {
 			sq.args = sq.Query.RawSQL.Arguments
@@ -44,7 +44,7 @@ func (sq *SQLBuilder) Args() []interface{} {
 	return sq.args
 }
 
-func (sq *SQLBuilder) compile() {
+func (sq *sqlBuilder) compile() {
 	if sq.sql == "" {
 		if sq.Query.RawSQL.Fragment != "" {
 			sq.sql = sq.Query.RawSQL.Fragment
@@ -62,7 +62,7 @@ func (sq *SQLBuilder) compile() {
 	}
 }
 
-func (sq *SQLBuilder) buildSelectSQL() string {
+func (sq *sqlBuilder) buildSelectSQL() string {
 	cols := sq.buildColumns()
 
 	fc := sq.buildfromClauses()
@@ -76,7 +76,7 @@ func (sq *SQLBuilder) buildSelectSQL() string {
 	return sql
 }
 
-func (sq *SQLBuilder) buildfromClauses() fromClauses {
+func (sq *sqlBuilder) buildfromClauses() fromClauses {
 	models := []*Model{
 		sq.Model,
 	}
@@ -96,7 +96,7 @@ func (sq *SQLBuilder) buildfromClauses() fromClauses {
 	return fc
 }
 
-func (sq *SQLBuilder) buildWhereClauses(sql string) string {
+func (sq *sqlBuilder) buildWhereClauses(sql string) string {
 	mcs := sq.Query.belongsToThroughClauses
 	for _, mc := range mcs {
 		sq.Query.Where(fmt.Sprintf("%s.%s = ?", mc.Through.TableName(), mc.BelongsTo.associationName()), mc.BelongsTo.ID())
@@ -113,7 +113,7 @@ func (sq *SQLBuilder) buildWhereClauses(sql string) string {
 	return sql
 }
 
-func (sq *SQLBuilder) buildOrderClauses(sql string) string {
+func (sq *sqlBuilder) buildOrderClauses(sql string) string {
 	oc := sq.Query.orderClauses
 	if len(oc) > 0 {
 		sql = fmt.Sprintf("%s ORDER BY %s", sql, oc.Join(", "))
@@ -124,7 +124,7 @@ func (sq *SQLBuilder) buildOrderClauses(sql string) string {
 	return sql
 }
 
-func (sq *SQLBuilder) buildPaginationClauses(sql string) string {
+func (sq *sqlBuilder) buildPaginationClauses(sql string) string {
 	if sq.Query.limitResults > 0 && sq.Query.Paginator == nil {
 		sql = fmt.Sprintf("%s LIMIT %d", sql, sq.Query.limitResults)
 	}
@@ -137,7 +137,7 @@ func (sq *SQLBuilder) buildPaginationClauses(sql string) string {
 
 var columnCache = map[string]Columns{}
 
-func (sq *SQLBuilder) buildColumns() Columns {
+func (sq *sqlBuilder) buildColumns() Columns {
 	tableName := sq.Model.TableName()
 	acl := len(sq.AddColumns)
 	if acl <= 0 {

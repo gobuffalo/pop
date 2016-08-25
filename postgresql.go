@@ -13,17 +13,17 @@ import (
 	"github.com/markbates/pop/fizz/translators"
 )
 
-type PostgreSQL struct {
+type postgresql struct {
 	translateCache    map[string]string
 	mu                sync.Mutex
 	ConnectionDetails *ConnectionDetails
 }
 
-func (p *PostgreSQL) Details() *ConnectionDetails {
+func (p *postgresql) Details() *ConnectionDetails {
 	return p.ConnectionDetails
 }
 
-func (p *PostgreSQL) Create(store Store, model *Model, cols Columns) error {
+func (p *postgresql) Create(s store, model *Model, cols Columns) error {
 	cols.Remove("id")
 	id := struct {
 		ID int `db:"id"`
@@ -31,7 +31,7 @@ func (p *PostgreSQL) Create(store Store, model *Model, cols Columns) error {
 	w := cols.Writeable()
 	query := fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s) returning id", model.TableName(), w.String(), w.SymbolizedString())
 	Log(query)
-	stmt, err := store.PrepareNamed(query)
+	stmt, err := s.PrepareNamed(query)
 	if err != nil {
 		return err
 	}
@@ -42,23 +42,23 @@ func (p *PostgreSQL) Create(store Store, model *Model, cols Columns) error {
 	return err
 }
 
-func (p *PostgreSQL) Update(store Store, model *Model, cols Columns) error {
-	return genericUpdate(store, model, cols)
+func (p *postgresql) Update(s store, model *Model, cols Columns) error {
+	return genericUpdate(s, model, cols)
 }
 
-func (p *PostgreSQL) Destroy(store Store, model *Model) error {
-	return genericDestroy(store, model)
+func (p *postgresql) Destroy(s store, model *Model) error {
+	return genericDestroy(s, model)
 }
 
-func (p *PostgreSQL) SelectOne(store Store, model *Model, query Query) error {
-	return genericSelectOne(store, model, query)
+func (p *postgresql) SelectOne(s store, model *Model, query Query) error {
+	return genericSelectOne(s, model, query)
 }
 
-func (p *PostgreSQL) SelectMany(store Store, models *Model, query Query) error {
-	return genericSelectMany(store, models, query)
+func (p *postgresql) SelectMany(s store, models *Model, query Query) error {
+	return genericSelectMany(s, models, query)
 }
 
-func (p *PostgreSQL) CreateDB() error {
+func (p *postgresql) CreateDB() error {
 	// createdb -h db -p 5432 -U postgres enterprise_development
 	deets := p.ConnectionDetails
 	cmd := exec.Command("createdb", "-e", "-h", deets.Host, "-p", deets.Port, "-U", deets.User, deets.Database)
@@ -67,7 +67,7 @@ func (p *PostgreSQL) CreateDB() error {
 	})
 }
 
-func (p *PostgreSQL) DropDB() error {
+func (p *postgresql) DropDB() error {
 	deets := p.ConnectionDetails
 	cmd := exec.Command("dropdb", "-e", "-h", deets.Host, "-p", deets.Port, "-U", deets.User, deets.Database)
 	return clam.RunAndListen(cmd, func(s string) {
@@ -75,7 +75,7 @@ func (p *PostgreSQL) DropDB() error {
 	})
 }
 
-func (m *PostgreSQL) URL() string {
+func (m *postgresql) URL() string {
 	c := m.ConnectionDetails
 	if c.URL != "" {
 		return c.URL
@@ -85,11 +85,11 @@ func (m *PostgreSQL) URL() string {
 	return fmt.Sprintf(s, c.User, c.Password, c.Host, c.Port, c.Database)
 }
 
-func (m *PostgreSQL) MigrationURL() string {
+func (m *postgresql) MigrationURL() string {
 	return m.URL()
 }
 
-func (p *PostgreSQL) TranslateSQL(sql string) string {
+func (p *postgresql) TranslateSQL(sql string) string {
 	defer p.mu.Unlock()
 	p.mu.Lock()
 
@@ -114,17 +114,17 @@ func (p *PostgreSQL) TranslateSQL(sql string) string {
 	return csql
 }
 
-func (p *PostgreSQL) FizzTranslator() fizz.Translator {
+func (p *postgresql) FizzTranslator() fizz.Translator {
 	return translators.NewPostgres()
 }
 
-func (p *PostgreSQL) Lock(fn func() error) error {
+func (p *postgresql) Lock(fn func() error) error {
 	return fn()
 }
 
-func NewPostgreSQL(deets *ConnectionDetails) Dialect {
+func newPostgreSQL(deets *ConnectionDetails) dialect {
 	deets.Parse("5432")
-	cd := &PostgreSQL{
+	cd := &postgresql{
 		ConnectionDetails: deets,
 		translateCache:    map[string]string{},
 		mu:                sync.Mutex{},

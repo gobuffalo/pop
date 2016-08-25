@@ -7,28 +7,28 @@ import (
 	"github.com/markbates/pop/fizz"
 )
 
-type Dialect interface {
+type dialect interface {
 	URL() string
 	MigrationURL() string
 	Details() *ConnectionDetails
-	TranslateSQL(sql string) string
-	Create(store Store, model *Model, cols Columns) error
-	Update(store Store, model *Model, cols Columns) error
-	Destroy(store Store, model *Model) error
-	SelectOne(store Store, model *Model, query Query) error
-	SelectMany(store Store, models *Model, query Query) error
+	TranslateSQL(string) string
+	Create(store, *Model, Columns) error
+	Update(store, *Model, Columns) error
+	Destroy(store, *Model) error
+	SelectOne(store, *Model, Query) error
+	SelectMany(store, *Model, Query) error
 	CreateDB() error
 	DropDB() error
 	FizzTranslator() fizz.Translator
 	Lock(func() error) error
 }
 
-func genericCreate(store Store, model *Model, cols Columns) error {
+func genericCreate(s store, model *Model, cols Columns) error {
 	var id int64
 	w := cols.Writeable()
 	query := fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s)", model.TableName(), w.String(), w.SymbolizedString())
 	Log(query)
-	res, err := store.NamedExec(query, model.Value)
+	res, err := s.NamedExec(query, model.Value)
 	if err != nil {
 		return err
 	}
@@ -39,34 +39,34 @@ func genericCreate(store Store, model *Model, cols Columns) error {
 	return err
 }
 
-func genericUpdate(store Store, model *Model, cols Columns) error {
+func genericUpdate(s store, model *Model, cols Columns) error {
 	stmt := fmt.Sprintf("UPDATE %s SET %s where id = %d", model.TableName(), cols.Writeable().UpdateString(), model.ID())
 	Log(stmt)
-	_, err := store.NamedExec(stmt, model.Value)
+	_, err := s.NamedExec(stmt, model.Value)
 	return err
 }
 
-func genericDestroy(store Store, model *Model) error {
+func genericDestroy(s store, model *Model) error {
 	stmt := fmt.Sprintf("DELETE FROM %s WHERE id = %d", model.TableName(), model.ID())
-	return genericExec(store, stmt)
+	return genericExec(s, stmt)
 }
 
-func genericExec(store Store, stmt string) error {
+func genericExec(s store, stmt string) error {
 	Log(stmt)
-	_, err := store.Exec(stmt)
+	_, err := s.Exec(stmt)
 	return err
 }
 
-func genericSelectOne(store Store, model *Model, query Query) error {
+func genericSelectOne(s store, model *Model, query Query) error {
 	sql, args := query.ToSQL(model)
 	Log(sql, args...)
-	err := store.Get(model.Value, sql, args...)
+	err := s.Get(model.Value, sql, args...)
 	return err
 }
 
-func genericSelectMany(store Store, models *Model, query Query) error {
+func genericSelectMany(s store, models *Model, query Query) error {
 	sql, args := query.ToSQL(models)
 	Log(sql, args...)
-	err := store.Select(models.Value, sql, args...)
+	err := s.Select(models.Value, sql, args...)
 	return err
 }
