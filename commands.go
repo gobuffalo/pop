@@ -25,7 +25,7 @@ func DropDB(c *Connection) error {
 		Log(fmt.Sprintf("Drop %s (%s)", deets.Database, c.URL()))
 		err = c.Dialect.DropDB()
 		if err != nil {
-			fmt.Fprint(os.Stderr, err)
+			fmt.Fprintln(os.Stderr, err)
 		}
 	}
 	return err

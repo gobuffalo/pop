@@ -1,7 +1,6 @@
 package generate
 
-var configTemplates = map[string]string{
-	"postgres": `development:
+var pgConfig = `development:
   dialect: postgres
   database: {{.}}_development
   username: postgres
@@ -20,9 +19,9 @@ production:
   database: {{.}}_production
   username: postgres
   password: postgres
-  host: 127.0.0.1
-`,
-	"mysql": `development:
+  host: 127.0.0.1`
+
+var mysqlConfig = `development:
   dialect: "mysql"
   database: "{{.}}_development"
   host: "localhost"
@@ -44,18 +43,23 @@ production:
   host: "localhost"
   port: "3306"
   user: "root"
-  password: "root"
-	`,
-	"sqlite3": `development:
-	dialect: "sqlite3"
-	database: "./{{.}}_development.sqlite"
+  password: "root"`
+
+var sqliteConfig = `development:
+  dialect: "sqlite3"
+  database: "./{{.}}_development.sqlite"
 
 test:
-	dialect: "sqlite3"
-	database: "./{{.}}_test.sqlite"
+  dialect: "sqlite3"
+  database: "./{{.}}_test.sqlite"
 
 production:
-	dialect: "sqlite3"
-	database: "./{{.}}_production.sqlite"
-`,
+  dialect: "sqlite3"
+  database: "./{{.}}_production.sqlite"`
+
+var configTemplates = map[string]string{
+	"postgres": pgConfig,
+	"mysql":    mysqlConfig,
+	"sqlite3":  sqliteConfig,
+	"sqlite":   sqliteConfig,
 }

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"html/template"
 	"io/ioutil"
+	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -25,7 +26,10 @@ func init() {
 func LoadConfig() {
 	path, err := findConfigPath()
 	if err == nil {
-		loadConfig(path)
+		err = loadConfig(path)
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 }
 
