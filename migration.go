@@ -102,7 +102,7 @@ func (c *Connection) MigrateDown(path string) error {
 			if err != nil {
 				return err
 			}
-			_, err = tx.Store.Exec("delete from schema_migration where version = ?", m.Version)
+			err = tx.RawQuery("delete from schema_migration where version = ?", m.Version).Exec()
 			return err
 		})
 		if err == nil {
