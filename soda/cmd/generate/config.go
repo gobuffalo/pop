@@ -5,6 +5,7 @@ import (
 	"html/template"
 	"os"
 	"path"
+	"strings"
 
 	"github.com/markbates/going/defaults"
 	"github.com/spf13/cobra"
@@ -20,6 +21,7 @@ var ConfigCmd = &cobra.Command{
 	Use:   "config",
 	Short: "Generates a database.yml file for your project.",
 	RunE: func(cmd *cobra.Command, args []string) error {
+		dialect = strings.ToLower(dialect)
 		if t, ok := configTemplates[dialect]; ok {
 			cflag := cmd.Flag("config")
 			cfgFile := defaults.String(cflag.Value.String(), "database.yml")

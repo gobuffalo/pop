@@ -58,8 +58,10 @@ production:
   database: "./{{.}}_production.sqlite"`
 
 var configTemplates = map[string]string{
-	"postgres": pgConfig,
-	"mysql":    mysqlConfig,
-	"sqlite3":  sqliteConfig,
-	"sqlite":   sqliteConfig,
+	"postgres":   pgConfig,
+	"postgresql": pgConfig,
+	"pg":         pgConfig,
+	"mysql":      mysqlConfig,
+	"sqlite3":    sqliteConfig,
+	"sqlite":     sqliteConfig,
 }
