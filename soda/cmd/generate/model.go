@@ -150,13 +150,16 @@ var ModelCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
+		fmt.Printf("> %s\n", fname)
 
+		fname = filepath.Join(model.Package, model.Names.File+"_test.go")
 		tmp := strings.Replace(modelTestTemplate, "MODEL_NAME", model.Names.Proper, -1)
 		tmp = strings.Replace(tmp, "PACKAGE_NAME", model.Package, -1)
-		err = ioutil.WriteFile(filepath.Join(model.Package, model.Names.File+"_test.go"), []byte(tmp), 0666)
+		err = ioutil.WriteFile(fname, []byte(tmp), 0666)
 		if err != nil {
 			return err
 		}
+		fmt.Printf("> %s\n", fname)
 
 		md, _ := filepath.Abs(fname)
 		goi := exec.Command("gofmt", "-w", md)
@@ -165,13 +168,6 @@ var ModelCmd = &cobra.Command{
 			fmt.Printf("Received an error when trying to run gofmt -> %#v\n", err)
 			fmt.Println(out)
 		}
-
-		b, err := ioutil.ReadFile(fname)
-		if err != nil {
-			return err
-		}
-
-		fmt.Println(string(b))
 
 		if !skipMigration {
 			cflag := cmd.Flag("path")
