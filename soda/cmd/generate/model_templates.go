@@ -1,6 +1,7 @@
 package generate
 
 const modelTemplate = `package PACKAGE_NAME
+
 import (
 	IMPORTS
 )
@@ -9,15 +10,15 @@ type MODEL_NAME struct {
 	ATTRIBUTES
 }
 
-func (x MODEL_NAME) String() string {
-	b, _ := json.Marshal(x)
+func (CHAR MODEL_NAME) String() string {
+	b, _ := json.Marshal(CHAR)
 	return string(b)
 }
 
 type PLURAL_MODEL_NAME []MODEL_NAME
 
-func (x PLURAL_MODEL_NAME) String() string {
-	b, _ := json.Marshal(x)
+func (CHAR PLURAL_MODEL_NAME) String() string {
+	b, _ := json.Marshal(CHAR)
 	return string(b)
 }
 `

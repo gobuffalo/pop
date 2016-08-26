@@ -30,6 +30,7 @@ type names struct {
 	Proper   string
 	File     string
 	Plural   string
+	Char     string
 }
 
 func newName(name string) names {
@@ -39,6 +40,7 @@ func newName(name string) names {
 		Table:    inflect.Tableize(name),
 		Proper:   inflect.Camelize(name),
 		Plural:   inflect.Pluralize(inflect.Camelize(name)),
+		Char:     strings.ToLower(string([]byte(name)[0])),
 	}
 }
 
@@ -64,6 +66,7 @@ func (m model) String() string {
 	tmp := strings.Replace(modelTemplate, "PLURAL_MODEL_NAME", m.Names.Plural, -1)
 	tmp = strings.Replace(tmp, "MODEL_NAME", m.Names.Proper, -1)
 	tmp = strings.Replace(tmp, "PACKAGE_NAME", m.Package, -1)
+	tmp = strings.Replace(tmp, "CHAR", m.Names.Char, -1)
 	ims := []string{}
 	for _, im := range m.Imports {
 		ims = append(ims, fmt.Sprintf("\t\"%s\"", im))
