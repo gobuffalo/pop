@@ -61,26 +61,21 @@ type model struct {
 }
 
 func (m model) String() string {
-	s := []string{fmt.Sprintf("package %s\n", m.Package)}
-	if len(m.Imports) == 1 {
-		s = append(s, fmt.Sprintf("import \"%s\"\n", m.Imports[0]))
-	} else {
-		s = append(s, "import (")
-		for _, im := range m.Imports {
-			s = append(s, fmt.Sprintf("\t\"%s\"", im))
-		}
-		s = append(s, ")\n")
+	tmp := strings.Replace(modelTemplate, "PLURAL_MODEL_NAME", m.Names.Plural, -1)
+	tmp = strings.Replace(tmp, "MODEL_NAME", m.Names.Proper, -1)
+	tmp = strings.Replace(tmp, "PACKAGE_NAME", m.Package, -1)
+	ims := []string{}
+	for _, im := range m.Imports {
+		ims = append(ims, fmt.Sprintf("\t\"%s\"", im))
 	}
-
-	s = append(s, fmt.Sprintf("// %s maps to the database table '%s'", m.Names.Proper, m.Names.Table))
-	s = append(s, fmt.Sprintf("type %s struct {", m.Names.Proper))
+	tmp = strings.Replace(tmp, "IMPORTS", strings.Join(ims, "\n"), -1)
+	ats := []string{}
 	for _, a := range m.Attributes {
-		s = append(s, a.String())
+		ats = append(ats, a.String())
 	}
-	s = append(s, "}")
-	s = append(s, fmt.Sprintf("\ntype %s []%s", m.Names.Plural, m.Names.Proper))
+	tmp = strings.Replace(tmp, "ATTRIBUTES", strings.Join(ats, "\n"), -1)
 
-	return strings.Join(s, "\n")
+	return tmp
 }
 
 func (m model) Fizz() string {
@@ -105,7 +100,7 @@ func newModel(name string) model {
 	id.Proper = "ID"
 	return model{
 		Package: "models",
-		Imports: []string{"time"},
+		Imports: []string{"time", "encoding/json"},
 		Names:   newName(name),
 		Attributes: []attribute{
 			{Names: id, OriginalType: "int", GoType: "int"},
@@ -145,18 +140,20 @@ var ModelCmd = &cobra.Command{
 			})
 		}
 
-		err := os.MkdirAll("models", 0766)
+		err := os.MkdirAll(model.Package, 0766)
 		if err != nil {
 			return err
 		}
 
-		fname := filepath.Join("models", model.Names.File+".go")
+		fname := filepath.Join(model.Package, model.Names.File+".go")
 		err = ioutil.WriteFile(fname, []byte(model.String()), 0666)
 		if err != nil {
 			return err
 		}
 
-		err = ioutil.WriteFile(filepath.Join("models", model.Names.File+"_test.go"), []byte(`package models_test`), 0666)
+		tmp := strings.Replace(modelTestTemplate, "MODEL_NAME", model.Names.Proper, -1)
+		tmp = strings.Replace(tmp, "PACKAGE_NAME", model.Package, -1)
+		err = ioutil.WriteFile(filepath.Join(model.Package, model.Names.File+"_test.go"), []byte(tmp), 0666)
 		if err != nil {
 			return err
 		}
