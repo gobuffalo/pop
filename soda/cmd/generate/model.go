@@ -155,14 +155,14 @@ var ModelCmd = &cobra.Command{
 		}
 		fmt.Printf("> %s\n", fname)
 
-		fname = filepath.Join(model.Package, model.Names.File+"_test.go")
+		tfname := filepath.Join(model.Package, model.Names.File+"_test.go")
 		tmp := strings.Replace(modelTestTemplate, "MODEL_NAME", model.Names.Proper, -1)
 		tmp = strings.Replace(tmp, "PACKAGE_NAME", model.Package, -1)
-		err = ioutil.WriteFile(fname, []byte(tmp), 0666)
+		err = ioutil.WriteFile(tfname, []byte(tmp), 0666)
 		if err != nil {
 			return err
 		}
-		fmt.Printf("> %s\n", fname)
+		fmt.Printf("> %s\n", tfname)
 
 		md, _ := filepath.Abs(fname)
 		goi := exec.Command("gofmt", "-w", md)
@@ -191,6 +191,8 @@ func colType(s string) string {
 		return "string"
 	case "time", "timestamp":
 		return "time.Time"
+	case "nulls.Text":
+		return "nulls.String"
 	default:
 		return s
 	}
