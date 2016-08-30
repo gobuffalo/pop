@@ -14,7 +14,6 @@ type Index struct {
 
 func (f fizzer) AddIndex() interface{} {
 	return func(table string, columns interface{}, options Options) {
-		f.log("add_index %s, %#v", table, columns)
 		i := Index{}
 		switch t := columns.(type) {
 		default:
@@ -44,7 +43,6 @@ func (f fizzer) AddIndex() interface{} {
 
 func (f fizzer) DropIndex() interface{} {
 	return func(table, name string) {
-		f.log("drop_index %s, %s", table, name)
 		f.add(f.Bubbler.DropIndex(Table{
 			Name: table,
 			Indexes: []Index{
@@ -56,7 +54,6 @@ func (f fizzer) DropIndex() interface{} {
 
 func (f fizzer) RenameIndex() interface{} {
 	return func(table, old, new string) {
-		f.log("rename_index %s, %s, %s", table, old, new)
 		f.add(f.Bubbler.RenameIndex(Table{
 			Name: table,
 			Indexes: []Index{

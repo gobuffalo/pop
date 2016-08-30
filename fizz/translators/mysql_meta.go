@@ -105,51 +105,7 @@ func (p *mysqlSchema) buildTableData(table *fizz.Table) error {
 		}
 		table.Columns = append(table.Columns, ti.ToColumn())
 	}
-	// err = p.buildTableIndexes(table)
-	// if err != nil {
-	// 	return err
-	// }
-	p.schema[table.Name] = table
-	return nil
-}
 
-func (p *mysqlSchema) buildTableIndexes(t *fizz.Table) error {
-	// prag := fmt.Sprintf("PRAGMA index_list(%s)", t.Name)
-	// res, err := p.db.Queryx(prag)
-	// if err != nil {
-	// 	return err
-	// }
-	//
-	// for res.Next() {
-	// 	li := sqliteIndexListInfo{}
-	// 	err = res.StructScan(&li)
-	// 	if err != nil {
-	// 		return err
-	// 	}
-	//
-	// 	i := fizz.Index{
-	// 		Name:    li.Name,
-	// 		Unique:  li.Unique,
-	// 		Columns: []string{},
-	// 	}
-	//
-	// 	prag = fmt.Sprintf("PRAGMA index_info(%s)", i.Name)
-	// 	iires, err := p.db.Queryx(prag)
-	// 	if err != nil {
-	// 		return err
-	// 	}
-	//
-	// 	for iires.Next() {
-	// 		ii := sqliteIndexInfo{}
-	// 		err = iires.StructScan(&ii)
-	// 		if err != nil {
-	// 			return err
-	// 		}
-	// 		i.Columns = append(i.Columns, ii.Name)
-	// 	}
-	//
-	// 	t.Indexes = append(t.Indexes, i)
-	//
-	// }
+	p.schema[table.Name] = table
 	return nil
 }

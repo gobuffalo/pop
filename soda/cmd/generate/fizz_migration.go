@@ -1,7 +1,7 @@
 package generate
 
 import (
-	"errors"
+	"github.com/pkg/errors"
 
 	"github.com/markbates/going/defaults"
 	"github.com/markbates/pop"

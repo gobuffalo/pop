@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/pkg/errors"
 )
 
 func init() {
@@ -22,7 +23,7 @@ func newTX(db *dB) (*tX, error) {
 	}
 	tx, err := db.Beginx()
 	t.Tx = tx
-	return t, err
+	return t, errors.Wrap(err, "could not create new transaction")
 }
 
 // Transaction simply returns the current transaction,

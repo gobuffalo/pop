@@ -2,7 +2,6 @@ package pop
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"html/template"
 	"io/ioutil"
@@ -11,6 +10,8 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+
+	"github.com/pkg/errors"
 
 	"github.com/markbates/going/defaults"
 	"gopkg.in/yaml.v2"
@@ -57,7 +58,7 @@ func getAppPath() (string, error) {
 	if pwd == "" {
 		b, err := exec.Command("pwd").Output()
 		if err != nil {
-			return "", err
+			return "", errors.Wrap(err, "couldn't get the current directory")
 		}
 		pwd = string(b)
 	}
@@ -70,7 +71,7 @@ func loadConfig(path string) error {
 	}
 	b, err := ioutil.ReadFile(path)
 	if err != nil {
-		return err
+		return errors.Wrapf(err, "couldn't read file %s", path)
 	}
 
 	tmpl := template.New("test")
@@ -84,19 +85,19 @@ func loadConfig(path string) error {
 	})
 	t, err := tmpl.Parse(string(b))
 	if err != nil {
-		return err
+		return errors.Wrap(err, "couldn't parse config template")
 	}
 
 	var bb bytes.Buffer
 	err = t.Execute(&bb, nil)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "couldn't execute config template")
 	}
 
 	conns := map[string]*ConnectionDetails{}
 	err = yaml.Unmarshal(bb.Bytes(), &conns)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "couldn't unmarshal config to yaml")
 	}
 	for n, c := range conns {
 		con := NewConnection(c)

@@ -2,12 +2,12 @@ package pop
 
 import (
 	"bytes"
-	"fmt"
 	"html/template"
 	"io/ioutil"
 	"path"
 
 	"github.com/markbates/pop/fizz"
+	"github.com/pkg/errors"
 )
 
 type migrationFile struct {
@@ -45,14 +45,14 @@ func (m migrationFile) Content(c *Connection) (string, error) {
 	var bb bytes.Buffer
 	err = t.Execute(&bb, c.Dialect.Details())
 	if err != nil {
-		return "", err
+		return "", errors.Wrapf(err, "could not execute migration template %s", m.Path)
 	}
 	content = bb.String()
 
 	if ext == ".fizz" {
 		content, err = fizz.AString(content, c.Dialect.FizzTranslator())
 		if err != nil {
-			return "", err
+			return "", errors.Wrapf(err, "could not fizz the migration %s", m.Path)
 		}
 	}
 	return content, nil
@@ -61,7 +61,7 @@ func (m migrationFile) Content(c *Connection) (string, error) {
 func (m migrationFile) Execute(c *Connection) error {
 	content, err := m.Content(c)
 	if err != nil {
-		return fmt.Errorf("Error processing %s: %s", m.FileName, err)
+		return errors.Wrapf(err, "error processing %s", m.FileName)
 	}
 
 	if content == "" {
@@ -70,7 +70,7 @@ func (m migrationFile) Execute(c *Connection) error {
 
 	err = c.RawQuery(content).Exec()
 	if err != nil {
-		return fmt.Errorf("Error executing %s: %s", m.FileName, err)
+		return errors.Wrapf(err, "error executing %s", m.FileName)
 	}
 	return nil
 }

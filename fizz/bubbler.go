@@ -1,10 +1,10 @@
 package fizz
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/mattn/anko/vm"
+	"github.com/pkg/errors"
 
 	core "github.com/mattn/anko/builtins"
 )
@@ -50,8 +50,5 @@ func (b *Bubbler) Bubble(s string) (string, error) {
 	env.Define("rename_table", f.RenameTable())
 
 	_, err := env.Execute(s)
-	if err != nil {
-		fmt.Printf("ParseError: err -> %#v\n", err)
-	}
-	return b.String(), err
+	return b.String(), errors.Wrap(err, "parse error")
 }

@@ -9,6 +9,7 @@ import (
 	. "github.com/markbates/pop/columns"
 	"github.com/markbates/pop/fizz"
 	"github.com/markbates/pop/fizz/translators"
+	"github.com/pkg/errors"
 )
 
 type mysql struct {
@@ -34,39 +35,41 @@ func (m *mysql) MigrationURL() string {
 }
 
 func (m *mysql) Create(s store, model *Model, cols Columns) error {
-	return genericCreate(s, model, cols)
+	return errors.Wrap(genericCreate(s, model, cols), "mysql create")
 }
 
 func (m *mysql) Update(s store, model *Model, cols Columns) error {
-	return genericUpdate(s, model, cols)
+	return errors.Wrap(genericUpdate(s, model, cols), "mysql update")
 }
 
 func (m *mysql) Destroy(s store, model *Model) error {
-	return genericDestroy(s, model)
+	return errors.Wrap(genericDestroy(s, model), "mysql destroy")
 }
 
 func (m *mysql) SelectOne(s store, model *Model, query Query) error {
-	return genericSelectOne(s, model, query)
+	return errors.Wrap(genericSelectOne(s, model, query), "mysql select one")
 }
 
 func (m *mysql) SelectMany(s store, models *Model, query Query) error {
-	return genericSelectMany(s, models, query)
+	return errors.Wrap(genericSelectMany(s, models, query), "mysql select many")
 }
 
 func (m *mysql) CreateDB() error {
 	c := m.ConnectionDetails
 	cmd := exec.Command("mysql", "-u", c.User, "-p"+c.Password, "-e", fmt.Sprintf("create database %s", c.Database))
-	return clam.RunAndListen(cmd, func(s string) {
+	err := clam.RunAndListen(cmd, func(s string) {
 		fmt.Println(s)
 	})
+	return errors.Wrapf(err, "error creating MySQL database %s", c.Database)
 }
 
 func (m *mysql) DropDB() error {
 	c := m.ConnectionDetails
 	cmd := exec.Command("mysql", "-u", c.User, "-p"+c.Password, "-e", fmt.Sprintf("drop database %s", c.Database))
-	return clam.RunAndListen(cmd, func(s string) {
+	err := clam.RunAndListen(cmd, func(s string) {
 		fmt.Println(s)
 	})
+	return errors.Wrapf(err, "error dropping MySQL database %s", c.Database)
 }
 
 func (m *mysql) TranslateSQL(sql string) string {

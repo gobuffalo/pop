@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/markbates/going/defaults"
+	"github.com/pkg/errors"
 )
 
 type ConnectionDetails struct {
@@ -25,7 +26,7 @@ func (cd *ConnectionDetails) Parse(port string) error {
 	if cd.URL != "" {
 		u, err := url.Parse(cd.URL)
 		if err != nil {
-			return err
+			return errors.Wrapf(err, "couldn't parse %s", cd.URL)
 		}
 		cd.Dialect = u.Scheme
 		cd.Database = u.Path

@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/markbates/going/defaults"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -27,22 +28,23 @@ var ConfigCmd = &cobra.Command{
 			cfgFile := defaults.String(cflag.Value.String(), "database.yml")
 			dir, err := os.Getwd()
 			if err != nil {
-				return err
+				return errors.Wrap(err, "couldn't get the current directory")
 			}
-			os.MkdirAll(path.Dir(cfgFile), 0766)
+			err = os.MkdirAll(path.Dir(cfgFile), 0766)
 			f, err := os.Create(cfgFile)
 			if err != nil {
-				return err
+				return errors.Wrapf(err, "couldn't create the config file %s", cfgFile)
 			}
 			tp := template.Must(template.New("database.yml").Parse(t))
 
 			dir = path.Base(dir)
 			err = tp.Execute(f, dir)
-			if err == nil {
-				fmt.Printf("Generated %s using the %s template.\n", cfgFile, dialect)
+			if err != nil {
+				return errors.Wrap(err, "couldn't execute template")
 			}
-			return err
+			fmt.Printf("Generated %s using the %s template.\n", cfgFile, dialect)
+			return nil
 		}
-		return fmt.Errorf("Could not initialize %s!", dialect)
+		return errors.Errorf("Could not initialize %s!", dialect)
 	},
 }

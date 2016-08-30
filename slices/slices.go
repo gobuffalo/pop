@@ -2,10 +2,11 @@ package slices
 
 import (
 	"database/sql/driver"
-	"errors"
 	"fmt"
 	"strconv"
 	"strings"
+
+	"github.com/pkg/errors"
 )
 
 // For reading in arrays from postgres
@@ -16,7 +17,7 @@ type String []string
 func (s *String) Scan(src interface{}) error {
 	b, ok := src.([]byte)
 	if !ok {
-		return error(errors.New("Scan source was not []byte"))
+		return errors.New("Scan source was not []byte")
 	}
 	(*s) = strToString(string(b))
 	return nil
@@ -34,7 +35,7 @@ func strToString(s string) []string {
 func (s *Int) Scan(src interface{}) error {
 	b, ok := src.([]byte)
 	if !ok {
-		return error(errors.New("Scan source was not []byte"))
+		return errors.New("Scan source was not []byte")
 	}
 	str := string(b)
 	(*s) = strToInt(str)
@@ -62,7 +63,7 @@ func strToInt(s string) []int {
 func (s *Float) Scan(src interface{}) error {
 	b, ok := src.([]byte)
 	if !ok {
-		return error(errors.New("Scan source was not []byte"))
+		return errors.New("Scan source was not []byte")
 	}
 	str := string(b)
 	(*s) = strToFloat(str, *s)

@@ -5,6 +5,7 @@ import (
 
 	. "github.com/markbates/pop/columns"
 	"github.com/markbates/pop/fizz"
+	"github.com/pkg/errors"
 )
 
 type dialect interface {
@@ -30,43 +31,43 @@ func genericCreate(s store, model *Model, cols Columns) error {
 	Log(query)
 	res, err := s.NamedExec(query, model.Value)
 	if err != nil {
-		return err
+		return errors.Wrapf(err, "create: couldn't execute named statement %s", query)
 	}
 	id, err = res.LastInsertId()
 	if err == nil {
 		model.setID(int(id))
 	}
-	return err
+	return errors.Wrap(err, "couldn't get the last inserted id")
 }
 
 func genericUpdate(s store, model *Model, cols Columns) error {
 	stmt := fmt.Sprintf("UPDATE %s SET %s where id = %d", model.TableName(), cols.Writeable().UpdateString(), model.ID())
 	Log(stmt)
 	_, err := s.NamedExec(stmt, model.Value)
-	return err
+	return errors.Wrapf(err, "update: couldn't execute named statement %s", stmt)
 }
 
 func genericDestroy(s store, model *Model) error {
 	stmt := fmt.Sprintf("DELETE FROM %s WHERE id = %d", model.TableName(), model.ID())
-	return genericExec(s, stmt)
+	return errors.Wrapf(genericExec(s, stmt), "destroy: couldn't execute named statement %s", stmt)
 }
 
 func genericExec(s store, stmt string) error {
 	Log(stmt)
 	_, err := s.Exec(stmt)
-	return err
+	return errors.Wrapf(err, "couldn't execute statement %s", stmt)
 }
 
 func genericSelectOne(s store, model *Model, query Query) error {
 	sql, args := query.ToSQL(model)
 	Log(sql, args...)
 	err := s.Get(model.Value, sql, args...)
-	return err
+	return errors.Wrapf(err, "couldn't select one %s %+v", sql, args)
 }
 
 func genericSelectMany(s store, models *Model, query Query) error {
 	sql, args := query.ToSQL(models)
 	Log(sql, args...)
 	err := s.Select(models.Value, sql, args...)
-	return err
+	return errors.Wrapf(err, "couldn't select many %s %+v", sql, args)
 }

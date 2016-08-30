@@ -11,6 +11,7 @@ import (
 
 	"github.com/markbates/pop/fizz"
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/pkg/errors"
 )
 
 var mrx = regexp.MustCompile("(\\d+)_(.+)\\.(up|down)\\.(sql|fizz)")
@@ -36,24 +37,24 @@ func MigrationCreate(path, name, ext string, up, down []byte) error {
 
 	err := os.MkdirAll(path, 0766)
 	if err != nil {
-		return err
+		return errors.Wrapf(err, "couldn't create migrations path %s", path)
 	}
 
 	upf := filepath.Join(path, (fmt.Sprintf("%s_%s.up.%s", s, name, ext)))
 	err = ioutil.WriteFile(upf, up, 0666)
 	if err != nil {
-		return err
+		return errors.Wrapf(err, "couldn't write up migration %s", upf)
 	}
 	fmt.Printf("> %s\n", upf)
 
 	downf := filepath.Join(path, (fmt.Sprintf("%s_%s.down.%s", s, name, ext)))
 	err = ioutil.WriteFile(downf, down, 0666)
 	if err != nil {
-		return err
+		return errors.Wrapf(err, "couldn't write up migration %s", downf)
 	}
 
 	fmt.Printf("> %s\n", downf)
-	return err
+	return nil
 }
 
 func (c *Connection) MigrateUp(path string) error {
@@ -62,12 +63,12 @@ func (c *Connection) MigrateUp(path string) error {
 
 	err := c.createSchemaMigrations()
 	if err != nil {
-		return err
+		return errors.Wrap(err, "migration up: problem creating schema migrations")
 	}
 	return findMigrations(path, "up", func(m migrationFile) error {
 		exists, err := c.Where("version = ?", m.Version).Exists("schema_migration")
 		if err != nil || exists {
-			return err
+			return errors.Wrapf(err, "problem checking for migration version %s", m.Version)
 		}
 		err = c.Transaction(func(tx *Connection) error {
 			err := m.Execute(tx)
@@ -75,7 +76,7 @@ func (c *Connection) MigrateUp(path string) error {
 				return err
 			}
 			_, err = tx.Store.Exec(fmt.Sprintf("insert into schema_migration (version) values ('%s')", m.Version))
-			return err
+			return errors.Wrapf(err, "problem inserting migration version %s", m.Version)
 		})
 		if err == nil {
 			fmt.Printf("> %s\n", m.FileName)
@@ -90,12 +91,12 @@ func (c *Connection) MigrateDown(path string) error {
 
 	err := c.createSchemaMigrations()
 	if err != nil {
-		return err
+		return errors.Wrap(err, "migration down: problem creating schema migrations")
 	}
 	return findMigrations(path, "down", func(m migrationFile) error {
 		exists, err := c.Where("version = ?", m.Version).Exists("schema_migration")
 		if err != nil || !exists {
-			return err
+			return errors.Wrapf(err, "problem checking for migration version %s", m.Version)
 		}
 		err = c.Transaction(func(tx *Connection) error {
 			err := m.Execute(tx)
@@ -103,7 +104,7 @@ func (c *Connection) MigrateDown(path string) error {
 				return err
 			}
 			err = tx.RawQuery("delete from schema_migration where version = ?", m.Version).Exec()
-			return err
+			return errors.Wrapf(err, "problem deleting migration version %s", m.Version)
 		})
 		if err == nil {
 			fmt.Printf("< %s\n", m.FileName)
@@ -123,7 +124,7 @@ func (c *Connection) MigrateReset(path string) error {
 func (c *Connection) createSchemaMigrations() error {
 	err := c.Open()
 	if err != nil {
-		return err
+		return errors.Wrap(err, "could not open connection")
 	}
 	_, err = c.Store.Exec("select * from schema_migration")
 	if err == nil {
@@ -133,15 +134,15 @@ func (c *Connection) createSchemaMigrations() error {
 	return c.Transaction(func(tx *Connection) error {
 		smSQL, err := c.Dialect.FizzTranslator().CreateTable(schemaMigrations)
 		if err != nil {
-			return err
+			return errors.Wrap(err, "could not build SQL for schema migration table")
 		}
-		return tx.RawQuery(smSQL).Exec()
+		return errors.Wrap(tx.RawQuery(smSQL).Exec(), "could not create schema migration table")
 	})
 }
 
 func findMigrations(dir string, direction string, fn func(migrationFile) error) error {
 	mfs := migrationFiles{}
-	err := filepath.Walk(dir, func(p string, info os.FileInfo, err error) error {
+	filepath.Walk(dir, func(p string, info os.FileInfo, err error) error {
 		if !info.IsDir() {
 			matches := mrx.FindAllStringSubmatch(info.Name(), -1)
 			if matches == nil || len(matches) == 0 {
@@ -162,18 +163,15 @@ func findMigrations(dir string, direction string, fn func(migrationFile) error) 
 		}
 		return nil
 	})
-	if err != nil {
-		return err
-	}
 	if direction == "down" {
 		sort.Sort(sort.Reverse(mfs))
 	} else {
 		sort.Sort(mfs)
 	}
 	for _, mf := range mfs {
-		err = fn(mf)
+		err := fn(mf)
 		if err != nil {
-			return err
+			return errors.Wrap(err, "error from called function")
 		}
 	}
 	return nil

@@ -2,7 +2,6 @@ package pop
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
 	"sync"
@@ -12,6 +11,7 @@ import (
 	. "github.com/markbates/pop/columns"
 	"github.com/markbates/pop/fizz"
 	"github.com/markbates/pop/fizz/translators"
+	"github.com/pkg/errors"
 )
 
 type sqlite struct {
@@ -34,31 +34,31 @@ func (m *sqlite) MigrationURL() string {
 
 func (m *sqlite) Create(s store, model *Model, cols Columns) error {
 	return m.locker(m.smGil, func() error {
-		return genericCreate(s, model, cols)
+		return errors.Wrap(genericCreate(s, model, cols), "sqlite create")
 	})
 }
 
 func (m *sqlite) Update(s store, model *Model, cols Columns) error {
 	return m.locker(m.smGil, func() error {
-		return genericUpdate(s, model, cols)
+		return errors.Wrap(genericUpdate(s, model, cols), "sqlite update")
 	})
 }
 
 func (m *sqlite) Destroy(s store, model *Model) error {
 	return m.locker(m.smGil, func() error {
-		return genericDestroy(s, model)
+		return errors.Wrap(genericDestroy(s, model), "sqlite destroy")
 	})
 }
 
 func (m *sqlite) SelectOne(s store, model *Model, query Query) error {
 	return m.locker(m.smGil, func() error {
-		return genericSelectOne(s, model, query)
+		return errors.Wrap(genericSelectOne(s, model, query), "sqlite select one")
 	})
 }
 
 func (m *sqlite) SelectMany(s store, models *Model, query Query) error {
 	return m.locker(m.smGil, func() error {
-		return genericSelectMany(s, models, query)
+		return errors.Wrap(genericSelectMany(s, models, query), "sqlite select many")
 	})
 }
 
@@ -83,15 +83,11 @@ func (m *sqlite) locker(l *sync.Mutex, fn func() error) error {
 
 func (m *sqlite) CreateDB() error {
 	d := filepath.Dir(m.ConnectionDetails.Database)
-	err := os.MkdirAll(d, 0766)
-	if err != nil {
-		log.Println(err)
-	}
-	return err
+	return errors.Wrapf(os.MkdirAll(d, 0766), "could not create SQLite database %s", m.ConnectionDetails.Database)
 }
 
 func (m *sqlite) DropDB() error {
-	return os.Remove(m.ConnectionDetails.Database)
+	return errors.Wrapf(os.Remove(m.ConnectionDetails.Database), "could not drop SQLite database %s", m.ConnectionDetails.Database)
 }
 
 func (m *sqlite) TranslateSQL(sql string) string {

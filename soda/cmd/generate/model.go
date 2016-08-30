@@ -1,7 +1,6 @@
 package generate
 
 import (
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -9,6 +8,8 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+
+	"github.com/pkg/errors"
 
 	"github.com/markbates/going/defaults"
 	"github.com/markbates/inflect"
@@ -145,13 +146,13 @@ var ModelCmd = &cobra.Command{
 
 		err := os.MkdirAll(model.Package, 0766)
 		if err != nil {
-			return err
+			return errors.Wrapf(err, "couldn't create folder %s", model.Package)
 		}
 
 		fname := filepath.Join(model.Package, model.Names.File+".go")
 		err = ioutil.WriteFile(fname, []byte(model.String()), 0666)
 		if err != nil {
-			return err
+			return errors.Wrapf(err, "couldn't write to file %s", fname)
 		}
 		fmt.Printf("> %s\n", fname)
 
@@ -160,7 +161,7 @@ var ModelCmd = &cobra.Command{
 		tmp = strings.Replace(tmp, "PACKAGE_NAME", model.Package, -1)
 		err = ioutil.WriteFile(tfname, []byte(tmp), 0666)
 		if err != nil {
-			return err
+			return errors.Wrapf(err, "couldn't write to file %s", tfname)
 		}
 		fmt.Printf("> %s\n", tfname)
 

@@ -18,7 +18,6 @@ type Column struct {
 
 func (f fizzer) AddColumn() interface{} {
 	return func(table, name, ctype string, options Options) {
-		f.log("add_column %s, %s, %s, %#v", table, name, ctype, options)
 		t := Table{
 			Name: table,
 			Columns: []Column{
@@ -31,7 +30,6 @@ func (f fizzer) AddColumn() interface{} {
 
 func (f fizzer) DropColumn() interface{} {
 	return func(table, name string) {
-		f.log("drop_column %s, %s", table, name)
 		t := Table{
 			Name: table,
 			Columns: []Column{
@@ -44,7 +42,6 @@ func (f fizzer) DropColumn() interface{} {
 
 func (f fizzer) RenameColumn() interface{} {
 	return func(table, old, new string) error {
-		f.log("rename_column %s, %s, %s", table, old, new)
 		t := Table{
 			Name: table,
 			Columns: []Column{

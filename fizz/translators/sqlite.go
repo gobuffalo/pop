@@ -1,9 +1,10 @@
 package translators
 
 import (
-	"errors"
 	"fmt"
 	"strings"
+
+	"github.com/pkg/errors"
 
 	"github.com/markbates/pop/fizz"
 )

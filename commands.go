@@ -2,31 +2,24 @@ package pop
 
 import (
 	"fmt"
-	"os"
+
+	"github.com/pkg/errors"
 )
 
 func CreateDB(c *Connection) error {
-	var err error
 	deets := c.Dialect.Details()
 	if deets.Database != "" {
 		Log(fmt.Sprintf("Create %s (%s)", deets.Database, c.URL()))
-		err = c.Dialect.CreateDB()
-		if err != nil {
-			fmt.Fprint(os.Stderr, err)
-		}
+		return errors.Wrapf(c.Dialect.CreateDB(), "couldn't create database %s", deets.Database)
 	}
-	return err
+	return nil
 }
 
 func DropDB(c *Connection) error {
-	var err error
 	deets := c.Dialect.Details()
 	if deets.Database != "" {
 		Log(fmt.Sprintf("Drop %s (%s)", deets.Database, c.URL()))
-		err = c.Dialect.DropDB()
-		if err != nil {
-			fmt.Fprintln(os.Stderr, err)
-		}
+		return errors.Wrapf(c.Dialect.DropDB(), "couldn't drop database %s", deets.Database)
 	}
-	return err
+	return nil
 }

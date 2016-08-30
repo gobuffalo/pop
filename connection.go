@@ -1,13 +1,13 @@
 package pop
 
 import (
-	"fmt"
 	"sync/atomic"
 	"time"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/markbates/going/defaults"
 	"github.com/markbates/going/randx"
+	"github.com/pkg/errors"
 )
 
 // Connections contains all of the available connections
@@ -61,10 +61,10 @@ func Connect(e string) (*Connection, error) {
 	e = defaults.String(e, "development")
 	c := Connections[e]
 	if c == nil {
-		return c, fmt.Errorf("Could not find connection named %s!", e)
+		return c, errors.Errorf("Could not find connection named %s!", e)
 	}
 	err := c.Open()
-	return c, err
+	return c, errors.Wrapf(err, "couldn't open connection for %s", e)
 }
 
 func (c *Connection) Open() error {
@@ -75,11 +75,11 @@ func (c *Connection) Open() error {
 	if err == nil {
 		c.Store = &dB{db}
 	}
-	return nil
+	return errors.Wrap(err, "coudn't connection to database")
 }
 
 func (c *Connection) Close() error {
-	return c.Store.Close()
+	return errors.Wrap(c.Store.Close(), "couldn't close connection")
 }
 
 // Transaction will start a new transaction on the connection. If the inner function
@@ -99,9 +99,9 @@ func (c *Connection) Transaction(fn func(tx *Connection) error) error {
 			dberr = cn.TX.Commit()
 		}
 		if err != nil {
-			return err
+			return errors.Wrap(err, "error inside of calling function")
 		}
-		return dberr
+		return errors.Wrap(dberr, "error committing or rolling back transaction")
 	})
 
 }
@@ -111,7 +111,7 @@ func (c *Connection) NewTransaction() (*Connection, error) {
 	if c.TX == nil {
 		tx, err := c.Store.Transaction()
 		if err != nil {
-			return cn, err
+			return cn, errors.Wrap(err, "couldn't start a new transaction")
 		}
 		cn = &Connection{
 			ID:      randx.String(30),
@@ -132,7 +132,7 @@ func (c *Connection) Rollback(fn func(tx *Connection)) error {
 	if c.TX == nil {
 		tx, err := c.Store.Transaction()
 		if err != nil {
-			return err
+			return errors.Wrap(err, "couldn't start a new transaction")
 		}
 		cn = &Connection{
 			ID:      randx.String(30),
@@ -156,5 +156,5 @@ func (c *Connection) timeFunc(name string, fn func() error) error {
 	now := time.Now()
 	err := fn()
 	atomic.AddInt64(&c.Elapsed, int64(time.Now().Sub(now)))
-	return err
+	return errors.Wrap(err, "error inside of calling function")
 }

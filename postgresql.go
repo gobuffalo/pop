@@ -11,6 +11,7 @@ import (
 	. "github.com/markbates/pop/columns"
 	"github.com/markbates/pop/fizz"
 	"github.com/markbates/pop/fizz/translators"
+	"github.com/pkg/errors"
 )
 
 type postgresql struct {
@@ -33,46 +34,49 @@ func (p *postgresql) Create(s store, model *Model, cols Columns) error {
 	Log(query)
 	stmt, err := s.PrepareNamed(query)
 	if err != nil {
-		return err
+		return errors.Wrapf(err, "postgres error preparing insert statement %s", query)
 	}
 	err = stmt.Get(&id, model.Value)
-	if err == nil {
-		model.setID(id.ID)
+	if err != nil {
+		return errors.Wrap(err, "postgres error inserting record")
 	}
-	return err
+	model.setID(id.ID)
+	return nil
 }
 
 func (p *postgresql) Update(s store, model *Model, cols Columns) error {
-	return genericUpdate(s, model, cols)
+	return errors.Wrap(genericUpdate(s, model, cols), "postgres update")
 }
 
 func (p *postgresql) Destroy(s store, model *Model) error {
-	return genericDestroy(s, model)
+	return errors.Wrap(genericDestroy(s, model), "postgres destroy")
 }
 
 func (p *postgresql) SelectOne(s store, model *Model, query Query) error {
-	return genericSelectOne(s, model, query)
+	return errors.Wrap(genericSelectOne(s, model, query), "postgres select one")
 }
 
 func (p *postgresql) SelectMany(s store, models *Model, query Query) error {
-	return genericSelectMany(s, models, query)
+	return errors.Wrap(genericSelectMany(s, models, query), "postgres select many")
 }
 
 func (p *postgresql) CreateDB() error {
 	// createdb -h db -p 5432 -U postgres enterprise_development
 	deets := p.ConnectionDetails
 	cmd := exec.Command("createdb", "-e", "-h", deets.Host, "-p", deets.Port, "-U", deets.User, deets.Database)
-	return clam.RunAndListen(cmd, func(s string) {
+	err := clam.RunAndListen(cmd, func(s string) {
 		fmt.Println(s)
 	})
+	return errors.Wrapf(err, "error creating PostgreSQL database %s", deets.Database)
 }
 
 func (p *postgresql) DropDB() error {
 	deets := p.ConnectionDetails
 	cmd := exec.Command("dropdb", "-e", "-h", deets.Host, "-p", deets.Port, "-U", deets.User, deets.Database)
-	return clam.RunAndListen(cmd, func(s string) {
+	err := clam.RunAndListen(cmd, func(s string) {
 		fmt.Println(s)
 	})
+	return errors.Wrapf(err, "error dropping PostgreSQL database %s", deets.Database)
 }
 
 func (m *postgresql) URL() string {

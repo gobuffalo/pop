@@ -1,8 +1,9 @@
 package cmd
 
 import (
-	"errors"
 	"fmt"
+
+	"github.com/pkg/errors"
 
 	"github.com/markbates/pop"
 	"github.com/spf13/cobra"

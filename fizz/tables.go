@@ -38,7 +38,6 @@ func (t *Table) HasColumns(args ...string) bool {
 
 func (f fizzer) CreateTable() interface{} {
 	return func(name string, fn func(t *Table)) {
-		f.log("create_table %s", name)
 		t := Table{
 			Name:    name,
 			Columns: []Column{ID_COL, CREATED_COL, UPDATED_COL},
@@ -50,14 +49,12 @@ func (f fizzer) CreateTable() interface{} {
 
 func (f fizzer) DropTable() interface{} {
 	return func(name string) {
-		f.log("drop_table %s", name)
 		f.add(f.Bubbler.DropTable(Table{Name: name}))
 	}
 }
 
 func (f fizzer) RenameTable() interface{} {
 	return func(old, new string) {
-		f.log("rename_table %s, %s", old, new)
 		f.add(f.Bubbler.RenameTable([]Table{
 			{Name: old},
 			{Name: new},

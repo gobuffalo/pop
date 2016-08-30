@@ -1,6 +1,7 @@
 package pop_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/markbates/going/nulls"
@@ -94,7 +95,9 @@ func Test_Update(t *testing.T) {
 		a.NotZero(user.UpdatedAt)
 
 		user.Name.String = "Marky"
+		fmt.Printf("### user -> %+v\n", user)
 		err := tx.Update(&user)
+		fmt.Printf("### err -> %+v\n", err)
 		a.NoError(err)
 
 		tx.Reload(&user)
