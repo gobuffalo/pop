@@ -27,6 +27,7 @@ func init() {
 func LoadConfig() {
 	path, err := findConfigPath()
 	if err == nil {
+		Connections = map[string]*Connection{}
 		err = loadConfig(path)
 		if err != nil {
 			log.Fatal(err)

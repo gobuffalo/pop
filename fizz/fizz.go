@@ -6,8 +6,6 @@ import (
 	"os"
 )
 
-var Debug bool
-
 type Options map[string]interface{}
 
 type fizzer struct {

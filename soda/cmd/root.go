@@ -7,13 +7,11 @@ import (
 
 	"github.com/markbates/going/defaults"
 	"github.com/markbates/pop"
-	"github.com/markbates/pop/fizz"
 	"github.com/spf13/cobra"
 )
 
 var cfgFile string
 var env string
-var debugMode bool
 var version bool
 
 var RootCmd = &cobra.Command{
@@ -21,8 +19,6 @@ var RootCmd = &cobra.Command{
 	Short: "A tasty treat for all your database needs",
 	PersistentPreRun: func(c *cobra.Command, args []string) {
 		fmt.Printf("Soda v%s\n\n", Version)
-		pop.Debug = debugMode
-		fizz.Debug = debugMode
 		env = defaults.String(os.Getenv("GO_ENV"), env)
 		setConfigLocation()
 	},
@@ -44,7 +40,7 @@ func init() {
 	RootCmd.Flags().BoolVarP(&version, "version", "v", false, "Show version information")
 	RootCmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", "", "The configuration file you would like to use.")
 	RootCmd.PersistentFlags().StringVarP(&env, "env", "e", "development", "The environment you want to run migrations against. Will use $GO_ENV if set.")
-	RootCmd.PersistentFlags().BoolVarP(&debugMode, "debug", "d", false, "Use debug/verbose mode")
+	RootCmd.PersistentFlags().BoolVarP(&pop.Debug, "debug", "d", false, "Use debug/verbose mode")
 }
 
 func setConfigLocation() {
@@ -57,6 +53,7 @@ func setConfigLocation() {
 		pop.AddLookupPaths(dir)
 		pop.ConfigName = file
 	}
+	pop.LoadConfig()
 }
 
 func getConn() *pop.Connection {
