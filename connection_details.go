@@ -1,6 +1,7 @@
 package pop
 
 import (
+	"fmt"
 	"net/url"
 	"strconv"
 	"strings"
@@ -11,18 +12,31 @@ import (
 )
 
 type ConnectionDetails struct {
-	Dialect  string
+	// Example: "postgres" or "sqlite3" or "mysql"
+	Dialect string
+	// The name of your database. Example: "foo_development"
 	Database string
-	Host     string
-	Port     string
-	User     string
+	// The host of your database. Example: "127.0.0.1"
+	Host string
+	// The port of your database. Example: 1234
+	// Will default to the "default" port for each dialect.
+	Port string
+	// The username of the database user. Example: "root"
+	User string
+	// The password of the database user. Example: "password"
 	Password string
-	URL      string
-	Options  map[string]string
+	// Instead of specifying each individual piece of the
+	// connection you can instead just specify the URL of the
+	// database. Example: "postgres://postgres:postgres@localhost:5432/pop_test?sslmode=disable"
+	URL string
+	// Defaults to 0 "unlimited". See https://golang.org/pkg/database/sql/#DB.SetMaxOpenConns
+	Pool    int
+	Options map[string]string
 }
 
-// Parse extracts the various components of a connection string.
-func (cd *ConnectionDetails) Parse(port string) error {
+// Finalize cleans up the connection details by normalizing names,
+// filling in default values, etc...
+func (cd *ConnectionDetails) Finalize() error {
 	if cd.URL != "" {
 		u, err := url.Parse(cd.URL)
 		if err != nil {
@@ -30,20 +44,38 @@ func (cd *ConnectionDetails) Parse(port string) error {
 		}
 		cd.Dialect = u.Scheme
 		cd.Database = u.Path
-		if cd.Dialect != "sqlite3" {
-			cd.Database = strings.TrimPrefix(u.Path, "/")
-		}
+
 		hp := strings.Split(u.Host, ":")
 		cd.Host = hp[0]
 		if len(hp) > 1 {
-			cd.Port = defaults.String(hp[1], port)
+			cd.Port = hp[1]
 		}
+
 		if u.User != nil {
 			cd.User = u.User.Username()
 			cd.Password, _ = u.User.Password()
 		}
 	}
+	switch strings.ToLower(cd.Dialect) {
+	case "postgres", "postgresql", "pg":
+		cd.Dialect = "postgres"
+		cd.Port = defaults.String(cd.Port, "5432")
+		cd.Database = strings.TrimPrefix(cd.Database, "/")
+	case "mysql":
+		cd.Port = defaults.String(cd.Port, "3006")
+		cd.Database = strings.TrimPrefix(cd.Database, "/")
+	case "sqlite", "sqlite3":
+		cd.Dialect = "sqlite3"
+	default:
+		return errors.Errorf("Unknown dialect %s!", cd.Dialect)
+	}
 	return nil
+}
+
+// Parse is deprecated! Please use `ConnectionDetails.Finalize()` instead!
+func (cd *ConnectionDetails) Parse(port string) error {
+	fmt.Println("[POP] ConnectionDetails#Parse(port string) has been deprecated!")
+	return cd.Finalize()
 }
 
 func (cd *ConnectionDetails) RetrySleep() time.Duration {

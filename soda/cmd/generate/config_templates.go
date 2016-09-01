@@ -6,6 +6,7 @@ var pgConfig = `development:
   username: postgres
   password: postgres
   host: 127.0.0.1
+  pool: 5
 
 test:
   dialect: postgres
@@ -19,7 +20,8 @@ production:
   database: {{.}}_production
   username: postgres
   password: postgres
-  host: 127.0.0.1`
+  host: 127.0.0.1
+  pool: 25`
 
 var mysqlConfig = `development:
   dialect: "mysql"

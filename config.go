@@ -95,13 +95,16 @@ func loadConfig(path string) error {
 		return errors.Wrap(err, "couldn't execute config template")
 	}
 
-	conns := map[string]*ConnectionDetails{}
-	err = yaml.Unmarshal(bb.Bytes(), &conns)
+	deets := map[string]*ConnectionDetails{}
+	err = yaml.Unmarshal(bb.Bytes(), &deets)
 	if err != nil {
 		return errors.Wrap(err, "couldn't unmarshal config to yaml")
 	}
-	for n, c := range conns {
-		con := NewConnection(c)
+	for n, d := range deets {
+		con, err := NewConnection(d)
+		if err != nil {
+			return err
+		}
 		Connections[n] = con
 	}
 	return nil

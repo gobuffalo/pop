@@ -7,29 +7,40 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func Test_ConnectionDetails_Parse(t *testing.T) {
+func Test_ConnectionDetails_Finalize(t *testing.T) {
 	r := require.New(t)
 
 	cd := &pop.ConnectionDetails{
-		URL: "dialect://user:pass@host:port/database",
+		URL: "postgres://user:pass@host:port/database",
 	}
-	cd.Parse("")
+	err := cd.Finalize()
+	r.NoError(err)
 
 	r.Equal(cd.Database, "database")
-	r.Equal(cd.Dialect, "dialect")
+	r.Equal(cd.Dialect, "postgres")
 	r.Equal(cd.Host, "host")
 	r.Equal(cd.Password, "pass")
 	r.Equal(cd.Port, "port")
 	r.Equal(cd.User, "user")
 }
 
-func Test_ConnectionDetails_Parse_SQLite(t *testing.T) {
+func Test_ConnectionDetails_Finalize_UnknownDialect(t *testing.T) {
+	r := require.New(t)
+	cd := &pop.ConnectionDetails{
+		URL: "unknown://user:pass@host:port/database",
+	}
+	err := cd.Finalize()
+	r.Error(err)
+}
+
+func Test_ConnectionDetails_Finalize_SQLite(t *testing.T) {
 	r := require.New(t)
 
 	cd := &pop.ConnectionDetails{
 		URL: "sqlite3:///tmp/foo.db",
 	}
-	cd.Parse("")
+	err := cd.Finalize()
+	r.NoError(err)
 
 	r.Equal(cd.Database, "/tmp/foo.db")
 	r.Equal(cd.Dialect, "sqlite3")

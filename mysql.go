@@ -86,7 +86,6 @@ func (m *mysql) Lock(fn func() error) error {
 }
 
 func newMySQL(deets *ConnectionDetails) dialect {
-	deets.Parse("3306")
 	cd := &mysql{
 		ConnectionDetails: deets,
 	}

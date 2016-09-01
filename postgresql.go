@@ -127,7 +127,6 @@ func (p *postgresql) Lock(fn func() error) error {
 }
 
 func newPostgreSQL(deets *ConnectionDetails) dialect {
-	deets.Parse("5432")
 	cd := &postgresql{
 		ConnectionDetails: deets,
 		translateCache:    map[string]string{},

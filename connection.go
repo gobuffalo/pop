@@ -37,7 +37,11 @@ func (c *Connection) MigrationURL() string {
 
 // NewConnection creates a new connection, and sets it's `Dialect`
 // appropriately based on the `ConnectionDetails` passed into it.
-func NewConnection(deets *ConnectionDetails) *Connection {
+func NewConnection(deets *ConnectionDetails) (*Connection, error) {
+	err := deets.Finalize()
+	if err != nil {
+		return nil, errors.Wrap(err, "could not create a new connection")
+	}
 	c := &Connection{
 		ID: randx.String(30),
 	}
@@ -49,7 +53,7 @@ func NewConnection(deets *ConnectionDetails) *Connection {
 	case "sqlite3":
 		c.Dialect = newSQLite(deets)
 	}
-	return c
+	return c, nil
 }
 
 // Connect takes the name of a connection, default is "development", and will
@@ -72,6 +76,7 @@ func (c *Connection) Open() error {
 		return nil
 	}
 	db, err := sqlx.Open(c.Dialect.Details().Dialect, c.Dialect.URL())
+	db.SetMaxOpenConns(c.Dialect.Details().Pool)
 	if err == nil {
 		c.Store = &dB{db}
 	}
