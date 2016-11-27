@@ -22,7 +22,7 @@ type ConnectionDetails struct {
 	// Will default to the "default" port for each dialect.
 	Port string
 	// The username of the database user. Example: "root"
-	Username string
+	User string
 	// The password of the database user. Example: "password"
 	Password string
 	// Instead of specifying each individual piece of the
@@ -52,7 +52,7 @@ func (cd *ConnectionDetails) Finalize() error {
 		}
 
 		if u.User != nil {
-			cd.Username = u.User.Username()
+			cd.User = u.User.Username()
 			cd.Password, _ = u.User.Password()
 		}
 	}

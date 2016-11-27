@@ -27,7 +27,7 @@ func (m *mysql) URL() string {
 	}
 
 	s := "%s:%s@(%s:%s)/%s?parseTime=true&multiStatements=true&readTimeout=1s"
-	return fmt.Sprintf(s, c.Username, c.Password, c.Host, c.Port, c.Database)
+	return fmt.Sprintf(s, c.User, c.Password, c.Host, c.Port, c.Database)
 }
 
 func (m *mysql) MigrationURL() string {
@@ -56,7 +56,7 @@ func (m *mysql) SelectMany(s store, models *Model, query Query) error {
 
 func (m *mysql) CreateDB() error {
 	c := m.ConnectionDetails
-	cmd := exec.Command("mysql", "-u", c.Username, "-p"+c.Password, "-e", fmt.Sprintf("create database %s", c.Database))
+	cmd := exec.Command("mysql", "-u", c.User, "-p"+c.Password, "-e", fmt.Sprintf("create database %s", c.Database))
 	err := clam.RunAndListen(cmd, func(s string) {
 		fmt.Println(s)
 	})
@@ -65,7 +65,7 @@ func (m *mysql) CreateDB() error {
 
 func (m *mysql) DropDB() error {
 	c := m.ConnectionDetails
-	cmd := exec.Command("mysql", "-u", c.Username, "-p"+c.Password, "-e", fmt.Sprintf("drop database %s", c.Database))
+	cmd := exec.Command("mysql", "-u", c.User, "-p"+c.Password, "-e", fmt.Sprintf("drop database %s", c.Database))
 	err := clam.RunAndListen(cmd, func(s string) {
 		fmt.Println(s)
 	})

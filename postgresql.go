@@ -63,7 +63,7 @@ func (p *postgresql) SelectMany(s store, models *Model, query Query) error {
 func (p *postgresql) CreateDB() error {
 	// createdb -h db -p 5432 -U postgres enterprise_development
 	deets := p.ConnectionDetails
-	cmd := exec.Command("createdb", "-e", "-h", deets.Host, "-p", deets.Port, "-U", deets.Username, deets.Database)
+	cmd := exec.Command("createdb", "-e", "-h", deets.Host, "-p", deets.Port, "-U", deets.User, deets.Database)
 	err := clam.RunAndListen(cmd, func(s string) {
 		fmt.Println(s)
 	})
@@ -72,7 +72,7 @@ func (p *postgresql) CreateDB() error {
 
 func (p *postgresql) DropDB() error {
 	deets := p.ConnectionDetails
-	cmd := exec.Command("dropdb", "-e", "-h", deets.Host, "-p", deets.Port, "-U", deets.Username, deets.Database)
+	cmd := exec.Command("dropdb", "-e", "-h", deets.Host, "-p", deets.Port, "-U", deets.User, deets.Database)
 	err := clam.RunAndListen(cmd, func(s string) {
 		fmt.Println(s)
 	})
@@ -86,7 +86,7 @@ func (m *postgresql) URL() string {
 	}
 
 	s := "postgres://%s:%s@%s:%s/%s?sslmode=disable"
-	return fmt.Sprintf(s, c.Username, c.Password, c.Host, c.Port, c.Database)
+	return fmt.Sprintf(s, c.User, c.Password, c.Host, c.Port, c.Database)
 }
 
 func (m *postgresql) MigrationURL() string {

@@ -3,7 +3,7 @@ package generate
 var pgConfig = `development:
   dialect: postgres
   database: {{.}}_development
-  username: postgres
+  user: postgres
   password: postgres
   host: 127.0.0.1
   pool: 5
@@ -11,14 +11,14 @@ var pgConfig = `development:
 test:
   dialect: postgres
   database: {{.}}_test
-  username: postgres
+  user: postgres
   password: postgres
   host: 127.0.0.1
 
 production:
   dialect: postgres
   database: {{.}}_production
-  username: postgres
+  user: postgres
   password: postgres
   host: 127.0.0.1
   pool: 25`
