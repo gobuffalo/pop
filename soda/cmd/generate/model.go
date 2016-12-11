@@ -197,7 +197,6 @@ func colType(s string) string {
 	default:
 		return s
 	}
-	return s
 }
 
 func fizzColType(s string) string {
@@ -212,5 +211,4 @@ func fizzColType(s string) string {
 	default:
 		return strings.ToLower(s)
 	}
-	return s
 }

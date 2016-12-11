@@ -2,7 +2,7 @@ package generate
 
 var pgConfig = `development:
   dialect: postgres
-  database: {{.}}_development
+  database: {{.name}}_development
   user: postgres
   password: postgres
   host: 127.0.0.1
@@ -10,14 +10,14 @@ var pgConfig = `development:
 
 test:
   dialect: postgres
-  database: {{.}}_test
+  database: {{.name}}_test
   user: postgres
   password: postgres
   host: 127.0.0.1
 
 production:
   dialect: postgres
-  database: {{.}}_production
+  database: {{.name}}_production
   user: postgres
   password: postgres
   host: 127.0.0.1
@@ -25,7 +25,7 @@ production:
 
 var mysqlConfig = `development:
   dialect: "mysql"
-  database: "{{.}}_development"
+  database: "{{.name}}_development"
   host: "localhost"
   port: "3306"
   user: "root"
@@ -33,7 +33,7 @@ var mysqlConfig = `development:
 
 test:
   dialect: "mysql"
-  database: "{{.}}_test"
+  database: "{{.name}}_test"
   host: "localhost"
   port: "3306"
   user: "root"
@@ -41,7 +41,7 @@ test:
 
 production:
   dialect: "mysql"
-  database: "{{.}}_production"
+  database: "{{.name}}_production"
   host: "localhost"
   port: "3306"
   user: "root"
@@ -49,15 +49,15 @@ production:
 
 var sqliteConfig = `development:
   dialect: "sqlite3"
-  database: "./{{.}}_development.sqlite"
+  database: "./{{.name}}_development.sqlite"
 
 test:
   dialect: "sqlite3"
-  database: "./{{.}}_test.sqlite"
+  database: "./{{.name}}_test.sqlite"
 
 production:
   dialect: "sqlite3"
-  database: "./{{.}}_production.sqlite"`
+  database: "./{{.name}}_production.sqlite"`
 
 var configTemplates = map[string]string{
 	"postgres":   pgConfig,

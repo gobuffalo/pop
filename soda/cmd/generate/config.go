@@ -1,12 +1,11 @@
 package generate
 
 import (
-	"fmt"
-	"html/template"
 	"os"
 	"path"
 	"strings"
 
+	"github.com/markbates/gentronics"
 	"github.com/markbates/going/defaults"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -24,31 +23,24 @@ var ConfigCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		cflag := cmd.Flag("config")
 		cfgFile := defaults.String(cflag.Value.String(), "database.yml")
-		return GenerateConfig(dialect, cfgFile)
-	},
-}
-
-func GenerateConfig(dialect string, cfgFile string) error {
-	dialect = strings.ToLower(dialect)
-	if t, ok := configTemplates[dialect]; ok {
 		dir, err := os.Getwd()
 		if err != nil {
 			return errors.Wrap(err, "couldn't get the current directory")
 		}
-		err = os.MkdirAll(path.Dir(cfgFile), 0766)
-		f, err := os.Create(cfgFile)
-		if err != nil {
-			return errors.Wrapf(err, "couldn't create the config file %s", cfgFile)
+		data := map[string]interface{}{
+			"dialect": dialect,
+			"name":    path.Base(dir),
 		}
-		tp := template.Must(template.New("database.yml").Parse(t))
+		return GenerateConfig(cfgFile, data)
+	},
+}
 
-		dir = path.Base(dir)
-		err = tp.Execute(f, dir)
-		if err != nil {
-			return errors.Wrap(err, "couldn't execute template")
-		}
-		fmt.Printf("Generated %s using the %s template.\n", cfgFile, dialect)
-		return nil
+func GenerateConfig(cfgFile string, data map[string]interface{}) error {
+	dialect = strings.ToLower(data["dialect"].(string))
+	if t, ok := configTemplates[dialect]; ok {
+		g := gentronics.New()
+		g.Add(gentronics.NewFile(cfgFile, t))
+		return g.Run(".", data)
 	}
 	return errors.Errorf("Could not initialize %s!", dialect)
 }
