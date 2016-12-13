@@ -16,7 +16,7 @@ test:
   host: 127.0.0.1
 
 production:
-  url: {{envOr "DATABASE_URL" "postgres://postgres:postgres@127.0.0.1:5432/{{.name}}_production"`
+  url: {{"{{"}}envOr "DATABASE_URL" "postgres://postgres:postgres@127.0.0.1:5432/{{.name}}_production"{{"}}"}}`
 
 var mysqlConfig = `development:
   dialect: "mysql"
@@ -35,13 +35,7 @@ test:
   password: "root"
 
 production:
-  url: {{envOr "DATABASE_URL" "root:root@(localhost:3306)/{{.name}}_production"}}
-  dialect: "mysql"
-  database: "{{.name}}_production"
-  host: "localhost"
-  port: "3306"
-  user: "root"
-  password: "root"`
+  url: {{"{{"}}envOr "DATABASE_URL" "mysql://root:root@(localhost:3306)/{{.name}}_production"{{"}}"}}`
 
 var sqliteConfig = `development:
   dialect: "sqlite3"
