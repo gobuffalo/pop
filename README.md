@@ -126,7 +126,7 @@ $ soda drop -e development
 
 ### Migrations
 
-The `soda` command supports the creation and running of SQL migrations. Yes, I said SQL! There is no fancy DSL for writing these files, just plain old SQL, which, personally, I think is DSL enough.
+The `soda` command supports the creation and running of migrations.
 
 A full list of commands available for migration can be found by asking for help:
 
