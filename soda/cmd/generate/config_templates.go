@@ -10,7 +10,7 @@ var pgConfig = `development:
 
 test:
   dialect: postgres
-  database: {{.name}}_test
+  database: {{name}}_test
   user: postgres
   password: postgres
   host: 127.0.0.1
