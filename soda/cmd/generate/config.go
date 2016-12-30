@@ -1,12 +1,11 @@
 package generate
 
 import (
-	"fmt"
 	"os"
 	"path"
 	"strings"
 
-	"github.com/gobuffalo/velvet"
+	"github.com/markbates/gentronics"
 	"github.com/markbates/going/defaults"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -39,15 +38,9 @@ var ConfigCmd = &cobra.Command{
 func GenerateConfig(cfgFile string, data map[string]interface{}) error {
 	dialect = strings.ToLower(data["dialect"].(string))
 	if t, ok := configTemplates[dialect]; ok {
-		fmt.Printf("### cfgFile -> %+v\n", cfgFile)
-		fmt.Printf("### t -> %+v\n", t)
-		s, err := velvet.Render(t, velvet.NewContextWith(data))
-		fmt.Printf("### s -> %+v\n", s)
-		fmt.Printf("### err -> %+v\n", err)
-		return err
-		// g := gentronics.New()
-		// g.Add(gentronics.NewFile(cfgFile, t))
-		// return g.Run(".", data)
+		g := gentronics.New()
+		g.Add(gentronics.NewFile(cfgFile, t))
+		return g.Run(".", data)
 	}
 	return errors.Errorf("Could not initialize %s!", dialect)
 }
