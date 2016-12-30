@@ -39,7 +39,7 @@ func newName(name string) names {
 		Original: name,
 		File:     name,
 		Table:    inflect.Tableize(name),
-		Proper:   inflect.Camelize(name),
+		Proper:   inflect.ForeignKeyToAttribute(name),
 		Plural:   inflect.Pluralize(inflect.Camelize(name)),
 		Char:     strings.ToLower(string([]byte(name)[0])),
 	}
