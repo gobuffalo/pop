@@ -1,19 +1,33 @@
 package pop
 
-import "reflect"
+import (
+	"reflect"
+	"strconv"
+)
 
 // Find the first record of the model in the database with a particular id.
 //
 //	c.Find(&User{}, 1)
-func (c *Connection) Find(model interface{}, id int) error {
+func (c *Connection) Find(model interface{}, id interface{}) error {
 	return Q(c).Find(model, id)
 }
 
 // Find the first record of the model in the database with a particular id.
 //
 //	q.Find(&User{}, 1)
-func (q *Query) Find(model interface{}, id int) error {
-	return q.Where("id = ?", id).First(model)
+func (q *Query) Find(model interface{}, id interface{}) error {
+	var idi int
+	switch t := id.(type) {
+	case int:
+		idi = t
+	case string:
+		var err error
+		idi, err = strconv.Atoi(t)
+		if err != nil {
+			return err
+		}
+	}
+	return q.Where("id = ?", idi).First(model)
 }
 
 // First record of the model in the database that matches the query.
