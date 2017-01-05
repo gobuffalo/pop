@@ -1,36 +1,66 @@
 package generate
 
-const modelTemplate = `package PACKAGE_NAME
+const modelTemplate = `package {{package_name}}
 
 import (
-	IMPORTS
+	{{#each model.Imports as |i|}}
+	"{{i}}"
+	{{/each}}
 )
 
-type MODEL_NAME struct {
-	ATTRIBUTES
+type {{model_name}} struct {
+	{{#each model.Attributes as |a|}}
+	{{a}}
+	{{/each}}
 }
 
 // String is not required by pop and may be deleted
-func (CHAR MODEL_NAME) String() string {
-	b, _ := json.Marshal(CHAR)
+func ({{char}} {{model_name}}) String() string {
+	b, _ := json.Marshal({{char}})
 	return string(b)
 }
 
-// PLURAL_MODEL_NAME is not required by pop and may be deleted
-type PLURAL_MODEL_NAME []MODEL_NAME
+// {{plural_model_name}} is not required by pop and may be deleted
+type {{plural_model_name}} []{{model_name}}
 
 // String is not required by pop and may be deleted
-func (CHAR PLURAL_MODEL_NAME) String() string {
-	b, _ := json.Marshal(CHAR)
+func ({{char}} {{plural_model_name}}) String() string {
+	b, _ := json.Marshal({{char}})
 	return string(b)
+}
+
+// Validate gets run everytime you call a "pop.Validate" method.
+// This method is not required and may be deleted.
+func ({{char}} *{{model_name}}) Validate(tx *pop.Connection) (*validate.Errors, error) {
+	{{#if model.ValidatableAttributes }}
+	return validate.Validate(
+		{{#each model.ValidatableAttributes as |a|}}
+		&validators.{{capitalize a.GoType}}IsPresent{Field: p.{{a.Names.Proper}}, Name: "{{a.Names.Proper}}"},
+		{{/each}}
+	), nil
+	{{ else }}
+		return validate.NewErrors(), nil
+	{{/if}}
+}
+
+// ValidateSave gets run everytime you call "pop.ValidateSave" method.
+// This method is not required and may be deleted.
+func ({{char}} *{{model_name}}) ValidateSave(tx *pop.Connection) (*validate.Errors, error) {
+	return validate.NewErrors(), nil
+}
+
+// ValidateUpdate gets run everytime you call "pop.ValidateUpdate" method.
+// This method is not required and may be deleted.
+func ({{char}} *{{model_name}}) ValidateUpdate(tx *pop.Connection) (*validate.Errors, error) {
+	return validate.NewErrors(), nil
 }
 `
 
-const modelTestTemplate = `package PACKAGE_NAME_test
+const modelTestTemplate = `package {{package_name}}_test
 
 import "testing"
 
-func Test_MODEL_NAME(t *testing.T) {
+func Test_{{model_name}}(t *testing.T) {
 	t.Fatal("This test needs to be implemented!")
 }
 `

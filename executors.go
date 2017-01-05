@@ -1,6 +1,9 @@
 package pop
 
-import . "github.com/markbates/pop/columns"
+import (
+	"github.com/markbates/validate"
+	. "github.com/markbates/pop/columns"
+)
 
 func (c *Connection) Reload(model interface{}) error {
 	sm := Model{Value: model}
@@ -16,6 +19,18 @@ func (q *Query) Exec() error {
 	})
 }
 
+func (c *Connection) ValidateAndSave(model interface{}, excludeColumns ...string) (*validate.Errors, error) {
+	sm := &Model{Value: model}
+	verrs, err := sm.validateSave(c)
+	if err != nil {
+		return verrs, err
+	}
+	if verrs.HasAny() {
+		return verrs, nil
+	}
+	return verrs, c.Save(model, excludeColumns...)
+}
+
 func (c *Connection) Save(model interface{}, excludeColumns ...string) error {
 	sm := &Model{Value: model}
 	if sm.ID() == 0 {
@@ -23,6 +38,18 @@ func (c *Connection) Save(model interface{}, excludeColumns ...string) error {
 	} else {
 		return c.Update(model, excludeColumns...)
 	}
+}
+
+func (c *Connection) ValidateAndCreate(model interface{}, excludeColumns ...string) (*validate.Errors, error) {
+	sm := &Model{Value: model}
+	verrs, err := sm.validateCreate(c)
+	if err != nil {
+		return verrs, err
+	}
+	if verrs.HasAny() {
+		return verrs, nil
+	}
+	return verrs, c.Create(model, excludeColumns...)
 }
 
 func (c *Connection) Create(model interface{}, excludeColumns ...string) error {
@@ -37,6 +64,18 @@ func (c *Connection) Create(model interface{}, excludeColumns ...string) error {
 
 		return c.Dialect.Create(c.Store, sm, cols)
 	})
+}
+
+func (c *Connection) ValidateAndUpdate(model interface{}, excludeColumns ...string) (*validate.Errors, error) {
+	sm := &Model{Value: model}
+	verrs, err := sm.validateUpdate(c)
+	if err != nil {
+		return verrs, err
+	}
+	if verrs.HasAny() {
+		return verrs, nil
+	}
+	return verrs, c.Update(model, excludeColumns...)
 }
 
 func (c *Connection) Update(model interface{}, excludeColumns ...string) error {

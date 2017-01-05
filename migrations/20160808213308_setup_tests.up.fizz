@@ -12,6 +12,14 @@ create_table("good_friends", func(t) {
   t.Column("last_name", "string", {})
 })
 
+create_table("validatable_cars", func(t) {
+  t.Column("name", "string", {})
+})
+
+create_table("not_validatable_cars", func(t) {
+  t.Column("name", "string", {})
+})
+
 {{ if eq .Dialect "postgres" }}
 create_table("cakes", func(t) {
   t.Column("int_slice", "int[]", {"null": true})

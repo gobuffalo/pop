@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/markbates/validate"
 	"github.com/markbates/inflect"
 	"github.com/pkg/errors"
 )
@@ -39,17 +40,46 @@ type Model struct {
 	tableName string
 }
 
-// func (m *Model) Validate(*Connection) (*validate.Errors, error) {
-// 	return validate.NewErrors(), nil
-// }
-//
-// func (m *Model) ValidateNew(*Connection) (*validate.Errors, error) {
-// 	return validate.NewErrors(), nil
-// }
-//
-// func (m *Model) ValidateUpdate(*Connection) (*validate.Errors, error) {
-// 	return validate.NewErrors(), nil
-// }
+func (m *Model) runValidations(c *Connection, names ...string) (*validate.Errors, error) {
+	for _, n := range names {
+		rv := reflect.ValueOf(m.Value)
+		mv := rv.MethodByName(n)
+		if mv.IsValid() {
+			if mv.Type().NumOut() < 2 {
+				return nil, errors.Errorf("%s does not have the correct method signature!", n)
+			}
+			out := mv.Call([]reflect.Value{reflect.ValueOf(c)})
+			verrs := validate.NewErrors()
+			var err error
+			if !out[0].IsNil() {
+				verrs = out[0].Interface().(*validate.Errors)
+			}
+			if !out[1].IsNil() {
+				err = out[1].Interface().(error)
+			}
+			if verrs.HasAny() || err != nil {
+				return verrs, err
+			}
+		}
+	}
+	return validate.NewErrors(), nil
+}
+
+func (m *Model) validate(c *Connection) (*validate.Errors, error) {
+	return m.runValidations(c, "Validate")
+}
+
+func (m *Model) validateCreate(c *Connection) (*validate.Errors, error) {
+	return m.runValidations(c, "Validate", "ValidateCreate")
+}
+
+func (m *Model) validateSave(c *Connection) (*validate.Errors, error) {
+	return m.runValidations(c, "Validate", "ValidateSave")
+}
+
+func (m *Model) validateUpdate(c *Connection) (*validate.Errors, error) {
+	return m.runValidations(c, "Validate", "ValidateUpdate")
+}
 
 // ID returns the ID of the Model. All models must have an `ID` field this is
 // of type `int`.

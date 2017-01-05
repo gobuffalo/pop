@@ -9,6 +9,8 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/lib/pq"
 	"github.com/markbates/going/nulls"
+	"github.com/markbates/validate"
+	"github.com/markbates/validate/validators"
 	"github.com/markbates/pop"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/stretchr/testify/suite"
@@ -92,4 +94,41 @@ type Friends []Friend
 
 type Enemy struct {
 	A string
+}
+
+type ValidatableCar struct {
+	ID        int       `db:"id"`
+	Name      string    `db:"name"`
+	CreatedAt time.Time `json:"created_at" db:"created_at"`
+	UpdatedAt time.Time `json:"updated_at" db:"updated_at"`
+}
+
+var validationLogs = []string{}
+
+func (v *ValidatableCar) Validate(tx *pop.Connection) (*validate.Errors, error) {
+	validationLogs = append(validationLogs, "Validate")
+	verrs := validate.Validate(&validators.StringIsPresent{Field: v.Name, Name: "Name"})
+	return verrs, nil
+}
+
+func (v *ValidatableCar) ValidateSave(tx *pop.Connection) (*validate.Errors, error) {
+	validationLogs = append(validationLogs, "ValidateSave")
+	return nil, nil
+}
+
+func (v *ValidatableCar) ValidateUpdate(tx *pop.Connection) (*validate.Errors, error) {
+	validationLogs = append(validationLogs, "ValidateUpdate")
+	return nil, nil
+}
+
+func (v *ValidatableCar) ValidateCreate(tx *pop.Connection) (*validate.Errors, error) {
+	validationLogs = append(validationLogs, "ValidateCreate")
+	return nil, nil
+}
+
+type NotValidatableCar struct {
+	ID        int       `db:"id"`
+	Name      string    `db:"name"`
+	CreatedAt time.Time `json:"created_at" db:"created_at"`
+	UpdatedAt time.Time `json:"updated_at" db:"updated_at"`
 }

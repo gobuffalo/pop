@@ -9,6 +9,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/gobuffalo/velvet"
 	"github.com/pkg/errors"
 
 	"github.com/markbates/going/defaults"
@@ -57,29 +58,69 @@ func (a attribute) String() string {
 }
 
 type model struct {
-	Package    string
-	Imports    []string
-	Names      names
-	Attributes []attribute
+	Package               string
+	Imports               []string
+	Names                 names
+	Attributes            []attribute
+	ValidatableAttributes []attribute
 }
 
-func (m model) String() string {
-	tmp := strings.Replace(modelTemplate, "PLURAL_MODEL_NAME", m.Names.Plural, -1)
-	tmp = strings.Replace(tmp, "MODEL_NAME", m.Names.Proper, -1)
-	tmp = strings.Replace(tmp, "PACKAGE_NAME", m.Package, -1)
-	tmp = strings.Replace(tmp, "CHAR", m.Names.Char, -1)
-	ims := []string{}
-	for _, im := range m.Imports {
-		ims = append(ims, fmt.Sprintf("\t\"%s\"", im))
-	}
-	tmp = strings.Replace(tmp, "IMPORTS", strings.Join(ims, "\n"), -1)
-	ats := []string{}
-	for _, a := range m.Attributes {
-		ats = append(ats, a.String())
-	}
-	tmp = strings.Replace(tmp, "ATTRIBUTES", strings.Join(ats, "\n"), -1)
+func (m model) Generate() error {
+	ctx := velvet.NewContext()
+	ctx.Set("model", m)
+	ctx.Set("plural_model_name", m.Names.Plural)
+	ctx.Set("model_name", m.Names.Proper)
+	ctx.Set("package_name", m.Package)
+	ctx.Set("char", m.Names.Char)
 
-	return tmp
+	fname := filepath.Join(m.Package, m.Names.File+".go")
+	err := writeGoFile(fname, modelTemplate, ctx)
+	if err != nil {
+		return err
+	}
+
+	tfname := filepath.Join(m.Package, m.Names.File+"_test.go")
+	return writeGoFile(tfname, modelTestTemplate, ctx)
+}
+
+func writeGoFile(path string, template string, ctx *velvet.Context) error {
+	err := writeFile(path, template, ctx)
+	if err != nil {
+		return err
+	}
+	cname := "gofmt"
+	_, err = exec.LookPath("goimports")
+	if err == nil {
+		cname = "goimports"
+	}
+	md, _ := filepath.Abs(path)
+	goi := exec.Command(cname, "-w", md)
+	goi.Stdin = os.Stdin
+	goi.Stderr = os.Stderr
+	goi.Stdout = os.Stdout
+	return goi.Run()
+}
+
+func writeFile(path string, template string, ctx *velvet.Context) error {
+	s, err := render(template, ctx)
+	if err != nil {
+		return err
+	}
+	err = ioutil.WriteFile(path, []byte(s), 0666)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't write to file %s", path)
+	}
+	fmt.Printf("> %s\n", path)
+	return nil
+}
+
+func render(t string, ctx *velvet.Context) (string, error) {
+	s, err := velvet.Render(t, ctx)
+	if err != nil {
+		return s, errors.WithStack(err)
+	}
+	s = strings.Replace(s, "&#34;", "\"", -1)
+	return s, nil
 }
 
 func (m model) Fizz() string {
@@ -104,13 +145,14 @@ func newModel(name string) model {
 	id.Proper = "ID"
 	return model{
 		Package: "models",
-		Imports: []string{"time", "encoding/json"},
+		Imports: []string{"time", "encoding/json", "github.com/markbates/pop", "github.com/markbates/validate"},
 		Names:   newName(name),
 		Attributes: []attribute{
 			{Names: id, OriginalType: "int", GoType: "int"},
 			{Names: newName("created_at"), OriginalType: "time.Time", GoType: "time.Time"},
 			{Names: newName("updated_at"), OriginalType: "time.Time", GoType: "time.Time"},
 		},
+		ValidatableAttributes: []attribute{},
 	}
 }
 
@@ -136,12 +178,22 @@ var ModelCmd = &cobra.Command{
 				hasNulls = true
 				model.Imports = append(model.Imports, "github.com/markbates/pop/nulls")
 			}
-			model.Attributes = append(model.Attributes, attribute{
+
+			a := attribute{
 				Names:        newName(col[0]),
 				OriginalType: col[1],
 				GoType:       colType(col[1]),
 				Nullable:     nullable,
-			})
+			}
+			model.Attributes = append(model.Attributes, a)
+			if !a.Nullable {
+				if a.GoType == "string" || a.GoType == "time.Time" || a.GoType == "int" {
+					if a.GoType == "time.Time" {
+						a.GoType = "Time"
+					}
+					model.ValidatableAttributes = append(model.ValidatableAttributes, a)
+				}
+			}
 		}
 
 		err := os.MkdirAll(model.Package, 0766)
@@ -149,28 +201,9 @@ var ModelCmd = &cobra.Command{
 			return errors.Wrapf(err, "couldn't create folder %s", model.Package)
 		}
 
-		fname := filepath.Join(model.Package, model.Names.File+".go")
-		err = ioutil.WriteFile(fname, []byte(model.String()), 0666)
+		err = model.Generate()
 		if err != nil {
-			return errors.Wrapf(err, "couldn't write to file %s", fname)
-		}
-		fmt.Printf("> %s\n", fname)
-
-		tfname := filepath.Join(model.Package, model.Names.File+"_test.go")
-		tmp := strings.Replace(modelTestTemplate, "MODEL_NAME", model.Names.Proper, -1)
-		tmp = strings.Replace(tmp, "PACKAGE_NAME", model.Package, -1)
-		err = ioutil.WriteFile(tfname, []byte(tmp), 0666)
-		if err != nil {
-			return errors.Wrapf(err, "couldn't write to file %s", tfname)
-		}
-		fmt.Printf("> %s\n", tfname)
-
-		md, _ := filepath.Abs(fname)
-		goi := exec.Command("gofmt", "-w", md)
-		out, err := goi.CombinedOutput()
-		if err != nil {
-			fmt.Printf("Received an error when trying to run gofmt -> %#v\n", err)
-			fmt.Println(out)
+			return err
 		}
 
 		if !skipMigration {

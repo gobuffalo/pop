@@ -8,6 +8,106 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func Test_ValidateAndSave(t *testing.T) {
+	r := require.New(t)
+	validationLogs = []string{}
+	transaction(func(tx *pop.Connection) {
+		car := &ValidatableCar{Name: "VW"}
+		verrs, err := tx.ValidateAndSave(car)
+		r.NoError(err)
+		r.False(verrs.HasAny())
+		r.Len(validationLogs, 2)
+		r.Equal([]string{"Validate", "ValidateSave"}, validationLogs)
+		r.NotZero(car.ID)
+		r.NotZero(car.CreatedAt)
+
+		validationLogs = []string{}
+		car = &ValidatableCar{Name: ""}
+		verrs, err = tx.ValidateAndSave(car)
+		r.NoError(err)
+		r.True(verrs.HasAny())
+		r.Len(validationLogs, 1)
+		errs := verrs.Get("name")
+		r.Len(errs, 1)
+
+		validationLogs = []string{}
+		ncar := &NotValidatableCar{Name: ""}
+		verrs, err = tx.ValidateAndSave(ncar)
+		r.NoError(err)
+		r.False(verrs.HasAny())
+		r.Len(validationLogs, 0)
+	})
+}
+
+func Test_ValidateAndCreate(t *testing.T) {
+	r := require.New(t)
+	validationLogs = []string{}
+	transaction(func(tx *pop.Connection) {
+		car := &ValidatableCar{Name: "VW"}
+		verrs, err := tx.ValidateAndCreate(car)
+		r.NoError(err)
+		r.False(verrs.HasAny())
+		r.Len(validationLogs, 2)
+		r.Equal([]string{"Validate", "ValidateCreate"}, validationLogs)
+		r.NotZero(car.ID)
+		r.NotZero(car.CreatedAt)
+
+		validationLogs = []string{}
+		car = &ValidatableCar{Name: ""}
+		verrs, err = tx.ValidateAndSave(car)
+		r.NoError(err)
+		r.True(verrs.HasAny())
+		r.Len(validationLogs, 1)
+		errs := verrs.Get("name")
+		r.Len(errs, 1)
+
+		validationLogs = []string{}
+		ncar := &NotValidatableCar{Name: ""}
+		verrs, err = tx.ValidateAndCreate(ncar)
+		r.NoError(err)
+		r.False(verrs.HasAny())
+		r.Len(validationLogs, 0)
+	})
+}
+
+func Test_ValidateAndUpdate(t *testing.T) {
+	r := require.New(t)
+	validationLogs = []string{}
+	transaction(func(tx *pop.Connection) {
+		car := &ValidatableCar{Name: "VW"}
+		verrs, err := tx.ValidateAndCreate(car)
+		r.NoError(err)
+		r.False(verrs.HasAny())
+		r.Len(validationLogs, 2)
+		r.Equal([]string{"Validate", "ValidateCreate"}, validationLogs)
+		r.NotZero(car.ID)
+		r.NotZero(car.CreatedAt)
+
+		validationLogs = []string{}
+		car.Name = ""
+		verrs, err = tx.ValidateAndUpdate(car)
+		r.NoError(err)
+		r.True(verrs.HasAny())
+		r.Len(validationLogs, 1)
+		errs := verrs.Get("name")
+		r.Len(errs, 1)
+
+		validationLogs = []string{}
+		ncar := &NotValidatableCar{Name: ""}
+		verrs, err = tx.ValidateAndCreate(ncar)
+		r.NoError(err)
+		r.False(verrs.HasAny())
+		r.Len(validationLogs, 0)
+
+		validationLogs = []string{}
+		ncar.Name = ""
+		verrs, err = tx.ValidateAndUpdate(ncar)
+		r.NoError(err)
+		r.False(verrs.HasAny())
+		r.Len(validationLogs, 0)
+	})
+}
+
 func Test_Exec(t *testing.T) {
 	transaction(func(tx *pop.Connection) {
 		a := require.New(t)
