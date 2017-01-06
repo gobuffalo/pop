@@ -44,7 +44,7 @@ test:
 
 staging:
   dialect: "sqlite3"
-  url: "./staging.sqlite"
+  database: "./staging.sqlite"
 
 production:
   dialect: "postgres"
