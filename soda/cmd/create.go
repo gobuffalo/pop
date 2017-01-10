@@ -8,14 +8,19 @@ import (
 var createCmd = &cobra.Command{
 	Use:   "create",
 	Short: "Creates databases for you",
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
+		var err error
 		if all {
 			for _, conn := range pop.Connections {
-				pop.CreateDB(conn)
+				err = pop.CreateDB(conn)
+				if err != nil {
+					break
+				}
 			}
 		} else {
-			pop.CreateDB(getConn())
+			err = pop.CreateDB(getConn())
 		}
+		return err
 	},
 }
 
