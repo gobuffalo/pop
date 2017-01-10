@@ -186,6 +186,8 @@ $ soda migrate down
 
 * Mark Bates
 * Tim Raymond
-* Slava Vishnyakov
-* Todd Rafferty
+* lumost
 * Johnny Boursiquot
+* Slava Vishnyakov
+* Ken Pepple
+* Todd Rafferty
