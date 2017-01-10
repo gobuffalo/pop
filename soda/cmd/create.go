@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"fmt"
+
 	"github.com/markbates/pop"
 	"github.com/spf13/cobra"
 )
@@ -14,7 +16,7 @@ var createCmd = &cobra.Command{
 			for _, conn := range pop.Connections {
 				err = pop.CreateDB(conn)
 				if err != nil {
-					break
+					fmt.Println(err)
 				}
 			}
 		} else {
