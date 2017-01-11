@@ -6,12 +6,14 @@ var INT_ID_COL = Column{
 	ColType: "integer",
 	Options: Options{},
 }
+
 var UUID_ID_COL = Column{
 	Name:    "id",
 	Primary: true,
 	ColType: "string",
 	Options: Options{},
 }
+
 var CREATED_COL = Column{Name: "created_at", ColType: "timestamp", Options: Options{}}
 var UPDATED_COL = Column{Name: "updated_at", ColType: "timestamp", Options: Options{}}
 

@@ -43,7 +43,14 @@ func (f fizzer) CreateTable() interface{} {
 			Columns: []Column{CREATED_COL, UPDATED_COL},
 		}
 		fn(&t)
-		if !t.HasColumns("id") {
+		var foundPrimary bool
+		for _, c := range t.Columns {
+			if c.Primary {
+				foundPrimary = true
+				break
+			}
+		}
+		if !foundPrimary {
 			t.Columns = append(t.Columns, INT_ID_COL)
 		}
 		f.add(f.Bubbler.CreateTable(t))
