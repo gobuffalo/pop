@@ -6,8 +6,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/markbates/validate"
 	"github.com/markbates/inflect"
+	"github.com/markbates/validate"
 	"github.com/pkg/errors"
 )
 
@@ -82,13 +82,13 @@ func (m *Model) validateUpdate(c *Connection) (*validate.Errors, error) {
 }
 
 // ID returns the ID of the Model. All models must have an `ID` field this is
-// of type `int`.
-func (m *Model) ID() int {
+// of type `int` or of type `uuid.UUID`.
+func (m *Model) ID() interface{} {
 	fbn, err := m.fieldByName("ID")
 	if err != nil {
 		return 0
 	}
-	return int(fbn.Int())
+	return fbn.Interface()
 }
 
 // TableName returns the corresponding name of the underlying database table
@@ -144,10 +144,10 @@ func (m *Model) associationName() string {
 	return fmt.Sprintf("%s_id", tn)
 }
 
-func (m *Model) setID(i int) {
+func (m *Model) setID(i interface{}) {
 	fbn, err := m.fieldByName("ID")
 	if err == nil {
-		fbn.SetInt(int64(i))
+		fbn.Set(reflect.ValueOf(i))
 	}
 }
 
