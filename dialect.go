@@ -6,6 +6,7 @@ import (
 	. "github.com/markbates/pop/columns"
 	"github.com/markbates/pop/fizz"
 	"github.com/pkg/errors"
+	uuid "github.com/satori/go.uuid"
 )
 
 type dialect interface {
@@ -25,30 +26,47 @@ type dialect interface {
 }
 
 func genericCreate(s store, model *Model, cols Columns) error {
-	var id int64
-	w := cols.Writeable()
-	query := fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s)", model.TableName(), w.String(), w.SymbolizedString())
-	Log(query)
-	res, err := s.NamedExec(query, model.Value)
-	if err != nil {
-		return errors.Wrapf(err, "create: couldn't execute named statement %s", query)
+	keyType := model.PrimaryKeyType()
+	switch keyType {
+	case "int":
+		var id int64
+		w := cols.Writeable()
+		query := fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s)", model.TableName(), w.String(), w.SymbolizedString())
+		Log(query)
+		res, err := s.NamedExec(query, model.Value)
+		if err != nil {
+			return errors.Wrapf(err, "create: couldn't execute named statement %s", query)
+		}
+		id, err = res.LastInsertId()
+		if err == nil {
+			model.setID(int(id))
+		}
+		return errors.Wrap(err, "couldn't get the last inserted id")
+	case "UUID":
+		model.setID(uuid.NewV4())
+		w := cols.Writeable()
+		w.Add("id")
+		query := fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s)", model.TableName(), w.String(), w.SymbolizedString())
+		Log(query)
+		stmt, err := s.PrepareNamed(query)
+		if err != nil {
+			return errors.WithStack(err)
+		}
+		_, err = stmt.Exec(model.Value)
+		return err
 	}
-	id, err = res.LastInsertId()
-	if err == nil {
-		model.setID(int(id))
-	}
-	return errors.Wrap(err, "couldn't get the last inserted id")
+	return errors.Errorf("can not use %s as a primary key type!", keyType)
 }
 
 func genericUpdate(s store, model *Model, cols Columns) error {
-	stmt := fmt.Sprintf("UPDATE %s SET %s where id = %d", model.TableName(), cols.Writeable().UpdateString(), model.ID())
+	stmt := fmt.Sprintf("UPDATE %s SET %s where %s", model.TableName(), cols.Writeable().UpdateString(), model.whereID())
 	Log(stmt)
 	_, err := s.NamedExec(stmt, model.Value)
 	return errors.Wrapf(err, "update: couldn't execute named statement %s", stmt)
 }
 
 func genericDestroy(s store, model *Model) error {
-	stmt := fmt.Sprintf("DELETE FROM %s WHERE id = %d", model.TableName(), model.ID())
+	stmt := fmt.Sprintf("DELETE FROM %s WHERE %s", model.TableName(), model.whereID())
 	return errors.Wrapf(genericExec(s, stmt), "destroy: couldn't execute named statement %s", stmt)
 }
 

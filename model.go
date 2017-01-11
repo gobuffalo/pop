@@ -9,6 +9,7 @@ import (
 	"github.com/markbates/inflect"
 	"github.com/markbates/validate"
 	"github.com/pkg/errors"
+	"github.com/satori/go.uuid"
 )
 
 var tableMap = map[string]string{}
@@ -88,7 +89,18 @@ func (m *Model) ID() interface{} {
 	if err != nil {
 		return 0
 	}
+	if m.PrimaryKeyType() == "UUID" {
+		return fbn.Interface().(uuid.UUID).String()
+	}
 	return fbn.Interface()
+}
+
+func (m *Model) PrimaryKeyType() string {
+	fbn, err := m.fieldByName("ID")
+	if err != nil {
+		return "integer"
+	}
+	return fbn.Type().Name()
 }
 
 // TableName returns the corresponding name of the underlying database table
@@ -163,4 +175,12 @@ func (m *Model) touchUpdatedAt() {
 	if err == nil {
 		fbn.Set(reflect.ValueOf(time.Now()))
 	}
+}
+
+func (m *Model) whereID() string {
+	id := m.ID()
+	if _, ok := id.(int); ok {
+		return fmt.Sprintf("id = %d", id)
+	}
+	return fmt.Sprintf("id ='%s'", id)
 }

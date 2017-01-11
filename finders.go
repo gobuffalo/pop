@@ -3,6 +3,8 @@ package pop
 import (
 	"reflect"
 	"strconv"
+
+	"github.com/satori/go.uuid"
 )
 
 // Find the first record of the model in the database with a particular id.
@@ -20,11 +22,13 @@ func (q *Query) Find(model interface{}, id interface{}) error {
 	switch t := id.(type) {
 	case int:
 		idi = t
+	case uuid.UUID:
+		return q.Where("id = ?", t.String()).First(model)
 	case string:
 		var err error
 		idi, err = strconv.Atoi(t)
 		if err != nil {
-			return err
+			return q.Where("id = ?", t).First(model)
 		}
 	}
 	return q.Where("id = ?", idi).First(model)
