@@ -51,6 +51,32 @@ func (p *SQLiteSuite) Test_SQLite_CreateTable() {
 	r.Equal(ddl, res)
 }
 
+func (p *SQLiteSuite) Test_SQLite_CreateTable_UUID() {
+	r := p.Require()
+	ddl := `CREATE TABLE "users" (
+"created_at" DATETIME NOT NULL,
+"updated_at" DATETIME NOT NULL,
+"first_name" TEXT NOT NULL,
+"last_name" TEXT NOT NULL,
+"email" TEXT NOT NULL,
+"permissions" text,
+"age" integer DEFAULT '40',
+"uuid" TEXT PRIMARY KEY
+);`
+
+	res, _ := fizz.AString(`
+	create_table("users", func(t) {
+		t.Column("first_name", "string", {})
+		t.Column("last_name", "string", {})
+		t.Column("email", "string", {"size":20})
+		t.Column("permissions", "text", {"null": true})
+		t.Column("age", "integer", {"null": true, "default": 40})
+		t.Column("uuid", "uuid", {"primary": true})
+	})
+	`, sqt)
+	r.Equal(ddl, res)
+}
+
 func (p *SQLiteSuite) Test_SQLite_DropTable() {
 	r := p.Require()
 

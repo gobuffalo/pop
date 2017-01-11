@@ -33,6 +33,32 @@ func (p *PostgreSQLSuite) Test_Postgres_CreateTable() {
 	r.Equal(ddl, res)
 }
 
+func (p *PostgreSQLSuite) Test_Postgres_CreateTable_UUID() {
+	r := p.Require()
+	ddl := `CREATE TABLE "users" (
+"created_at" timestamp NOT NULL,
+"updated_at" timestamp NOT NULL,
+"first_name" VARCHAR (255) NOT NULL,
+"last_name" VARCHAR (255) NOT NULL,
+"email" VARCHAR (20) NOT NULL,
+"permissions" jsonb,
+"age" integer DEFAULT '40',
+"uuid" UUID PRIMARY KEY
+);`
+
+	res, _ := fizz.AString(`
+	create_table("users", func(t) {
+		t.Column("first_name", "string", {})
+		t.Column("last_name", "string", {})
+		t.Column("email", "string", {"size":20})
+		t.Column("permissions", "jsonb", {"null": true})
+		t.Column("age", "integer", {"null": true, "default": 40})
+		t.Column("uuid", "uuid", {"primary": true})
+	})
+	`, pgt)
+	r.Equal(ddl, res)
+}
+
 func (p *PostgreSQLSuite) Test_Postgres_DropTable() {
 	r := p.Require()
 

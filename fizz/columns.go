@@ -10,7 +10,7 @@ var INT_ID_COL = Column{
 var UUID_ID_COL = Column{
 	Name:    "id",
 	Primary: true,
-	ColType: "string",
+	ColType: "uuid",
 	Options: Options{},
 }
 

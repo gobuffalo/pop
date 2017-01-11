@@ -7,10 +7,15 @@ type Table struct {
 }
 
 func (t *Table) Column(name string, colType string, options map[string]interface{}) {
+	var primary bool
+	if _, ok := options["primary"]; ok {
+		primary = true
+	}
 	c := Column{
 		Name:    name,
 		ColType: colType,
 		Options: options,
+		Primary: primary,
 	}
 	t.Columns = append(t.Columns, c)
 }

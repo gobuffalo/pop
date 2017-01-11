@@ -139,6 +139,7 @@ func (p *MySQL) buildColumn(c fizz.Column) string {
 		d = re.ReplaceAllString(d, "'$2'")
 		s = fmt.Sprintf("%s DEFAULT %s", s, d)
 	}
+
 	if c.Primary && c.ColType == "integer" {
 		s = fmt.Sprintf("%s AUTO_INCREMENT", s)
 	}
@@ -153,6 +154,8 @@ func (p *MySQL) colType(c fizz.Column) string {
 			s = fmt.Sprintf("%d", c.Options["size"])
 		}
 		return fmt.Sprintf("VARCHAR (%s)", s)
+	case "uuid":
+		return "char(36)"
 	case "timestamp":
 		return "DATETIME"
 	default:

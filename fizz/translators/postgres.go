@@ -22,7 +22,14 @@ func (p *Postgres) CreateTable(t fizz.Table) (string, error) {
 	var s string
 	for _, c := range t.Columns {
 		if c.Primary {
-			s = fmt.Sprintf("\"%s\" SERIAL PRIMARY KEY", c.Name)
+			switch c.ColType {
+			case "string", "uuid":
+				s = fmt.Sprintf("\"%s\" %s PRIMARY KEY", c.Name, p.colType(c))
+			case "integer":
+				s = fmt.Sprintf("\"%s\" SERIAL PRIMARY KEY", c.Name)
+			default:
+				return "", errors.Errorf("can not use %s as a primary key", c.ColType)
+			}
 		} else {
 			s = p.buildColumn(c)
 		}
@@ -132,6 +139,8 @@ func (p *Postgres) colType(c fizz.Column) string {
 			s = fmt.Sprintf("%d", c.Options["size"])
 		}
 		return fmt.Sprintf("VARCHAR (%s)", s)
+	case "uuid":
+		return "UUID"
 	default:
 		return c.ColType
 	}
