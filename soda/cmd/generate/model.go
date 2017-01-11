@@ -127,7 +127,9 @@ func (m model) Fizz() string {
 	s := []string{fmt.Sprintf("create_table(\"%s\", func(t) {", m.Names.Table)}
 	for _, a := range m.Attributes {
 		switch a.Names.Original {
-		case "id", "created_at", "updated_at":
+		case "created_at", "updated_at":
+		case "id":
+			s = append(s, fmt.Sprintf("\tt.Column(\"id\", \"%s\", {\"primary\": true})", fizzColType(a.OriginalType)))
 		default:
 			x := fmt.Sprintf("\tt.Column(\"%s\", \"%s\", {})", a.Names.Original, fizzColType(a.OriginalType))
 			if a.Nullable {
@@ -145,10 +147,10 @@ func newModel(name string) model {
 	id.Proper = "ID"
 	return model{
 		Package: "models",
-		Imports: []string{"time", "encoding/json", "github.com/markbates/pop", "github.com/markbates/validate"},
+		Imports: []string{"time", "encoding/json", "github.com/markbates/pop", "github.com/markbates/validate", "github.com/satori/go.uuid"},
 		Names:   newName(name),
 		Attributes: []attribute{
-			{Names: id, OriginalType: "int", GoType: "int"},
+			{Names: id, OriginalType: "uuid.UUID", GoType: "uuid.UUID"},
 			{Names: newName("created_at"), OriginalType: "time.Time", GoType: "time.Time"},
 			{Names: newName("updated_at"), OriginalType: "time.Time", GoType: "time.Time"},
 		},
@@ -227,6 +229,8 @@ func colType(s string) string {
 		return "time.Time"
 	case "nulls.Text":
 		return "nulls.String"
+	case "uuid":
+		return "uuid.UUID"
 	default:
 		return s
 	}
@@ -241,6 +245,8 @@ func fizzColType(s string) string {
 		return "integer"
 	case "time":
 		return "timestamp"
+	case "uuid.uuid", "uuid":
+		return "uuid"
 	default:
 		return strings.ToLower(s)
 	}
