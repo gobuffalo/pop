@@ -1,6 +1,7 @@
 package pop
 
 import (
+	"encoding/gob"
 	"fmt"
 
 	. "github.com/markbates/pop/columns"
@@ -8,6 +9,10 @@ import (
 	"github.com/pkg/errors"
 	uuid "github.com/satori/go.uuid"
 )
+
+func init() {
+	gob.Register(uuid.UUID{})
+}
 
 type dialect interface {
 	URL() string
@@ -87,5 +92,8 @@ func genericSelectMany(s store, models *Model, query Query) error {
 	sql, args := query.ToSQL(models)
 	Log(sql, args...)
 	err := s.Select(models.Value, sql, args...)
-	return errors.Wrapf(err, "couldn't select many %s %+v", sql, args)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't select many %s %+v", sql, args)
+	}
+	return nil
 }
