@@ -40,9 +40,12 @@ func (f fizzer) CreateTable() interface{} {
 	return func(name string, fn func(t *Table)) {
 		t := Table{
 			Name:    name,
-			Columns: []Column{ID_COL, CREATED_COL, UPDATED_COL},
+			Columns: []Column{CREATED_COL, UPDATED_COL},
 		}
 		fn(&t)
+		if !t.HasColumns("id") {
+			t.Columns = append(t.Columns, INT_ID_COL)
+		}
 		f.add(f.Bubbler.CreateTable(t))
 	}
 }

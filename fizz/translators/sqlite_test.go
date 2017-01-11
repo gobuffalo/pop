@@ -29,14 +29,14 @@ func (p *fauxSchema) TableInfo(table string) (*fizz.Table, error) {
 func (p *SQLiteSuite) Test_SQLite_CreateTable() {
 	r := p.Require()
 	ddl := `CREATE TABLE "users" (
-"id" INTEGER PRIMARY KEY AUTOINCREMENT,
 "created_at" DATETIME NOT NULL,
 "updated_at" DATETIME NOT NULL,
 "first_name" TEXT NOT NULL,
 "last_name" TEXT NOT NULL,
 "email" TEXT NOT NULL,
 "permissions" text,
-"age" integer DEFAULT '40'
+"age" integer DEFAULT '40',
+"id" INTEGER PRIMARY KEY AUTOINCREMENT
 );`
 
 	res, _ := fizz.AString(`
@@ -101,7 +101,7 @@ DROP TABLE "_users_tmp";`
 	schema.schema["users"] = &fizz.Table{
 		Name: "users",
 		Columns: []fizz.Column{
-			fizz.ID_COL,
+			fizz.INT_ID_COL,
 			fizz.CREATED_COL,
 			fizz.UPDATED_COL,
 		},
@@ -125,7 +125,7 @@ DROP TABLE "_users_tmp";`
 	schema.schema["users"] = &fizz.Table{
 		Name: "users",
 		Columns: []fizz.Column{
-			fizz.ID_COL,
+			fizz.INT_ID_COL,
 			fizz.CREATED_COL,
 			fizz.UPDATED_COL,
 		},
@@ -184,7 +184,7 @@ CREATE UNIQUE INDEX "new_ix" ON "users" (id, created_at);`
 	schema.schema["users"] = &fizz.Table{
 		Name: "users",
 		Columns: []fizz.Column{
-			fizz.ID_COL,
+			fizz.INT_ID_COL,
 			fizz.CREATED_COL,
 			fizz.UPDATED_COL,
 		},

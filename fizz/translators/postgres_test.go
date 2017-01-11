@@ -11,14 +11,14 @@ var pgt = translators.NewPostgres()
 func (p *PostgreSQLSuite) Test_Postgres_CreateTable() {
 	r := p.Require()
 	ddl := `CREATE TABLE "users" (
-"id" SERIAL PRIMARY KEY,
 "created_at" timestamp NOT NULL,
 "updated_at" timestamp NOT NULL,
 "first_name" VARCHAR (255) NOT NULL,
 "last_name" VARCHAR (255) NOT NULL,
 "email" VARCHAR (20) NOT NULL,
 "permissions" jsonb,
-"age" integer DEFAULT '40'
+"age" integer DEFAULT '40',
+"id" SERIAL PRIMARY KEY
 );`
 
 	res, _ := fizz.AString(`
