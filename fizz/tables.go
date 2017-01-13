@@ -7,10 +7,15 @@ type Table struct {
 }
 
 func (t *Table) Column(name string, colType string, options map[string]interface{}) {
+	var primary bool
+	if _, ok := options["primary"]; ok {
+		primary = true
+	}
 	c := Column{
 		Name:    name,
 		ColType: colType,
 		Options: options,
+		Primary: primary,
 	}
 	t.Columns = append(t.Columns, c)
 }
@@ -40,9 +45,19 @@ func (f fizzer) CreateTable() interface{} {
 	return func(name string, fn func(t *Table)) {
 		t := Table{
 			Name:    name,
-			Columns: []Column{ID_COL, CREATED_COL, UPDATED_COL},
+			Columns: []Column{CREATED_COL, UPDATED_COL},
 		}
 		fn(&t)
+		var foundPrimary bool
+		for _, c := range t.Columns {
+			if c.Primary {
+				foundPrimary = true
+				break
+			}
+		}
+		if !foundPrimary {
+			t.Columns = append(t.Columns, INT_ID_COL)
+		}
 		f.add(f.Bubbler.CreateTable(t))
 	}
 }

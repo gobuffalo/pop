@@ -25,23 +25,30 @@ func (p *postgresql) Details() *ConnectionDetails {
 }
 
 func (p *postgresql) Create(s store, model *Model, cols Columns) error {
-	cols.Remove("id")
-	id := struct {
-		ID int `db:"id"`
-	}{}
-	w := cols.Writeable()
-	query := fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s) returning id", model.TableName(), w.String(), w.SymbolizedString())
-	Log(query)
-	stmt, err := s.PrepareNamed(query)
-	if err != nil {
-		return errors.Wrapf(err, "postgres error preparing insert statement %s", query)
+	keyType := model.PrimaryKeyType()
+	switch keyType {
+	case "int":
+		cols.Remove("id")
+		id := struct {
+			ID int `db:"id"`
+		}{}
+		w := cols.Writeable()
+		query := fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s) returning id", model.TableName(), w.String(), w.SymbolizedString())
+		Log(query)
+		stmt, err := s.PrepareNamed(query)
+		if err != nil {
+			return errors.Wrapf(err, "postgres error preparing insert statement %s", query)
+		}
+		err = stmt.Get(&id, model.Value)
+		if err != nil {
+			return errors.Wrap(err, "postgres error inserting record")
+		}
+		model.setID(id.ID)
+		return nil
+	case "UUID":
+		return genericCreate(s, model, cols)
 	}
-	err = stmt.Get(&id, model.Value)
-	if err != nil {
-		return errors.Wrap(err, "postgres error inserting record")
-	}
-	model.setID(id.ID)
-	return nil
+	return errors.Errorf("can not use %s as a primary key type!", keyType)
 }
 
 func (p *postgresql) Update(s store, model *Model, cols Columns) error {

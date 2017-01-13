@@ -28,7 +28,12 @@ func (p *SQLite) CreateTable(t fizz.Table) (string, error) {
 	var s string
 	for _, c := range t.Columns {
 		if c.Primary {
-			s = fmt.Sprintf("\"%s\" INTEGER PRIMARY KEY AUTOINCREMENT", c.Name)
+			switch c.ColType {
+			case "integer":
+				s = fmt.Sprintf("\"%s\" INTEGER PRIMARY KEY AUTOINCREMENT", c.Name)
+			case "uuid", "string":
+				s = fmt.Sprintf("\"%s\" TEXT PRIMARY KEY", c.Name)
+			}
 		} else {
 			s = p.buildColumn(c)
 		}

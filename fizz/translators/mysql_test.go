@@ -41,15 +41,15 @@ CREATE UNIQUE INDEX version_idx ON schema_migrations (version);`
 func (p *MySQLSuite) Test_MySQL_CreateTable() {
 	r := p.Require()
 	ddl := `CREATE TABLE users (
-id integer NOT NULL AUTO_INCREMENT,
-PRIMARY KEY(id),
 created_at DATETIME NOT NULL,
 updated_at DATETIME NOT NULL,
 first_name VARCHAR (255) NOT NULL,
 last_name VARCHAR (255) NOT NULL,
 email VARCHAR (20) NOT NULL,
 permissions text,
-age integer DEFAULT 40
+age integer DEFAULT 40,
+id integer NOT NULL AUTO_INCREMENT,
+PRIMARY KEY(id)
 ) ENGINE=InnoDB;`
 
 	res, _ := fizz.AString(`
@@ -59,6 +59,33 @@ age integer DEFAULT 40
 		t.Column("email", "string", {"size":20})
 		t.Column("permissions", "text", {"null": true})
 		t.Column("age", "integer", {"null": true, "default": 40})
+	})
+	`, myt)
+	r.Equal(ddl, res)
+}
+
+func (p *MySQLSuite) Test_MySQL_CreateTable_UUID() {
+	r := p.Require()
+	ddl := `CREATE TABLE users (
+created_at DATETIME NOT NULL,
+updated_at DATETIME NOT NULL,
+first_name VARCHAR (255) NOT NULL,
+last_name VARCHAR (255) NOT NULL,
+email VARCHAR (20) NOT NULL,
+permissions text,
+age integer DEFAULT 40,
+uuid char(36) NOT NULL,
+PRIMARY KEY(uuid)
+) ENGINE=InnoDB;`
+
+	res, _ := fizz.AString(`
+	create_table("users", func(t) {
+		t.Column("first_name", "string", {})
+		t.Column("last_name", "string", {})
+		t.Column("email", "string", {"size":20})
+		t.Column("permissions", "text", {"null": true})
+		t.Column("age", "integer", {"null": true, "default": 40})
+		t.Column("uuid", "uuid", {"primary": true})
 	})
 	`, myt)
 	r.Equal(ddl, res)

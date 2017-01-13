@@ -1,11 +1,19 @@
 package fizz
 
-var ID_COL = Column{
+var INT_ID_COL = Column{
 	Name:    "id",
 	Primary: true,
 	ColType: "integer",
 	Options: Options{},
 }
+
+var UUID_ID_COL = Column{
+	Name:    "id",
+	Primary: true,
+	ColType: "uuid",
+	Options: Options{},
+}
+
 var CREATED_COL = Column{Name: "created_at", ColType: "timestamp", Options: Options{}}
 var UPDATED_COL = Column{Name: "updated_at", ColType: "timestamp", Options: Options{}}
 

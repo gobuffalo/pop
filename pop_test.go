@@ -9,10 +9,11 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/lib/pq"
 	"github.com/markbates/going/nulls"
+	"github.com/markbates/pop"
 	"github.com/markbates/validate"
 	"github.com/markbates/validate/validators"
-	"github.com/markbates/pop"
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/satori/go.uuid"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -94,6 +95,13 @@ type Friends []Friend
 
 type Enemy struct {
 	A string
+}
+
+type Song struct {
+	ID        uuid.UUID `db:"id"`
+	Title     string    `db:"title"`
+	CreatedAt time.Time `json:"created_at" db:"created_at"`
+	UpdatedAt time.Time `json:"updated_at" db:"updated_at"`
 }
 
 type ValidatableCar struct {

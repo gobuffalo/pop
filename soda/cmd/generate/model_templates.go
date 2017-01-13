@@ -35,7 +35,7 @@ func ({{char}} *{{model_name}}) Validate(tx *pop.Connection) (*validate.Errors, 
 	{{#if model.ValidatableAttributes }}
 	return validate.Validate(
 		{{#each model.ValidatableAttributes as |a|}}
-		&validators.{{capitalize a.GoType}}IsPresent{Field: p.{{a.Names.Proper}}, Name: "{{a.Names.Proper}}"},
+		&validators.{{capitalize a.GoType}}IsPresent{Field: {{char}}.{{a.Names.Proper}}, Name: "{{a.Names.Proper}}"},
 		{{/each}}
 	), nil
 	{{ else }}

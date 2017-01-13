@@ -163,6 +163,26 @@ func Test_Create(t *testing.T) {
 	})
 }
 
+func Test_Create_UUID(t *testing.T) {
+	transaction(func(tx *pop.Connection) {
+		a := require.New(t)
+
+		count, _ := tx.Count(&Song{})
+		song := Song{Title: "Automatic Buffalo"}
+		err := tx.Create(&song)
+		a.NoError(err)
+		a.NotZero(song.ID)
+
+		ctx, _ := tx.Count(&Song{})
+		a.Equal(count+1, ctx)
+
+		u := Song{}
+		q := tx.Where("title = ?", "Automatic Buffalo")
+		err = q.First(&u)
+		a.NoError(err)
+	})
+}
+
 func Test_Create_Timestamps(t *testing.T) {
 	transaction(func(tx *pop.Connection) {
 		a := require.New(t)
@@ -202,6 +222,27 @@ func Test_Update(t *testing.T) {
 	})
 }
 
+func Test_Update_UUID(t *testing.T) {
+	transaction(func(tx *pop.Connection) {
+		r := require.New(t)
+
+		song := Song{Title: "Automatic Buffalo"}
+		err := tx.Create(&song)
+		r.NoError(err)
+
+		r.NotZero(song.CreatedAt)
+		r.NotZero(song.UpdatedAt)
+
+		song.Title = "Hum"
+		err = tx.Update(&song)
+		r.NoError(err)
+
+		err = tx.Reload(&song)
+		r.NoError(err)
+		r.Equal("Hum", song.Title)
+	})
+}
+
 func Test_Destroy(t *testing.T) {
 	transaction(func(tx *pop.Connection) {
 		a := require.New(t)
@@ -220,5 +261,26 @@ func Test_Destroy(t *testing.T) {
 
 		ctx, _ = tx.Count("users")
 		a.Equal(count, ctx)
+	})
+}
+
+func Test_Destroy_UUID(t *testing.T) {
+	transaction(func(tx *pop.Connection) {
+		r := require.New(t)
+
+		count, err := tx.Count("songs")
+		song := Song{Title: "Automatic Buffalo"}
+		err = tx.Create(&song)
+		r.NoError(err)
+		r.NotZero(song.ID)
+
+		ctx, err := tx.Count("songs")
+		r.Equal(count+1, ctx)
+
+		err = tx.Destroy(&song)
+		r.NoError(err)
+
+		ctx, _ = tx.Count("songs")
+		r.Equal(count, ctx)
 	})
 }
