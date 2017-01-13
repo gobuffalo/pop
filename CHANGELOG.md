@@ -1,5 +1,12 @@
 # Change Log
 
+## [v3.11.0](https://github.com/markbates/pop/tree/v3.11.0) (2017-01-13)
+[Full Changelog](https://github.com/markbates/pop/compare/v3.10.1...v3.11.0)
+
+**Merged pull requests:**
+
+- UUID [\#18](https://github.com/markbates/pop/pull/18) ([markbates](https://github.com/markbates))
+
 ## [v3.10.1](https://github.com/markbates/pop/tree/v3.10.1) (2017-01-10)
 [Full Changelog](https://github.com/markbates/pop/compare/v3.10.0...v3.10.1)
 
@@ -63,13 +70,13 @@
 [Full Changelog](https://github.com/markbates/pop/compare/v3.5.1.1...v3.6.0)
 
 ## [v3.5.1.1](https://github.com/markbates/pop/tree/v3.5.1.1) (2016-08-26)
-[Full Changelog](https://github.com/markbates/pop/compare/v3.5.1...v3.5.1.1)
-
-## [v3.5.1](https://github.com/markbates/pop/tree/v3.5.1) (2016-08-26)
-[Full Changelog](https://github.com/markbates/pop/compare/v3.5.2...v3.5.1)
+[Full Changelog](https://github.com/markbates/pop/compare/v3.5.2...v3.5.1.1)
 
 ## [v3.5.2](https://github.com/markbates/pop/tree/v3.5.2) (2016-08-26)
-[Full Changelog](https://github.com/markbates/pop/compare/v3.5.0...v3.5.2)
+[Full Changelog](https://github.com/markbates/pop/compare/v3.5.1...v3.5.2)
+
+## [v3.5.1](https://github.com/markbates/pop/tree/v3.5.1) (2016-08-26)
+[Full Changelog](https://github.com/markbates/pop/compare/v3.5.0...v3.5.1)
 
 ## [v3.5.0](https://github.com/markbates/pop/tree/v3.5.0) (2016-08-25)
 [Full Changelog](https://github.com/markbates/pop/compare/v3.4.1...v3.5.0)
