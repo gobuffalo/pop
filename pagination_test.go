@@ -5,8 +5,8 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/markbates/going/nulls"
 	"github.com/markbates/pop"
+	"github.com/markbates/pop/nulls"
 	"github.com/stretchr/testify/require"
 )
 
