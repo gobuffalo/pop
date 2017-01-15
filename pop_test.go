@@ -8,8 +8,8 @@ import (
 
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/lib/pq"
-	"github.com/markbates/going/nulls"
 	"github.com/markbates/pop"
+	"github.com/markbates/pop/nulls"
 	"github.com/markbates/validate"
 	"github.com/markbates/validate/validators"
 	_ "github.com/mattn/go-sqlite3"
