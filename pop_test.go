@@ -13,6 +13,7 @@ import (
 	"github.com/markbates/validate"
 	"github.com/markbates/validate/validators"
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/satori/go.uuid"
 	"github.com/stretchr/testify/suite"
 )
 
