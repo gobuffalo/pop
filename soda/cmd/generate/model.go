@@ -24,7 +24,7 @@ func init() {
 	ModelCmd.Flags().BoolVarP(&skipMigration, "skip-migration", "s", false, "Skip creating a new fizz migration for this model.")
 }
 
-var nrx = regexp.MustCompile(`^nulls.(.+)`)
+var nrx = regexp.MustCompile(`^nulls\.(.+)`)
 
 type names struct {
 	Original string
