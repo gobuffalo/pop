@@ -124,6 +124,45 @@ $ soda drop -a
 $ soda drop -e development
 ```
 
+### Models
+
+The `soda` command support the generation of models.
+
+A full list of commands available for model generation can be found by asking for help:
+
+```bash
+$ soda generate help
+```
+
+#### Generate Models
+
+The `soda` command will generate Go models and, optionally, the associated migrations for you.
+
+```bash
+$ soda generate model user name:text email:text
+```
+
+Running this command with generate the following files:
+
+```text
+models/user.go
+models/user_test.go
+migrations/20170115024143_create_users.up.fizz
+migrations/20170115024143_create_users.down.fizz
+```
+
+The `models/user.go` file contains a structure named `User` with fields `ID`, `CreatedAt`, `UpdatedAt`, `Name`, and `Email`. The first three correspond to the columns commonly found in ActiveRecord models are mentioned before, and the last two correspond to the additional fields specified on the command line. The known types are:
+
+* `text` (`string` in Go)
+* `time` or `timestamp` (`time.Time`)
+* `nulls.Text` (`nulls.String`) which corresponds to a nullifyable string, which can be distinguished from an empty string
+* `uuid` (`uuid.UUID`)
+* Other types are passed thru and are used as [Fizz](./fizz/README.md) types.
+
+The `models/user_test.go` contains tests for the User model and they must be implemented by you.
+
+The other two files correspond to the migrations as explained below.
+
 ### Migrations
 
 The `soda` command supports the creation and running of migrations.
