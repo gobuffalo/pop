@@ -59,9 +59,12 @@ func init() {
 }
 
 func transaction(fn func(tx *pop.Connection)) {
-	PDB.Rollback(func(tx *pop.Connection) {
+	err := PDB.Rollback(func(tx *pop.Connection) {
 		fn(tx)
 	})
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 func ts(s string) string {
