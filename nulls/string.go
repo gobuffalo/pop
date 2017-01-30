@@ -26,7 +26,6 @@ func (ns *String) Scan(value interface{}) error {
 
 // Value implements the driver Valuer interface.
 func (ns String) Value() (driver.Value, error) {
-	ns.Valid = ns.String != ""
 	if !ns.Valid {
 		return nil, nil
 	}
