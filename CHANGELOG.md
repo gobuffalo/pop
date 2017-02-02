@@ -1,5 +1,20 @@
 # Change Log
 
+## [v3.11.1](https://github.com/markbates/pop/tree/v3.11.1) (2017-02-02)
+[Full Changelog](https://github.com/markbates/pop/compare/v3.11.0...v3.11.1)
+
+**Closed issues:**
+
+- Transaction wrapper for tests ignores Rollback result [\#26](https://github.com/markbates/pop/issues/26)
+
+**Merged pull requests:**
+
+- Distinguish between empty strings and NULL \(?\) [\#28](https://github.com/markbates/pop/pull/28) ([hyPiRion](https://github.com/hyPiRion))
+- Mem patch 3 [\#24](https://github.com/markbates/pop/pull/24) ([markbates](https://github.com/markbates))
+- Update import path for nulls [\#23](https://github.com/markbates/pop/pull/23) ([mem](https://github.com/mem))
+- Add soda generate model documentation to README.md [\#22](https://github.com/markbates/pop/pull/22) ([mem](https://github.com/mem))
+- Escape . in nrx regexp [\#21](https://github.com/markbates/pop/pull/21) ([mem](https://github.com/mem))
+
 ## [v3.11.0](https://github.com/markbates/pop/tree/v3.11.0) (2017-01-13)
 [Full Changelog](https://github.com/markbates/pop/compare/v3.10.1...v3.11.0)
 
@@ -70,13 +85,13 @@
 [Full Changelog](https://github.com/markbates/pop/compare/v3.5.1.1...v3.6.0)
 
 ## [v3.5.1.1](https://github.com/markbates/pop/tree/v3.5.1.1) (2016-08-26)
-[Full Changelog](https://github.com/markbates/pop/compare/v3.5.2...v3.5.1.1)
-
-## [v3.5.2](https://github.com/markbates/pop/tree/v3.5.2) (2016-08-26)
-[Full Changelog](https://github.com/markbates/pop/compare/v3.5.1...v3.5.2)
+[Full Changelog](https://github.com/markbates/pop/compare/v3.5.1...v3.5.1.1)
 
 ## [v3.5.1](https://github.com/markbates/pop/tree/v3.5.1) (2016-08-26)
-[Full Changelog](https://github.com/markbates/pop/compare/v3.5.0...v3.5.1)
+[Full Changelog](https://github.com/markbates/pop/compare/v3.5.2...v3.5.1)
+
+## [v3.5.2](https://github.com/markbates/pop/tree/v3.5.2) (2016-08-26)
+[Full Changelog](https://github.com/markbates/pop/compare/v3.5.0...v3.5.2)
 
 ## [v3.5.0](https://github.com/markbates/pop/tree/v3.5.0) (2016-08-25)
 [Full Changelog](https://github.com/markbates/pop/compare/v3.4.1...v3.5.0)
