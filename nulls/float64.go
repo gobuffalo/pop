@@ -11,6 +11,10 @@ import (
 // that supports proper JSON encoding/decoding.
 type Float64 sql.NullFloat64
 
+func (ns Float64) Interface() interface{} {
+	return ns.Float64
+}
+
 // NewFloat64 returns a new, properly instantiated
 // Float64 object.
 func NewFloat64(i float64) Float64 {

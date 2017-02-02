@@ -11,6 +11,10 @@ import (
 // that supports proper JSON encoding/decoding.
 type Int64 sql.NullInt64
 
+func (ns Int64) Interface() interface{} {
+	return ns.Int64
+}
+
 // NewInt64 returns a new, properly instantiated
 // Int64 object.
 func NewInt64(i int64) Int64 {

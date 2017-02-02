@@ -14,6 +14,10 @@ type Float32 struct {
 	Valid   bool // Valid is true if Float32 is not NULL
 }
 
+func (ns Float32) Interface() interface{} {
+	return ns.Float32
+}
+
 // NewFloat32 returns a new, properly instantiated
 // Float32 object.
 func NewFloat32(i float32) Float32 {

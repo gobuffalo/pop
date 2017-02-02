@@ -14,6 +14,10 @@ type ByteSlice struct {
 	Valid     bool // Valid is true if ByteSlice is not NULL
 }
 
+func (ns ByteSlice) Interface() interface{} {
+	return ns.ByteSlice
+}
+
 // NewByteSlice returns a new, properly instantiated
 // ByteSlice object.
 func NewByteSlice(b []byte) ByteSlice {

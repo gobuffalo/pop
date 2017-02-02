@@ -10,6 +10,10 @@ import (
 // that supports proper JSON encoding/decoding.
 type String sql.NullString
 
+func (ns String) Interface() interface{} {
+	return ns.String
+}
+
 // NewString returns a new, properly instantiated
 // String object.
 func NewString(s string) String {
