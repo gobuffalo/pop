@@ -1,5 +1,12 @@
 # Change Log
 
+## [v3.11.3](https://github.com/markbates/pop/tree/v3.11.3) (2017-02-04)
+[Full Changelog](https://github.com/markbates/pop/compare/v3.11.2...v3.11.3)
+
+**Merged pull requests:**
+
+- Avoid wrapping mysql table names in strings [\#29](https://github.com/markbates/pop/pull/29) ([r-butler](https://github.com/r-butler))
+
 ## [v3.11.2](https://github.com/markbates/pop/tree/v3.11.2) (2017-02-03)
 [Full Changelog](https://github.com/markbates/pop/compare/v3.11.1...v3.11.2)
 
@@ -88,13 +95,13 @@
 [Full Changelog](https://github.com/markbates/pop/compare/v3.5.1.1...v3.6.0)
 
 ## [v3.5.1.1](https://github.com/markbates/pop/tree/v3.5.1.1) (2016-08-26)
-[Full Changelog](https://github.com/markbates/pop/compare/v3.5.2...v3.5.1.1)
-
-## [v3.5.2](https://github.com/markbates/pop/tree/v3.5.2) (2016-08-26)
-[Full Changelog](https://github.com/markbates/pop/compare/v3.5.1...v3.5.2)
+[Full Changelog](https://github.com/markbates/pop/compare/v3.5.1...v3.5.1.1)
 
 ## [v3.5.1](https://github.com/markbates/pop/tree/v3.5.1) (2016-08-26)
-[Full Changelog](https://github.com/markbates/pop/compare/v3.5.0...v3.5.1)
+[Full Changelog](https://github.com/markbates/pop/compare/v3.5.2...v3.5.1)
+
+## [v3.5.2](https://github.com/markbates/pop/tree/v3.5.2) (2016-08-26)
+[Full Changelog](https://github.com/markbates/pop/compare/v3.5.0...v3.5.2)
 
 ## [v3.5.0](https://github.com/markbates/pop/tree/v3.5.0) (2016-08-25)
 [Full Changelog](https://github.com/markbates/pop/compare/v3.4.1...v3.5.0)
