@@ -48,14 +48,14 @@ func (p *MySQL) CreateTable(t fizz.Table) (string, error) {
 }
 
 func (p *MySQL) DropTable(t fizz.Table) (string, error) {
-	return fmt.Sprintf("DROP TABLE \"%s\";", t.Name), nil
+	return fmt.Sprintf("DROP TABLE %s;", t.Name), nil
 }
 
 func (p *MySQL) RenameTable(t []fizz.Table) (string, error) {
 	if len(t) < 2 {
 		return "", errors.New("Not enough table names supplied!")
 	}
-	return fmt.Sprintf("ALTER TABLE \"%s\" RENAME TO \"%s\";", t[0].Name, t[1].Name), nil
+	return fmt.Sprintf("ALTER TABLE %s RENAME TO %s;", t[0].Name, t[1].Name), nil
 }
 
 func (p *MySQL) AddColumn(t fizz.Table) (string, error) {

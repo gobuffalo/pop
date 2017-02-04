@@ -94,7 +94,7 @@ PRIMARY KEY(uuid)
 func (p *MySQLSuite) Test_MySQL_DropTable() {
 	r := p.Require()
 
-	ddl := `DROP TABLE "users";`
+	ddl := `DROP TABLE users;`
 
 	res, _ := fizz.AString(`drop_table("users")`, myt)
 	r.Equal(ddl, res)
@@ -103,7 +103,7 @@ func (p *MySQLSuite) Test_MySQL_DropTable() {
 func (p *MySQLSuite) Test_MySQL_RenameTable() {
 	r := p.Require()
 
-	ddl := `ALTER TABLE "users" RENAME TO "people";`
+	ddl := `ALTER TABLE users RENAME TO people;`
 
 	res, _ := fizz.AString(`rename_table("users", "people")`, myt)
 	r.Equal(ddl, res)
