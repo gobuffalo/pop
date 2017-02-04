@@ -3,14 +3,12 @@ package generate
 const modelTemplate = `package {{package_name}}
 
 import (
-	{{#each model.Imports as |i|}}
-	"{{i}}"
+	{{#each model.Imports as |i|}}"{{i}}"
 	{{/each}}
 )
 
 type {{model_name}} struct {
-	{{#each model.Attributes as |a|}}
-	{{a}}
+	{{#each model.Attributes as |a|}}{{a}}
 	{{/each}}
 }
 
@@ -35,8 +33,7 @@ func ({{char}} *{{model_name}}) Validate(tx *pop.Connection) (*validate.Errors, 
 	{{#if model.ValidatableAttributes }}
 	return validate.Validate(
 		{{#each model.ValidatableAttributes as |a|}}
-		&validators.{{capitalize a.GoType}}IsPresent{Field: {{char}}.{{a.Names.Proper}}, Name: "{{a.Names.Proper}}"},
-		{{/each}}
+		&validators.{{capitalize a.GoType}}IsPresent{Field: {{char}}.{{a.Names.Proper}}, Name: "{{a.Names.Proper}}"},{{/each}}
 	), nil
 	{{ else }}
 		return validate.NewErrors(), nil
