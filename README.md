@@ -11,7 +11,7 @@ Pop, by default, follows conventions that were defined by the ActiveRecord Ruby 
 * Tables must have an "id" column and a corresponding "ID" field on the `struct` being used.
 * If there is a timestamp column named "created_at", "CreatedAt" on the `struct`, it will be set with the current time when the record is created.
 * If there is a timestamp column named "updated_at", "UpdatedAt" on the `struct`, it will be set with the current time when the record is updated.
-* Default databases are lowercase, plural, and underscored versions of the `struct` name. Examples: User{} is "users", FooBar{} is "foo_bars", etc...
+* Default database table names are lowercase, plural, and underscored versions of the `struct` name. Examples: User{} is "users", FooBar{} is "foo_bars", etc...
 
 ## Supported Databases
 
@@ -53,7 +53,7 @@ production:
 
 Note that the `database.yml` file is also a Go template, so you can use Go template syntax. There are two special functions that are included, `env` and `envOr`.
 
-* `env` - This function will look for the named environment variable and insert it into your file. This is useful for configuration production databases without having to store secret information in your repository. `{{ env "DATABASE_URL" }}`
+* `env` - This function will look for the named environment variable and insert it into your file. This is useful for configuring production databases without having to store secret information in your repository. `{{ env "DATABASE_URL" }}`
 * `envOr` - This function will look for the named environment variable and use it. If the variable can not be found a default value will be used. `{{ envOr "MYSQL_HOST" "localhost" }}`
 
 You can generate a default configuration file using the `init` command:
@@ -79,7 +79,7 @@ Now that you have your connection to the database you can start executing querie
 
 ## CLI Support
 
-Pop features CLI support via the `soda` for the following operations:
+Pop features CLI support via the `soda` command for the following operations:
 
 * creating databases
 * dropping databases
@@ -126,7 +126,7 @@ $ soda drop -e development
 
 ### Models
 
-The `soda` command support the generation of models.
+The `soda` command supports the generation of models.
 
 A full list of commands available for model generation can be found by asking for help:
 
@@ -151,7 +151,7 @@ migrations/20170115024143_create_users.up.fizz
 migrations/20170115024143_create_users.down.fizz
 ```
 
-The `models/user.go` file contains a structure named `User` with fields `ID`, `CreatedAt`, `UpdatedAt`, `Name`, and `Email`. The first three correspond to the columns commonly found in ActiveRecord models are mentioned before, and the last two correspond to the additional fields specified on the command line. The known types are:
+The `models/user.go` file contains a structure named `User` with fields `ID`, `CreatedAt`, `UpdatedAt`, `Name`, and `Email`. The first three correspond to the columns commonly found in ActiveRecord models as mentioned before, and the last two correspond to the additional fields specified on the command line. The known types are:
 
 * `text` (`string` in Go)
 * `time` or `timestamp` (`time.Time`)
@@ -215,7 +215,7 @@ $ soda migrate up
 
 Migrations will be run in sequential order. The previously run migrations will be kept track of in a table named `schema_migrations` in the database.
 
-Migrations can also be run reverse to rollback the schema.
+Migrations can also be run in reverse to rollback the schema.
 
 ```bash
 $ soda migrate down
