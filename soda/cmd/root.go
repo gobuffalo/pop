@@ -19,7 +19,7 @@ var RootCmd = &cobra.Command{
 	Aliases: []string{"db"},
 	Short:   "A tasty treat for all your database needs",
 	PersistentPreRun: func(c *cobra.Command, args []string) {
-		fmt.Printf("Soda v%s\n\n", Version)
+		fmt.Printf("v%s\n\n", Version)
 		env = defaults.String(os.Getenv("GO_ENV"), env)
 		setConfigLocation()
 	},
