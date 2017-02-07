@@ -1,8 +1,11 @@
 package pop
 
 import (
-	"github.com/markbates/validate"
+	"fmt"
+
 	. "github.com/markbates/pop/columns"
+	"github.com/markbates/validate"
+	uuid "github.com/satori/go.uuid"
 )
 
 func (c *Connection) Reload(model interface{}) error {
@@ -31,9 +34,12 @@ func (c *Connection) ValidateAndSave(model interface{}, excludeColumns ...string
 	return verrs, c.Save(model, excludeColumns...)
 }
 
+var emptyUUID = uuid.Nil.String()
+
 func (c *Connection) Save(model interface{}, excludeColumns ...string) error {
 	sm := &Model{Value: model}
-	if sm.ID() == 0 {
+	id := sm.ID()
+	if id == 0 || (fmt.Sprint(id) == emptyUUID) {
 		return c.Create(model, excludeColumns...)
 	} else {
 		return c.Update(model, excludeColumns...)
