@@ -7,9 +7,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
-	"os/exec"
 	"path/filepath"
-	"strings"
 
 	"github.com/pkg/errors"
 
@@ -21,6 +19,14 @@ var lookupPaths = []string{"", "./config", "/config", "../", "../config", "../..
 var ConfigName = "database.yml"
 
 func init() {
+	ap := os.Getenv("APP_PATH")
+	if ap != "" {
+		AddLookupPaths(ap)
+	}
+	ap = os.Getenv("POP_PATH")
+	if ap != "" {
+		AddLookupPaths(ap)
+	}
 	LoadConfig()
 }
 
@@ -52,18 +58,6 @@ func findConfigPath() (string, error) {
 		}
 	}
 	return "", errors.New("[POP]: Tried to load configuration file, but couldn't find it.")
-}
-
-func getAppPath() (string, error) {
-	pwd := os.Getenv("APP_PATH")
-	if pwd == "" {
-		b, err := exec.Command("pwd").Output()
-		if err != nil {
-			return "", errors.Wrap(err, "couldn't get the current directory")
-		}
-		pwd = string(b)
-	}
-	return strings.TrimSuffix(pwd, "\n"), nil
 }
 
 func loadConfig(path string) error {
