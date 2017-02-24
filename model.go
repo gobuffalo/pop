@@ -98,7 +98,7 @@ func (m *Model) ID() interface{} {
 func (m *Model) PrimaryKeyType() string {
 	fbn, err := m.fieldByName("ID")
 	if err != nil {
-		return "integer"
+		return "int"
 	}
 	return fbn.Type().Name()
 }
