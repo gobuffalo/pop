@@ -12,7 +12,7 @@ var dropCmd = &cobra.Command{
 	Short: "Drops databases for you",
 	Run: func(cmd *cobra.Command, args []string) {
 		if all {
-			for _, conn := range pop.Connections {
+			for _, conn := range connections {
 				pop.DropDB(conn)
 			}
 		} else {

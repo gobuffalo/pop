@@ -13,7 +13,7 @@ var createCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		var err error
 		if all {
-			for _, conn := range pop.Connections {
+			for _, conn := range connections {
 				err = pop.CreateDB(conn)
 				if err != nil {
 					fmt.Println(err)

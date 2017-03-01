@@ -10,9 +10,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-// Connections contains all of the available connections
-var Connections = map[string]*Connection{}
-
 // Connection represents all of the necessary details for
 // talking with a datastore
 type Connection struct {
