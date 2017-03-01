@@ -28,6 +28,7 @@ func init() {
 	}
 }
 
+// LoadConfig loads the configuration file and resets all of the connections pop knows about
 func LoadConfig() (map[string]*Connection, error) {
 	path, err := findConfigPath()
 	if err != nil {
