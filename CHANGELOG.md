@@ -1,5 +1,18 @@
 # Change Log
 
+## [v3.11.4](https://github.com/markbates/pop/tree/v3.11.4) (2017-03-01)
+[Full Changelog](https://github.com/markbates/pop/compare/v3.11.3...v3.11.4)
+
+**Closed issues:**
+
+- Generated model with a name beginning with "b" fails to compile [\#38](https://github.com/markbates/pop/issues/38)
+
+**Merged pull requests:**
+
+- Fixed issue \#38. [\#39](https://github.com/markbates/pop/pull/39) ([stanislas-m](https://github.com/stanislas-m))
+- Fix model.PrimaryKeyType returning invalid type if ID column not found [\#36](https://github.com/markbates/pop/pull/36) ([SheepGoesBaa](https://github.com/SheepGoesBaa))
+- Typo fixes in README [\#30](https://github.com/markbates/pop/pull/30) ([srt32](https://github.com/srt32))
+
 ## [v3.11.3](https://github.com/markbates/pop/tree/v3.11.3) (2017-02-04)
 [Full Changelog](https://github.com/markbates/pop/compare/v3.11.2...v3.11.3)
 
