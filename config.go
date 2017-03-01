@@ -17,7 +17,7 @@ import (
 var lookupPaths = []string{"", "./config", "/config", "../", "../config", "../..", "../../config"}
 var ConfigName = "database.yml"
 
-func LoadConfig() (map[string]*Connection, error) {
+func init() {
 	ap := os.Getenv("APP_PATH")
 	if ap != "" {
 		AddLookupPaths(ap)
@@ -26,39 +26,18 @@ func LoadConfig() (map[string]*Connection, error) {
 	if ap != "" {
 		AddLookupPaths(ap)
 	}
+}
 
+func LoadConfig() (map[string]*Connection, error) {
 	path, err := findConfigPath()
 	if err != nil {
 		return nil, err
 	}
 
-	connections, err = loadConfig(path)
-	return connections, err
-}
-
-func LookupPaths() []string {
-	return lookupPaths
-}
-
-func AddLookupPaths(paths ...string) {
-	lookupPaths = append(paths, lookupPaths...)
-	LoadConfig()
-}
-
-func findConfigPath() (string, error) {
-	for _, p := range LookupPaths() {
-		path, _ := filepath.Abs(filepath.Join(p, ConfigName))
-		if _, err := os.Stat(path); err == nil {
-			return path, err
-		}
-	}
-	return "", errors.New("[POP]: Tried to load configuration file, but couldn't find it.")
-}
-
-func loadConfig(path string) (map[string]*Connection, error) {
 	if Debug {
 		fmt.Printf("[POP]: Loading config file from %s\n", path)
 	}
+
 	b, err := ioutil.ReadFile(path)
 	if err != nil {
 		return nil, errors.Wrapf(err, "couldn't read file %s", path)
@@ -90,7 +69,7 @@ func loadConfig(path string) (map[string]*Connection, error) {
 		return nil, errors.Wrap(err, "couldn't unmarshal config to yaml")
 	}
 
-	connections := make(map[string]*Connection)
+	connections = make(map[string]*Connection)
 	for n, d := range deets {
 		con, err := NewConnection(d)
 		if err != nil {
@@ -99,4 +78,23 @@ func loadConfig(path string) (map[string]*Connection, error) {
 		connections[n] = con
 	}
 	return connections, nil
+}
+
+func LookupPaths() []string {
+	return lookupPaths
+}
+
+func AddLookupPaths(paths ...string) {
+	lookupPaths = append(paths, lookupPaths...)
+	LoadConfig()
+}
+
+func findConfigPath() (string, error) {
+	for _, p := range LookupPaths() {
+		path, _ := filepath.Abs(filepath.Join(p, ConfigName))
+		if _, err := os.Stat(path); err == nil {
+			return path, err
+		}
+	}
+	return "", errors.New("[POP]: Tried to load configuration file, but couldn't find it.")
 }
