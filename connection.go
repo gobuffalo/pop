@@ -57,17 +57,22 @@ func NewConnection(deets *ConnectionDetails) (*Connection, error) {
 }
 
 // Connect takes the name of a connection, default is "development", and will
-// return that connection from the available `Connections`. If a connection with
-// that name can not be found an error will be returned. If a connection is
-// found, and it has yet to open a connection with its underlying datastore,
-// a connection to that store will be opened.
+// return that connection from the available `Connections` (which will be
+// read from 'database.yml').
+// If a connection with that name can not be found an error will be returned.
+// If a connection is found, and it has yet to open a connection with its
+// underlying datastore, a connection to that store will be opened.
 func Connect(e string) (*Connection, error) {
+	conns, err := LoadConfig()
+	if err != nil {
+		return nil, err
+	}
 	e = defaults.String(e, "development")
-	c := Connections[e]
+	c := conns[e]
 	if c == nil {
 		return c, errors.Errorf("Could not find connection named %s!", e)
 	}
-	err := c.Open()
+	err = c.Open()
 	return c, errors.Wrapf(err, "couldn't open connection for %s", e)
 }
 

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"html/template"
 	"io/ioutil"
-	"log"
 	"os"
 	"path/filepath"
 
@@ -18,7 +17,7 @@ import (
 var lookupPaths = []string{"", "./config", "/config", "../", "../config", "../..", "../../config"}
 var ConfigName = "database.yml"
 
-func init() {
+func LoadConfig() (map[string]*Connection, error) {
 	ap := os.Getenv("APP_PATH")
 	if ap != "" {
 		AddLookupPaths(ap)
@@ -27,18 +26,13 @@ func init() {
 	if ap != "" {
 		AddLookupPaths(ap)
 	}
-	LoadConfig()
-}
 
-func LoadConfig() {
 	path, err := findConfigPath()
-	if err == nil {
-		Connections = map[string]*Connection{}
-		err = loadConfig(path)
-		if err != nil {
-			log.Fatal(err)
-		}
+	if err != nil {
+		return nil, err
 	}
+
+	return loadConfig(path)
 }
 
 func LookupPaths() []string {
@@ -60,13 +54,13 @@ func findConfigPath() (string, error) {
 	return "", errors.New("[POP]: Tried to load configuration file, but couldn't find it.")
 }
 
-func loadConfig(path string) error {
+func loadConfig(path string) (map[string]*Connection, error) {
 	if Debug {
 		fmt.Printf("[POP]: Loading config file from %s\n", path)
 	}
 	b, err := ioutil.ReadFile(path)
 	if err != nil {
-		return errors.Wrapf(err, "couldn't read file %s", path)
+		return nil, errors.Wrapf(err, "couldn't read file %s", path)
 	}
 
 	tmpl := template.New("test")
@@ -80,26 +74,28 @@ func loadConfig(path string) error {
 	})
 	t, err := tmpl.Parse(string(b))
 	if err != nil {
-		return errors.Wrap(err, "couldn't parse config template")
+		return nil, errors.Wrap(err, "couldn't parse config template")
 	}
 
 	var bb bytes.Buffer
 	err = t.Execute(&bb, nil)
 	if err != nil {
-		return errors.Wrap(err, "couldn't execute config template")
+		return nil, errors.Wrap(err, "couldn't execute config template")
 	}
 
 	deets := map[string]*ConnectionDetails{}
 	err = yaml.Unmarshal(bb.Bytes(), &deets)
 	if err != nil {
-		return errors.Wrap(err, "couldn't unmarshal config to yaml")
+		return nil, errors.Wrap(err, "couldn't unmarshal config to yaml")
 	}
+
+	connections := make(map[string]*Connection)
 	for n, d := range deets {
 		con, err := NewConnection(d)
 		if err != nil {
-			return err
+			return nil, err
 		}
-		Connections[n] = con
+		connections[n] = con
 	}
-	return nil
+	return connections, nil
 }

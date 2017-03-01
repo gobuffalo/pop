@@ -10,7 +10,8 @@ import (
 func Test_LoadsConnectionsFromConfig(t *testing.T) {
 	r := require.New(t)
 
-	conns := pop.Connections
+	conns, err := pop.LoadConfig()
+	r.Equal(nil, err)
 	r.Equal(4, len(conns))
 }
 
