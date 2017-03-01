@@ -32,7 +32,8 @@ func LoadConfig() (map[string]*Connection, error) {
 		return nil, err
 	}
 
-	return loadConfig(path)
+	connections, err = loadConfig(path)
+	return connections, err
 }
 
 func LookupPaths() []string {
