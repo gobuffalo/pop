@@ -15,6 +15,9 @@ type Float32 struct {
 }
 
 func (ns Float32) Interface() interface{} {
+	if !ns.Valid {
+		return nil
+	}
 	return ns.Float32
 }
 

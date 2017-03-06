@@ -15,6 +15,9 @@ type Int32 struct {
 }
 
 func (ns Int32) Interface() interface{} {
+	if !ns.Valid {
+		return nil
+	}
 	return ns.Int32
 }
 

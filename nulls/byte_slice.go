@@ -15,6 +15,9 @@ type ByteSlice struct {
 }
 
 func (ns ByteSlice) Interface() interface{} {
+	if !ns.Valid {
+		return nil
+	}
 	return ns.ByteSlice
 }
 

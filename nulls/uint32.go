@@ -15,6 +15,9 @@ type UInt32 struct {
 }
 
 func (ns UInt32) Interface() interface{} {
+	if !ns.Valid {
+		return nil
+	}
 	return ns.UInt32
 }
 

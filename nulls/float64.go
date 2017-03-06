@@ -12,6 +12,9 @@ import (
 type Float64 sql.NullFloat64
 
 func (ns Float64) Interface() interface{} {
+	if !ns.Valid {
+		return nil
+	}
 	return ns.Float64
 }
 

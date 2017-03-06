@@ -14,6 +14,9 @@ type Bool struct {
 }
 
 func (ns Bool) Interface() interface{} {
+	if !ns.Valid {
+		return nil
+	}
 	return ns.Bool
 }
 

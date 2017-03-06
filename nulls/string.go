@@ -11,6 +11,9 @@ import (
 type String sql.NullString
 
 func (ns String) Interface() interface{} {
+	if !ns.Valid {
+		return nil
+	}
 	return ns.String
 }
 

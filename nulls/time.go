@@ -14,6 +14,9 @@ type Time struct {
 }
 
 func (ns Time) Interface() interface{} {
+	if !ns.Valid {
+		return nil
+	}
 	return ns.Time
 }
 

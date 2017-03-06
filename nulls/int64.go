@@ -12,6 +12,9 @@ import (
 type Int64 sql.NullInt64
 
 func (ns Int64) Interface() interface{} {
+	if !ns.Valid {
+		return nil
+	}
 	return ns.Int64
 }
 
