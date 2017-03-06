@@ -2,14 +2,12 @@ package generate
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"regexp"
 	"strings"
 
-	"github.com/gobuffalo/velvet"
+	"github.com/gobuffalo/makr"
 	"github.com/pkg/errors"
 
 	"github.com/markbates/going/defaults"
@@ -66,61 +64,20 @@ type model struct {
 }
 
 func (m model) Generate() error {
-	ctx := velvet.NewContext()
-	ctx.Set("model", m)
-	ctx.Set("plural_model_name", m.Names.Plural)
-	ctx.Set("model_name", m.Names.Proper)
-	ctx.Set("package_name", m.Package)
-	ctx.Set("char", m.Names.Char)
+	g := makr.New()
+	ctx := makr.Data{}
+	ctx["model"] = m
+	ctx["plural_model_name"] = m.Names.Plural
+	ctx["model_name"] = m.Names.Proper
+	ctx["package_name"] = m.Package
+	ctx["char"] = m.Names.Char
 
 	fname := filepath.Join(m.Package, m.Names.File+".go")
-	err := writeGoFile(fname, modelTemplate, ctx)
-	if err != nil {
-		return err
-	}
-
+	g.Add(makr.NewFile(fname, modelTemplate))
 	tfname := filepath.Join(m.Package, m.Names.File+"_test.go")
-	return writeGoFile(tfname, modelTestTemplate, ctx)
-}
-
-func writeGoFile(path string, template string, ctx *velvet.Context) error {
-	err := writeFile(path, template, ctx)
-	if err != nil {
-		return err
-	}
-	cname := "gofmt"
-	_, err = exec.LookPath("goimports")
-	if err == nil {
-		cname = "goimports"
-	}
-	md, _ := filepath.Abs(path)
-	goi := exec.Command(cname, "-w", md)
-	goi.Stdin = os.Stdin
-	goi.Stderr = os.Stderr
-	goi.Stdout = os.Stdout
-	return goi.Run()
-}
-
-func writeFile(path string, template string, ctx *velvet.Context) error {
-	s, err := render(template, ctx)
-	if err != nil {
-		return err
-	}
-	err = ioutil.WriteFile(path, []byte(s), 0666)
-	if err != nil {
-		return errors.Wrapf(err, "couldn't write to file %s", path)
-	}
-	fmt.Printf("> %s\n", path)
-	return nil
-}
-
-func render(t string, ctx *velvet.Context) (string, error) {
-	s, err := velvet.Render(t, ctx)
-	if err != nil {
-		return s, errors.WithStack(err)
-	}
-	s = strings.Replace(s, "&#34;", "\"", -1)
-	return s, nil
+	g.Add(makr.NewFile(tfname, modelTestTemplate))
+	g.Add(makr.NewCommand(makr.GoFmt()))
+	return g.Run(".", ctx)
 }
 
 func (m model) Fizz() string {

@@ -5,7 +5,7 @@ import (
 	"path"
 	"strings"
 
-	"github.com/markbates/gentronics"
+	"github.com/gobuffalo/makr"
 	"github.com/markbates/going/defaults"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -38,8 +38,8 @@ var ConfigCmd = &cobra.Command{
 func GenerateConfig(cfgFile string, data map[string]interface{}) error {
 	dialect = strings.ToLower(data["dialect"].(string))
 	if t, ok := configTemplates[dialect]; ok {
-		g := gentronics.New()
-		g.Add(gentronics.NewFile(cfgFile, t))
+		g := makr.New()
+		g.Add(makr.NewFile(cfgFile, t))
 		return g.Run(".", data)
 	}
 	return errors.Errorf("Could not initialize %s!", dialect)

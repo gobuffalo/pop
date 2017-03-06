@@ -1,63 +1,66 @@
 package generate
 
-const modelTemplate = `package {{package_name}}
+const modelTemplate = `package {{.package_name}}
 
 import (
-	{{#each model.Imports as |i|}}"{{i}}"
-	{{/each}}
+	{{range $i := .model.Imports -}}
+	"{{$i}}"
+	{{end}}
 )
 
-type {{model_name}} struct {
-	{{#each model.Attributes as |a|}}{{a}}
-	{{/each}}
+type {{.model_name}} struct {
+	{{range $a := .model.Attributes -}}
+	{{$a}}
+	{{end -}}
 }
 
 // String is not required by pop and may be deleted
-func ({{char}} {{model_name}}) String() string {
-	j{{char}}, _ := json.Marshal({{char}})
-	return string(j{{char}})
+func ({{.char}} {{.model_name}}) String() string {
+	j{{.char}}, _ := json.Marshal({{.char}})
+	return string(j{{.char}})
 }
 
-// {{plural_model_name}} is not required by pop and may be deleted
-type {{plural_model_name}} []{{model_name}}
+// {{.plural_model_name}} is not required by pop and may be deleted
+type {{.plural_model_name}} []{{.model_name}}
 
 // String is not required by pop and may be deleted
-func ({{char}} {{plural_model_name}}) String() string {
-	j{{char}}, _ := json.Marshal({{char}})
-	return string(j{{char}})
+func ({{.char}} {{.plural_model_name}}) String() string {
+	j{{.char}}, _ := json.Marshal({{.char}})
+	return string(j{{.char}})
 }
 
 // Validate gets run everytime you call a "pop.Validate" method.
 // This method is not required and may be deleted.
-func ({{char}} *{{model_name}}) Validate(tx *pop.Connection) (*validate.Errors, error) {
-	{{#if model.ValidatableAttributes }}
+func ({{.char}} *{{.model_name}}) Validate(tx *pop.Connection) (*validate.Errors, error) {
+	{{ if .model.ValidatableAttributes -}}
 	return validate.Validate(
-		{{#each model.ValidatableAttributes as |a|}}
-		&validators.{{capitalize a.GoType}}IsPresent{Field: {{char}}.{{a.Names.Proper}}, Name: "{{a.Names.Proper}}"},{{/each}}
+		{{ range $a := .model.ValidatableAttributes -}}
+		&validators.{{capitalize $a.GoType}}IsPresent{Field: {{$.char}}.{{$a.Names.Proper}}, Name: "{{$a.Names.Proper}}"},
+		{{end -}}
 	), nil
-	{{ else }}
+	{{ else -}}
 		return validate.NewErrors(), nil
-	{{/if}}
+	{{ end -}}
 }
 
 // ValidateSave gets run everytime you call "pop.ValidateSave" method.
 // This method is not required and may be deleted.
-func ({{char}} *{{model_name}}) ValidateSave(tx *pop.Connection) (*validate.Errors, error) {
+func ({{.char}} *{{.model_name}}) ValidateSave(tx *pop.Connection) (*validate.Errors, error) {
 	return validate.NewErrors(), nil
 }
 
 // ValidateUpdate gets run everytime you call "pop.ValidateUpdate" method.
 // This method is not required and may be deleted.
-func ({{char}} *{{model_name}}) ValidateUpdate(tx *pop.Connection) (*validate.Errors, error) {
+func ({{.char}} *{{.model_name}}) ValidateUpdate(tx *pop.Connection) (*validate.Errors, error) {
 	return validate.NewErrors(), nil
 }
 `
 
-const modelTestTemplate = `package {{package_name}}_test
+const modelTestTemplate = `package {{.package_name}}_test
 
 import "testing"
 
-func Test_{{model_name}}(t *testing.T) {
+func Test_{{.model_name}}(t *testing.T) {
 	t.Fatal("This test needs to be implemented!")
 }
 `
