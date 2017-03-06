@@ -1,5 +1,19 @@
 # Change Log
 
+## [v3.11.5](https://github.com/markbates/pop/tree/v3.11.5) (2017-03-06)
+[Full Changelog](https://github.com/markbates/pop/compare/v3.12.0...v3.11.5)
+
+**Closed issues:**
+
+- Panic running soda config [\#44](https://github.com/markbates/pop/issues/44)
+
+## [v3.12.0](https://github.com/markbates/pop/tree/v3.12.0) (2017-03-01)
+[Full Changelog](https://github.com/markbates/pop/compare/v3.11.4...v3.12.0)
+
+**Merged pull requests:**
+
+- Xela rellum xela rellum/remove connections singleton 2 [\#42](https://github.com/markbates/pop/pull/42) ([markbates](https://github.com/markbates))
+
 ## [v3.11.4](https://github.com/markbates/pop/tree/v3.11.4) (2017-03-01)
 [Full Changelog](https://github.com/markbates/pop/compare/v3.11.3...v3.11.4)
 
