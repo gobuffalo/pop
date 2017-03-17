@@ -2,6 +2,8 @@ package cmd
 
 import "github.com/spf13/cobra"
 
+var migrationStep int
+
 var migrateDownCmd = &cobra.Command{
 	Use:   "down",
 	Short: "Apply one or more of the 'down' migrations.",
@@ -13,5 +15,5 @@ var migrateDownCmd = &cobra.Command{
 
 func init() {
 	migrateCmd.AddCommand(migrateDownCmd)
-	RootCmd.Flags().IntVarP(&migrationStep, "step", "s", 1, "Number of migration to down")
+	migrateDownCmd.Flags().IntVarP(&migrationStep, "step", "s", 1, "Number of migration to down")
 }

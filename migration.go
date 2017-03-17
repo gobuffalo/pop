@@ -82,7 +82,7 @@ func (c *Connection) MigrateUp(path string) error {
 			fmt.Printf("> %s\n", m.FileName)
 		}
 		return err
-	}, 0)
+	}, -1)
 }
 
 func (c *Connection) MigrateDown(path string, step int) error {
@@ -165,15 +165,8 @@ func findMigrations(dir string, direction string, fn func(migrationFile) error, 
 	})
 	if direction == "down" {
 		sort.Sort(sort.Reverse(mfs))
-		if step > 0 && len(mfs) > step {
-			mfsShort := migrationFiles{}
-			for i := range mfs {
-				mfsShort = append(mfsShort, mfs[i])
-				if step < i+1 {
-					break
-				}
-			}
-			mfs = mfsShort
+		if len(mfs) >= step {
+			mfs = mfs[:step]
 		}
 	} else {
 		sort.Sort(mfs)

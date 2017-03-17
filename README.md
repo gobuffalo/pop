@@ -226,9 +226,14 @@ $ soda migrate down
 * Mark Bates
 * Tim Raymond
 * Marcelo Magallon
+* James
 * lumost
-* Todd Rafferty
-* Johnny Boursiquot
+* Simon Taranto
 * Jean Niklas L'orange
+* Frank Yi
+* Johnny Boursiquot
 * Ken Pepple
 * Slava Vishnyakov
+* Todd Rafferty
+* Stanislas Michalak
+* rbutler
