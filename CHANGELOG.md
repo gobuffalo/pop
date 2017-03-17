@@ -1,5 +1,17 @@
 # Change Log
 
+## [v3.11.7](https://github.com/markbates/pop/tree/v3.11.7) (2017-03-17)
+[Full Changelog](https://github.com/markbates/pop/compare/v3.11.6...v3.11.7)
+
+**Closed issues:**
+
+- transaction with destroy: error committing or rolling back transaction: sql: Transaction has already been committed or rolled back [\#48](https://github.com/markbates/pop/issues/48)
+- reflect: call of reflect.Value.Elem on struct Value [\#45](https://github.com/markbates/pop/issues/45)
+
+**Merged pull requests:**
+
+- set default migrate down to run only single migration. [\#49](https://github.com/markbates/pop/pull/49) ([u007](https://github.com/u007))
+
 ## [v3.11.6](https://github.com/markbates/pop/tree/v3.11.6) (2017-03-06)
 [Full Changelog](https://github.com/markbates/pop/compare/v3.11.5...v3.11.6)
 
@@ -125,13 +137,13 @@
 [Full Changelog](https://github.com/markbates/pop/compare/v3.5.1.1...v3.6.0)
 
 ## [v3.5.1.1](https://github.com/markbates/pop/tree/v3.5.1.1) (2016-08-26)
-[Full Changelog](https://github.com/markbates/pop/compare/v3.5.2...v3.5.1.1)
-
-## [v3.5.2](https://github.com/markbates/pop/tree/v3.5.2) (2016-08-26)
-[Full Changelog](https://github.com/markbates/pop/compare/v3.5.1...v3.5.2)
+[Full Changelog](https://github.com/markbates/pop/compare/v3.5.1...v3.5.1.1)
 
 ## [v3.5.1](https://github.com/markbates/pop/tree/v3.5.1) (2016-08-26)
-[Full Changelog](https://github.com/markbates/pop/compare/v3.5.0...v3.5.1)
+[Full Changelog](https://github.com/markbates/pop/compare/v3.5.2...v3.5.1)
+
+## [v3.5.2](https://github.com/markbates/pop/tree/v3.5.2) (2016-08-26)
+[Full Changelog](https://github.com/markbates/pop/compare/v3.5.0...v3.5.2)
 
 ## [v3.5.0](https://github.com/markbates/pop/tree/v3.5.0) (2016-08-25)
 [Full Changelog](https://github.com/markbates/pop/compare/v3.4.1...v3.5.0)
