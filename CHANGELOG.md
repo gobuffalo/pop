@@ -1,5 +1,12 @@
 # Change Log
 
+## [v3.12.1](https://github.com/markbates/pop/tree/v3.12.1) (2017-03-17)
+[Full Changelog](https://github.com/markbates/pop/compare/v3.11.7...v3.12.1)
+
+**Merged pull requests:**
+
+- Dump load [\#50](https://github.com/markbates/pop/pull/50) ([markbates](https://github.com/markbates))
+
 ## [v3.11.7](https://github.com/markbates/pop/tree/v3.11.7) (2017-03-17)
 [Full Changelog](https://github.com/markbates/pop/compare/v3.11.6...v3.11.7)
 
