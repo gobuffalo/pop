@@ -169,7 +169,7 @@ func findMigrations(dir string, direction string, fn func(migrationFile) error, 
 			mfsShort := migrationFiles{}
 			for i := range mfs {
 				mfsShort = append(mfsShort, mfs[i])
-				if step < i {
+				if step < i+1 {
 					break
 				}
 			}
