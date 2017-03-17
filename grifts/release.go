@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -85,6 +86,7 @@ func tagRelease(v string) error {
 
 	code := res.StatusCode
 	if code < 200 || code >= 300 {
+		io.Copy(os.Stderr, res.Body)
 		return fmt.Errorf("got a not successful status code from github! %d", code)
 	}
 
