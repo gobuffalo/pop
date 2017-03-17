@@ -114,7 +114,7 @@ func (c *Connection) MigrateDown(path string, step int) error {
 }
 
 func (c *Connection) MigrateReset(path string) error {
-	err := c.MigrateDown(path, 0)
+	err := c.MigrateDown(path, -1)
 	if err != nil {
 		return err
 	}
@@ -165,7 +165,7 @@ func findMigrations(dir string, direction string, fn func(migrationFile) error, 
 	})
 	if direction == "down" {
 		sort.Sort(sort.Reverse(mfs))
-		if len(mfs) >= step {
+		if step > 0 && len(mfs) >= step {
 			mfs = mfs[:step]
 		}
 	} else {
