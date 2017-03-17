@@ -7,6 +7,7 @@ import (
 )
 
 var migrationPath string
+var migrationStep int
 
 var migrateCmd = &cobra.Command{
 	Use:     "migrate",

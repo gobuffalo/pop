@@ -4,13 +4,14 @@ import "github.com/spf13/cobra"
 
 var migrateDownCmd = &cobra.Command{
 	Use:   "down",
-	Short: "Apply all of the 'down' migrations.",
+	Short: "Apply one or more of the 'down' migrations.",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		c := getConn()
-		return c.MigrateDown(migrationPath)
+		return c.MigrateDown(migrationPath, migrationStep)
 	},
 }
 
 func init() {
 	migrateCmd.AddCommand(migrateDownCmd)
+	RootCmd.Flags().IntVarP(&migrationStep, "step", "s", 1, "Number of migration to down")
 }

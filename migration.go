@@ -82,10 +82,10 @@ func (c *Connection) MigrateUp(path string) error {
 			fmt.Printf("> %s\n", m.FileName)
 		}
 		return err
-	})
+	}, 0)
 }
 
-func (c *Connection) MigrateDown(path string) error {
+func (c *Connection) MigrateDown(path string, step int) error {
 	now := time.Now()
 	defer printTimer(now)
 
@@ -110,11 +110,11 @@ func (c *Connection) MigrateDown(path string) error {
 			fmt.Printf("< %s\n", m.FileName)
 		}
 		return err
-	})
+	}, step)
 }
 
 func (c *Connection) MigrateReset(path string) error {
-	err := c.MigrateDown(path)
+	err := c.MigrateDown(path, 0)
 	if err != nil {
 		return err
 	}
@@ -140,7 +140,7 @@ func (c *Connection) createSchemaMigrations() error {
 	})
 }
 
-func findMigrations(dir string, direction string, fn func(migrationFile) error) error {
+func findMigrations(dir string, direction string, fn func(migrationFile) error, step int) error {
 	mfs := migrationFiles{}
 	filepath.Walk(dir, func(p string, info os.FileInfo, err error) error {
 		if !info.IsDir() {
@@ -165,6 +165,16 @@ func findMigrations(dir string, direction string, fn func(migrationFile) error) 
 	})
 	if direction == "down" {
 		sort.Sort(sort.Reverse(mfs))
+		if step > 0 && len(mfs) > step {
+			mfsShort := migrationFiles{}
+			for i := range mfs {
+				mfsShort = append(mfsShort, mfs[i])
+				if step < i {
+					break
+				}
+			}
+			mfs = mfsShort
+		}
 	} else {
 		sort.Sort(mfs)
 	}
