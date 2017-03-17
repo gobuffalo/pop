@@ -2,7 +2,10 @@ package pop
 
 import (
 	"fmt"
+	"io"
+	"io/ioutil"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"sync"
 	"time"
@@ -13,6 +16,8 @@ import (
 	"github.com/markbates/pop/fizz/translators"
 	"github.com/pkg/errors"
 )
+
+var _ dialect = &sqlite{}
 
 type sqlite struct {
 	gil               *sync.Mutex
@@ -96,6 +101,30 @@ func (m *sqlite) TranslateSQL(sql string) string {
 
 func (m *sqlite) FizzTranslator() fizz.Translator {
 	return translators.NewSQLite(m.Details().Database)
+}
+
+func (m *sqlite) DumpSchema(w io.Writer) error {
+	// sqlite3 development.sqlite .schema > schema.sql
+	cmd := exec.Command("sqlite3", m.URL(), ".schema")
+	cmd.Stdout = w
+	cmd.Stderr = os.Stdout
+	return cmd.Run()
+}
+
+func (m *sqlite) LoadSchema(r io.Reader) error {
+	// sqlite3 development.sqlite < schema.sql
+	tmp, err := ioutil.TempFile("", "sqlite-dump")
+	if err != nil {
+		return err
+	}
+	defer os.Remove(tmp.Name())
+	_, err = io.Copy(tmp, r)
+	if err != nil {
+		return err
+	}
+
+	cmd := exec.Command("sqlite3", m.URL(), "<", tmp.Name())
+	return cmd.Run()
 }
 
 func newSQLite(deets *ConnectionDetails) dialect {

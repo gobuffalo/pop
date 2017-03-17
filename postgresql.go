@@ -2,6 +2,9 @@ package pop
 
 import (
 	"fmt"
+	"io"
+	"io/ioutil"
+	"os"
 	"os/exec"
 	"strconv"
 	"sync"
@@ -13,6 +16,8 @@ import (
 	"github.com/markbates/pop/fizz/translators"
 	"github.com/pkg/errors"
 )
+
+var _ dialect = &postgresql{}
 
 type postgresql struct {
 	translateCache    map[string]string
@@ -131,6 +136,29 @@ func (p *postgresql) FizzTranslator() fizz.Translator {
 
 func (p *postgresql) Lock(fn func() error) error {
 	return fn()
+}
+
+func (p *postgresql) DumpSchema(w io.Writer) error {
+	// pg_dump -s --dbname=postgresql://postgres:postgres@127.0.0.1:5432/papercall_development > schema.sql
+	cmd := exec.Command("pg_dump", "-s", fmt.Sprintf("--dbname=%s", p.URL()))
+	cmd.Stdout = w
+	cmd.Stderr = os.Stderr
+	return cmd.Run()
+}
+
+func (p *postgresql) LoadSchema(r io.Reader) error {
+	// psql postgresql://postgres:postgres@127.0.0.1:5432/papercall_test < schema.sql
+	tmp, err := ioutil.TempFile("", "postgres-dump")
+	if err != nil {
+		return err
+	}
+	defer os.Remove(tmp.Name())
+	_, err = io.Copy(tmp, r)
+	if err != nil {
+		return err
+	}
+	cmd := exec.Command("psql", p.URL(), "<", tmp.Name())
+	return cmd.Run()
 }
 
 func newPostgreSQL(deets *ConnectionDetails) dialect {

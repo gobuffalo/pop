@@ -2,6 +2,9 @@ package pop
 
 import (
 	"fmt"
+	"io"
+	"io/ioutil"
+	"os"
 	"os/exec"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -11,6 +14,8 @@ import (
 	"github.com/markbates/pop/fizz/translators"
 	"github.com/pkg/errors"
 )
+
+var _ dialect = &mysql{}
 
 type mysql struct {
 	ConnectionDetails *ConnectionDetails
@@ -83,6 +88,32 @@ func (m *mysql) FizzTranslator() fizz.Translator {
 
 func (m *mysql) Lock(fn func() error) error {
 	return fn()
+}
+
+func (m *mysql) DumpSchema(w io.Writer) error {
+	// mysqldump -d -h localhost -P 3306 -u root --password=root coke_development
+	deets := m.Details()
+	cmd := exec.Command("mysqldump", "-d", "-h", deets.Host, "-P", deets.Port, "-u", deets.User, fmt.Sprintf("--password=%s", deets.Password), deets.Database)
+	cmd.Stdout = w
+	cmd.Stderr = os.Stderr
+	return cmd.Run()
+}
+
+func (m *mysql) LoadSchema(r io.Reader) error {
+	// mysql -u root --password=root -h localhost -P 3306 -D coke_test < schema.sql
+	tmp, err := ioutil.TempFile("", "mysql-dump")
+	if err != nil {
+		return err
+	}
+	defer os.Remove(tmp.Name())
+	_, err = io.Copy(tmp, r)
+	if err != nil {
+		return err
+	}
+
+	deets := m.Details()
+	cmd := exec.Command("mysql", "-d", "-h", deets.Host, "-P", deets.Port, "-u", deets.User, fmt.Sprintf("--password=%s", deets.Password), "-D", deets.Database, "<", tmp.Name())
+	return cmd.Run()
 }
 
 func newMySQL(deets *ConnectionDetails) dialect {
