@@ -35,7 +35,7 @@ test:
   password: "root"
 
 production:
-  url: {{"{{"}}envOr "DATABASE_URL" "mysql://root:root@(localhost:3306)/{{.name}}_production"}}`
+  url: {{"{{"}}envOr "DATABASE_URL" "mysql://root:root@localhost:3306/{{.name}}_production"}}`
 
 var sqliteConfig = `development:
   dialect: "sqlite3"

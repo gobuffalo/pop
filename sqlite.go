@@ -3,10 +3,10 @@ package pop
 import (
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 
@@ -88,11 +88,21 @@ func (m *sqlite) locker(l *sync.Mutex, fn func() error) error {
 
 func (m *sqlite) CreateDB() error {
 	d := filepath.Dir(m.ConnectionDetails.Database)
-	return errors.Wrapf(os.MkdirAll(d, 0766), "could not create SQLite database %s", m.ConnectionDetails.Database)
+	err := os.MkdirAll(d, 0766)
+	if err != nil {
+		return errors.Wrapf(err, "could not create SQLite database %s", m.ConnectionDetails.Database)
+	}
+	fmt.Printf("created database %s\n", m.ConnectionDetails.Database)
+	return nil
 }
 
 func (m *sqlite) DropDB() error {
-	return errors.Wrapf(os.Remove(m.ConnectionDetails.Database), "could not drop SQLite database %s", m.ConnectionDetails.Database)
+	err := os.Remove(m.ConnectionDetails.Database)
+	if err != nil {
+		return errors.Wrapf(err, "could not drop SQLite database %s", m.ConnectionDetails.Database)
+	}
+	fmt.Printf("dropped database %s\n", m.ConnectionDetails.Database)
+	return nil
 }
 
 func (m *sqlite) TranslateSQL(sql string) string {
@@ -104,27 +114,43 @@ func (m *sqlite) FizzTranslator() fizz.Translator {
 }
 
 func (m *sqlite) DumpSchema(w io.Writer) error {
-	// sqlite3 development.sqlite .schema > schema.sql
 	cmd := exec.Command("sqlite3", m.URL(), ".schema")
+	Log(strings.Join(cmd.Args, " "))
 	cmd.Stdout = w
-	cmd.Stderr = os.Stdout
-	return cmd.Run()
+	cmd.Stderr = os.Stderr
+
+	err := cmd.Run()
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("dumped schema for %s\n", m.Details().Database)
+	return nil
 }
 
 func (m *sqlite) LoadSchema(r io.Reader) error {
-	// sqlite3 development.sqlite < schema.sql
-	tmp, err := ioutil.TempFile("", "sqlite-dump")
+	cmd := exec.Command("sqlite3", m.URL())
+	in, err := cmd.StdinPipe()
 	if err != nil {
 		return err
 	}
-	defer os.Remove(tmp.Name())
-	_, err = io.Copy(tmp, r)
+	go func() {
+		defer in.Close()
+		io.Copy(in, r)
+	}()
+	Log(strings.Join(cmd.Args, " "))
+	err = cmd.Start()
 	if err != nil {
 		return err
 	}
 
-	cmd := exec.Command("sqlite3", m.URL(), "<", tmp.Name())
-	return cmd.Run()
+	err = cmd.Wait()
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("loaded schema for %s\n", m.Details().Database)
+	return nil
 }
 
 func newSQLite(deets *ConnectionDetails) dialect {
