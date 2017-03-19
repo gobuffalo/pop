@@ -114,7 +114,7 @@ func (m *sqlite) FizzTranslator() fizz.Translator {
 }
 
 func (m *sqlite) DumpSchema(w io.Writer) error {
-	cmd := exec.Command("sqlite3", m.URL(), ".schema")
+	cmd := exec.Command("sqlite3", m.Details().Database, ".schema")
 	Log(strings.Join(cmd.Args, " "))
 	cmd.Stdout = w
 	cmd.Stderr = os.Stderr
@@ -129,7 +129,7 @@ func (m *sqlite) DumpSchema(w io.Writer) error {
 }
 
 func (m *sqlite) LoadSchema(r io.Reader) error {
-	cmd := exec.Command("sqlite3", m.URL())
+	cmd := exec.Command("sqlite3", m.ConnectionDetails.Database)
 	in, err := cmd.StdinPipe()
 	if err != nil {
 		return err
@@ -151,6 +151,26 @@ func (m *sqlite) LoadSchema(r io.Reader) error {
 
 	fmt.Printf("loaded schema for %s\n", m.Details().Database)
 	return nil
+}
+
+func (m *sqlite) TruncateAll(tx *Connection) error {
+	const tableNames = `SELECT name FROM sqlite_master WHERE type = "table"`
+	names := []struct {
+		Name string `db:"name"`
+	}{}
+
+	err := tx.RawQuery(tableNames).All(&names)
+	if err != nil {
+		return err
+	}
+	stmts := []string{}
+	for _, n := range names {
+		stmts = append(stmts, fmt.Sprintf("DELETE FROM %s", n.Name))
+	}
+	if len(stmts) == 0 {
+		return nil
+	}
+	return tx.RawQuery(strings.Join(stmts, "; ")).Exec()
 }
 
 func newSQLite(deets *ConnectionDetails) dialect {

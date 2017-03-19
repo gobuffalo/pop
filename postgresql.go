@@ -189,6 +189,10 @@ func (p *postgresql) LoadSchema(r io.Reader) error {
 	return nil
 }
 
+func (p *postgresql) TruncateAll(tx *Connection) error {
+	return tx.RawQuery(pgTruncate).Exec()
+}
+
 func newPostgreSQL(deets *ConnectionDetails) dialect {
 	cd := &postgresql{
 		ConnectionDetails: deets,
@@ -197,3 +201,16 @@ func newPostgreSQL(deets *ConnectionDetails) dialect {
 	}
 	return cd
 }
+
+const pgTruncate = `DO
+$func$
+BEGIN
+   EXECUTE
+  (SELECT 'TRUNCATE TABLE '
+       || string_agg(quote_ident(schemaname) || '.' || quote_ident(tablename), ', ')
+       || ' CASCADE'
+   FROM   pg_tables
+   WHERE  schemaname = 'public'
+   );
+END
+$func$;`

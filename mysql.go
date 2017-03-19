@@ -143,6 +143,21 @@ func (m *mysql) LoadSchema(r io.Reader) error {
 	return nil
 }
 
+func (m *mysql) TruncateAll(tx *Connection) error {
+	stmts := []struct {
+		Stmt string `db:"stmt"`
+	}{}
+	err := tx.RawQuery(mysqlTruncate, m.Details().Database).All(&stmts)
+	if err != nil {
+		return err
+	}
+	qs := []string{}
+	for _, x := range stmts {
+		qs = append(qs, x.Stmt)
+	}
+	return tx.RawQuery(strings.Join(qs, " ")).Exec()
+}
+
 func newMySQL(deets *ConnectionDetails) dialect {
 	cd := &mysql{
 		ConnectionDetails: deets,
@@ -150,3 +165,5 @@ func newMySQL(deets *ConnectionDetails) dialect {
 
 	return cd
 }
+
+const mysqlTruncate = "SELECT concat('TRUNCATE TABLE `', TABLE_NAME, '`;') as stmt FROM INFORMATION_SCHEMA.TABLES where TABLE_SCHEMA = ?"

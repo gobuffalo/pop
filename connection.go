@@ -157,6 +157,10 @@ func (c *Connection) Q() *Query {
 	return Q(c)
 }
 
+func (c *Connection) TruncateAll() error {
+	return c.Dialect.TruncateAll(c)
+}
+
 func (c *Connection) timeFunc(name string, fn func() error) error {
 	now := time.Now()
 	err := fn()

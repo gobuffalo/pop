@@ -31,6 +31,7 @@ type dialect interface {
 	LoadSchema(io.Reader) error
 	FizzTranslator() fizz.Translator
 	Lock(func() error) error
+	TruncateAll(*Connection) error
 }
 
 func genericCreate(s store, model *Model, cols Columns) error {
