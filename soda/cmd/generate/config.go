@@ -5,6 +5,7 @@ import (
 	"path"
 	"strings"
 
+	"github.com/gobuffalo/envy"
 	"github.com/gobuffalo/makr"
 	"github.com/markbates/going/defaults"
 	"github.com/pkg/errors"
@@ -28,11 +29,21 @@ var ConfigCmd = &cobra.Command{
 			return errors.Wrap(err, "couldn't get the current directory")
 		}
 		data := map[string]interface{}{
-			"dialect": dialect,
-			"name":    path.Base(dir),
+			"dialect":  dialect,
+			"name":     path.Base(dir),
+			"pkg_path": pkgPath(),
 		}
 		return GenerateConfig(cfgFile, data)
 	},
+}
+
+func pkgPath() string {
+	pwd, _ := os.Getwd()
+
+	for _, p := range envy.GoPaths() {
+		pwd = strings.TrimPrefix(pwd, p)
+	}
+	return pwd
 }
 
 func GenerateConfig(cfgFile string, data map[string]interface{}) error {

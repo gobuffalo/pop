@@ -39,15 +39,15 @@ production:
 
 var sqliteConfig = `development:
   dialect: "sqlite3"
-  database: "./{{.name}}_development.sqlite"
+  database: {{"{{"}}env "GOPATH" {{"}}"}}{{.pkg_path}}/{{.name}}_development.sqlite
 
 test:
   dialect: "sqlite3"
-  database: "./{{.name}}_test.sqlite"
+  database: {{"{{"}}env "GOPATH" {{"}}"}}{{.pkg_path}}/{{.name}}_test.sqlite
 
 production:
   dialect: "sqlite3"
-  database: "./{{.name}}_production.sqlite"`
+  database: {{"{{"}}env "GOPATH" {{"}}"}}{{.pkg_path}}/{{.name}}_production.sqlite`
 
 var configTemplates = map[string]string{
 	"postgres":   pgConfig,
