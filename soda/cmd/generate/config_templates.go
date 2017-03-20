@@ -9,7 +9,7 @@ var pgConfig = `development:
   pool: 5
 
 test:
-  url: {{"{{"}}envOr "DATABASE_URL" "postgres://postgres:postgres@127.0.0.1:5432/{{.name}}_test"}}`
+  url: {{"{{"}}envOr "TEST_DATABASE_URL" "postgres://postgres:postgres@127.0.0.1:5432/{{.name}}_test"}}
 
 production:
   url: {{"{{"}}envOr "DATABASE_URL" "postgres://postgres:postgres@127.0.0.1:5432/{{.name}}_production"}}`
@@ -23,7 +23,7 @@ var mysqlConfig = `development:
   password: "root"
 
 test:
-  url: {{"{{"}}envOr "DATABASE_URL" "mysql://root:root@localhost:3306/{{.name}}_test"}}`
+  url: {{"{{"}}envOr "TEST_DATABASE_URL" "mysql://root:root@localhost:3306/{{.name}}_test"}}
 
 production:
   url: {{"{{"}}envOr "DATABASE_URL" "mysql://root:root@localhost:3306/{{.name}}_production"}}`
