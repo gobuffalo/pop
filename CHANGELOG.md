@@ -1,5 +1,16 @@
 # Change Log
 
+## [v3.13.2](https://github.com/markbates/pop/tree/v3.13.2) (2017-03-21)
+[Full Changelog](https://github.com/markbates/pop/compare/v3.13.1...v3.13.2)
+
+**Closed issues:**
+
+- transaction with destroy: error committing or rolling back transaction: sql: Transaction has already been committed or rolled back [\#48](https://github.com/markbates/pop/issues/48)
+
+**Merged pull requests:**
+
+- Changed config templates to use env in test case [\#51](https://github.com/markbates/pop/pull/51) ([stanislas-m](https://github.com/stanislas-m))
+
 ## [v3.13.1](https://github.com/markbates/pop/tree/v3.13.1) (2017-03-19)
 [Full Changelog](https://github.com/markbates/pop/compare/v3.13.0...v3.13.1)
 
@@ -18,7 +29,6 @@
 
 **Closed issues:**
 
-- transaction with destroy: error committing or rolling back transaction: sql: Transaction has already been committed or rolled back [\#48](https://github.com/markbates/pop/issues/48)
 - reflect: call of reflect.Value.Elem on struct Value [\#45](https://github.com/markbates/pop/issues/45)
 
 **Merged pull requests:**
