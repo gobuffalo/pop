@@ -1,5 +1,16 @@
 # Change Log
 
+## [v3.13.4](https://github.com/markbates/pop/tree/v3.13.4) (2017-03-27)
+[Full Changelog](https://github.com/markbates/pop/compare/v3.13.3...v3.13.4)
+
+**Closed issues:**
+
+- migration down roll back all? [\#47](https://github.com/markbates/pop/issues/47)
+
+**Merged pull requests:**
+
+- add uuid support for sqlite [\#52](https://github.com/markbates/pop/pull/52) ([u007](https://github.com/u007))
+
 ## [v3.13.3](https://github.com/markbates/pop/tree/v3.13.3) (2017-03-24)
 [Full Changelog](https://github.com/markbates/pop/compare/v3.13.2...v3.13.3)
 
