@@ -2,6 +2,7 @@ package slices
 
 import (
 	"database/sql/driver"
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
@@ -10,9 +11,30 @@ import (
 )
 
 // For reading in arrays from postgres
+type Map map[string]interface{}
 type Float []float64
 type Int []int
 type String []string
+
+func (s *Map) Scan(src interface{}) error {
+	b, ok := src.([]byte)
+	if !ok {
+		return errors.New("Scan source was not []byte")
+	}
+	err := json.Unmarshal(b, s)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+	return nil
+}
+
+func (s Map) Value() (driver.Value, error) {
+	b, err := json.Marshal(s)
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+	return string(b), nil
+}
 
 func (s *String) Scan(src interface{}) error {
 	b, ok := src.([]byte)
