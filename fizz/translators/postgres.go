@@ -128,6 +128,9 @@ func (p *Postgres) buildColumn(c fizz.Column) string {
 	if c.Options["default"] != nil {
 		s = fmt.Sprintf("%s DEFAULT '%v'", s, c.Options["default"])
 	}
+	if c.Options["default_raw"] != nil {
+		s = fmt.Sprintf("%s DEFAULT %s", s, c.Options["default_raw"])
+	}
 	return s
 }
 

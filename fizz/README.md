@@ -10,6 +10,7 @@ create_table("users", func(t) {
   t.Column("twitter_handle", "string", {"size": 50})
   t.Column("age", "integer", {"default": 0})
   t.Column("admin", "boolean", {"default": false})
+  t.Column("company_id", "uuid", {"default_raw": "uuid_generate_v1()"})
   t.Column("bio", "text", {"null": true})
   t.Column("joined_at", "timestamp", {})
 })

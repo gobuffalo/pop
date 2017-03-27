@@ -139,6 +139,10 @@ func (p *MySQL) buildColumn(c fizz.Column) string {
 		d = re.ReplaceAllString(d, "'$2'")
 		s = fmt.Sprintf("%s DEFAULT %s", s, d)
 	}
+	if c.Options["default_raw"] != nil {
+		d := fmt.Sprintf("%s", c.Options["default_raw"])
+		s = fmt.Sprintf("%s DEFAULT %s", s, d)
+	}
 
 	if c.Primary && c.ColType == "integer" {
 		s = fmt.Sprintf("%s AUTO_INCREMENT", s)
