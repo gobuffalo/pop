@@ -74,6 +74,7 @@ last_name VARCHAR (255) NOT NULL,
 email VARCHAR (20) NOT NULL,
 permissions text,
 age integer DEFAULT 40,
+company_id char(36) NOT NULL DEFAULT 'test',
 uuid char(36) NOT NULL,
 PRIMARY KEY(uuid)
 ) ENGINE=InnoDB;`
@@ -85,6 +86,7 @@ PRIMARY KEY(uuid)
 		t.Column("email", "string", {"size":20})
 		t.Column("permissions", "text", {"null": true})
 		t.Column("age", "integer", {"null": true, "default": 40})
+		t.Column("company_id", "uuid", {"default_raw": "'test'"})
 		t.Column("uuid", "uuid", {"primary": true})
 	})
 	`, myt)

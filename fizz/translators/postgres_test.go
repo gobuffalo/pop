@@ -18,6 +18,7 @@ func (p *PostgreSQLSuite) Test_Postgres_CreateTable() {
 "email" VARCHAR (20) NOT NULL,
 "permissions" jsonb,
 "age" integer DEFAULT '40',
+"company_id" UUID NOT NULL DEFAULT uuid_generate_v1(),
 "id" SERIAL PRIMARY KEY
 );`
 
@@ -28,6 +29,7 @@ func (p *PostgreSQLSuite) Test_Postgres_CreateTable() {
 		t.Column("email", "string", {"size":20})
 		t.Column("permissions", "jsonb", {"null": true})
 		t.Column("age", "integer", {"null": true, "default": 40})
+		t.Column("company_id", "uuid", {"default_raw": "uuid_generate_v1()"})
 	})
 	`, pgt)
 	r.Equal(ddl, res)

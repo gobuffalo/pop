@@ -61,6 +61,7 @@ func (p *SQLiteSuite) Test_SQLite_CreateTable_UUID() {
 "email" TEXT NOT NULL,
 "permissions" text,
 "age" integer DEFAULT '40',
+"company_id" char(36) NOT NULL DEFAULT lower(hex(randomblob(16))),
 "uuid" TEXT PRIMARY KEY
 );`
 
@@ -71,6 +72,7 @@ func (p *SQLiteSuite) Test_SQLite_CreateTable_UUID() {
 		t.Column("email", "string", {"size":20})
 		t.Column("permissions", "text", {"null": true})
 		t.Column("age", "integer", {"null": true, "default": 40})
+		t.Column("company_id", "uuid", {"default_raw": "lower(hex(randomblob(16)))"})
 		t.Column("uuid", "uuid", {"primary": true})
 	})
 	`, sqt)
