@@ -70,7 +70,7 @@ func (m migrationFile) Execute(c *Connection) error {
 
 	err = c.RawQuery(content).Exec()
 	if err != nil {
-		return errors.Wrapf(err, "error executing %s", m.FileName)
+		return errors.Wrapf(err, "error executing %s, sql: %s", m.FileName, content)
 	}
 	return nil
 }

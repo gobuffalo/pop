@@ -65,7 +65,7 @@ func (c *Connection) MigrateUp(path string) error {
 	if err != nil {
 		return errors.Wrap(err, "migration up: problem creating schema migrations")
 	}
-	return findMigrations(path, "up", func(m migrationFile) error {
+	return findMigrations(path, "up", 0, func(m migrationFile) error {
 		exists, err := c.Where("version = ?", m.Version).Exists("schema_migration")
 		if err != nil || exists {
 			return errors.Wrapf(err, "problem checking for migration version %s", m.Version)
@@ -93,9 +93,17 @@ func (c *Connection) MigrateDown(path string, step int) error {
 	if err != nil {
 		return errors.Wrap(err, "migration down: problem creating schema migrations")
 	}
-	return findMigrations(path, "down", func(m migrationFile) error {
+
+	//increase skip by
+	count, err := c.Count("schema_migration")
+	if err != nil {
+		return errors.Wrap(err, "migration down: unable count existing migration")
+	}
+
+	return findMigrations(path, "down", count, func(m migrationFile) error {
 		exists, err := c.Where("version = ?", m.Version).Exists("schema_migration")
 		if err != nil || !exists {
+			fmt.Errorf("migration missing: %s", m.Version)
 			return errors.Wrapf(err, "problem checking for migration version %s", m.Version)
 		}
 		err = c.Transaction(func(tx *Connection) error {
@@ -140,7 +148,7 @@ func (c *Connection) createSchemaMigrations() error {
 	})
 }
 
-func findMigrations(dir string, direction string, fn func(migrationFile) error, step int) error {
+func findMigrations(dir string, direction string, runned int, fn func(migrationFile) error, step int) error {
 	mfs := migrationFiles{}
 	filepath.Walk(dir, func(p string, info os.FileInfo, err error) error {
 		if !info.IsDir() {
@@ -165,6 +173,9 @@ func findMigrations(dir string, direction string, fn func(migrationFile) error, 
 	})
 	if direction == "down" {
 		sort.Sort(sort.Reverse(mfs))
+		// skip all runned migration
+		mfs = mfs[len(mfs)-runned:]
+		// run only required steps
 		if step > 0 && len(mfs) >= step {
 			mfs = mfs[:step]
 		}

@@ -1,0 +1,12 @@
+create_table("songs", func(t) {
+  t.Column("id", "uuid", {"primary":true})
+  t.Column("title", "string", {})
+})
+
+{{ if eq .Dialect "postgres" }}
+create_table("cakes", func(t) {
+  t.Column("int_slice", "int[]", {"null": true})
+  t.Column("float_slice", "numeric[]", {"null": true})
+  t.Column("string_slice", "varchar[]", {"null": true})
+})
+{{ end }}

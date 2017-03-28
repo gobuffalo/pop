@@ -1,9 +1,4 @@
 drop_table("users")
 drop_table("good_friends")
-drop_table("songs")
 drop_table("validatable_cars")
 drop_table("not_validatable_cars")
-
-{{ if eq .Dialect "postgres" }}
-drop_table("cakes")
-{{ end }}
