@@ -21,6 +21,9 @@ function test {
   ! ./tsoda drop -e $SODA_DIALECT -c ./database.yml
   ! ./tsoda create -d -e $SODA_DIALECT -c ./database.yml
   ./tsoda migrate -d -e $SODA_DIALECT -c ./database.yml -d
+  ./tsoda migrate down -d -e $SODA_DIALECT -c ./database.yml -d
+  ./tsoda migrate down -d -e $SODA_DIALECT -c ./database.yml -d
+  ./tsoda migrate -d -e $SODA_DIALECT -c ./database.yml -d
   go test ./... $verbose
 }
 
