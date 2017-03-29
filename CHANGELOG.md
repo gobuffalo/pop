@@ -1,7 +1,28 @@
 # Change Log
 
+## [Unreleased](https://github.com/markbates/pop/tree/HEAD)
+
+[Full Changelog](https://github.com/markbates/pop/compare/v3.13.6...HEAD)
+
+**Closed issues:**
+
+- Add model generation example [\#19](https://github.com/markbates/pop/issues/19)
+
+## [v3.13.6](https://github.com/markbates/pop/tree/v3.13.6) (2017-03-29)
+[Full Changelog](https://github.com/markbates/pop/compare/v3.13.5...v3.13.6)
+
+**Closed issues:**
+
+- allow raw sql for default value [\#53](https://github.com/markbates/pop/issues/53)
+- Generated model with an already plural name fails to compile [\#37](https://github.com/markbates/pop/issues/37)
+- model generation fails to compile [\#32](https://github.com/markbates/pop/issues/32)
+
 ## [v3.13.5](https://github.com/markbates/pop/tree/v3.13.5) (2017-03-28)
 [Full Changelog](https://github.com/markbates/pop/compare/v3.13.4...v3.13.5)
+
+**Merged pull requests:**
+
+- fix migrate down to correctly step down [\#54](https://github.com/markbates/pop/pull/54) ([u007](https://github.com/u007))
 
 ## [v3.13.4](https://github.com/markbates/pop/tree/v3.13.4) (2017-03-27)
 [Full Changelog](https://github.com/markbates/pop/compare/v3.13.3...v3.13.4)
