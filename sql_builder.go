@@ -26,9 +26,16 @@ func newSQLBuilder(q Query, m *Model, addColumns ...string) *sqlBuilder {
 	}
 }
 
+func (sq *sqlBuilder) CountString() string {
+	if sq.sql == "" {
+		sq.compile(true)
+	}
+	return sq.sql
+}
+
 func (sq *sqlBuilder) String() string {
 	if sq.sql == "" {
-		sq.compile()
+		sq.compile(false)
 	}
 	return sq.sql
 }
@@ -38,18 +45,18 @@ func (sq *sqlBuilder) Args() []interface{} {
 		if len(sq.Query.RawSQL.Arguments) > 0 {
 			sq.args = sq.Query.RawSQL.Arguments
 		} else {
-			sq.compile()
+			sq.compile(false)
 		}
 	}
 	return sq.args
 }
 
-func (sq *sqlBuilder) compile() {
+func (sq *sqlBuilder) compile(count bool) {
 	if sq.sql == "" {
 		if sq.Query.RawSQL.Fragment != "" {
 			sq.sql = sq.Query.RawSQL.Fragment
 		} else {
-			sq.sql = sq.buildSelectSQL()
+			sq.sql = sq.buildSelectSQL(count)
 		}
 		re := regexp.MustCompile(`(?i)in\s*\(\s*\?\s*\)`)
 		if re.MatchString(sq.sql) {
@@ -62,7 +69,7 @@ func (sq *sqlBuilder) compile() {
 	}
 }
 
-func (sq *sqlBuilder) buildSelectSQL() string {
+func (sq *sqlBuilder) buildSelectSQL(count bool) string {
 	cols := sq.buildColumns()
 
 	fc := sq.buildfromClauses()
@@ -70,7 +77,11 @@ func (sq *sqlBuilder) buildSelectSQL() string {
 	sql := fmt.Sprintf("SELECT %s FROM %s", cols.Readable().SelectString(), fc)
 
 	sql = sq.buildWhereClauses(sql)
-	sql = sq.buildOrderClauses(sql)
+
+	if !count {
+		sql = sq.buildOrderClauses(sql)
+	}
+
 	sql = sq.buildPaginationClauses(sql)
 
 	return sql

@@ -90,6 +90,11 @@ func (q Query) ToSQL(model *Model, addColumns ...string) (string, []interface{})
 	return sb.String(), sb.Args()
 }
 
+func (q Query) ToCountSQL(model *Model, addColumns ...string) (string, []interface{}) {
+	sb := q.toSQLBuilder(model, addColumns...)
+	return sb.CountString(), sb.Args()
+}
+
 // ToSQLBuilder returns a new `SQLBuilder` that can be used to generate SQL,
 // get arguments, and more.
 func (q Query) toSQLBuilder(model *Model, addColumns ...string) *sqlBuilder {
