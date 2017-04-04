@@ -1,11 +1,11 @@
 # Change Log
 
-## [Unreleased](https://github.com/markbates/pop/tree/HEAD)
-
-[Full Changelog](https://github.com/markbates/pop/compare/v3.13.6...HEAD)
+## [v3.13.7](https://github.com/markbates/pop/tree/v3.13.7) (2017-04-04)
+[Full Changelog](https://github.com/markbates/pop/compare/v3.13.6...v3.13.7)
 
 **Closed issues:**
 
+- count is currently taking order sql [\#56](https://github.com/markbates/pop/issues/56)
 - Add model generation example [\#19](https://github.com/markbates/pop/issues/19)
 
 ## [v3.13.6](https://github.com/markbates/pop/tree/v3.13.6) (2017-03-29)
