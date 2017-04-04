@@ -125,6 +125,7 @@ func (q Query) Count(model interface{}) (int, error) {
 	err := q.Connection.timeFunc("Count", func() error {
 		q.Paginator = nil
 		col := "count(*) as row_count"
+		q.orderClauses = clauses{}
 		query, args := q.ToSQL(&Model{Value: model}, col)
 		Log(query, args...)
 		return q.Connection.Store.Get(res, query, args...)
