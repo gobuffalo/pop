@@ -29,9 +29,9 @@ var ConfigCmd = &cobra.Command{
 			return errors.Wrap(err, "couldn't get the current directory")
 		}
 		data := map[string]interface{}{
-			"dialect":  dialect,
-			"name":     path.Base(dir),
-			"pkg_path": pkgPath(),
+			"dialect":     dialect,
+			"name":        path.Base(dir),
+			"packagePath": pkgPath(),
 		}
 		return GenerateConfig(cfgFile, data)
 	},

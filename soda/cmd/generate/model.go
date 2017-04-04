@@ -36,9 +36,9 @@ type names struct {
 func newName(name string) names {
 	return names{
 		Original: name,
-		File:     name,
+		File:     inflect.Underscore(inflect.Singularize(name)),
 		Table:    inflect.Tableize(name),
-		Proper:   inflect.ForeignKeyToAttribute(name),
+		Proper:   inflect.ForeignKeyToAttribute(inflect.Singularize(name)),
 		Plural:   inflect.Pluralize(inflect.Camelize(name)),
 		Char:     strings.ToLower(string([]byte(name)[0])),
 	}

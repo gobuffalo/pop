@@ -3,9 +3,12 @@ package generate
 const modelTemplate = `package {{.package_name}}
 
 import (
-	{{range $i := .model.Imports -}}
+	{{ range $i := .model.Imports -}}
 	"{{$i}}"
-	{{end}}
+	{{ end -}}
+	{{ if .model.ValidatableAttributes -}}
+	"github.com/markbates/validate/validators"
+	{{ end -}}
 )
 
 type {{.model_name}} struct {
