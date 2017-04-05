@@ -19,3 +19,9 @@ create_table("validatable_cars", func(t) {
 create_table("not_validatable_cars", func(t) {
   t.Column("name", "string", {})
 })
+
+create_table("books", func(t) {
+  t.Column("title", "string", {})
+  t.Column("user_id", "uuid", {})
+  t.Column("isbn", "string", {"size": 50})
+})

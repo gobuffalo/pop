@@ -69,6 +69,7 @@ func (sq *sqlBuilder) buildSelectSQL() string {
 
 	sql := fmt.Sprintf("SELECT %s FROM %s", cols.Readable().SelectString(), fc)
 
+	sql = sq.buildJoinClauses(sql)
 	sql = sq.buildWhereClauses(sql)
 	sql = sq.buildOrderClauses(sql)
 	sql = sq.buildPaginationClauses(sql)
@@ -110,6 +111,20 @@ func (sq *sqlBuilder) buildWhereClauses(sql string) string {
 			sq.args = append(sq.args, arg)
 		}
 	}
+	return sql
+}
+
+func (sq *sqlBuilder) buildJoinClauses(sql string) string {
+	oc := sq.Query.joinClauses
+	if len(oc) > 0 {
+		sql += " " + oc.String()
+		for i := range oc {
+			for _, arg := range oc[i].Arguments {
+				sq.args = append(sq.args, arg)
+			}
+		}
+	}
+
 	return sql
 }
 

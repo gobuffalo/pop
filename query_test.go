@@ -80,6 +80,21 @@ func Test_ToSQL(t *testing.T) {
 		query = tx.Paginate(3, 10)
 		q, _ = query.ToSQL(user)
 		a.Equal(fmt.Sprintf("%s LIMIT 10 OFFSET 20", s), q)
+
+		// join must come first
+		query = pop.Q(tx).Where("id = ?", 1).Join("books", "", []string{"1=1", "user_id=?"}, "xx").Order("name asc")
+		q, args := query.ToSQL(user)
+
+		fmt.Printf("db type %v", tx.Dialect.Details().Dialect)
+		if tx.Dialect.Details().Dialect == "postgres" {
+			a.Equal(fmt.Sprintf("%s JOIN books ON 1=1 AND user_id=$1 WHERE id = $2 ORDER BY name asc", s), q)
+		} else {
+			a.Equal(fmt.Sprintf("%s JOIN books ON 1=1 AND user_id=? WHERE id = ? ORDER BY name asc", s), q)
+		}
+
+		// join arguments comes 1st
+		a.Equal(args[0], "xx")
+		a.Equal(args[1], 1)
 	})
 }
 

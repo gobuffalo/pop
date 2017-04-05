@@ -220,3 +220,39 @@ Migrations can also be run in reverse to rollback the schema.
 ```bash
 $ soda migrate down
 ```
+
+#### Find
+```
+user := models.User{}
+err := tx.Find(&user, id)
+```
+
+#### Query
+```
+tx := models.DB
+query := pop.Q(tx)
+query = tx.Where("id = 1").Where("name = 'Mark'")
+user := models.User{}
+if err := query.All(&user); err != nil {
+  //error occured
+}
+fmt.Printf("user: %v", user)
+```
+
+##### Join Query
+
+```
+// page: page number
+// perpage: limit
+roles := []models.UserRole{}
+query := pop.Q(models.DB).LeftJoin("roles", "", []string{"roles.id=user_roles.role_id"}).
+  LeftJoin("users", "", []string{"users.id=user_roles.user_id"}).
+  Where(`roles.name like ?`, name).Paginate(page, perpage).Order("name asc")
+
+count, _ := query.Count(models.UserRole{})
+sql, args := query.ToSQL(&pop.Model{Value: models.UserRole{}}, "user_roles.*",
+  "roles.name as role_name", "users.first_name", "users.last_name")
+//c.Logger().Debugf("sql: %s, args: %v", sql, args)
+err := pop.Q(models.DB).RawQuery(sql, args...).All(&roles)
+```
+

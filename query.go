@@ -9,6 +9,7 @@ type Query struct {
 	orderClauses            clauses
 	fromClauses             fromClauses
 	belongsToThroughClauses belongsToThroughClauses
+	joinClauses             joinClauses
 	Paginator               *Paginator
 	Connection              *Connection
 }
@@ -29,6 +30,46 @@ func (c *Connection) RawQuery(stmt string, args ...interface{}) *Query {
 //	q.RawQuery("select * from foo where id = ?", 1)
 func (q *Query) RawQuery(stmt string, args ...interface{}) *Query {
 	q.RawSQL = &clause{stmt, args}
+	return q
+}
+
+func (q *Query) Order(stmt string) *Query {
+	q.orderClauses = append(q.orderClauses, clause{stmt, []interface{}{}})
+	return q
+}
+
+func (q *Query) Join(table string, as string, on []string, args ...interface{}) *Query {
+	q.joinClauses = append(q.joinClauses, joinClause{"JOIN", table, as, on, args})
+	return q
+}
+
+func (q *Query) LeftJoin(table string, as string, on []string, args ...interface{}) *Query {
+	q.joinClauses = append(q.joinClauses, joinClause{"LEFT JOIN", table, as, on, args})
+	return q
+}
+
+func (q *Query) RightJoin(table string, as string, on []string, args ...interface{}) *Query {
+	q.joinClauses = append(q.joinClauses, joinClause{"RIGHT JOIN", table, as, on, args})
+	return q
+}
+
+func (q *Query) LeftOuterJoin(table string, as string, on []string, args ...interface{}) *Query {
+	q.joinClauses = append(q.joinClauses, joinClause{"LEFT OUTER JOIN", table, as, on, args})
+	return q
+}
+
+func (q *Query) RightOuterJoin(table string, as string, on []string, args ...interface{}) *Query {
+	q.joinClauses = append(q.joinClauses, joinClause{"RIGHT OUTER JOIN", table, as, on, args})
+	return q
+}
+
+func (q *Query) LeftInnerJoin(table string, as string, on []string, args ...interface{}) *Query {
+	q.joinClauses = append(q.joinClauses, joinClause{"LEFT INNER JOIN", table, as, on, args})
+	return q
+}
+
+func (q *Query) RightInnerJoin(table string, as string, on []string, args ...interface{}) *Query {
+	q.joinClauses = append(q.joinClauses, joinClause{"RIGHT INNER JOIN", table, as, on, args})
 	return q
 }
 
@@ -59,10 +100,6 @@ func (c *Connection) Order(stmt string) *Query {
 // Order will append an order clause to the query.
 //
 // 	q.Order("name desc")
-func (q *Query) Order(stmt string) *Query {
-	q.orderClauses = append(q.orderClauses, clause{stmt, []interface{}{}})
-	return q
-}
 
 // Limit will add a limit clause to the query.
 func (c *Connection) Limit(limit int) *Query {
