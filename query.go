@@ -92,6 +92,8 @@ func (c *Connection) Order(stmt string) *Query {
 	return Q(c).Order(stmt)
 }
 
+// Order will append an order clause to the query.
+//
 // 	q.Order("name desc")
 func (q *Query) Order(stmt string) *Query {
 	q.orderClauses = append(q.orderClauses, clause{stmt, []interface{}{}})
