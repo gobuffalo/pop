@@ -232,11 +232,8 @@ err := tx.Find(&user, id)
 tx := models.DB
 query := pop.Q(tx)
 query = tx.Where("id = 1").Where("name = 'Mark'")
-user := models.User{}
-if err := query.All(&user); err != nil {
-  //error occured
-}
-fmt.Printf("user: %v", user)
+users := []models.User{}
+err := query.All(&users)
 ```
 
 ##### Join Query
