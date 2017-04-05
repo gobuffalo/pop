@@ -33,11 +33,6 @@ func (q *Query) RawQuery(stmt string, args ...interface{}) *Query {
 	return q
 }
 
-func (q *Query) Order(stmt string) *Query {
-	q.orderClauses = append(q.orderClauses, clause{stmt, []interface{}{}})
-	return q
-}
-
 func (q *Query) Join(table string, as string, on []string, args ...interface{}) *Query {
 	q.joinClauses = append(q.joinClauses, joinClause{"JOIN", table, as, on, args})
 	return q
@@ -97,9 +92,11 @@ func (c *Connection) Order(stmt string) *Query {
 	return Q(c).Order(stmt)
 }
 
-// Order will append an order clause to the query.
-//
 // 	q.Order("name desc")
+func (q *Query) Order(stmt string) *Query {
+	q.orderClauses = append(q.orderClauses, clause{stmt, []interface{}{}})
+	return q
+}
 
 // Limit will add a limit clause to the query.
 func (c *Connection) Limit(limit int) *Query {
