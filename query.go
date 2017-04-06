@@ -33,41 +33,6 @@ func (q *Query) RawQuery(stmt string, args ...interface{}) *Query {
 	return q
 }
 
-func (q *Query) Join(table string, as string, on []string, args ...interface{}) *Query {
-	q.joinClauses = append(q.joinClauses, joinClause{"JOIN", table, as, on, args})
-	return q
-}
-
-func (q *Query) LeftJoin(table string, as string, on []string, args ...interface{}) *Query {
-	q.joinClauses = append(q.joinClauses, joinClause{"LEFT JOIN", table, as, on, args})
-	return q
-}
-
-func (q *Query) RightJoin(table string, as string, on []string, args ...interface{}) *Query {
-	q.joinClauses = append(q.joinClauses, joinClause{"RIGHT JOIN", table, as, on, args})
-	return q
-}
-
-func (q *Query) LeftOuterJoin(table string, as string, on []string, args ...interface{}) *Query {
-	q.joinClauses = append(q.joinClauses, joinClause{"LEFT OUTER JOIN", table, as, on, args})
-	return q
-}
-
-func (q *Query) RightOuterJoin(table string, as string, on []string, args ...interface{}) *Query {
-	q.joinClauses = append(q.joinClauses, joinClause{"RIGHT OUTER JOIN", table, as, on, args})
-	return q
-}
-
-func (q *Query) LeftInnerJoin(table string, as string, on []string, args ...interface{}) *Query {
-	q.joinClauses = append(q.joinClauses, joinClause{"LEFT INNER JOIN", table, as, on, args})
-	return q
-}
-
-func (q *Query) RightInnerJoin(table string, as string, on []string, args ...interface{}) *Query {
-	q.joinClauses = append(q.joinClauses, joinClause{"RIGHT INNER JOIN", table, as, on, args})
-	return q
-}
-
 // Where will append a where clause to the query. You may use `?` in place of
 // arguments.
 //
