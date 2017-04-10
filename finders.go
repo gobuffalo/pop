@@ -1,6 +1,7 @@
 package pop
 
 import (
+	"fmt"
 	"reflect"
 	"strconv"
 
@@ -18,20 +19,22 @@ func (c *Connection) Find(model interface{}, id interface{}) error {
 //
 //	q.Find(&User{}, 1)
 func (q *Query) Find(model interface{}, id interface{}) error {
+	m := &Model{Value: model}
+	idq := fmt.Sprintf("%s.id = ?", m.TableName())
 	var idi int
 	switch t := id.(type) {
 	case int:
 		idi = t
 	case uuid.UUID:
-		return q.Where("id = ?", t.String()).First(model)
+		return q.Where(idq, t.String()).First(model)
 	case string:
 		var err error
 		idi, err = strconv.Atoi(t)
 		if err != nil {
-			return q.Where("id = ?", t).First(model)
+			return q.Where(idq, t).First(model)
 		}
 	}
-	return q.Where("id = ?", idi).First(model)
+	return q.Where(idq, idi).First(model)
 }
 
 // First record of the model in the database that matches the query.
