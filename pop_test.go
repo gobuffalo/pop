@@ -12,7 +12,7 @@ import (
 	"github.com/markbates/pop/nulls"
 	"github.com/markbates/validate"
 	"github.com/markbates/validate/validators"
-	_ "github.com/mattn/go-sqlite3"
+	_ "github.com/mutecomm/go-sqlcipher"
 	"github.com/satori/go.uuid"
 	"github.com/stretchr/testify/suite"
 )

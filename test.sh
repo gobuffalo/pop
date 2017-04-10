@@ -27,8 +27,8 @@ function test {
   go test ./... $verbose
 }
 
-test "postgres"
 test "sqlite"
+test "postgres"
 test "mysql"
 
 rm tsoda
