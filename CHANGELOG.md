@@ -1,5 +1,13 @@
 # Change Log
 
+## [v3.14.0](https://github.com/markbates/pop/tree/v3.14.0) (2017-04-10)
+[Full Changelog](https://github.com/markbates/pop/compare/v3.13.7...v3.14.0)
+
+**Closed issues:**
+
+- Cannot generate a config and cannot update pop [\#60](https://github.com/markbates/pop/issues/60)
+- How can I exec a raw sql query? [\#59](https://github.com/markbates/pop/issues/59)
+
 ## [v3.13.7](https://github.com/markbates/pop/tree/v3.13.7) (2017-04-04)
 [Full Changelog](https://github.com/markbates/pop/compare/v3.13.6...v3.13.7)
 
@@ -198,13 +206,13 @@
 [Full Changelog](https://github.com/markbates/pop/compare/v3.5.1.1...v3.6.0)
 
 ## [v3.5.1.1](https://github.com/markbates/pop/tree/v3.5.1.1) (2016-08-26)
-[Full Changelog](https://github.com/markbates/pop/compare/v3.5.2...v3.5.1.1)
-
-## [v3.5.2](https://github.com/markbates/pop/tree/v3.5.2) (2016-08-26)
-[Full Changelog](https://github.com/markbates/pop/compare/v3.5.1...v3.5.2)
+[Full Changelog](https://github.com/markbates/pop/compare/v3.5.1...v3.5.1.1)
 
 ## [v3.5.1](https://github.com/markbates/pop/tree/v3.5.1) (2016-08-26)
-[Full Changelog](https://github.com/markbates/pop/compare/v3.5.0...v3.5.1)
+[Full Changelog](https://github.com/markbates/pop/compare/v3.5.2...v3.5.1)
+
+## [v3.5.2](https://github.com/markbates/pop/tree/v3.5.2) (2016-08-26)
+[Full Changelog](https://github.com/markbates/pop/compare/v3.5.0...v3.5.2)
 
 ## [v3.5.0](https://github.com/markbates/pop/tree/v3.5.0) (2016-08-25)
 [Full Changelog](https://github.com/markbates/pop/compare/v3.4.1...v3.5.0)
