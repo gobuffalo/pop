@@ -37,8 +37,8 @@ func newName(name string) names {
 	return names{
 		Original: name,
 		File:     inflect.Underscore(inflect.Singularize(name)),
-		Table:    inflect.Tableize(name),
-		Proper:   inflect.ForeignKeyToAttribute(inflect.Singularize(name)),
+		Table:    inflect.Tableize(inflect.Pluralize(name)),
+		Proper:   inflect.ForeignKeyToAttribute(name),
 		Plural:   inflect.Pluralize(inflect.Camelize(name)),
 		Char:     strings.ToLower(string([]byte(name)[0])),
 	}
@@ -102,7 +102,7 @@ func (m model) Fizz() string {
 func newModel(name string) model {
 	id := newName("id")
 	id.Proper = "ID"
-	return model{
+	m := model{
 		Package: "models",
 		Imports: []string{"time", "encoding/json", "github.com/markbates/pop", "github.com/markbates/validate", "github.com/satori/go.uuid"},
 		Names:   newName(name),
@@ -113,6 +113,8 @@ func newModel(name string) model {
 		},
 		ValidatableAttributes: []attribute{},
 	}
+	m.Names.Proper = inflect.Singularize(m.Names.Proper)
+	return m
 }
 
 var ModelCmd = &cobra.Command{
