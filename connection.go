@@ -62,6 +62,12 @@ func NewConnection(deets *ConnectionDetails) (*Connection, error) {
 // found, and it has yet to open a connection with its underlying datastore,
 // a connection to that store will be opened.
 func Connect(e string) (*Connection, error) {
+	if len(Connections) == 0 {
+		err := LoadConfig()
+		if err != nil {
+			return nil, errors.WithStack(err)
+		}
+	}
 	e = defaults.String(e, "development")
 	c := Connections[e]
 	if c == nil {

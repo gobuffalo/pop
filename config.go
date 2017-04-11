@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"html/template"
 	"io/ioutil"
-	"log"
 	"os"
 	"path/filepath"
 
@@ -30,24 +29,22 @@ func init() {
 	LoadConfig()
 }
 
-func LoadConfig() {
+func LoadConfig() error {
 	path, err := findConfigPath()
-	if err == nil {
-		Connections = map[string]*Connection{}
-		err = loadConfig(path)
-		if err != nil {
-			log.Fatal(err)
-		}
+	if err != nil {
+		return errors.WithStack(err)
 	}
+	Connections = map[string]*Connection{}
+	return loadConfig(path)
 }
 
 func LookupPaths() []string {
 	return lookupPaths
 }
 
-func AddLookupPaths(paths ...string) {
+func AddLookupPaths(paths ...string) error {
 	lookupPaths = append(paths, lookupPaths...)
-	LoadConfig()
+	return LoadConfig()
 }
 
 func findConfigPath() (string, error) {
