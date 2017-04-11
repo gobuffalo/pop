@@ -1,5 +1,12 @@
 # Change Log
 
+## [v3.16.0](https://github.com/markbates/pop/tree/v3.16.0) (2017-04-11)
+[Full Changelog](https://github.com/markbates/pop/compare/v3.15.0...v3.16.0)
+
+**Closed issues:**
+
+- Address struct will become addres table name [\#61](https://github.com/markbates/pop/issues/61)
+
 ## [v3.15.0](https://github.com/markbates/pop/tree/v3.15.0) (2017-04-11)
 [Full Changelog](https://github.com/markbates/pop/compare/v3.14.1...v3.15.0)
 
