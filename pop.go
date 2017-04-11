@@ -4,9 +4,12 @@ import (
 	"fmt"
 	"log"
 	"os"
+
+	"github.com/fatih/color"
 )
 
 var Debug = false
+var Color = true
 var logger = log.New(os.Stdout, "[POP] ", log.LstdFlags)
 
 var Log = func(s string, args ...interface{}) {
@@ -22,6 +25,9 @@ var Log = func(s string, args ...interface{}) {
 				}
 			}
 			s = fmt.Sprintf("%s | %s", s, xargs)
+		}
+		if Color {
+			s = color.YellowString(s)
 		}
 		logger.Println(s)
 	}

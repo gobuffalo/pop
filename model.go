@@ -180,7 +180,7 @@ func (m *Model) touchUpdatedAt() {
 func (m *Model) whereID() string {
 	id := m.ID()
 	if _, ok := id.(int); ok {
-		return fmt.Sprintf("id = %d", id)
+		return fmt.Sprintf("%s.id = %d", m.TableName(), id)
 	}
-	return fmt.Sprintf("id ='%s'", id)
+	return fmt.Sprintf("%s.id ='%s'", m.TableName(), id)
 }
