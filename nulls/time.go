@@ -67,3 +67,7 @@ func (ns *Time) UnmarshalJSON(text []byte) error {
 
 	return err
 }
+
+func (ns *Time) UnmarshalText(text []byte) error {
+	return ns.UnmarshalJSON(text)
+}

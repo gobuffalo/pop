@@ -72,3 +72,7 @@ func (ns *Bool) UnmarshalJSON(text []byte) error {
 	ns.Valid = false
 	return nil
 }
+
+func (ns *Bool) UnmarshalText(text []byte) error {
+	return ns.UnmarshalJSON(text)
+}

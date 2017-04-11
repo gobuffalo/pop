@@ -63,3 +63,14 @@ func (ns *String) UnmarshalJSON(text []byte) error {
 	}
 	return err
 }
+
+func (ns *String) UnmarshalText(text []byte) error {
+	ns.Valid = false
+	t := string(text)
+	if t == "null" {
+		return nil
+	}
+	ns.String = t
+	ns.Valid = true
+	return nil
+}
