@@ -1,5 +1,8 @@
 # Change Log
 
+## [v3.18.0](https://github.com/markbates/pop/tree/v3.18.0) (2017-04-14)
+[Full Changelog](https://github.com/markbates/pop/compare/v3.17.0...v3.18.0)
+
 ## [v3.17.0](https://github.com/markbates/pop/tree/v3.17.0) (2017-04-11)
 [Full Changelog](https://github.com/markbates/pop/compare/v3.16.0...v3.17.0)
 
