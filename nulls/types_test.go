@@ -10,7 +10,7 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	. "github.com/markbates/pop/nulls"
-	_ "github.com/mutecomm/go-sqlcipher"
+	_ "github.com/mattn/go-sqlite3"
 	"github.com/stretchr/testify/require"
 )
 

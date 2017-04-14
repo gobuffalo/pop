@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/markbates/pop/fizz"
-	_ "github.com/mutecomm/go-sqlcipher"
+	_ "github.com/mattn/go-sqlite3"
 	"github.com/pkg/errors"
 )
 
