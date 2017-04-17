@@ -51,7 +51,10 @@ func NewConnection(deets *ConnectionDetails) (*Connection, error) {
 	case "mysql":
 		c.Dialect = newMySQL(deets)
 	case "sqlite3":
-		c.Dialect = newSQLite(deets)
+		c.Dialect, err = newSQLite(deets)
+		if err != nil {
+			return c, errors.WithStack(err)
+		}
 	}
 	return c, nil
 }

@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/markbates/pop/fizz"
-	_ "github.com/mattn/go-sqlite3"
 	"github.com/pkg/errors"
 )
 
@@ -103,7 +102,6 @@ func (c *Connection) MigrateDown(path string, step int) error {
 	return findMigrations(path, "down", count, func(m migrationFile) error {
 		exists, err := c.Where("version = ?", m.Version).Exists("schema_migration")
 		if err != nil || !exists {
-			fmt.Errorf("migration missing: %s", m.Version)
 			return errors.Wrapf(err, "problem checking for migration version %s", m.Version)
 		}
 		err = c.Transaction(func(tx *Connection) error {
