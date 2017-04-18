@@ -25,6 +25,8 @@ func (q *Query) Find(model interface{}, id interface{}) error {
 	switch t := id.(type) {
 	case int:
 		idi = t
+	case int64:
+		idi = int(t)
 	case uuid.UUID:
 		return q.Where(idq, t.String()).First(model)
 	case string:
