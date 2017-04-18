@@ -179,11 +179,12 @@ func (m *Model) touchUpdatedAt() {
 
 func (m *Model) whereID() string {
 	id := m.ID()
-	if _, ok := id.(int); ok {
-		return fmt.Sprintf("%s.id = %d", m.TableName(), id)
+	var value string
+	switch id.(type) {
+	case int, int64:
+		value = fmt.Sprintf("%s.id = %d", m.TableName(), id)
+	default:
+		value = fmt.Sprintf("%s.id ='%s'", m.TableName(), id)
 	}
-	if _, ok := id.(int64); ok {
-		return fmt.Sprintf("%s.id = %d", m.TableName(), id)
-	}
-	return fmt.Sprintf("%s.id ='%s'", m.TableName(), id)
+	return value
 }

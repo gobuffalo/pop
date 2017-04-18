@@ -21,22 +21,17 @@ func (c *Connection) Find(model interface{}, id interface{}) error {
 func (q *Query) Find(model interface{}, id interface{}) error {
 	m := &Model{Value: model}
 	idq := fmt.Sprintf("%s.id = ?", m.TableName())
-	var idi int
 	switch t := id.(type) {
-	case int:
-		idi = t
-	case int64:
-		idi = int(t)
 	case uuid.UUID:
 		return q.Where(idq, t.String()).First(model)
 	case string:
 		var err error
-		idi, err = strconv.Atoi(t)
+		id, err = strconv.Atoi(t)
 		if err != nil {
 			return q.Where(idq, t).First(model)
 		}
 	}
-	return q.Where(idq, idi).First(model)
+	return q.Where(idq, id).First(model)
 }
 
 // First record of the model in the database that matches the query.
