@@ -28,5 +28,5 @@ create_table("callbacks_users", func(t) {
   t.Column("after_s", "string", {})
   t.Column("after_c", "string", {})
   t.Column("after_u", "string", {})
-  t.Column("after_D", "string", {})
+  t.Column("after_d", "string", {})
 })
