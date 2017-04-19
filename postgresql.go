@@ -31,7 +31,7 @@ func (p *postgresql) Details() *ConnectionDetails {
 func (p *postgresql) Create(s store, model *Model, cols Columns) error {
 	keyType := model.PrimaryKeyType()
 	switch keyType {
-	case "int":
+	case "int", "int64":
 		cols.Remove("id")
 		id := struct {
 			ID int `db:"id"`

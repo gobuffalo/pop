@@ -83,7 +83,7 @@ func (m *Model) validateUpdate(c *Connection) (*validate.Errors, error) {
 }
 
 // ID returns the ID of the Model. All models must have an `ID` field this is
-// of type `int` or of type `uuid.UUID`.
+// of type `int`,`int64` or of type `uuid.UUID`.
 func (m *Model) ID() interface{} {
 	fbn, err := m.fieldByName("ID")
 	if err != nil {
@@ -159,7 +159,13 @@ func (m *Model) associationName() string {
 func (m *Model) setID(i interface{}) {
 	fbn, err := m.fieldByName("ID")
 	if err == nil {
-		fbn.Set(reflect.ValueOf(i))
+		v := reflect.ValueOf(i)
+		switch fbn.Kind() {
+		case reflect.Int, reflect.Int64:
+			fbn.SetInt(v.Int())
+		default:
+			fbn.Set(reflect.ValueOf(i))
+		}
 	}
 }
 
@@ -179,8 +185,12 @@ func (m *Model) touchUpdatedAt() {
 
 func (m *Model) whereID() string {
 	id := m.ID()
-	if _, ok := id.(int); ok {
-		return fmt.Sprintf("%s.id = %d", m.TableName(), id)
+	var value string
+	switch id.(type) {
+	case int, int64:
+		value = fmt.Sprintf("%s.id = %d", m.TableName(), id)
+	default:
+		value = fmt.Sprintf("%s.id ='%s'", m.TableName(), id)
 	}
-	return fmt.Sprintf("%s.id ='%s'", m.TableName(), id)
+	return value
 }

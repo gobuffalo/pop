@@ -37,7 +37,7 @@ type dialect interface {
 func genericCreate(s store, model *Model, cols Columns) error {
 	keyType := model.PrimaryKeyType()
 	switch keyType {
-	case "int":
+	case "int", "int64":
 		var id int64
 		w := cols.Writeable()
 		query := fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s)", model.TableName(), w.String(), w.SymbolizedString())
@@ -48,7 +48,7 @@ func genericCreate(s store, model *Model, cols Columns) error {
 		}
 		id, err = res.LastInsertId()
 		if err == nil {
-			model.setID(int(id))
+			model.setID(id)
 		}
 		return errors.Wrap(err, "couldn't get the last inserted id")
 	case "UUID":
