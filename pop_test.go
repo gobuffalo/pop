@@ -108,7 +108,7 @@ type Song struct {
 }
 
 type ValidatableCar struct {
-	ID        int       `db:"id"`
+	ID        int64     `db:"id"`
 	Name      string    `db:"name"`
 	CreatedAt time.Time `json:"created_at" db:"created_at"`
 	UpdatedAt time.Time `json:"updated_at" db:"updated_at"`

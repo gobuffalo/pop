@@ -48,7 +48,7 @@ func genericCreate(s store, model *Model, cols Columns) error {
 		}
 		id, err = res.LastInsertId()
 		if err == nil {
-			model.setID(id)
+			model.setID(int(id))
 		}
 		return errors.Wrap(err, "couldn't get the last inserted id")
 	case "UUID":

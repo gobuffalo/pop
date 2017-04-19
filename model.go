@@ -159,7 +159,13 @@ func (m *Model) associationName() string {
 func (m *Model) setID(i interface{}) {
 	fbn, err := m.fieldByName("ID")
 	if err == nil {
-		fbn.Set(reflect.ValueOf(i))
+		v := reflect.ValueOf(i)
+		switch fbn.Kind() {
+		case reflect.Int, reflect.Int64:
+			fbn.SetInt(v.Int())
+		default:
+			fbn.Set(reflect.ValueOf(i))
+		}
 	}
 }
 
