@@ -143,3 +143,57 @@ type NotValidatableCar struct {
 	CreatedAt time.Time `json:"created_at" db:"created_at"`
 	UpdatedAt time.Time `json:"updated_at" db:"updated_at"`
 }
+
+type CallbacksUser struct {
+	ID        int       `db:"id"`
+	BeforeS   string    `db:"before_s"`
+	BeforeC   string    `db:"before_c"`
+	BeforeU   string    `db:"before_u"`
+	BeforeD   string    `db:"before_d"`
+	AfterS    string    `db:"after_s"`
+	AfterC    string    `db:"after_c"`
+	AfterU    string    `db:"after_u"`
+	AfterD    string    `db:"after_d"`
+	CreatedAt time.Time `json:"created_at" db:"created_at"`
+	UpdatedAt time.Time `json:"updated_at" db:"updated_at"`
+}
+
+func (u *CallbacksUser) BeforeSave(tx *pop.Connection) error {
+	u.BeforeS = "BeforeSave"
+	return nil
+}
+
+func (u *CallbacksUser) BeforeUpdate(tx *pop.Connection) error {
+	u.BeforeU = "BeforeUpdate"
+	return nil
+}
+
+func (u *CallbacksUser) BeforeCreate(tx *pop.Connection) error {
+	u.BeforeC = "BeforeCreate"
+	return nil
+}
+
+func (u *CallbacksUser) BeforeDestroy(tx *pop.Connection) error {
+	u.BeforeD = "BeforeDestroy"
+	return nil
+}
+
+func (u *CallbacksUser) AfterSave(tx *pop.Connection) error {
+	u.AfterS = "AfterSave"
+	return nil
+}
+
+func (u *CallbacksUser) AfterUpdate(tx *pop.Connection) error {
+	u.AfterU = "AfterUpdate"
+	return nil
+}
+
+func (u *CallbacksUser) AfterCreate(tx *pop.Connection) error {
+	u.AfterC = "AfterCreate"
+	return nil
+}
+
+func (u *CallbacksUser) AfterDestroy(tx *pop.Connection) error {
+	u.AfterD = "AfterDestroy"
+	return nil
+}

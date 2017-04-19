@@ -46,20 +46,25 @@ func (m *Model) runValidations(c *Connection, names ...string) (*validate.Errors
 		rv := reflect.ValueOf(m.Value)
 		mv := rv.MethodByName(n)
 		if mv.IsValid() {
-			if mv.Type().NumOut() < 2 {
-				return nil, errors.Errorf("%s does not have the correct method signature!", n)
-			}
-			out := mv.Call([]reflect.Value{reflect.ValueOf(c)})
-			verrs := validate.NewErrors()
-			var err error
-			if !out[0].IsNil() {
-				verrs = out[0].Interface().(*validate.Errors)
-			}
-			if !out[1].IsNil() {
-				err = out[1].Interface().(error)
-			}
-			if verrs.HasAny() || err != nil {
-				return verrs, err
+			typ := mv.Type()
+			if typ.NumIn() == 1 && typ.In(0) == reflect.TypeOf(c) {
+				if typ.NumOut() != 2 {
+					return nil, errors.Errorf("%s function should return (*validate.Errors, error)!", n)
+				}
+				out := mv.Call([]reflect.Value{reflect.ValueOf(c)})
+				verrs := validate.NewErrors()
+				var err error
+				if !out[0].IsNil() {
+					verrs = out[0].Interface().(*validate.Errors)
+				}
+				if !out[1].IsNil() {
+					err = out[1].Interface().(error)
+				}
+				if verrs.HasAny() || err != nil {
+					return verrs, err
+				}
+			} else {
+				return nil, errors.Errorf("%s function should take 1 argument of type '*pop.Connection'", n)
 			}
 		}
 	}
