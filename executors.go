@@ -36,14 +36,26 @@ func (c *Connection) ValidateAndSave(model interface{}, excludeColumns ...string
 
 var emptyUUID = uuid.Nil.String()
 
-func (c *Connection) Save(model interface{}, excludeColumns ...string) error {
+func (c *Connection) Save(model interface{}, excludeColumns ...string) (err error) {
 	sm := &Model{Value: model}
 	id := sm.ID()
-	if id == 0 || (fmt.Sprint(id) == emptyUUID) {
-		return c.Create(model, excludeColumns...)
-	} else {
-		return c.Update(model, excludeColumns...)
+
+	err = sm.beforeSave(c)
+	if err != nil {
+		return err
 	}
+
+	if id == 0 || (fmt.Sprint(id) == emptyUUID) {
+		err = c.Create(model, excludeColumns...)
+	} else {
+		err = c.Update(model, excludeColumns...)
+	}
+
+	if err != nil {
+		return err
+	}
+
+	return sm.afterSave(c)
 }
 
 func (c *Connection) ValidateAndCreate(model interface{}, excludeColumns ...string) (*validate.Errors, error) {
@@ -58,9 +70,13 @@ func (c *Connection) ValidateAndCreate(model interface{}, excludeColumns ...stri
 	return verrs, c.Create(model, excludeColumns...)
 }
 
-func (c *Connection) Create(model interface{}, excludeColumns ...string) error {
+func (c *Connection) Create(model interface{}, excludeColumns ...string) (err error) {
 	return c.timeFunc("Create", func() error {
 		sm := &Model{Value: model}
+		err = sm.beforeCreate(c)
+		if err != nil {
+			return err
+		}
 
 		cols := ColumnsForStruct(model, sm.TableName())
 		cols.Remove(excludeColumns...)
@@ -68,7 +84,12 @@ func (c *Connection) Create(model interface{}, excludeColumns ...string) error {
 		sm.touchCreatedAt()
 		sm.touchUpdatedAt()
 
-		return c.Dialect.Create(c.Store, sm, cols)
+		err = c.Dialect.Create(c.Store, sm, cols)
+		if err != nil {
+			return err
+		}
+
+		return sm.afterCreate(c)
 	})
 }
 
@@ -84,9 +105,13 @@ func (c *Connection) ValidateAndUpdate(model interface{}, excludeColumns ...stri
 	return verrs, c.Update(model, excludeColumns...)
 }
 
-func (c *Connection) Update(model interface{}, excludeColumns ...string) error {
+func (c *Connection) Update(model interface{}, excludeColumns ...string) (err error) {
 	return c.timeFunc("Update", func() error {
 		sm := &Model{Value: model}
+		err = sm.beforeUpdate(c)
+		if err != nil {
+			return err
+		}
 
 		cols := ColumnsForStruct(model, sm.TableName())
 		cols.Remove("id", "created_at")
@@ -94,14 +119,28 @@ func (c *Connection) Update(model interface{}, excludeColumns ...string) error {
 
 		sm.touchUpdatedAt()
 
-		return c.Dialect.Update(c.Store, sm, cols)
+		err = c.Dialect.Update(c.Store, sm, cols)
+		if err != nil {
+			return err
+		}
+
+		return sm.afterUpdate(c)
 	})
 }
 
-func (c *Connection) Destroy(model interface{}) error {
+func (c *Connection) Destroy(model interface{}) (err error) {
 	return c.timeFunc("Destroy", func() error {
 		sm := &Model{Value: model}
+		err = sm.beforeDestroy(c)
+		if err != nil {
+			return err
+		}
 
-		return c.Dialect.Destroy(c.Store, sm)
+		err = c.Dialect.Destroy(c.Store, sm)
+		if err != nil {
+			return err
+		}
+
+		return sm.afterDestroy(c)
 	})
 }
