@@ -10,12 +10,17 @@ func (m *Model) runCallbacks(c *Connection, name string) error {
 	rv := reflect.ValueOf(m.Value)
 	mv := rv.MethodByName(name)
 	if mv.IsValid() {
-		if mv.Type().NumOut() != 1 {
-			return errors.Errorf("%s does not have the correct method signature!", name)
-		}
-		out := mv.Call([]reflect.Value{reflect.ValueOf(c)})
-		if !out[0].IsNil() {
-			return out[0].Interface().(error)
+		typ := mv.Type()
+		if typ.NumIn() == 1 && typ.In(0) == reflect.TypeOf(c) {
+			if typ.NumOut() != 1 {
+				return errors.Errorf("%s function should return error!", name)
+			}
+			out := mv.Call([]reflect.Value{reflect.ValueOf(c)})
+			if !out[0].IsNil() {
+				return out[0].Interface().(error)
+			}
+		} else {
+			return errors.Errorf("%s function should take 1 argument of type '*pop.Connection'", name)
 		}
 	}
 	return nil
