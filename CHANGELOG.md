@@ -1,5 +1,18 @@
 # Change Log
 
+## [v3.20.0](https://github.com/markbates/pop/tree/v3.20.0) (2017-04-19)
+[Full Changelog](https://github.com/markbates/pop/compare/v3.19.0...v3.20.0)
+
+**Closed issues:**
+
+- Mysql create with int64 primary key [\#63](https://github.com/markbates/pop/issues/63)
+
+**Merged pull requests:**
+
+- added the ability to shell out to an external command during a fizz migration [\#68](https://github.com/markbates/pop/pull/68) ([markbates](https://github.com/markbates))
+- fixes markbates/pop\#63, allowing int64 IDs on models [\#67](https://github.com/markbates/pop/pull/67) ([markbates](https://github.com/markbates))
+- Adding Migrate Status command [\#66](https://github.com/markbates/pop/pull/66) ([kushwiz](https://github.com/kushwiz))
+
 ## [v3.19.0](https://github.com/markbates/pop/tree/v3.19.0) (2017-04-14)
 [Full Changelog](https://github.com/markbates/pop/compare/v3.18.0...v3.19.0)
 
