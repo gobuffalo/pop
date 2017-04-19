@@ -1,5 +1,16 @@
 # Change Log
 
+## [v3.21.0](https://github.com/markbates/pop/tree/v3.21.0) (2017-04-19)
+[Full Changelog](https://github.com/markbates/pop/compare/v3.20.0...v3.21.0)
+
+**Closed issues:**
+
+- Proposal: migrate status [\#62](https://github.com/markbates/pop/issues/62)
+
+**Merged pull requests:**
+
+- Callback support for models [\#69](https://github.com/markbates/pop/pull/69) ([Michsior14](https://github.com/Michsior14))
+
 ## [v3.20.0](https://github.com/markbates/pop/tree/v3.20.0) (2017-04-19)
 [Full Changelog](https://github.com/markbates/pop/compare/v3.19.0...v3.20.0)
 
