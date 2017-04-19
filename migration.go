@@ -11,6 +11,7 @@ import (
 
 	"github.com/markbates/pop/fizz"
 	"github.com/pkg/errors"
+	"text/tabwriter"
 )
 
 var mrx = regexp.MustCompile("(\\d+)_(.+)\\.(up|down)\\.(sql|fizz)")
@@ -117,6 +118,31 @@ func (c *Connection) MigrateDown(path string, step int) error {
 		}
 		return err
 	}, step)
+}
+
+func (c *Connection) MigrateStatus(path string) error {
+
+	err := c.createSchemaMigrations()
+	if err != nil {
+		return errors.Wrap(err, "migration down: problem creating schema migrations")
+	}
+
+	w := tabwriter.NewWriter(os.Stdout, 0, 0, 3, ' ', tabwriter.TabIndent)
+	fmt.Fprintln(w, "Version\tName\tStatus\t")
+	findMigrations(path, "up", 0, func(m migrationFile) error {
+		exists, err := c.Where("version = ?", m.Version).Exists("schema_migration")
+		if err != nil {
+			return errors.Wrapf(err, "problem with migration")
+		}
+		if exists {
+			fmt.Fprintln(w, m.Version+"\t"+m.Name+"\tApplied\t")
+		} else {
+			fmt.Fprintln(w, m.Version+"\t"+m.Name+"\tPending\t")
+		}
+		return nil
+	}, -1)
+	w.Flush()
+	return nil
 }
 
 func (c *Connection) MigrateReset(path string) error {
