@@ -8,7 +8,7 @@ import (
 type joinClause struct {
 	JoinType  string
 	Table     string
-	On        []string
+	On        string
 	Arguments []interface{}
 }
 
@@ -18,7 +18,7 @@ func (c joinClause) String() string {
 	sql := fmt.Sprintf("%s %s", c.JoinType, c.Table)
 
 	if len(c.On) > 0 {
-		sql += " ON " + strings.Join(c.On, " AND ")
+		sql += " ON " + c.On
 	}
 
 	return sql
