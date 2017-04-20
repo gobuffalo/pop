@@ -243,12 +243,12 @@ err := query.All(&users)
 // perpage: limit
 roles := []models.UserRole{}
 query := pop.Q(models.DB).LeftJoin("roles", "", []string{"roles.id=user_roles.role_id"}).
-  LeftJoin("users", "", []string{"users.id=user_roles.user_id"}).
-  Where(`roles.name like ?`, name).Paginate(page, perpage).Order("name asc")
+  LeftJoin("users u", "u.id=user_roles.user_id").
+  Where(`roles.name like ?`, name).Paginate(page, perpage)
 
 count, _ := query.Count(models.UserRole{})
 sql, args := query.ToSQL(&pop.Model{Value: models.UserRole{}}, "user_roles.*",
-  "roles.name as role_name", "users.first_name", "users.last_name")
+  "roles.name as role_name", "u.first_name", "u.last_name")
 //c.Logger().Debugf("sql: %s, args: %v", sql, args)
 err := pop.Q(models.DB).RawQuery(sql, args...).All(&roles)
 ```
