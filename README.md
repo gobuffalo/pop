@@ -242,7 +242,7 @@ err := query.All(&users)
 // page: page number
 // perpage: limit
 roles := []models.UserRole{}
-query := pop.Q(models.DB).LeftJoin("roles", "", []string{"roles.id=user_roles.role_id"}).
+query := pop.Q(models.DB).LeftJoin("roles", "roles.id=user_roles.role_id").
   LeftJoin("users u", "u.id=user_roles.user_id").
   Where(`roles.name like ?`, name).Paginate(page, perpage)
 
