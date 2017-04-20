@@ -249,7 +249,7 @@ query := pop.Q(models.DB).LeftJoin("roles", "roles.id=user_roles.role_id").
 count, _ := query.Count(models.UserRole{})
 sql, args := query.ToSQL(&pop.Model{Value: models.UserRole{}}, "user_roles.*",
   "roles.name as role_name", "u.first_name", "u.last_name")
-//c.Logger().Debugf("sql: %s, args: %v", sql, args)
+//log.Printf("sql: %s, args: %v", sql, args)
 err := pop.Q(models.DB).RawQuery(sql, args...).All(&roles)
 ```
 
