@@ -20,6 +20,17 @@ create_table("not_validatable_cars", func(t) {
   t.Column("name", "string", {})
 })
 
+create_table("callbacks_users", func(t) {
+  t.Column("before_s", "string", {})
+  t.Column("before_c", "string", {})
+  t.Column("before_u", "string", {})
+  t.Column("before_d", "string", {})
+  t.Column("after_s", "string", {})
+  t.Column("after_c", "string", {})
+  t.Column("after_u", "string", {})
+  t.Column("after_d", "string", {})
+})
+
 create_table("books", func(t) {
   t.Column("title", "string", {})
   t.Column("user_id", "uuid", {})

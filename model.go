@@ -46,20 +46,25 @@ func (m *Model) runValidations(c *Connection, names ...string) (*validate.Errors
 		rv := reflect.ValueOf(m.Value)
 		mv := rv.MethodByName(n)
 		if mv.IsValid() {
-			if mv.Type().NumOut() < 2 {
-				return nil, errors.Errorf("%s does not have the correct method signature!", n)
-			}
-			out := mv.Call([]reflect.Value{reflect.ValueOf(c)})
-			verrs := validate.NewErrors()
-			var err error
-			if !out[0].IsNil() {
-				verrs = out[0].Interface().(*validate.Errors)
-			}
-			if !out[1].IsNil() {
-				err = out[1].Interface().(error)
-			}
-			if verrs.HasAny() || err != nil {
-				return verrs, err
+			typ := mv.Type()
+			if typ.NumIn() == 1 && typ.In(0) == reflect.TypeOf(c) {
+				if typ.NumOut() != 2 {
+					return nil, errors.Errorf("%s function should return (*validate.Errors, error)!", n)
+				}
+				out := mv.Call([]reflect.Value{reflect.ValueOf(c)})
+				verrs := validate.NewErrors()
+				var err error
+				if !out[0].IsNil() {
+					verrs = out[0].Interface().(*validate.Errors)
+				}
+				if !out[1].IsNil() {
+					err = out[1].Interface().(error)
+				}
+				if verrs.HasAny() || err != nil {
+					return verrs, err
+				}
+			} else {
+				return nil, errors.Errorf("%s function should take 1 argument of type '*pop.Connection'", n)
 			}
 		}
 	}
@@ -83,7 +88,7 @@ func (m *Model) validateUpdate(c *Connection) (*validate.Errors, error) {
 }
 
 // ID returns the ID of the Model. All models must have an `ID` field this is
-// of type `int` or of type `uuid.UUID`.
+// of type `int`,`int64` or of type `uuid.UUID`.
 func (m *Model) ID() interface{} {
 	fbn, err := m.fieldByName("ID")
 	if err != nil {
@@ -159,7 +164,13 @@ func (m *Model) associationName() string {
 func (m *Model) setID(i interface{}) {
 	fbn, err := m.fieldByName("ID")
 	if err == nil {
-		fbn.Set(reflect.ValueOf(i))
+		v := reflect.ValueOf(i)
+		switch fbn.Kind() {
+		case reflect.Int, reflect.Int64:
+			fbn.SetInt(v.Int())
+		default:
+			fbn.Set(reflect.ValueOf(i))
+		}
 	}
 }
 
@@ -179,8 +190,12 @@ func (m *Model) touchUpdatedAt() {
 
 func (m *Model) whereID() string {
 	id := m.ID()
-	if _, ok := id.(int); ok {
-		return fmt.Sprintf("id = %d", id)
+	var value string
+	switch id.(type) {
+	case int, int64:
+		value = fmt.Sprintf("%s.id = %d", m.TableName(), id)
+	default:
+		value = fmt.Sprintf("%s.id ='%s'", m.TableName(), id)
 	}
-	return fmt.Sprintf("id ='%s'", id)
+	return value
 }

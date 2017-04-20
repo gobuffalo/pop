@@ -70,3 +70,7 @@ func (ns *Int) UnmarshalJSON(text []byte) error {
 	ns.Int = j
 	return nil
 }
+
+func (ns *Int) UnmarshalText(text []byte) error {
+	return ns.UnmarshalJSON(text)
+}

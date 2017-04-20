@@ -1,5 +1,59 @@
 # Change Log
 
+## [v3.21.0](https://github.com/markbates/pop/tree/v3.21.0) (2017-04-19)
+[Full Changelog](https://github.com/markbates/pop/compare/v3.20.0...v3.21.0)
+
+**Closed issues:**
+
+- Proposal: migrate status [\#62](https://github.com/markbates/pop/issues/62)
+
+**Merged pull requests:**
+
+- Callback support for models [\#69](https://github.com/markbates/pop/pull/69) ([Michsior14](https://github.com/Michsior14))
+
+## [v3.20.0](https://github.com/markbates/pop/tree/v3.20.0) (2017-04-19)
+[Full Changelog](https://github.com/markbates/pop/compare/v3.19.0...v3.20.0)
+
+**Closed issues:**
+
+- Mysql create with int64 primary key [\#63](https://github.com/markbates/pop/issues/63)
+
+**Merged pull requests:**
+
+- added the ability to shell out to an external command during a fizz migration [\#68](https://github.com/markbates/pop/pull/68) ([markbates](https://github.com/markbates))
+- fixes markbates/pop\#63, allowing int64 IDs on models [\#67](https://github.com/markbates/pop/pull/67) ([markbates](https://github.com/markbates))
+- Adding Migrate Status command [\#66](https://github.com/markbates/pop/pull/66) ([kushwiz](https://github.com/kushwiz))
+
+## [v3.19.0](https://github.com/markbates/pop/tree/v3.19.0) (2017-04-14)
+[Full Changelog](https://github.com/markbates/pop/compare/v3.18.0...v3.19.0)
+
+## [v3.18.0](https://github.com/markbates/pop/tree/v3.18.0) (2017-04-14)
+[Full Changelog](https://github.com/markbates/pop/compare/v3.17.0...v3.18.0)
+
+## [v3.17.0](https://github.com/markbates/pop/tree/v3.17.0) (2017-04-11)
+[Full Changelog](https://github.com/markbates/pop/compare/v3.16.0...v3.17.0)
+
+## [v3.16.0](https://github.com/markbates/pop/tree/v3.16.0) (2017-04-11)
+[Full Changelog](https://github.com/markbates/pop/compare/v3.15.0...v3.16.0)
+
+**Closed issues:**
+
+- Address struct will become addres table name [\#61](https://github.com/markbates/pop/issues/61)
+
+## [v3.15.0](https://github.com/markbates/pop/tree/v3.15.0) (2017-04-11)
+[Full Changelog](https://github.com/markbates/pop/compare/v3.14.1...v3.15.0)
+
+## [v3.14.1](https://github.com/markbates/pop/tree/v3.14.1) (2017-04-10)
+[Full Changelog](https://github.com/markbates/pop/compare/v3.14.0...v3.14.1)
+
+## [v3.14.0](https://github.com/markbates/pop/tree/v3.14.0) (2017-04-10)
+[Full Changelog](https://github.com/markbates/pop/compare/v3.13.7...v3.14.0)
+
+**Closed issues:**
+
+- Cannot generate a config and cannot update pop [\#60](https://github.com/markbates/pop/issues/60)
+- How can I exec a raw sql query? [\#59](https://github.com/markbates/pop/issues/59)
+
 ## [v3.13.7](https://github.com/markbates/pop/tree/v3.13.7) (2017-04-04)
 [Full Changelog](https://github.com/markbates/pop/compare/v3.13.6...v3.13.7)
 

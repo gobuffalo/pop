@@ -1,3 +1,5 @@
+// +build !nosqlite
+
 package pop
 
 import (
@@ -14,6 +16,7 @@ import (
 	. "github.com/markbates/pop/columns"
 	"github.com/markbates/pop/fizz"
 	"github.com/markbates/pop/fizz/translators"
+	_ "github.com/mattn/go-sqlite3"
 	"github.com/pkg/errors"
 )
 
@@ -173,7 +176,7 @@ func (m *sqlite) TruncateAll(tx *Connection) error {
 	return tx.RawQuery(strings.Join(stmts, "; ")).Exec()
 }
 
-func newSQLite(deets *ConnectionDetails) dialect {
+func newSQLite(deets *ConnectionDetails) (dialect, error) {
 	deets.URL = fmt.Sprintf("sqlite3://%s", deets.Database)
 	cd := &sqlite{
 		gil:               &sync.Mutex{},
@@ -181,5 +184,5 @@ func newSQLite(deets *ConnectionDetails) dialect {
 		ConnectionDetails: deets,
 	}
 
-	return cd
+	return cd, nil
 }

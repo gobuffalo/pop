@@ -28,7 +28,7 @@ function test {
 }
 
 test "postgres"
-test "sqlite"
 test "mysql"
+test "sqlite"
 
 rm tsoda

@@ -66,3 +66,7 @@ func (ns *ByteSlice) UnmarshalJSON(text []byte) error {
 	ns.Valid = true
 	return nil
 }
+
+func (ns *ByteSlice) UnmarshalText(text []byte) error {
+	return ns.UnmarshalJSON(text)
+}

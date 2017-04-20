@@ -119,3 +119,11 @@ raw("select * from users;")
 ```
 
 *All calls to `raw` must end with a `;`!*
+
+## Execute an External Command
+
+Sometimes during a migration you need to shell out to an external command.
+
+```javascript
+exec("echo hello")
+```

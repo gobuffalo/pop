@@ -1,6 +1,7 @@
 package fizz
 
 import (
+	"os"
 	"strings"
 
 	"github.com/mattn/anko/vm"
@@ -38,6 +39,7 @@ func (b *Bubbler) Bubble(s string) (string, error) {
 	env.Define("rename_column", f.RenameColumn())
 
 	env.Define("raw", f.RawSql())
+	env.Define("exec", f.Exec(os.Stdout))
 
 	// indexes:
 	env.Define("add_index", f.AddIndex())

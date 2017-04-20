@@ -66,3 +66,7 @@ func (ns *Float64) UnmarshalJSON(text []byte) error {
 	ns.Float64 = i
 	return nil
 }
+
+func (ns *Float64) UnmarshalText(text []byte) error {
+	return ns.UnmarshalJSON(text)
+}

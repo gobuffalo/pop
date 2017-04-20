@@ -39,11 +39,11 @@ var emptyUUID = uuid.Nil.String()
 func (c *Connection) Save(model interface{}, excludeColumns ...string) error {
 	sm := &Model{Value: model}
 	id := sm.ID()
-	if id == 0 || (fmt.Sprint(id) == emptyUUID) {
+  
+	if fmt.Sprint(id) == "0" || fmt.Sprint(id) == emptyUUID {
 		return c.Create(model, excludeColumns...)
-	} else {
-		return c.Update(model, excludeColumns...)
 	}
+	return c.Update(model, excludeColumns...)
 }
 
 func (c *Connection) ValidateAndCreate(model interface{}, excludeColumns ...string) (*validate.Errors, error) {
@@ -60,7 +60,16 @@ func (c *Connection) ValidateAndCreate(model interface{}, excludeColumns ...stri
 
 func (c *Connection) Create(model interface{}, excludeColumns ...string) error {
 	return c.timeFunc("Create", func() error {
+		var err error
 		sm := &Model{Value: model}
+
+		if err = sm.beforeSave(c); err != nil {
+			return err
+		}
+
+		if err = sm.beforeCreate(c); err != nil {
+			return err
+		}
 
 		cols := ColumnsForStruct(model, sm.TableName())
 		cols.Remove(excludeColumns...)
@@ -68,7 +77,15 @@ func (c *Connection) Create(model interface{}, excludeColumns ...string) error {
 		sm.touchCreatedAt()
 		sm.touchUpdatedAt()
 
-		return c.Dialect.Create(c.Store, sm, cols)
+		if err = c.Dialect.Create(c.Store, sm, cols); err != nil {
+			return err
+		}
+
+		if err = sm.afterCreate(c); err != nil {
+			return err
+		}
+
+		return sm.afterSave(c)
 	})
 }
 
@@ -86,7 +103,15 @@ func (c *Connection) ValidateAndUpdate(model interface{}, excludeColumns ...stri
 
 func (c *Connection) Update(model interface{}, excludeColumns ...string) error {
 	return c.timeFunc("Update", func() error {
+		var err error
 		sm := &Model{Value: model}
+
+		if err = sm.beforeSave(c); err != nil {
+			return err
+		}
+		if err = sm.beforeUpdate(c); err != nil {
+			return err
+		}
 
 		cols := ColumnsForStruct(model, sm.TableName())
 		cols.Remove("id", "created_at")
@@ -94,14 +119,29 @@ func (c *Connection) Update(model interface{}, excludeColumns ...string) error {
 
 		sm.touchUpdatedAt()
 
-		return c.Dialect.Update(c.Store, sm, cols)
+		if err = c.Dialect.Update(c.Store, sm, cols); err != nil {
+			return err
+		}
+		if err = sm.afterUpdate(c); err != nil {
+			return err
+		}
+
+		return sm.afterSave(c)
 	})
 }
 
 func (c *Connection) Destroy(model interface{}) error {
 	return c.timeFunc("Destroy", func() error {
+		var err error
 		sm := &Model{Value: model}
 
-		return c.Dialect.Destroy(c.Store, sm)
+		if err = sm.beforeDestroy(c); err != nil {
+			return err
+		}
+		if err = c.Dialect.Destroy(c.Store, sm); err != nil {
+			return err
+		}
+
+		return sm.afterDestroy(c)
 	})
 }
