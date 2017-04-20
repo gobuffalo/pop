@@ -9,6 +9,7 @@ type Query struct {
 	orderClauses            clauses
 	fromClauses             fromClauses
 	belongsToThroughClauses belongsToThroughClauses
+	joinClauses             joinClauses
 	Paginator               *Paginator
 	Connection              *Connection
 }
