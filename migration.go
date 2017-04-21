@@ -198,7 +198,9 @@ func findMigrations(dir string, direction string, runned int, fn func(migrationF
 	if direction == "down" {
 		sort.Sort(sort.Reverse(mfs))
 		// skip all runned migration
-		mfs = mfs[len(mfs)-runned:]
+		if len(mfs) > runned {
+			mfs = mfs[len(mfs)-runned:]
+		}
 		// run only required steps
 		if step > 0 && len(mfs) >= step {
 			mfs = mfs[:step]
