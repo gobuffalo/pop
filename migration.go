@@ -95,9 +95,9 @@ func (c *Connection) MigrateReset(path string) error {
 	}
 	log.Println(warningMsg)
 
-	err := c.MigrateDown(path, -1)
+	mig, err := NewFileMigrator(path, c)
 	if err != nil {
-		return err
+		return errors.WithStack(err)
 	}
-	return c.MigrateUp(path)
+	return mig.Reset()
 }
