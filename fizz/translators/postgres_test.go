@@ -86,6 +86,15 @@ func (p *PostgreSQLSuite) Test_Postgres_RenameTable_NotEnoughValues() {
 	r.Error(err)
 }
 
+func (p *PostgreSQLSuite) Test_Postgres_ChangeColumn() {
+	r := p.Require()
+	ddl := `ALTER TABLE "mytable" ALTER COLUMN "mycolumn" TYPE VARCHAR (50), ALTER COLUMN "mycolumn" SET NOT NULL, ALTER COLUMN "mycolumn" SET DEFAULT 'foo';`
+
+	res, _ := fizz.AString(`change_column("mytable", "mycolumn", "string", {"default": "foo", "size": 50})`, pgt)
+
+	r.Equal(ddl, res)
+}
+
 func (p *PostgreSQLSuite) Test_Postgres_AddColumn() {
 	r := p.Require()
 	ddl := `ALTER TABLE "mytable" ADD COLUMN "mycolumn" VARCHAR (50) NOT NULL DEFAULT 'foo';`

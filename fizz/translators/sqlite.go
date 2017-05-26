@@ -77,6 +77,11 @@ func (p *SQLite) RenameTable(t []fizz.Table) (string, error) {
 	return s, nil
 }
 
+func (p *SQLite) ChangeColumn(t fizz.Table) (string, error) {
+
+	return "", nil
+}
+
 func (p *SQLite) AddColumn(t fizz.Table) (string, error) {
 	if len(t.Columns) == 0 {
 		return "", errors.New("Not enough columns supplied!")

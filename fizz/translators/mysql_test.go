@@ -118,6 +118,15 @@ func (p *MySQLSuite) Test_MySQL_RenameTable_NotEnoughValues() {
 	r.Error(err)
 }
 
+func (p *MySQLSuite) Test_MySQL_ChangeColumn() {
+	r := p.Require()
+	ddl := `ALTER TABLE users MODIFY mycolumn VARCHAR (50) NOT NULL DEFAULT 'foo';`
+
+	res, _ := fizz.AString(`change_column("users", "mycolumn", "string", {"default": "foo", "size": 50})`, myt)
+
+	r.Equal(ddl, res)
+}
+
 func (p *MySQLSuite) Test_MySQL_AddColumn() {
 	r := p.Require()
 	ddl := `ALTER TABLE users ADD COLUMN mycolumn VARCHAR (50) NOT NULL DEFAULT 'foo';`

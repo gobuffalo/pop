@@ -105,6 +105,17 @@ func (p *SQLiteSuite) Test_SQLite_RenameTable_NotEnoughValues() {
 	r.Error(err)
 }
 
+func (p *SQLiteSuite) Test_SQLite_ChangeColumn() {
+	r := p.Require()
+
+	ddl := ``
+	schema.schema["users"] = &fizz.Table{}
+
+	res, _ := fizz.AString(`change_column("users", "mycolumn", "string", {"default": "foo", "size": 50})`, sqt)
+
+	r.Equal(ddl, res)
+}
+
 func (p *SQLiteSuite) Test_SQLite_AddColumn() {
 	r := p.Require()
 

@@ -5,6 +5,7 @@ type Translator interface {
 	DropTable(Table) (string, error)
 	RenameTable([]Table) (string, error)
 	AddColumn(Table) (string, error)
+	ChangeColumn(Table) (string, error)
 	DropColumn(Table) (string, error)
 	RenameColumn(Table) (string, error)
 	AddIndex(Table) (string, error)

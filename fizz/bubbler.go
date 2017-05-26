@@ -34,6 +34,7 @@ func (b *Bubbler) Bubble(s string) (string, error) {
 	f := fizzer{b}
 
 	// columns:
+	env.Define("change_column", f.ChangeColumn())
 	env.Define("add_column", f.AddColumn())
 	env.Define("drop_column", f.DropColumn())
 	env.Define("rename_column", f.RenameColumn())

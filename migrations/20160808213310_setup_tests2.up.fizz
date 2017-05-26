@@ -10,3 +10,6 @@ create_table("cakes", func(t) {
   t.Column("string_slice", "varchar[]", {"null": true})
 })
 {{ end }}
+
+add_column("books", "description", "string", {"default": ""})
+change_column("books", "description", "string", {"default": "test", "size": 100})

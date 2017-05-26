@@ -56,6 +56,13 @@ add_column("table_name", "column_name", "string", {})
 
 See [above](#column-info) for more details on column types and options.
 
+## Alter a column
+
+Not supported in sqlite
+``` javascript
+change_column("table_name", "column_name", "string", {})
+```
+
 ## Rename a Column
 
 ``` javascript

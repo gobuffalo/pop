@@ -24,6 +24,18 @@ type Column struct {
 	Options map[string]interface{}
 }
 
+func (f fizzer) ChangeColumn() interface{} {
+	return func(table, name, ctype string, options Options) {
+		t := Table{
+			Name: table,
+			Columns: []Column{
+				{Name: name, ColType: ctype, Options: options},
+			},
+		}
+		f.add(f.Bubbler.ChangeColumn(t))
+	}
+}
+
 func (f fizzer) AddColumn() interface{} {
 	return func(table, name, ctype string, options Options) {
 		t := Table{
