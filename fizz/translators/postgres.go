@@ -151,6 +151,8 @@ func (p *Postgres) buildColumn(c fizz.Column, buildType string) string {
 		var sets []string
 		if c.Options["null"] == nil {
 			sets = append(sets, fmt.Sprintf("ALTER COLUMN \"%s\" SET NOT NULL", c.Name))
+		} else {
+			sets = append(sets, fmt.Sprintf("ALTER COLUMN \"%s\" DROP NOT NULL", c.Name))
 		}
 		if c.Options["default"] != nil {
 			sets = append(sets, fmt.Sprintf("ALTER COLUMN \"%s\" SET DEFAULT '%v'", c.Name, c.Options["default"]))
