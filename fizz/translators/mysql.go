@@ -58,6 +58,15 @@ func (p *MySQL) RenameTable(t []fizz.Table) (string, error) {
 	return fmt.Sprintf("ALTER TABLE %s RENAME TO %s;", t[0].Name, t[1].Name), nil
 }
 
+func (p *MySQL) ChangeColumn(t fizz.Table) (string, error) {
+	if len(t.Columns) == 0 {
+		return "", errors.New("Not enough columns supplied!")
+	}
+	c := t.Columns[0]
+	s := fmt.Sprintf("ALTER TABLE %s MODIFY %s;", t.Name, p.buildColumn(c))
+	return s, nil
+}
+
 func (p *MySQL) AddColumn(t fizz.Table) (string, error) {
 	if len(t.Columns) == 0 {
 		return "", errors.New("Not enough columns supplied!")
