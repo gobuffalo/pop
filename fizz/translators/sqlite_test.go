@@ -108,10 +108,25 @@ func (p *SQLiteSuite) Test_SQLite_RenameTable_NotEnoughValues() {
 func (p *SQLiteSuite) Test_SQLite_ChangeColumn() {
 	r := p.Require()
 
-	ddl := ``
-	schema.schema["users"] = &fizz.Table{}
+	ddl := `ALTER TABLE "users" RENAME TO "_users_tmp";
+CREATE TABLE "users" (
+"id" INTEGER PRIMARY KEY AUTOINCREMENT,
+"created_at" TEXT NOT NULL DEFAULT 'foo',
+"updated_at" DATETIME NOT NULL
+);
+INSERT INTO "users" (id, created_at, updated_at) SELECT id, created_at, updated_at FROM "_users_tmp";
+DROP TABLE "_users_tmp";`
 
-	res, _ := fizz.AString(`change_column("users", "mycolumn", "string", {"default": "foo", "size": 50})`, sqt)
+	schema.schema["users"] = &fizz.Table{
+		Name: "users",
+		Columns: []fizz.Column{
+			fizz.INT_ID_COL,
+			fizz.CREATED_COL,
+			fizz.UPDATED_COL,
+		},
+	}
+
+	res, _ := fizz.AString(`change_column("users", "created_at", "string", {"default": "foo", "size": 50})`, sqt)
 
 	r.Equal(ddl, res)
 }

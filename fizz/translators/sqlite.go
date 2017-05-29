@@ -28,7 +28,7 @@ func (p *SQLite) CreateTable(t fizz.Table) (string, error) {
 	var s string
 	for _, c := range t.Columns {
 		if c.Primary {
-			switch c.ColType {
+			switch strings.ToLower(c.ColType) {
 			case "integer":
 				s = fmt.Sprintf("\"%s\" INTEGER PRIMARY KEY AUTOINCREMENT", c.Name)
 			case "uuid", "string":
@@ -78,8 +78,38 @@ func (p *SQLite) RenameTable(t []fizz.Table) (string, error) {
 }
 
 func (p *SQLite) ChangeColumn(t fizz.Table) (string, error) {
+	tableInfo, err := p.Schema.TableInfo(t.Name)
 
-	return "", nil
+	if err != nil {
+		return "", err
+	}
+
+	for i := range tableInfo.Columns {
+		if tableInfo.Columns[i].Name == t.Columns[0].Name {
+			tableInfo.Columns[i] = t.Columns[0]
+			break
+		}
+	}
+
+	sql := []string{}
+	s, err := p.withTempTable(t.Name, func(tempTable fizz.Table) (string, error) {
+		createTableSQL, err := p.CreateTable(*tableInfo)
+		fmt.Printf("table: %v, sql: %v\n", tableInfo, createTableSQL)
+		if err != nil {
+			return "", err
+		}
+
+		ins := fmt.Sprintf("INSERT INTO \"%s\" (%s) SELECT %s FROM \"%s\";", t.Name, strings.Join(tableInfo.ColumnNames(), ", "), strings.Join(tableInfo.ColumnNames(), ", "), tempTable.Name)
+		return strings.Join([]string{createTableSQL, ins}, "\n"), nil
+	})
+
+	if err != nil {
+		return "", err
+	}
+
+	sql = append(sql, s)
+
+	return strings.Join(sql, "\n"), nil
 }
 
 func (p *SQLite) AddColumn(t fizz.Table) (string, error) {
