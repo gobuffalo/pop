@@ -184,7 +184,7 @@ func colType(s string) string {
 	switch s {
 	case "text":
 		return "string"
-	case "time", "timestamp":
+	case "time", "timestamp", "datetime":
 		return "time.Time"
 	case "nulls.Text":
 		return "nulls.String"
@@ -202,7 +202,7 @@ func fizzColType(s string) string {
 	switch strings.ToLower(s) {
 	case "int":
 		return "integer"
-	case "time":
+	case "time", "datetime":
 		return "timestamp"
 	case "uuid.uuid", "uuid":
 		return "uuid"

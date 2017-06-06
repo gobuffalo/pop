@@ -304,12 +304,12 @@ func (p *SQLite) buildColumn(c fizz.Column) string {
 }
 
 func (p *SQLite) colType(c fizz.Column) string {
-	switch c.ColType {
+	switch strings.ToLower(c.ColType) {
 	case "uuid":
 		return "char(36)"
-	case "timestamp":
+	case "timestamp", "time", "datetime":
 		return "DATETIME"
-	case "boolean", "DATE":
+	case "boolean", "date":
 		return "NUMERIC"
 	case "string":
 		return "TEXT"

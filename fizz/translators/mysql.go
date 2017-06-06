@@ -151,7 +151,7 @@ func (p *MySQL) buildColumn(c fizz.Column) string {
 }
 
 func (p *MySQL) colType(c fizz.Column) string {
-	switch c.ColType {
+	switch strings.ToLower(c.ColType) {
 	case "string":
 		s := "255"
 		if c.Options["size"] != nil {
@@ -160,7 +160,7 @@ func (p *MySQL) colType(c fizz.Column) string {
 		return fmt.Sprintf("VARCHAR (%s)", s)
 	case "uuid":
 		return "char(36)"
-	case "timestamp":
+	case "timestamp", "time", "datetime":
 		return "DATETIME"
 	default:
 		return c.ColType
