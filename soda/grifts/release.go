@@ -48,7 +48,7 @@ var _ = Add("release", func(c *Context) error {
 })
 
 func installBin() error {
-	cmd := exec.Command("go", "install", "-v", "./soda")
+	cmd := exec.Command("go", "install", "-v", ".")
 	cmd.Stdin = os.Stdin
 	cmd.Stderr = os.Stderr
 	cmd.Stdout = os.Stdout

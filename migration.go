@@ -9,9 +9,10 @@ import (
 	"sort"
 	"time"
 
+	"text/tabwriter"
+
 	"github.com/markbates/pop/fizz"
 	"github.com/pkg/errors"
-	"text/tabwriter"
 )
 
 var mrx = regexp.MustCompile("(\\d+)_(.+)\\.(up|down)\\.(sql|fizz)")

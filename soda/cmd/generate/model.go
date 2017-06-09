@@ -76,7 +76,6 @@ func (m model) Generate() error {
 	g.Add(makr.NewFile(fname, modelTemplate))
 	tfname := filepath.Join(m.Package, m.Names.File+"_test.go")
 	g.Add(makr.NewFile(tfname, modelTestTemplate))
-	g.Add(makr.NewCommand(makr.GoFmt()))
 	return g.Run(".", ctx)
 }
 

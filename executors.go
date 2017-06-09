@@ -39,7 +39,7 @@ var emptyUUID = uuid.Nil.String()
 func (c *Connection) Save(model interface{}, excludeColumns ...string) error {
 	sm := &Model{Value: model}
 	id := sm.ID()
-  
+
 	if fmt.Sprint(id) == "0" || fmt.Sprint(id) == emptyUUID {
 		return c.Create(model, excludeColumns...)
 	}
