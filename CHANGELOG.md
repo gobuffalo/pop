@@ -1,5 +1,19 @@
 # Change Log
 
+## [v3.21.1](https://github.com/markbates/pop/tree/v3.21.1) (2017-06-09)
+[Full Changelog](https://github.com/markbates/pop/compare/v3.21.0...v3.21.1)
+
+**Closed issues:**
+
+- User specific value for 'ID' [\#75](https://github.com/markbates/pop/issues/75)
+- Mysql Connection String does not appear to work [\#71](https://github.com/markbates/pop/issues/71)
+
+**Merged pull requests:**
+
+- Fix MySQL connection string not working, fixes \#71 [\#72](https://github.com/markbates/pop/pull/72) ([koesie10](https://github.com/koesie10))
+- fix migrate down causes index -1 [\#70](https://github.com/markbates/pop/pull/70) ([u007](https://github.com/u007))
+- Query join support [\#58](https://github.com/markbates/pop/pull/58) ([u007](https://github.com/u007))
+
 ## [v3.21.0](https://github.com/markbates/pop/tree/v3.21.0) (2017-04-19)
 [Full Changelog](https://github.com/markbates/pop/compare/v3.20.0...v3.21.0)
 
