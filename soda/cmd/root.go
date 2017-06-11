@@ -52,7 +52,7 @@ func setConfigLocation() {
 		pop.AddLookupPaths(dir)
 		pop.ConfigName = file
 	}
-	pop.LoadConfig()
+	pop.LoadConfigFile()
 }
 
 func getConn() *pop.Connection {
