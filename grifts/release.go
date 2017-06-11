@@ -48,7 +48,7 @@ var _ = Add("release", func(c *Context) error {
 })
 
 func installBin() error {
-	cmd := exec.Command("go", "install", "-v", ".")
+	cmd := exec.Command("go", "install", "-v", "./soda")
 	cmd.Stdin = os.Stdin
 	cmd.Stderr = os.Stderr
 	cmd.Stdout = os.Stdout
@@ -123,7 +123,7 @@ func findVersion() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	vfile, err := ioutil.ReadFile(filepath.Join(pwd, "cmd/version.go"))
+	vfile, err := ioutil.ReadFile(filepath.Join(pwd, "./soda/cmd/version.go"))
 	if err != nil {
 		return "", err
 	}
