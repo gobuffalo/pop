@@ -60,6 +60,7 @@ func MigrationCreate(path, name, ext string, up, down []byte) error {
 
 func (c *Connection) MigrateUp(path string) error {
 	now := time.Now()
+	defer c.dumpMigrationSchema(path)
 	defer printTimer(now)
 
 	err := c.createSchemaMigrations()
@@ -86,8 +87,22 @@ func (c *Connection) MigrateUp(path string) error {
 	}, -1)
 }
 
+func (c *Connection) dumpMigrationSchema(path string) error {
+	f, err := os.Create(filepath.Join(path, "schema.sql"))
+	if err != nil {
+		return errors.WithStack(err)
+	}
+	err = c.Dialect.DumpSchema(f)
+	if err != nil {
+
+		return errors.WithStack(err)
+	}
+	return nil
+}
+
 func (c *Connection) MigrateDown(path string, step int) error {
 	now := time.Now()
+	defer c.dumpMigrationSchema(path)
 	defer printTimer(now)
 
 	err := c.createSchemaMigrations()
