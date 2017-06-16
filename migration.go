@@ -189,6 +189,10 @@ func (c *Connection) createSchemaMigrations() error {
 }
 
 func findMigrations(dir string, direction string, runned int, fn func(migrationFile) error, step int) error {
+	if _, err := os.Stat(dir); err != nil {
+		// directory doesn't exist
+		return nil
+	}
 	mfs := migrationFiles{}
 	filepath.Walk(dir, func(p string, info os.FileInfo, err error) error {
 		if !info.IsDir() {
