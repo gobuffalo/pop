@@ -234,6 +234,8 @@ query := pop.Q(tx)
 query = tx.Where("id = 1").Where("name = 'Mark'")
 users := []models.User{}
 err := query.All(&users)
+
+err = tx.Where("id in (?)", 1, 2, 3).All(&users)
 ```
 
 ##### Join Query

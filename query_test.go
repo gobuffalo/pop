@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/markbates/pop"
+	"github.com/markbates/pop/nulls"
 	"github.com/stretchr/testify/require"
 )
 
@@ -27,6 +28,25 @@ func Test_Where(t *testing.T) {
 	q = PDB.Where("name = ?", "'; truncate users; --")
 	sql, _ = q.ToSQL(m)
 	a.Equal(ts("SELECT enemies.A FROM enemies AS enemies WHERE name = ?"), sql)
+}
+
+func Test_Where_In(t *testing.T) {
+	r := require.New(t)
+	transaction(func(tx *pop.Connection) {
+		u1 := &User{Name: nulls.NewString("A")}
+		u2 := &User{Name: nulls.NewString("B")}
+		u3 := &User{Name: nulls.NewString("C")}
+		err := tx.Create(u1)
+		r.NoError(err)
+		err = tx.Create(u2)
+		r.NoError(err)
+		err = tx.Create(u3)
+		r.NoError(err)
+
+		users := []User{}
+		err = tx.Where("id in (?)", u1.ID, u3.ID).All(&users)
+		r.Len(users, 2)
+	})
 }
 
 func Test_Order(t *testing.T) {

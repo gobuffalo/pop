@@ -12,7 +12,7 @@ then
 fi
 
 
-go build -o tsoda ./soda
+go build -v -o tsoda ./soda
 
 function test {
   echo "Testing $1"

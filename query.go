@@ -37,6 +37,7 @@ func (q *Query) RawQuery(stmt string, args ...interface{}) *Query {
 // arguments.
 //
 // 	c.Where("id = ?", 1)
+// 	q.Where("id in (?)", 1, 2, 3)
 func (c *Connection) Where(stmt string, args ...interface{}) *Query {
 	return Q(c).Where(stmt, args...)
 }
@@ -45,6 +46,7 @@ func (c *Connection) Where(stmt string, args ...interface{}) *Query {
 // arguments.
 //
 // 	q.Where("id = ?", 1)
+// 	q.Where("id in (?)", 1, 2, 3)
 func (q *Query) Where(stmt string, args ...interface{}) *Query {
 	q.whereClauses = append(q.whereClauses, clause{stmt, args})
 	return q
