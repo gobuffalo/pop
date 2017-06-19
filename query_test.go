@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/markbates/pop"
-	"github.com/markbates/pop/nulls"
 	"github.com/stretchr/testify/require"
 )
 
@@ -33,9 +32,9 @@ func Test_Where(t *testing.T) {
 func Test_Where_In(t *testing.T) {
 	r := require.New(t)
 	transaction(func(tx *pop.Connection) {
-		u1 := &User{Name: nulls.NewString("A")}
-		u2 := &User{Name: nulls.NewString("B")}
-		u3 := &User{Name: nulls.NewString("C")}
+		u1 := &Song{Title: "A"}
+		u2 := &Song{Title: "B"}
+		u3 := &Song{Title: "C"}
 		err := tx.Create(u1)
 		r.NoError(err)
 		err = tx.Create(u2)
@@ -43,9 +42,9 @@ func Test_Where_In(t *testing.T) {
 		err = tx.Create(u3)
 		r.NoError(err)
 
-		users := []User{}
-		err = tx.Where("id in (?)", u1.ID, u3.ID).All(&users)
-		r.Len(users, 2)
+		songs := []Song{}
+		err = tx.Where("id in (?)", u1.ID, u3.ID).All(&songs)
+		r.Len(songs, 2)
 	})
 }
 
