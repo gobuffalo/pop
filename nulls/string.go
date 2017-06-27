@@ -55,13 +55,10 @@ func (ns *String) UnmarshalJSON(text []byte) error {
 	if string(text) == "null" {
 		return nil
 	}
-	s := ""
-	err := json.Unmarshal(text, &s)
-	if err == nil {
-		ns.String = s
+	if err := json.Unmarshal(text, &ns.String); err == nil {
 		ns.Valid = true
 	}
-	return err
+	return nil
 }
 
 func (ns *String) UnmarshalText(text []byte) error {

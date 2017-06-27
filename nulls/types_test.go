@@ -11,6 +11,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	. "github.com/markbates/pop/nulls"
 	_ "github.com/mattn/go-sqlite3"
+	uuid "github.com/satori/go.uuid"
 	"github.com/stretchr/testify/require"
 )
 
@@ -25,6 +26,7 @@ type Foo struct {
 	IntType    Int       `json:"intType" db:"int_type"`
 	Int32Type  Int32     `json:"int32Type" db:"int32_type"`
 	UInt32Type UInt32    `json:"uint32Type" db:"uint32_type"`
+	UID        UUID      `json:"uid" db:"uid"`
 }
 
 const schema = `CREATE TABLE "main"."foos" (
@@ -37,9 +39,11 @@ const schema = `CREATE TABLE "main"."foos" (
 	 "bytes"  blob,
 	 "int_type" integer,
 	 "int32_type" integer,
-	 "uint32_type" integer
+	 "uint32_type" integer,
+	 "uid" uuid
 );`
 
+var uid = "3c9228a9-8549-4d52-8261-dfe0ab0ee6d4"
 var now = time.Now()
 
 func newValidFoo() Foo {
@@ -54,6 +58,7 @@ func newValidFoo() Foo {
 		IntType:    NewInt(2),
 		Int32Type:  NewInt32(3),
 		UInt32Type: NewUInt32(5),
+		UID:        NewUUID(uuid.FromStringOrNil(uid)),
 	}
 }
 
@@ -65,7 +70,7 @@ func Test_TypesMarshalProperly(t *testing.T) {
 
 	ti, _ := json.Marshal(now)
 	ba, _ := json.Marshal(f.Bytes)
-	jsonString := fmt.Sprintf(`{"id":1,"name":"Mark","alive":true,"price":9.99,"birth":%s,"price32":3.33,"bytes":%s,"intType":2,"int32Type":3,"uint32Type":5}`, ti, ba)
+	jsonString := fmt.Sprintf(`{"id":1,"name":"Mark","alive":true,"price":9.99,"birth":%s,"price32":3.33,"bytes":%s,"intType":2,"int32Type":3,"uint32Type":5,"uid":"%s"}`, ti, ba, uid)
 
 	// check marshalling to json works:
 	data, _ := json.Marshal(f)
@@ -84,10 +89,11 @@ func Test_TypesMarshalProperly(t *testing.T) {
 	a.Equal(f.IntType.Int, 2)
 	a.Equal(f.Int32Type.Int32, int32(3))
 	a.Equal(f.UInt32Type.UInt32, uint32(5))
+	a.Equal(uid, f.UID.UUID.String())
 
 	// check marshalling nulls works:
 	f = Foo{}
-	jsonString = `{"id":null,"name":null,"alive":null,"price":null,"birth":null,"price32":null,"bytes":null,"intType":null,"int32Type":null,"uint32Type":null}`
+	jsonString = `{"id":null,"name":null,"alive":null,"price":null,"birth":null,"price32":null,"bytes":null,"intType":null,"int32Type":null,"uint32Type":null,"uid":null}`
 	data, _ = json.Marshal(f)
 	a.Equal(string(data), jsonString)
 
@@ -113,6 +119,8 @@ func Test_TypesMarshalProperly(t *testing.T) {
 	a.False(f.Int32Type.Valid)
 	a.Equal(f.UInt32Type.UInt32, uint32(0))
 	a.False(f.UInt32Type.Valid)
+	a.Equal(f.UID.UUID, uuid.Nil)
+	a.False(f.UID.Valid)
 }
 
 func Test_TypeSaveAndRetrieveProperly(t *testing.T) {
@@ -153,7 +161,8 @@ func Test_TypeSaveAndRetrieveProperly(t *testing.T) {
 		a.NoError(err)
 
 		f = newValidFoo()
-		tx.NamedExec("INSERT INTO foos (id, name, alive, price, birth, price32, bytes, int_type, int32_type, uint32_type) VALUES (:id, :name, :alive, :price, :birth, :price32, :bytes, :int_type, :int32_type, :uint32_type)", &f)
+		_, err = tx.NamedExec("INSERT INTO foos (id, name, alive, price, birth, price32, bytes, int_type, int32_type, uint32_type, uid) VALUES (:id, :name, :alive, :price, :birth, :price32, :bytes, :int_type, :int32_type, :uint32_type, :uid)", &f)
+		a.NoError(err)
 		f = Foo{}
 		tx.Get(&f, "select * from foos")
 		a.True(f.Alive.Valid)
@@ -176,6 +185,7 @@ func Test_TypeSaveAndRetrieveProperly(t *testing.T) {
 		a.Equal(f.IntType.Int, 2)
 		a.Equal(f.Int32Type.Int32, int32(3))
 		a.Equal(f.UInt32Type.UInt32, uint32(5))
+		a.Equal(f.UID.UUID.String(), uid)
 
 		tx.Rollback()
 	})
