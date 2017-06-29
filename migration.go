@@ -11,6 +11,7 @@ import (
 
 	"text/tabwriter"
 
+	"github.com/gobuffalo/packr"
 	"github.com/markbates/pop/fizz"
 	"github.com/pkg/errors"
 )
@@ -28,8 +29,98 @@ var schemaMigrations = fizz.Table{
 		{Name: "version", ColType: "string"},
 	},
 	Indexes: []fizz.Index{
-		{Name: "version_idx", Columns: []string{"version"}, Unique: true},
+	// {Name: "version_idx", Columns: []string{"version"}, Unique: true},
 	},
+}
+
+type MigrationBox struct {
+	packr.Box
+	Connection *Connection
+}
+
+func (m MigrationBox) Up() ([]string, error) {
+	c := m.Connection
+	now := time.Now()
+	defer printTimer(now)
+
+	mfs := []string{}
+	err := m.Connection.createSchemaMigrations()
+	if err != nil {
+		return mfs, errors.Wrap(err, "migration up: problem creating schema migrations")
+	}
+	err = m.findMigrations("up", 0, func(m migrationFile) error {
+		exists, err := c.Where("version = ?", m.Version).Exists("schema_migration")
+		if err != nil || exists {
+			return errors.Wrapf(err, "problem checking for migration version %s", m.Version)
+		}
+		err = c.Transaction(func(tx *Connection) error {
+			err := m.Execute(tx)
+			if err != nil {
+				return err
+			}
+			_, err = tx.Store.Exec(fmt.Sprintf("insert into schema_migration (version) values ('%s')", m.Version))
+			return errors.Wrapf(err, "problem inserting migration version %s", m.Version)
+		})
+		if err == nil {
+			mfs = append(mfs, m.FileName)
+			fmt.Printf("> %s\n", m.FileName)
+		}
+		return err
+	}, -1)
+	return mfs, err
+}
+
+func (m MigrationBox) findMigrations(direction string, runned int, fn func(migrationFile) error, step int) error {
+	mfs := migrationFiles{}
+	m.Walk(func(path string, f packr.File) error {
+		info, err := f.FileInfo()
+		if err != nil {
+			return errors.WithStack(err)
+		}
+		if !info.IsDir() {
+			matches := mrx.FindAllStringSubmatch(info.Name(), -1)
+			if matches == nil || len(matches) == 0 {
+				return nil
+			}
+			m := matches[0]
+			mf := migrationFile{
+				Path:      path,
+				FileName:  m[0],
+				Version:   m[1],
+				Name:      m[2],
+				Direction: m[3],
+				FileType:  m[4],
+			}
+			if mf.Direction == direction {
+				mfs = append(mfs, mf)
+			}
+		}
+		return nil
+	})
+	if direction == "down" {
+		sort.Sort(sort.Reverse(mfs))
+		// skip all runned migration
+		if len(mfs) > runned {
+			mfs = mfs[len(mfs)-runned:]
+		}
+		// run only required steps
+		if step > 0 && len(mfs) >= step {
+			mfs = mfs[:step]
+		}
+	} else {
+		sort.Sort(mfs)
+	}
+	for _, mf := range mfs {
+		err := fn(mf)
+		if err != nil {
+			return errors.Wrap(err, "error from called function")
+		}
+	}
+	return nil
+}
+
+func (m MigrationBox) Down() error {
+	return nil
 }
 
 func MigrationCreate(path, name, ext string, up, down []byte) error {
@@ -184,9 +275,34 @@ func (c *Connection) createSchemaMigrations() error {
 		if err != nil {
 			return errors.Wrap(err, "could not build SQL for schema migration table")
 		}
-		return errors.Wrap(tx.RawQuery(smSQL).Exec(), "could not create schema migration table")
+		err = tx.RawQuery(smSQL).Exec()
+		if err != nil {
+			return errors.WithStack(errors.Wrap(err, smSQL))
+		}
+		return nil
 	})
 }
+
+// func infoToMigration(info os.FileInfo) migrationFile {
+// 	if !info.IsDir() {
+// 		matches := mrx.FindAllStringSubmatch(info.Name(), -1)
+// 		if matches == nil || len(matches) == 0 {
+// 			return nil
+// 		}
+// 		m := matches[0]
+// 		mf := migrationFile{
+// 			Path:      p,
+// 			FileName:  m[0],
+// 			Version:   m[1],
+// 			Name:      m[2],
+// 			Direction: m[3],
+// 			FileType:  m[4],
+// 		}
+// 		if mf.Direction == direction {
+// 			mfs = append(mfs, mf)
+// 		}
+// 	}
+// }
 
 func findMigrations(dir string, direction string, runned int, fn func(migrationFile) error, step int) error {
 	if _, err := os.Stat(dir); err != nil {
