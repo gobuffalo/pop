@@ -61,6 +61,21 @@ func Test_Order(t *testing.T) {
 	a.Equal(ts("SELECT enemies.A FROM enemies AS enemies ORDER BY id desc, name desc"), sql)
 }
 
+func Test_GroupBy(t *testing.T) {
+	a := require.New(t)
+
+	m := &pop.Model{Value: &Enemy{}}
+	q := PDB.Q()
+	q.GroupBy("A")
+	sql, _ := q.ToSQL(m)
+	a.Equal(ts("SELECT enemies.A FROM enemies AS enemies GROUP BY A"), sql)
+
+	q = PDB.Q()
+	q.GroupBy("A", "B")
+	sql, _ = q.ToSQL(m)
+	a.Equal(ts("SELECT enemies.A FROM enemies AS enemies GROUP BY A, B"), sql)
+}
+
 func Test_ToSQL(t *testing.T) {
 	a := require.New(t)
 	transaction(func(tx *pop.Connection) {

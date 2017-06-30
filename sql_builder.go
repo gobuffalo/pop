@@ -71,6 +71,7 @@ func (sq *sqlBuilder) buildSelectSQL() string {
 
 	sql = sq.buildJoinClauses(sql)
 	sql = sq.buildWhereClauses(sql)
+	sql = sq.buildGroupClauses(sql)
 	sql = sq.buildOrderClauses(sql)
 	sql = sq.buildPaginationClauses(sql)
 
@@ -125,6 +126,14 @@ func (sq *sqlBuilder) buildJoinClauses(sql string) string {
 		}
 	}
 
+	return sql
+}
+
+func (sq *sqlBuilder) buildGroupClauses(sql string) string {
+	gc := sq.Query.groupClauses
+	if len(gc) > 0 {
+		sql = fmt.Sprintf("%s GROUP BY %s", sql, gc.String())
+	}
 	return sql
 }
 
