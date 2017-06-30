@@ -3,6 +3,8 @@ package cmd
 import (
 	"os"
 
+	"github.com/markbates/pop"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -17,8 +19,11 @@ var migrateCmd = &cobra.Command{
 		return os.MkdirAll(migrationPath, 0766)
 	},
 	RunE: func(cmd *cobra.Command, args []string) error {
-		c := getConn()
-		return c.MigrateUp(migrationPath)
+		mig, err := pop.NewFileMigrator(migrationPath, getConn())
+		if err != nil {
+			return errors.WithStack(err)
+		}
+		return mig.Up()
 	},
 }
 
