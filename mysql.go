@@ -59,7 +59,7 @@ func (m *mysql) SelectMany(s store, models *Model, query Query) error {
 
 func (m *mysql) CreateDB() error {
 	c := m.ConnectionDetails
-	cmd := exec.Command("mysql", "-u", c.User, "-p"+c.Password, "-h", c.Host, "-P", c.Port, "-e", fmt.Sprintf("create database %s", c.Database))
+	cmd := exec.Command("mysql", "-u", c.User, "-p"+c.Password, "-h", c.Host, "-P", c.Port, "-e", fmt.Sprintf("create database `%s`", c.Database))
 	Log(strings.Join(cmd.Args, " "))
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stderr
@@ -74,7 +74,7 @@ func (m *mysql) CreateDB() error {
 
 func (m *mysql) DropDB() error {
 	c := m.ConnectionDetails
-	cmd := exec.Command("mysql", "-u", c.User, "-p"+c.Password, "-h", c.Host, "-P", c.Port, "-e", fmt.Sprintf("drop database %s", c.Database))
+	cmd := exec.Command("mysql", "-u", c.User, "-p"+c.Password, "-h", c.Host, "-P", c.Port, "-e", fmt.Sprintf("drop database `%s`", c.Database))
 	Log(strings.Join(cmd.Args, " "))
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stderr
