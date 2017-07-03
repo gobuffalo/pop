@@ -1,5 +1,18 @@
 # Change Log
 
+## [v3.24.0](https://github.com/markbates/pop/tree/v3.24.0) (2017-07-03)
+[Full Changelog](https://github.com/markbates/pop/compare/v3.23.3...v3.24.0)
+
+**Closed issues:**
+
+- migration nulls.\<TYPE\> wrong naming [\#88](https://github.com/markbates/pop/issues/88)
+- Find/First to return sql.ErrNoRows ? [\#84](https://github.com/markbates/pop/issues/84)
+
+**Merged pull requests:**
+
+- Quote database name on mysql [\#94](https://github.com/markbates/pop/pull/94) ([alexcarol](https://github.com/alexcarol))
+- Refactored the entire migration system to make it easier to add new types of migrators [\#92](https://github.com/markbates/pop/pull/92) ([markbates](https://github.com/markbates))
+
 ## [v3.23.3](https://github.com/markbates/pop/tree/v3.23.3) (2017-06-27)
 [Full Changelog](https://github.com/markbates/pop/compare/v3.23.2...v3.23.3)
 
@@ -285,13 +298,13 @@
 [Full Changelog](https://github.com/markbates/pop/compare/v3.5.1.1...v3.6.0)
 
 ## [v3.5.1.1](https://github.com/markbates/pop/tree/v3.5.1.1) (2016-08-26)
-[Full Changelog](https://github.com/markbates/pop/compare/v3.5.1...v3.5.1.1)
-
-## [v3.5.1](https://github.com/markbates/pop/tree/v3.5.1) (2016-08-26)
-[Full Changelog](https://github.com/markbates/pop/compare/v3.5.2...v3.5.1)
+[Full Changelog](https://github.com/markbates/pop/compare/v3.5.2...v3.5.1.1)
 
 ## [v3.5.2](https://github.com/markbates/pop/tree/v3.5.2) (2016-08-26)
-[Full Changelog](https://github.com/markbates/pop/compare/v3.5.0...v3.5.2)
+[Full Changelog](https://github.com/markbates/pop/compare/v3.5.1...v3.5.2)
+
+## [v3.5.1](https://github.com/markbates/pop/tree/v3.5.1) (2016-08-26)
+[Full Changelog](https://github.com/markbates/pop/compare/v3.5.0...v3.5.1)
 
 ## [v3.5.0](https://github.com/markbates/pop/tree/v3.5.0) (2016-08-25)
 [Full Changelog](https://github.com/markbates/pop/compare/v3.4.1...v3.5.0)
