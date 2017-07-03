@@ -147,6 +147,9 @@ func (m *mysql) TruncateAll(tx *Connection) error {
 	if err != nil {
 		return err
 	}
+	if len(stmts) == 0 {
+		return nil
+	}
 	qs := []string{}
 	for _, x := range stmts {
 		qs = append(qs, x.Stmt)
