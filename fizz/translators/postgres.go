@@ -31,7 +31,7 @@ func (p *Postgres) CreateTable(t fizz.Table) (string, error) {
 				return "", errors.Errorf("can not use %s as a primary key", c.ColType)
 			}
 		} else {
-			s = p.buildColumn(c, "add")
+			s = p.buildAddColumn(c)
 		}
 		cols = append(cols, s)
 	}
@@ -68,7 +68,7 @@ func (p *Postgres) ChangeColumn(t fizz.Table) (string, error) {
 		return "", errors.New("Not enough columns supplied!")
 	}
 	c := t.Columns[0]
-	s := fmt.Sprintf("ALTER TABLE \"%s\" ALTER COLUMN %s;", t.Name, p.buildColumn(c, "change"))
+	s := fmt.Sprintf("ALTER TABLE \"%s\" ALTER COLUMN %s;", t.Name, p.buildChangeColumn(c))
 	return s, nil
 }
 
@@ -77,7 +77,7 @@ func (p *Postgres) AddColumn(t fizz.Table) (string, error) {
 		return "", errors.New("Not enough columns supplied!")
 	}
 	c := t.Columns[0]
-	s := fmt.Sprintf("ALTER TABLE \"%s\" ADD COLUMN %s;", t.Name, p.buildColumn(c, "add"))
+	s := fmt.Sprintf("ALTER TABLE \"%s\" ADD COLUMN %s;", t.Name, p.buildAddColumn(c))
 	return s, nil
 }
 
@@ -129,40 +129,39 @@ func (p *Postgres) RenameIndex(t fizz.Table) (string, error) {
 	return fmt.Sprintf("ALTER INDEX \"%s\" RENAME TO \"%s\";", oi.Name, ni.Name), nil
 }
 
-// buildtype: change / add
-func (p *Postgres) buildColumn(c fizz.Column, buildType string) string {
-	sqlType := " "
-	if buildType == "change" {
-		sqlType = " TYPE "
-	}
-	s := fmt.Sprintf("\"%s\"%s%s", c.Name, sqlType, p.colType(c))
+func (p *Postgres) buildAddColumn(c fizz.Column) string {
+	s := fmt.Sprintf("\"%s\" %s", c.Name, p.colType(c))
 
-	if buildType == "add" {
-		if c.Options["null"] == nil {
-			s = fmt.Sprintf("%s NOT NULL", s)
-		}
-		if c.Options["default"] != nil {
-			s = fmt.Sprintf("%s DEFAULT '%v'", s, c.Options["default"])
-		}
-		if c.Options["default_raw"] != nil {
-			s = fmt.Sprintf("%s DEFAULT %s", s, c.Options["default_raw"])
-		}
-	} else if buildType == "change" {
-		var sets []string
-		if c.Options["null"] == nil {
-			sets = append(sets, fmt.Sprintf("ALTER COLUMN \"%s\" SET NOT NULL", c.Name))
-		} else {
-			sets = append(sets, fmt.Sprintf("ALTER COLUMN \"%s\" DROP NOT NULL", c.Name))
-		}
-		if c.Options["default"] != nil {
-			sets = append(sets, fmt.Sprintf("ALTER COLUMN \"%s\" SET DEFAULT '%v'", c.Name, c.Options["default"]))
-		}
-		if c.Options["default_raw"] != nil {
-			sets = append(sets, fmt.Sprintf("ALTER COLUMN \"%s\" SET DEFAULT %s", c.Name, c.Options["default_raw"]))
-		}
-		if len(sets) > 0 {
-			s += ", " + strings.Join(sets, ", ")
-		}
+	if c.Options["null"] == nil {
+		s = fmt.Sprintf("%s NOT NULL", s)
+	}
+	if c.Options["default"] != nil {
+		s = fmt.Sprintf("%s DEFAULT '%v'", s, c.Options["default"])
+	}
+	if c.Options["default_raw"] != nil {
+		s = fmt.Sprintf("%s DEFAULT %s", s, c.Options["default_raw"])
+	}
+
+	return s
+}
+
+func (p *Postgres) buildChangeColumn(c fizz.Column) string {
+	s := fmt.Sprintf("\"%s\" TYPE %s", c.Name, p.colType(c))
+
+	var sets []string
+	if c.Options["null"] == nil {
+		sets = append(sets, fmt.Sprintf("ALTER COLUMN \"%s\" SET NOT NULL", c.Name))
+	} else {
+		sets = append(sets, fmt.Sprintf("ALTER COLUMN \"%s\" DROP NOT NULL", c.Name))
+	}
+	if c.Options["default"] != nil {
+		sets = append(sets, fmt.Sprintf("ALTER COLUMN \"%s\" SET DEFAULT '%v'", c.Name, c.Options["default"]))
+	}
+	if c.Options["default_raw"] != nil {
+		sets = append(sets, fmt.Sprintf("ALTER COLUMN \"%s\" SET DEFAULT %s", c.Name, c.Options["default_raw"]))
+	}
+	if len(sets) > 0 {
+		s += ", " + strings.Join(sets, ", ")
 	}
 
 	return s
