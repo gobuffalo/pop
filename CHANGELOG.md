@@ -1,5 +1,13 @@
 # Change Log
 
+## [Unreleased](https://github.com/markbates/pop/tree/HEAD)
+
+[Full Changelog](https://github.com/markbates/pop/compare/v3.25.2...HEAD)
+
+**Merged pull requests:**
+
+- Fixing everytime misspelling [\#96](https://github.com/markbates/pop/pull/96) ([ianwalter](https://github.com/ianwalter))
+
 ## [v3.25.2](https://github.com/markbates/pop/tree/v3.25.2) (2017-07-10)
 [Full Changelog](https://github.com/markbates/pop/compare/v3.25.1...v3.25.2)
 
