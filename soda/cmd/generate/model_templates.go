@@ -32,7 +32,7 @@ func ({{.char}} {{.plural_model_name}}) String() string {
 	return string(j{{.char}})
 }
 
-// Validate gets run everytime you call a "pop.Validate" method.
+// Validate gets run every time you call a "pop.Validate" method.
 // This method is not required and may be deleted.
 func ({{.char}} *{{.model_name}}) Validate(tx *pop.Connection) (*validate.Errors, error) {
 	{{ if .model.ValidatableAttributes -}}
@@ -46,13 +46,13 @@ func ({{.char}} *{{.model_name}}) Validate(tx *pop.Connection) (*validate.Errors
 	{{ end -}}
 }
 
-// ValidateSave gets run everytime you call "pop.ValidateSave" method.
+// ValidateSave gets run every time you call "pop.ValidateSave" method.
 // This method is not required and may be deleted.
 func ({{.char}} *{{.model_name}}) ValidateSave(tx *pop.Connection) (*validate.Errors, error) {
 	return validate.NewErrors(), nil
 }
 
-// ValidateUpdate gets run everytime you call "pop.ValidateUpdate" method.
+// ValidateUpdate gets run every time you call "pop.ValidateUpdate" method.
 // This method is not required and may be deleted.
 func ({{.char}} *{{.model_name}}) ValidateUpdate(tx *pop.Connection) (*validate.Errors, error) {
 	return validate.NewErrors(), nil
