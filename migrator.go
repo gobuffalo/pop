@@ -51,8 +51,11 @@ func (m Migrator) Up() error {
 		sort.Sort(mfs)
 		for _, mi := range mfs {
 			exists, err := c.Where("version = ?", mi.Version).Exists("schema_migration")
-			if err != nil || exists {
+			if err != nil {
 				return errors.Wrapf(err, "problem checking for migration version %s", mi.Version)
+			}
+			if exists {
+				continue
 			}
 			err = c.Transaction(func(tx *Connection) error {
 				err := mi.Run(tx)
