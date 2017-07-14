@@ -133,6 +133,19 @@ func (q Query) Count(model interface{}) (int, error) {
 	return res.Count, err
 }
 
+func (q Query) CountByField(model interface{}, field string) (int, error) {
+	res := &rowCount{}
+	err := q.Connection.timeFunc("Count", func() error {
+		q.Paginator = nil
+		col := fmt.Sprintf("count(%s) as row_count", field)
+		q.orderClauses = clauses{}
+		query, args := q.ToSQL(&Model{Value: model}, col)
+		Log(query, args...)
+		return q.Connection.Store.Get(res, query, args...)
+	})
+	return res.Count, err
+}
+
 type rowCount struct {
 	Count int `db:"row_count"`
 }
