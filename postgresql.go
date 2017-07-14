@@ -76,11 +76,9 @@ func (p *postgresql) CreateDB() error {
 	deets := p.ConnectionDetails
 	cmd := exec.Command("createdb", "-e", "-h", deets.Host, "-p", deets.Port, "-U", deets.User, deets.Database)
 	Log(strings.Join(cmd.Args, " "))
-	cmd.Stdin = os.Stdin
-	cmd.Stdout = os.Stderr
-	cmd.Stdout = os.Stdout
-	err := cmd.Run()
+	comboOut, err := cmd.CombinedOutput()
 	if err != nil {
+		err = fmt.Errorf("%s: %s", err.Error(), string(comboOut))
 		return errors.Wrapf(err, "error creating PostgreSQL database %s", deets.Database)
 	}
 
@@ -92,11 +90,9 @@ func (p *postgresql) DropDB() error {
 	deets := p.ConnectionDetails
 	cmd := exec.Command("dropdb", "-e", "-h", deets.Host, "-p", deets.Port, "-U", deets.User, deets.Database)
 	Log(strings.Join(cmd.Args, " "))
-	cmd.Stdin = os.Stdin
-	cmd.Stdout = os.Stderr
-	cmd.Stdout = os.Stdout
-	err := cmd.Run()
+	comboOut, err := cmd.CombinedOutput()
 	if err != nil {
+		err = fmt.Errorf("%s: %s", err.Error(), string(comboOut))
 		return errors.Wrapf(err, "error dropping PostgreSQL database %s", deets.Database)
 	}
 	fmt.Printf("dropped database %s\n", deets.Database)

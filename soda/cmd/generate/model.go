@@ -76,7 +76,6 @@ func (m model) Generate() error {
 	g.Add(makr.NewFile(fname, modelTemplate))
 	tfname := filepath.Join(m.Package, m.Names.File+"_test.go")
 	g.Add(makr.NewFile(tfname, modelTestTemplate))
-	g.Add(makr.NewCommand(makr.GoFmt()))
 	return g.Run(".", ctx)
 }
 
@@ -184,7 +183,7 @@ func colType(s string) string {
 	switch s {
 	case "text":
 		return "string"
-	case "time", "timestamp":
+	case "time", "timestamp", "datetime":
 		return "time.Time"
 	case "nulls.Text":
 		return "nulls.String"
@@ -202,7 +201,7 @@ func fizzColType(s string) string {
 	switch strings.ToLower(s) {
 	case "int":
 		return "integer"
-	case "time":
+	case "time", "datetime":
 		return "timestamp"
 	case "uuid.uuid", "uuid":
 		return "uuid"

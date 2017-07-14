@@ -36,8 +36,14 @@ func (p Paginator) String() string {
 // NewPaginator returns a new `Paginator` value with the appropriate
 // defaults set.
 func NewPaginator(page int, per_page int) *Paginator {
+	if page < 1 {
+		page = 1
+	}
+	if per_page < 1 {
+		per_page = 20
+	}
 	p := &Paginator{Page: page, PerPage: per_page}
-	p.Offset = (p.Page - 1) * p.PerPage
+	p.Offset = (page - 1) * p.PerPage
 	return p
 }
 

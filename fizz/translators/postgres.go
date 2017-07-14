@@ -177,6 +177,8 @@ func (p *Postgres) colType(c fizz.Column) string {
 		return fmt.Sprintf("VARCHAR (%s)", s)
 	case "uuid":
 		return "UUID"
+	case "time", "datetime":
+		return "timestamp"
 	default:
 		return c.ColType
 	}

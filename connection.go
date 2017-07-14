@@ -66,7 +66,7 @@ func NewConnection(deets *ConnectionDetails) (*Connection, error) {
 // a connection to that store will be opened.
 func Connect(e string) (*Connection, error) {
 	if len(Connections) == 0 {
-		err := LoadConfig()
+		err := LoadConfigFile()
 		if err != nil {
 			return nil, errors.WithStack(err)
 		}

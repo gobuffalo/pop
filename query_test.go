@@ -29,6 +29,25 @@ func Test_Where(t *testing.T) {
 	a.Equal(ts("SELECT enemies.A FROM enemies AS enemies WHERE name = ?"), sql)
 }
 
+func Test_Where_In(t *testing.T) {
+	r := require.New(t)
+	transaction(func(tx *pop.Connection) {
+		u1 := &Song{Title: "A"}
+		u2 := &Song{Title: "B"}
+		u3 := &Song{Title: "C"}
+		err := tx.Create(u1)
+		r.NoError(err)
+		err = tx.Create(u2)
+		r.NoError(err)
+		err = tx.Create(u3)
+		r.NoError(err)
+
+		songs := []Song{}
+		err = tx.Where("id in (?)", u1.ID, u3.ID).All(&songs)
+		r.Len(songs, 2)
+	})
+}
+
 func Test_Order(t *testing.T) {
 	a := require.New(t)
 

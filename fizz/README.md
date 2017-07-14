@@ -24,7 +24,7 @@ Columns all have the same syntax. First is the name of the column. Second is the
 
 * `string`
 * `text`
-* `timestamp`
+* `timestamp`, `time`, `datetime`
 * `integer`
 * `boolean`
 

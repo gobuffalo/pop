@@ -3,6 +3,7 @@ package pop
 import (
 	"fmt"
 	"net/url"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -34,13 +35,21 @@ type ConnectionDetails struct {
 	Options map[string]string
 }
 
+var dialectX = regexp.MustCompile(`\s+:\/\/`)
+
 // Finalize cleans up the connection details by normalizing names,
 // filling in default values, etc...
 func (cd *ConnectionDetails) Finalize() error {
 	if cd.URL != "" {
-		u, err := url.Parse(cd.URL)
+		ul := cd.URL
+		if cd.Dialect != "" {
+			if !dialectX.MatchString(ul) {
+				ul = cd.Dialect + "://" + ul
+			}
+		}
+		u, err := url.Parse(ul)
 		if err != nil {
-			return errors.Wrapf(err, "couldn't parse %s", cd.URL)
+			return errors.Wrapf(err, "couldn't parse %s", ul)
 		}
 		cd.Dialect = u.Scheme
 		cd.Database = u.Path

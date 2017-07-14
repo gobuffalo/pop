@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"html/template"
+	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -26,16 +27,23 @@ func init() {
 	if ap != "" {
 		AddLookupPaths(ap)
 	}
-	LoadConfig()
+	LoadConfigFile()
 }
 
-func LoadConfig() error {
+func LoadConfigFile() error {
 	path, err := findConfigPath()
 	if err != nil {
 		return errors.WithStack(err)
 	}
 	Connections = map[string]*Connection{}
-	return loadConfig(path)
+	if Debug {
+		fmt.Printf("[POP]: Loading config file from %s\n", path)
+	}
+	f, err := os.Open(path)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+	return LoadFrom(f)
 }
 
 func LookupPaths() []string {
@@ -44,7 +52,7 @@ func LookupPaths() []string {
 
 func AddLookupPaths(paths ...string) error {
 	lookupPaths = append(paths, lookupPaths...)
-	return LoadConfig()
+	return LoadConfigFile()
 }
 
 func findConfigPath() (string, error) {
@@ -57,15 +65,8 @@ func findConfigPath() (string, error) {
 	return "", errors.New("[POP]: Tried to load configuration file, but couldn't find it.")
 }
 
-func loadConfig(path string) error {
-	if Debug {
-		fmt.Printf("[POP]: Loading config file from %s\n", path)
-	}
-	b, err := ioutil.ReadFile(path)
-	if err != nil {
-		return errors.Wrapf(err, "couldn't read file %s", path)
-	}
-
+// LoadFrom reads a configuration from the reader and sets up the connections
+func LoadFrom(r io.Reader) error {
 	tmpl := template.New("test")
 	tmpl.Funcs(map[string]interface{}{
 		"envOr": func(s1, s2 string) string {
@@ -75,6 +76,10 @@ func loadConfig(path string) error {
 			return os.Getenv(s1)
 		},
 	})
+	b, err := ioutil.ReadAll(r)
+	if err != nil {
+		return errors.WithStack(err)
+	}
 	t, err := tmpl.Parse(string(b))
 	if err != nil {
 		return errors.Wrap(err, "couldn't parse config template")

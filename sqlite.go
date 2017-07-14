@@ -1,4 +1,4 @@
-// +build !nosqlite
+// +build !nosqlite,!appengine,!appenginevm
 
 package pop
 
@@ -166,12 +166,12 @@ func (m *sqlite) TruncateAll(tx *Connection) error {
 	if err != nil {
 		return err
 	}
+	if len(names) == 0 {
+		return nil
+	}
 	stmts := []string{}
 	for _, n := range names {
 		stmts = append(stmts, fmt.Sprintf("DELETE FROM %s", n.Name))
-	}
-	if len(stmts) == 0 {
-		return nil
 	}
 	return tx.RawQuery(strings.Join(stmts, "; ")).Exec()
 }

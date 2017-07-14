@@ -26,6 +26,9 @@ func (m *mysql) Details() *ConnectionDetails {
 
 func (m *mysql) URL() string {
 	c := m.ConnectionDetails
+	if m.ConnectionDetails.URL != "" {
+		return m.ConnectionDetails.URL
+	}
 	s := "%s:%s@(%s:%s)/%s?parseTime=true&multiStatements=true&readTimeout=1s"
 	return fmt.Sprintf(s, c.User, c.Password, c.Host, c.Port, c.Database)
 }
@@ -56,13 +59,11 @@ func (m *mysql) SelectMany(s store, models *Model, query Query) error {
 
 func (m *mysql) CreateDB() error {
 	c := m.ConnectionDetails
-	cmd := exec.Command("mysql", "-u", c.User, "-p"+c.Password, "-h", c.Host, "-P", c.Port, "-e", fmt.Sprintf("create database %s", c.Database))
+	cmd := exec.Command("mysql", "-u", c.User, "-p"+c.Password, "-h", c.Host, "-P", c.Port, "-e", fmt.Sprintf("create database `%s`", c.Database))
 	Log(strings.Join(cmd.Args, " "))
-	cmd.Stdin = os.Stdin
-	cmd.Stdout = os.Stderr
-	cmd.Stdout = os.Stdout
-	err := cmd.Run()
+	comboOut, err := cmd.CombinedOutput()
 	if err != nil {
+		err = fmt.Errorf("%s: %s", err.Error(), string(comboOut))
 		return errors.Wrapf(err, "error creating MySQL database %s", c.Database)
 	}
 	fmt.Printf("created database %s\n", c.Database)
@@ -71,13 +72,11 @@ func (m *mysql) CreateDB() error {
 
 func (m *mysql) DropDB() error {
 	c := m.ConnectionDetails
-	cmd := exec.Command("mysql", "-u", c.User, "-p"+c.Password, "-h", c.Host, "-P", c.Port, "-e", fmt.Sprintf("drop database %s", c.Database))
+	cmd := exec.Command("mysql", "-u", c.User, "-p"+c.Password, "-h", c.Host, "-P", c.Port, "-e", fmt.Sprintf("drop database `%s`", c.Database))
 	Log(strings.Join(cmd.Args, " "))
-	cmd.Stdin = os.Stdin
-	cmd.Stdout = os.Stderr
-	cmd.Stdout = os.Stdout
-	err := cmd.Run()
+	comboOut, err := cmd.CombinedOutput()
 	if err != nil {
+		err = fmt.Errorf("%s: %s", err.Error(), string(comboOut))
 		return errors.Wrapf(err, "error dropping MySQL database %s", c.Database)
 	}
 	fmt.Printf("dropped database %s\n", c.Database)
@@ -146,6 +145,9 @@ func (m *mysql) TruncateAll(tx *Connection) error {
 	err := tx.RawQuery(mysqlTruncate, m.Details().Database).All(&stmts)
 	if err != nil {
 		return err
+	}
+	if len(stmts) == 0 {
+		return nil
 	}
 	qs := []string{}
 	for _, x := range stmts {

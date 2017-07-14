@@ -123,7 +123,7 @@ func findVersion() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	vfile, err := ioutil.ReadFile(filepath.Join(pwd, "soda/cmd/version.go"))
+	vfile, err := ioutil.ReadFile(filepath.Join(pwd, "./soda/cmd/version.go"))
 	if err != nil {
 		return "", err
 	}
