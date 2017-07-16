@@ -97,6 +97,10 @@ func Test_Count(t *testing.T) {
 		c, err := tx.Count(&user)
 		a.NoError(err)
 		a.Equal(c, 1)
+
+		c, err = tx.Where("1=1").CountByField(&user, "distinct id")
+		a.NoError(err)
+		a.Equal(c, 1)
 		// should ignore order in count
 
 		c, err = tx.Order("id desc").Count(&user)

@@ -121,10 +121,14 @@ func (c *Connection) Count(model interface{}) (int, error) {
 //
 //	q.Where("name = ?", "mark").Count(&User{})
 func (q Query) Count(model interface{}) (int, error) {
+	return q.CountByField(model, "*")
+}
+
+func (q Query) CountByField(model interface{}, field string) (int, error) {
 	res := &rowCount{}
 	err := q.Connection.timeFunc("Count", func() error {
 		q.Paginator = nil
-		col := "count(*) as row_count"
+		col := fmt.Sprintf("count(%s) as row_count", field)
 		q.orderClauses = clauses{}
 		query, args := q.ToSQL(&Model{Value: model}, col)
 		Log(query, args...)
