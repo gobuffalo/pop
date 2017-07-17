@@ -189,6 +189,8 @@ func colType(s string) string {
 		return "nulls.String"
 	case "uuid":
 		return "uuid.UUID"
+	case "json", "jsonb":
+		return "map[string]interface{}"
 	default:
 		return s
 	}
