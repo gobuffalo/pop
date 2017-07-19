@@ -1,8 +1,22 @@
 # Change Log
 
-## [Unreleased](https://github.com/markbates/pop/tree/HEAD)
+## [v3.27.0](https://github.com/markbates/pop/tree/v3.27.0) (2017-07-19)
+[Full Changelog](https://github.com/markbates/pop/compare/v3.26.0...v3.27.0)
 
-[Full Changelog](https://github.com/markbates/pop/compare/v3.25.2...HEAD)
+**Merged pull requests:**
+
+- Docker based test environment [\#102](https://github.com/markbates/pop/pull/102) ([lchausmann](https://github.com/lchausmann))
+- Add default\_raw to fizz/README [\#101](https://github.com/markbates/pop/pull/101) ([slomek](https://github.com/slomek))
+
+## [v3.26.0](https://github.com/markbates/pop/tree/v3.26.0) (2017-07-17)
+[Full Changelog](https://github.com/markbates/pop/compare/v3.25.3...v3.26.0)
+
+**Merged pull requests:**
+
+- CountByField support [\#97](https://github.com/markbates/pop/pull/97) ([u007](https://github.com/u007))
+
+## [v3.25.3](https://github.com/markbates/pop/tree/v3.25.3) (2017-07-12)
+[Full Changelog](https://github.com/markbates/pop/compare/v3.25.2...v3.25.3)
 
 **Merged pull requests:**
 
@@ -316,13 +330,13 @@
 [Full Changelog](https://github.com/markbates/pop/compare/v3.5.1.1...v3.6.0)
 
 ## [v3.5.1.1](https://github.com/markbates/pop/tree/v3.5.1.1) (2016-08-26)
-[Full Changelog](https://github.com/markbates/pop/compare/v3.5.1...v3.5.1.1)
-
-## [v3.5.1](https://github.com/markbates/pop/tree/v3.5.1) (2016-08-26)
-[Full Changelog](https://github.com/markbates/pop/compare/v3.5.2...v3.5.1)
+[Full Changelog](https://github.com/markbates/pop/compare/v3.5.2...v3.5.1.1)
 
 ## [v3.5.2](https://github.com/markbates/pop/tree/v3.5.2) (2016-08-26)
-[Full Changelog](https://github.com/markbates/pop/compare/v3.5.0...v3.5.2)
+[Full Changelog](https://github.com/markbates/pop/compare/v3.5.1...v3.5.2)
+
+## [v3.5.1](https://github.com/markbates/pop/tree/v3.5.1) (2016-08-26)
+[Full Changelog](https://github.com/markbates/pop/compare/v3.5.0...v3.5.1)
 
 ## [v3.5.0](https://github.com/markbates/pop/tree/v3.5.0) (2016-08-25)
 [Full Changelog](https://github.com/markbates/pop/compare/v3.4.1...v3.5.0)
