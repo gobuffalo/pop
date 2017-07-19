@@ -35,6 +35,7 @@ Any other type passed it will be be passed straight through to the underlying da
 * `size` - The size of the column. For example if you wanted a `varchar(50)` in Postgres you would do: `t.Column("column_name", "string", {"size": 50})`
 * `null` - By default columns are not allowed to be `null`.
 * `default` - The default value you want for this column. By default this is `null`.
+* `default_raw` - The default value defined as a database function.
 
 ## Drop a Table
 
