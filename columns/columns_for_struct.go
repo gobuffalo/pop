@@ -14,15 +14,13 @@ func ColumnsForStruct(s interface{}, tableName string) (columns Columns) {
 	}()
 	st := reflect.TypeOf(s)
 	if st.Kind() == reflect.Ptr {
-		st = reflect.ValueOf(s).Elem().Type()
+		st = st.Elem()
 	}
 	if st.Kind() == reflect.Slice {
-		v := reflect.ValueOf(s)
-		t := v.Type()
-		x := t.Elem().Elem()
-
-		n := reflect.New(x)
-		return ColumnsForStruct(n.Interface(), tableName)
+		st = st.Elem()
+		if st.Kind() == reflect.Ptr {
+			st = st.Elem()
+		}
 	}
 
 	field_count := st.NumField()

@@ -26,7 +26,7 @@ func Test_ValidateAndSave(t *testing.T) {
 		verrs, err = tx.ValidateAndSave(car)
 		r.NoError(err)
 		r.True(verrs.HasAny())
-		r.Len(validationLogs, 1)
+		r.Len(validationLogs, 2)
 		errs := verrs.Get("name")
 		r.Len(errs, 1)
 
@@ -57,7 +57,7 @@ func Test_ValidateAndCreate(t *testing.T) {
 		verrs, err = tx.ValidateAndSave(car)
 		r.NoError(err)
 		r.True(verrs.HasAny())
-		r.Len(validationLogs, 1)
+		r.Len(validationLogs, 2)
 		errs := verrs.Get("name")
 		r.Len(errs, 1)
 
@@ -88,7 +88,7 @@ func Test_ValidateAndUpdate(t *testing.T) {
 		verrs, err = tx.ValidateAndUpdate(car)
 		r.NoError(err)
 		r.True(verrs.HasAny())
-		r.Len(validationLogs, 1)
+		r.Len(validationLogs, 2)
 		errs := verrs.Get("name")
 		r.Len(errs, 1)
 

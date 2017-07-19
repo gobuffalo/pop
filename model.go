@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/markbates/inflect"
-	"github.com/markbates/validate"
 	"github.com/pkg/errors"
 	"github.com/satori/go.uuid"
 )
@@ -39,52 +38,6 @@ type Value interface{}
 type Model struct {
 	Value
 	tableName string
-}
-
-func (m *Model) runValidations(c *Connection, names ...string) (*validate.Errors, error) {
-	for _, n := range names {
-		rv := reflect.ValueOf(m.Value)
-		mv := rv.MethodByName(n)
-		if mv.IsValid() {
-			typ := mv.Type()
-			if typ.NumIn() == 1 && typ.In(0) == reflect.TypeOf(c) {
-				if typ.NumOut() != 2 {
-					return nil, errors.Errorf("%s function should return (*validate.Errors, error)!", n)
-				}
-				out := mv.Call([]reflect.Value{reflect.ValueOf(c)})
-				verrs := validate.NewErrors()
-				var err error
-				if !out[0].IsNil() {
-					verrs = out[0].Interface().(*validate.Errors)
-				}
-				if !out[1].IsNil() {
-					err = out[1].Interface().(error)
-				}
-				if verrs.HasAny() || err != nil {
-					return verrs, err
-				}
-			} else {
-				return nil, errors.Errorf("%s function should take 1 argument of type '*pop.Connection'", n)
-			}
-		}
-	}
-	return validate.NewErrors(), nil
-}
-
-func (m *Model) validate(c *Connection) (*validate.Errors, error) {
-	return m.runValidations(c, "Validate")
-}
-
-func (m *Model) validateCreate(c *Connection) (*validate.Errors, error) {
-	return m.runValidations(c, "Validate", "ValidateCreate")
-}
-
-func (m *Model) validateSave(c *Connection) (*validate.Errors, error) {
-	return m.runValidations(c, "Validate", "ValidateSave")
-}
-
-func (m *Model) validateUpdate(c *Connection) (*validate.Errors, error) {
-	return m.runValidations(c, "Validate", "ValidateUpdate")
 }
 
 // ID returns the ID of the Model. All models must have an `ID` field this is
@@ -130,18 +83,18 @@ func (m *Model) TableName() string {
 }
 
 func (m *Model) typeName(t reflect.Type) string {
-	kind := t.Kind().String()
-	switch kind {
-	case "ptr":
-		st := reflect.ValueOf(m.Value).Elem()
-		return m.typeName(st.Type())
-	case "string":
+	if t.Kind() == reflect.Ptr {
+		t = t.Elem()
+	}
+	switch t.Kind() {
+	case reflect.String:
 		return m.Value.(string)
-	case "slice":
-		if t.Elem().Kind().String() == "ptr" {
-			return m.typeName(t.Elem().Elem())
+	case reflect.Slice, reflect.Array:
+		el := t.Elem()
+		if el.Kind() == reflect.Ptr {
+			el = el.Elem()
 		}
-		return t.Elem().Name()
+		return el.Name()
 	default:
 		return t.Name()
 	}

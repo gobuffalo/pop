@@ -17,22 +17,23 @@ sleep 4 # Ensure mysql is online
 go build -v -o tsoda ./soda
 
 function test {
-  echo "Testing $1"
+  echo "!!!Testing $1"
   export SODA_DIALECT=$1
   echo ./tsoda -v
   ! ./tsoda drop -e $SODA_DIALECT -c ./database.yml
-  ! ./tsoda create -d -e $SODA_DIALECT -c ./database.yml
-  ./tsoda migrate -d -e $SODA_DIALECT -c ./database.yml -d
-  ./tsoda migrate down -d -e $SODA_DIALECT -c ./database.yml -d
-  ./tsoda migrate down -d -e $SODA_DIALECT -c ./database.yml -d
-  ./tsoda migrate -d -e $SODA_DIALECT -c ./database.yml -d
-  go test ./... $verbose
+  ! ./tsoda create -e $SODA_DIALECT -c ./database.yml
+  ./tsoda migrate -e $SODA_DIALECT -c ./database.yml
+  ./tsoda migrate down -e $SODA_DIALECT -c ./database.yml
+  ./tsoda migrate down -e $SODA_DIALECT -c ./database.yml
+  ./tsoda migrate -e $SODA_DIALECT -c ./database.yml
+  go test ./...
 }
 
-test "sqlite"
 test "postgres"
 test "mysql"
+test "sqlite"
 
 docker-compose down
 
 rm tsoda
+find . -name *.sqlite* -delete

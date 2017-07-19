@@ -1,59 +1,89 @@
 package pop
 
-import (
-	"reflect"
+type beforeSaveable interface {
+	BeforeSave(*Connection) error
+}
 
-	"github.com/pkg/errors"
-)
-
-func (m *Model) runCallbacks(c *Connection, name string) error {
-	rv := reflect.ValueOf(m.Value)
-	mv := rv.MethodByName(name)
-	if mv.IsValid() {
-		typ := mv.Type()
-		if typ.NumIn() == 1 && typ.In(0) == reflect.TypeOf(c) {
-			if typ.NumOut() != 1 {
-				return errors.Errorf("%s function should return error!", name)
-			}
-			out := mv.Call([]reflect.Value{reflect.ValueOf(c)})
-			if !out[0].IsNil() {
-				return out[0].Interface().(error)
-			}
-		} else {
-			return errors.Errorf("%s function should take 1 argument of type '*pop.Connection'", name)
-		}
+func (m *Model) beforeSave(c *Connection) error {
+	if x, ok := m.Value.(beforeSaveable); ok {
+		return x.BeforeSave(c)
 	}
 	return nil
 }
 
-func (m *Model) beforeSave(c *Connection) error {
-	return m.runCallbacks(c, "BeforeSave")
+type beforeCreateable interface {
+	BeforeCreate(*Connection) error
 }
 
 func (m *Model) beforeCreate(c *Connection) error {
-	return m.runCallbacks(c, "BeforeCreate")
+	if x, ok := m.Value.(beforeCreateable); ok {
+		return x.BeforeCreate(c)
+	}
+	return nil
+}
+
+type beforeUpdateable interface {
+	BeforeUpdate(*Connection) error
 }
 
 func (m *Model) beforeUpdate(c *Connection) error {
-	return m.runCallbacks(c, "BeforeUpdate")
+	if x, ok := m.Value.(beforeUpdateable); ok {
+		return x.BeforeUpdate(c)
+	}
+	return nil
+}
+
+type beforeDestroyable interface {
+	BeforeDestroy(*Connection) error
 }
 
 func (m *Model) beforeDestroy(c *Connection) error {
-	return m.runCallbacks(c, "BeforeDestroy")
+	if x, ok := m.Value.(beforeDestroyable); ok {
+		return x.BeforeDestroy(c)
+	}
+	return nil
+}
+
+type afterDestroyable interface {
+	AfterDestroy(*Connection) error
 }
 
 func (m *Model) afterDestroy(c *Connection) error {
-	return m.runCallbacks(c, "AfterDestroy")
+	if x, ok := m.Value.(afterDestroyable); ok {
+		return x.AfterDestroy(c)
+	}
+	return nil
+}
+
+type afterUpdateable interface {
+	AfterUpdate(*Connection) error
 }
 
 func (m *Model) afterUpdate(c *Connection) error {
-	return m.runCallbacks(c, "AfterUpdate")
+	if x, ok := m.Value.(afterUpdateable); ok {
+		return x.AfterUpdate(c)
+	}
+	return nil
+}
+
+type afterCreateable interface {
+	AfterCreate(*Connection) error
 }
 
 func (m *Model) afterCreate(c *Connection) error {
-	return m.runCallbacks(c, "AfterCreate")
+	if x, ok := m.Value.(afterCreateable); ok {
+		return x.AfterCreate(c)
+	}
+	return nil
+}
+
+type afterSaveable interface {
+	AfterSave(*Connection) error
 }
 
 func (m *Model) afterSave(c *Connection) error {
-	return m.runCallbacks(c, "AfterSave")
+	if x, ok := m.Value.(afterSaveable); ok {
+		return x.AfterSave(c)
+	}
+	return nil
 }
