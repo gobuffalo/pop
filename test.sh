@@ -11,6 +11,8 @@ then
   verbose="-v"
 fi
 
+docker-compose up -d
+sleep 4 # Ensure mysql is online
 
 go build -v -o tsoda ./soda
 
@@ -27,8 +29,10 @@ function test {
   go test ./... $verbose
 }
 
+test "sqlite"
 test "postgres"
 test "mysql"
-test "sqlite"
+
+docker-compose down
 
 rm tsoda
