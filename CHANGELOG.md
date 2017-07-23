@@ -1,5 +1,13 @@
 # Change Log
 
+## [v3.27.1](https://github.com/markbates/pop/tree/v3.27.1) (2017-07-23)
+[Full Changelog](https://github.com/markbates/pop/compare/v3.27.0...v3.27.1)
+
+**Closed issues:**
+
+- nulls.Float64 translates to float64 for db column should be float [\#103](https://github.com/markbates/pop/issues/103)
+- Add JSON support to fizz [\#99](https://github.com/markbates/pop/issues/99)
+
 ## [v3.27.0](https://github.com/markbates/pop/tree/v3.27.0) (2017-07-19)
 [Full Changelog](https://github.com/markbates/pop/compare/v3.26.0...v3.27.0)
 
