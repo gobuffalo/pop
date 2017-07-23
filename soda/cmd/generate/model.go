@@ -197,9 +197,6 @@ func colType(s string) string {
 }
 
 func fizzColType(s string) string {
-	if nrx.MatchString(s) {
-		return fizzColType(strings.Replace(s, "nulls.", "", -1))
-	}
 	switch strings.ToLower(s) {
 	case "int":
 		return "integer"
@@ -207,7 +204,12 @@ func fizzColType(s string) string {
 		return "timestamp"
 	case "uuid.uuid", "uuid":
 		return "uuid"
+	case "nulls.float32", "nulls.float64":
+		return "float"
 	default:
+		if nrx.MatchString(s) {
+			return fizzColType(strings.Replace(s, "nulls.", "", -1))
+		}
 		return strings.ToLower(s)
 	}
 }
