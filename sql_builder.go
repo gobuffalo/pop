@@ -133,7 +133,20 @@ func (sq *sqlBuilder) buildGroupClauses(sql string) string {
 	gc := sq.Query.groupClauses
 	if len(gc) > 0 {
 		sql = fmt.Sprintf("%s GROUP BY %s", sql, gc.String())
+
+		hc := sq.Query.havingClauses
+		if len(hc) > 0 {
+			sql = fmt.Sprintf("%s HAVING %s", sql, hc.String())
+			fmt.Printf("new sql: %s\n", sql)
+		}
+
+		for i := range hc {
+			for _, arg := range hc[i].Arguments {
+				sq.args = append(sq.args, arg)
+			}
+		}
 	}
+
 	return sql
 }
 

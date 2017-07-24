@@ -74,6 +74,24 @@ func Test_GroupBy(t *testing.T) {
 	q.GroupBy("A", "B")
 	sql, _ = q.ToSQL(m)
 	a.Equal(ts("SELECT enemies.A FROM enemies AS enemies GROUP BY A, B"), sql)
+
+	q = PDB.Q()
+	q.GroupBy("A", "B").Having("enemies.A=?", "test")
+	sql, _ = q.ToSQL(m)
+	if PDB.Dialect.Details().Dialect == "postgres" {
+		a.Equal(ts("SELECT enemies.A FROM enemies AS enemies GROUP BY A, B HAVING enemies.A=$1"), sql)
+	} else {
+		a.Equal(ts("SELECT enemies.A FROM enemies AS enemies GROUP BY A, B HAVING enemies.A=?"), sql)
+	}
+
+	q = PDB.Q()
+	q.GroupBy("A", "B").Having("enemies.A=?", "test").Having("enemies.B=enemies.A")
+	sql, _ = q.ToSQL(m)
+	if PDB.Dialect.Details().Dialect == "postgres" {
+		a.Equal(ts("SELECT enemies.A FROM enemies AS enemies GROUP BY A, B HAVING enemies.A=$1 AND enemies.B=enemies.A"), sql)
+	} else {
+		a.Equal(ts("SELECT enemies.A FROM enemies AS enemies GROUP BY A, B HAVING enemies.A=? AND enemies.B=enemies.A"), sql)
+	}
 }
 
 func Test_ToSQL(t *testing.T) {

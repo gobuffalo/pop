@@ -11,6 +11,7 @@ type Query struct {
 	belongsToThroughClauses belongsToThroughClauses
 	joinClauses             joinClauses
 	groupClauses            groupClauses
+	havingClauses           havingClauses
 	Paginator               *Paginator
 	Connection              *Connection
 }
