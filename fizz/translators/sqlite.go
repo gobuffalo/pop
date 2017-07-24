@@ -94,7 +94,6 @@ func (p *SQLite) ChangeColumn(t fizz.Table) (string, error) {
 	sql := []string{}
 	s, err := p.withTempTable(t.Name, func(tempTable fizz.Table) (string, error) {
 		createTableSQL, err := p.CreateTable(*tableInfo)
-		fmt.Printf("table: %v, sql: %v\n", tableInfo, createTableSQL)
 		if err != nil {
 			return "", err
 		}
