@@ -30,8 +30,8 @@ function test {
 }
 
 test "postgres"
-test "mysql"
 test "sqlite"
+test "mysql"
 
 docker-compose down
 
