@@ -165,6 +165,26 @@ func Test_ToSQL(t *testing.T) {
 		query = pop.Q(tx)
 		q, args = query.ToSQL(user, "distinct id", "users.bio,r", "email,w")
 		a.Equal("SELECT distinct id, users.bio FROM users AS users", q)
+
+		query = pop.Q(tx)
+		q, args = query.ToSQL(user, "distinct id", "concat(users.name,'-',users.email)")
+		a.Equal("SELECT concat(users.name,'-',users.email), distinct id FROM users AS users", q)
+
+		query = pop.Q(tx)
+		q, args = query.ToSQL(user, "id", "concat(users.name,'-',users.email) name_email")
+		a.Equal("SELECT concat(users.name,'-',users.email) name_email, id FROM users AS users", q)
+
+		query = pop.Q(tx)
+		q, args = query.ToSQL(user, "distinct id", "concat(users.name,'-',users.email),r")
+		a.Equal("SELECT concat(users.name,'-',users.email), distinct id FROM users AS users", q)
+
+		query = pop.Q(tx)
+		q, args = query.ToSQL(user, "distinct id", "concat(users.name,'-',users.email) AS x")
+		a.Equal("SELECT concat(users.name,'-',users.email) AS x, distinct id FROM users AS users", q)
+
+		query = pop.Q(tx)
+		q, args = query.ToSQL(user, "distinct id", "users.name as english_name", "email private_email")
+		a.Equal("SELECT distinct id, email private_email, users.name as english_name FROM users AS users", q)
 	})
 }
 
