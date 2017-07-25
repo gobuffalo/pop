@@ -23,24 +23,29 @@ func (c *Columns) Add(names ...string) []*Column {
 		var col *Column
 		ss := ""
 		//support for distinct xx, or distinct on (field) table.fields
-		if strings.Contains(name, "distinct") {
-			i := strings.LastIndex(name, " ")
-			if i > -1 {
-				colName := name[i+1 : len(name)]
-				xs = strings.Split(colName, ",")
-				ss = name
-				if len(xs) > 1 {
-					ss = ss[0 : len(ss)-len(xs[1])-1]
-				}
-			} else {
-				panic("distinct without name")
-			}
+		if strings.HasSuffix(name, ",r") || strings.HasSuffix(name, ",w") {
+			xs = []string{name[0 : len(name)-2], name[len(name)-1 : len(name)]}
 		} else {
-			xs = strings.Split(name, ",")
+			xs = []string{name}
+		}
+
+		xs[0] = strings.TrimSpace(xs[0])
+		//eg: id id2 - select id as id2
+		// also distinct columnname
+		// and distinct on (column1) column2
+		if strings.Contains(strings.ToUpper(xs[0]), " AS ") {
+			//eg: select id as id2
+			i := strings.LastIndex(strings.ToUpper(xs[0]), " AS ")
+			ss = xs[0]
+			xs[0] = xs[0][i+4 : len(xs[0])] //get id2
+		} else if strings.Contains(xs[0], " ") {
+			i := strings.LastIndex(name, " ")
+			ss = xs[0]
+			xs[0] = xs[0][i+1 : len(xs[0])] //get id2
 		}
 
 		col = c.Cols[xs[0]]
-		//fmt.Printf("column: name: %v, col: %v, xs: %v, ss: %v\n", name, col, xs, ss)
+		//fmt.Printf("column: %v, col: %v, xs: %v, ss: %v\n", xs[0], col, xs, ss)
 		if col == nil {
 			if ss == "" {
 				ss = xs[0]
@@ -71,6 +76,7 @@ func (c *Columns) Add(names ...string) []*Column {
 		}
 		ret = append(ret, col)
 	}
+
 	c.lock.Unlock()
 	return ret
 }
