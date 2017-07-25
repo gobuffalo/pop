@@ -137,16 +137,34 @@ func Test_ToSQL(t *testing.T) {
 		query = pop.Q(tx).Where("id = ?", 1).Join("books b", "b.user_id=?", "xx").Order("name asc")
 		q, args := query.ToSQL(user)
 
-		fmt.Printf("db type %v", tx.Dialect.Details().Dialect)
 		if tx.Dialect.Details().Dialect == "postgres" {
 			a.Equal(fmt.Sprintf("%s JOIN books b ON b.user_id=$1 WHERE id = $2 ORDER BY name asc", s), q)
 		} else {
 			a.Equal(fmt.Sprintf("%s JOIN books b ON b.user_id=? WHERE id = ? ORDER BY name asc", s), q)
 		}
-
 		// join arguments comes 1st
 		a.Equal(args[0], "xx")
 		a.Equal(args[1], 1)
+
+		query = pop.Q(tx)
+		q, args = query.ToSQL(user, "distinct on (users.name, users.email) users.*", "users.bio")
+		a.Equal("SELECT distinct on (users.name, users.email) users.*, users.bio FROM users AS users", q)
+
+		query = pop.Q(tx)
+		q, args = query.ToSQL(user, "distinct on (users.id) users.*", "users.bio")
+		a.Equal("SELECT distinct on (users.id) users.*, users.bio FROM users AS users", q)
+
+		query = pop.Q(tx)
+		q, args = query.ToSQL(user, "id,r", "users.bio,r", "users.email,w")
+		a.Equal("SELECT id, users.bio FROM users AS users", q)
+
+		query = pop.Q(tx)
+		q, args = query.ToSQL(user, "distinct on (id) id,r", "users.bio,r", "email,w")
+		a.Equal("SELECT distinct on (id) id, users.bio FROM users AS users", q)
+
+		query = pop.Q(tx)
+		q, args = query.ToSQL(user, "distinct id", "users.bio,r", "email,w")
+		a.Equal("SELECT distinct id, users.bio FROM users AS users", q)
 	})
 }
 
