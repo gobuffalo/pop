@@ -18,13 +18,37 @@ func (c *Columns) Add(names ...string) []*Column {
 	ret := []*Column{}
 	c.lock.Lock()
 	for _, name := range names {
-		xs := strings.Split(name, ",")
-		col := c.Cols[xs[0]]
-		if col == nil {
-			ss := xs[0]
-			if c.TableName != "" {
-				ss = fmt.Sprintf("%s.%s", c.TableName, ss)
+
+		var xs []string
+		var col *Column
+		ss := ""
+		//support for distinct xx, or distinct on (field) table.fields
+		if strings.Contains(name, "distinct") {
+			i := strings.LastIndex(name, " ")
+			if i > -1 {
+				colName := name[i+1 : len(name)]
+				xs = strings.Split(colName, ",")
+				ss = name
+				if len(xs) > 1 {
+					ss = ss[0 : len(ss)-len(xs[1])-1]
+				}
+			} else {
+				panic("distinct without name")
 			}
+		} else {
+			xs = strings.Split(name, ",")
+		}
+
+		col = c.Cols[xs[0]]
+		//fmt.Printf("column: name: %v, col: %v, xs: %v, ss: %v\n", name, col, xs, ss)
+		if col == nil {
+			if ss == "" {
+				ss = xs[0]
+				if c.TableName != "" {
+					ss = fmt.Sprintf("%s.%s", c.TableName, ss)
+				}
+			}
+
 			col = &Column{
 				Name:      xs[0],
 				SelectSQL: ss,
