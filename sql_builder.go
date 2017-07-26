@@ -89,9 +89,13 @@ func (sq *sqlBuilder) buildfromClauses() fromClauses {
 	fc := sq.Query.fromClauses
 	for _, m := range models {
 		tableName := m.TableName()
+		asName := m.As
+		if asName == "" {
+			asName = strings.Replace(tableName, ".", "_", -1)
+		}
 		fc = append(fc, fromClause{
 			From: tableName,
-			As:   strings.Replace(tableName, ".", "_", -1),
+			As:   asName,
 		})
 	}
 
@@ -137,7 +141,6 @@ func (sq *sqlBuilder) buildGroupClauses(sql string) string {
 		hc := sq.Query.havingClauses
 		if len(hc) > 0 {
 			sql = fmt.Sprintf("%s HAVING %s", sql, hc.String())
-			fmt.Printf("new sql: %s\n", sql)
 		}
 
 		for i := range hc {
@@ -179,14 +182,15 @@ func (sq *sqlBuilder) buildColumns() Columns {
 	acl := len(sq.AddColumns)
 	if acl <= 0 {
 		cols, ok := columnCache[tableName]
-		if ok {
+		//if alias is different, remake columns
+		if ok && cols.TableAlias == sq.Model.As {
 			return cols
 		}
-		cols = ColumnsForStruct(sq.Model.Value, tableName)
+		cols = ColumnsForStruct(sq.Model.Value, tableName, sq.Model.As)
 		columnCache[tableName] = cols
 		return cols
 	} else {
-		cols := NewColumns("")
+		cols := NewColumns("", "")
 		cols.Add(sq.AddColumns...)
 		return cols
 	}

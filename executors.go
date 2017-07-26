@@ -71,7 +71,7 @@ func (c *Connection) Create(model interface{}, excludeColumns ...string) error {
 			return err
 		}
 
-		cols := ColumnsForStruct(model, sm.TableName())
+		cols := ColumnsForStruct(model, sm.TableName(), sm.As)
 		cols.Remove(excludeColumns...)
 
 		sm.touchCreatedAt()
@@ -113,7 +113,7 @@ func (c *Connection) Update(model interface{}, excludeColumns ...string) error {
 			return err
 		}
 
-		cols := ColumnsForStruct(model, sm.TableName())
+		cols := ColumnsForStruct(model, sm.TableName(), sm.As)
 		cols.Remove("id", "created_at")
 		cols.Remove(excludeColumns...)
 

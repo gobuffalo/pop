@@ -109,6 +109,9 @@ func Test_ToSQL(t *testing.T) {
 		q, _ = query.ToSQL(user)
 		a.Equal(fmt.Sprintf("%s ORDER BY id desc", s), q)
 
+		q, _ = query.ToSQL(&pop.Model{Value: &User{}, As: "u"})
+		a.Equal("SELECT name as full_name, u.alive, u.bio, u.birth_date, u.created_at, u.email, u.id, u.name, u.price, u.updated_at FROM users AS u ORDER BY id desc", q)
+
 		query = tx.Where("id = 1")
 		q, _ = query.ToSQL(user)
 		a.Equal(fmt.Sprintf("%s WHERE id = 1", s), q)
