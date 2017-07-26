@@ -38,6 +38,7 @@ type Value interface{}
 type Model struct {
 	Value
 	tableName string
+	As        string
 }
 
 // ID returns the ID of the Model. All models must have an `ID` field this is

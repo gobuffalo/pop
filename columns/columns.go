@@ -8,15 +8,22 @@ import (
 )
 
 type Columns struct {
-	Cols      map[string]*Column
-	lock      *sync.RWMutex
-	TableName string
+	Cols       map[string]*Column
+	lock       *sync.RWMutex
+	TableName  string
+	TableAlias string
 }
 
 // Add a column to the list.
 func (c *Columns) Add(names ...string) []*Column {
 	ret := []*Column{}
 	c.lock.Lock()
+
+	tableAlias := c.TableAlias
+	if tableAlias == "" {
+		tableAlias = c.TableName
+	}
+
 	for _, name := range names {
 
 		var xs []string
@@ -49,8 +56,8 @@ func (c *Columns) Add(names ...string) []*Column {
 		if col == nil {
 			if ss == "" {
 				ss = xs[0]
-				if c.TableName != "" {
-					ss = fmt.Sprintf("%s.%s", c.TableName, ss)
+				if tableAlias != "" {
+					ss = fmt.Sprintf("%s.%s", tableAlias, ss)
 				}
 			}
 
@@ -91,7 +98,7 @@ func (c *Columns) Remove(names ...string) {
 }
 
 func (c Columns) Writeable() *WriteableColumns {
-	w := &WriteableColumns{NewColumns(c.TableName)}
+	w := &WriteableColumns{NewColumns(c.TableName, c.TableAlias)}
 	for _, col := range c.Cols {
 		if col.Writeable {
 			w.Cols[col.Name] = col
@@ -101,7 +108,7 @@ func (c Columns) Writeable() *WriteableColumns {
 }
 
 func (c Columns) Readable() *ReadableColumns {
-	w := &ReadableColumns{NewColumns(c.TableName)}
+	w := &ReadableColumns{NewColumns(c.TableName, c.TableAlias)}
 	for _, col := range c.Cols {
 		if col.Readable {
 			w.Cols[col.Name] = col
@@ -128,10 +135,11 @@ func (c Columns) SymbolizedString() string {
 	return strings.Join(xs, ", ")
 }
 
-func NewColumns(tableName string) Columns {
+func NewColumns(tableName string, tableAlias string) Columns {
 	return Columns{
-		lock:      &sync.RWMutex{},
-		Cols:      map[string]*Column{},
-		TableName: tableName,
+		lock:       &sync.RWMutex{},
+		Cols:       map[string]*Column{},
+		TableName:  tableName,
+		TableAlias: tableAlias,
 	}
 }

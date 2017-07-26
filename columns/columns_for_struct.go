@@ -1,14 +1,16 @@
 package columns
 
-import "reflect"
+import (
+	"reflect"
+)
 
 // ColumnsForStruct returns a Columns instance for
 // the struct passed in.
-func ColumnsForStruct(s interface{}, tableName string) (columns Columns) {
-	columns = NewColumns(tableName)
+func ColumnsForStruct(s interface{}, tableName string, tableAlias string) (columns Columns) {
+	columns = NewColumns(tableName, tableAlias)
 	defer func() {
 		if r := recover(); r != nil {
-			columns = NewColumns(tableName)
+			columns = NewColumns(tableName, tableAlias)
 			columns.Add("*")
 		}
 	}()
