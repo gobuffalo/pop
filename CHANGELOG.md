@@ -1,5 +1,21 @@
 # Change Log
 
+## [Unreleased](https://github.com/markbates/pop/tree/HEAD)
+
+[Full Changelog](https://github.com/markbates/pop/compare/v3.28.0...HEAD)
+
+**Closed issues:**
+
+- select columns doesnt support raw select [\#105](https://github.com/markbates/pop/issues/105)
+- pop.Query.ToSQL does not support columns with concat [\#57](https://github.com/markbates/pop/issues/57)
+
+## [v3.28.0](https://github.com/markbates/pop/tree/v3.28.0) (2017-07-24)
+[Full Changelog](https://github.com/markbates/pop/compare/v3.27.1...v3.28.0)
+
+**Merged pull requests:**
+
+- having clauses [\#104](https://github.com/markbates/pop/pull/104) ([u007](https://github.com/u007))
+
 ## [v3.27.1](https://github.com/markbates/pop/tree/v3.27.1) (2017-07-23)
 [Full Changelog](https://github.com/markbates/pop/compare/v3.27.0...v3.27.1)
 
