@@ -12,6 +12,10 @@ import (
 
 type String []string
 
+func (s String) Interface() interface{} {
+	return []string(s)
+}
+
 func (s *String) Scan(src interface{}) error {
 	b, ok := src.([]byte)
 	if !ok {

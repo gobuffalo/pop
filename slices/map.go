@@ -10,6 +10,10 @@ import (
 
 type Map map[string]interface{}
 
+func (m Map) Interface() interface{} {
+	return map[string]interface{}(m)
+}
+
 func (s *Map) Scan(src interface{}) error {
 	b, ok := src.([]byte)
 	if !ok {
