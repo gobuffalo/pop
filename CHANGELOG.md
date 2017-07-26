@@ -1,8 +1,10 @@
 # Change Log
 
-## [Unreleased](https://github.com/markbates/pop/tree/HEAD)
+## [v3.29.1](https://github.com/markbates/pop/tree/v3.29.1) (2017-07-26)
+[Full Changelog](https://github.com/markbates/pop/compare/v3.29.0...v3.29.1)
 
-[Full Changelog](https://github.com/markbates/pop/compare/v3.28.0...HEAD)
+## [v3.29.0](https://github.com/markbates/pop/tree/v3.29.0) (2017-07-26)
+[Full Changelog](https://github.com/markbates/pop/compare/v3.28.0...v3.29.0)
 
 **Closed issues:**
 
