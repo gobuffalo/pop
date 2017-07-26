@@ -1,8 +1,11 @@
 package pop
 
+import "fmt"
+
 func (q *Query) GroupBy(field string, fields ...string) *Query {
 	if q.RawSQL.Fragment != "" {
-		panic("Query is setup to use raw SQL")
+		fmt.Println("Warning: Query is setup to use raw SQL")
+		return q
 	}
 	q.groupClauses = append(q.groupClauses, GroupClause{field})
 	if len(fields) > 0 {
