@@ -186,11 +186,11 @@ func (sq *sqlBuilder) buildColumns() Columns {
 		if ok && cols.TableAlias == sq.Model.As {
 			return cols
 		}
-		cols = ColumnsForStruct(sq.Model.Value, tableName, sq.Model.As)
+		cols = ColumnsForStructWithAlias(sq.Model.Value, tableName, sq.Model.As)
 		columnCache[tableName] = cols
 		return cols
 	} else {
-		cols := NewColumns("", "")
+		cols := NewColumns("")
 		cols.Add(sq.AddColumns...)
 		return cols
 	}

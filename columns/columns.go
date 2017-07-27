@@ -98,7 +98,7 @@ func (c *Columns) Remove(names ...string) {
 }
 
 func (c Columns) Writeable() *WriteableColumns {
-	w := &WriteableColumns{NewColumns(c.TableName, c.TableAlias)}
+	w := &WriteableColumns{NewColumnsWithAlias(c.TableName, c.TableAlias)}
 	for _, col := range c.Cols {
 		if col.Writeable {
 			w.Cols[col.Name] = col
@@ -108,7 +108,7 @@ func (c Columns) Writeable() *WriteableColumns {
 }
 
 func (c Columns) Readable() *ReadableColumns {
-	w := &ReadableColumns{NewColumns(c.TableName, c.TableAlias)}
+	w := &ReadableColumns{NewColumnsWithAlias(c.TableName, c.TableAlias)}
 	for _, col := range c.Cols {
 		if col.Readable {
 			w.Cols[col.Name] = col
@@ -135,7 +135,11 @@ func (c Columns) SymbolizedString() string {
 	return strings.Join(xs, ", ")
 }
 
-func NewColumns(tableName string, tableAlias string) Columns {
+func NewColumns(tableName string) Columns {
+	return NewColumnsWithAlias(tableName, "")
+}
+
+func NewColumnsWithAlias(tableName string, tableAlias string) Columns {
 	return Columns{
 		lock:       &sync.RWMutex{},
 		Cols:       map[string]*Column{},

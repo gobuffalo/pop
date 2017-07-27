@@ -6,11 +6,16 @@ import (
 
 // ColumnsForStruct returns a Columns instance for
 // the struct passed in.
-func ColumnsForStruct(s interface{}, tableName string, tableAlias string) (columns Columns) {
-	columns = NewColumns(tableName, tableAlias)
+
+func ColumnsForStruct(s interface{}, tableName string) (columns Columns) {
+	return ColumnsForStructWithAlias(s, tableName, "")
+}
+
+func ColumnsForStructWithAlias(s interface{}, tableName string, tableAlias string) (columns Columns) {
+	columns = NewColumnsWithAlias(tableName, tableAlias)
 	defer func() {
 		if r := recover(); r != nil {
-			columns = NewColumns(tableName, tableAlias)
+			columns = NewColumnsWithAlias(tableName, tableAlias)
 			columns.Add("*")
 		}
 	}()
