@@ -11,6 +11,10 @@ import (
 
 type Int []int
 
+func (i Int) Interface() interface{} {
+	return []int(i)
+}
+
 func (s *Int) Scan(src interface{}) error {
 	b, ok := src.([]byte)
 	if !ok {

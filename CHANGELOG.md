@@ -1,5 +1,30 @@
 # Change Log
 
+## [v3.30.0](https://github.com/markbates/pop/tree/v3.30.0) (2017-07-27)
+[Full Changelog](https://github.com/markbates/pop/compare/v3.29.1...v3.30.0)
+
+**Merged pull requests:**
+
+- select distinct query [\#106](https://github.com/markbates/pop/pull/106) ([u007](https://github.com/u007))
+
+## [v3.29.1](https://github.com/markbates/pop/tree/v3.29.1) (2017-07-26)
+[Full Changelog](https://github.com/markbates/pop/compare/v3.29.0...v3.29.1)
+
+## [v3.29.0](https://github.com/markbates/pop/tree/v3.29.0) (2017-07-26)
+[Full Changelog](https://github.com/markbates/pop/compare/v3.28.0...v3.29.0)
+
+**Closed issues:**
+
+- select columns doesnt support raw select [\#105](https://github.com/markbates/pop/issues/105)
+- pop.Query.ToSQL does not support columns with concat [\#57](https://github.com/markbates/pop/issues/57)
+
+## [v3.28.0](https://github.com/markbates/pop/tree/v3.28.0) (2017-07-24)
+[Full Changelog](https://github.com/markbates/pop/compare/v3.27.1...v3.28.0)
+
+**Merged pull requests:**
+
+- having clauses [\#104](https://github.com/markbates/pop/pull/104) ([u007](https://github.com/u007))
+
 ## [v3.27.1](https://github.com/markbates/pop/tree/v3.27.1) (2017-07-23)
 [Full Changelog](https://github.com/markbates/pop/compare/v3.27.0...v3.27.1)
 
@@ -338,13 +363,13 @@
 [Full Changelog](https://github.com/markbates/pop/compare/v3.5.1.1...v3.6.0)
 
 ## [v3.5.1.1](https://github.com/markbates/pop/tree/v3.5.1.1) (2016-08-26)
-[Full Changelog](https://github.com/markbates/pop/compare/v3.5.2...v3.5.1.1)
-
-## [v3.5.2](https://github.com/markbates/pop/tree/v3.5.2) (2016-08-26)
-[Full Changelog](https://github.com/markbates/pop/compare/v3.5.1...v3.5.2)
+[Full Changelog](https://github.com/markbates/pop/compare/v3.5.1...v3.5.1.1)
 
 ## [v3.5.1](https://github.com/markbates/pop/tree/v3.5.1) (2016-08-26)
-[Full Changelog](https://github.com/markbates/pop/compare/v3.5.0...v3.5.1)
+[Full Changelog](https://github.com/markbates/pop/compare/v3.5.2...v3.5.1)
+
+## [v3.5.2](https://github.com/markbates/pop/tree/v3.5.2) (2016-08-26)
+[Full Changelog](https://github.com/markbates/pop/compare/v3.5.0...v3.5.2)
 
 ## [v3.5.0](https://github.com/markbates/pop/tree/v3.5.0) (2016-08-25)
 [Full Changelog](https://github.com/markbates/pop/compare/v3.4.1...v3.5.0)

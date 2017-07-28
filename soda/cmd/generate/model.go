@@ -138,6 +138,9 @@ var ModelCmd = &cobra.Command{
 				hasNulls = true
 				model.Imports = append(model.Imports, "github.com/markbates/pop/nulls")
 			}
+			if strings.HasPrefix(col[1], "slices.") {
+				model.Imports = append(model.Imports, "github.com/markbates/pop/slices")
+			}
 
 			a := attribute{
 				Names:        newName(col[0]),
@@ -190,7 +193,7 @@ func colType(s string) string {
 	case "uuid":
 		return "uuid.UUID"
 	case "json", "jsonb":
-		return "map[string]interface{}"
+		return "slices.Map"
 	default:
 		return s
 	}
@@ -206,6 +209,14 @@ func fizzColType(s string) string {
 		return "uuid"
 	case "nulls.float32", "nulls.float64":
 		return "float"
+	case "slices.string":
+		return "varchar[]"
+	case "slices.float":
+		return "numeric[]"
+	case "slices.int":
+		return "int[]"
+	case "slices.map":
+		return "jsonb"
 	default:
 		if nrx.MatchString(s) {
 			return fizzColType(strings.Replace(s, "nulls.", "", -1))

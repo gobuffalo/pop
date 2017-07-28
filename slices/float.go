@@ -11,6 +11,10 @@ import (
 
 type Float []float64
 
+func (f Float) Interface() interface{} {
+	return []float64(f)
+}
+
 func (s *Float) Scan(src interface{}) error {
 	b, ok := src.([]byte)
 	if !ok {
