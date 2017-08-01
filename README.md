@@ -256,3 +256,16 @@ sql, args := query.ToSQL(&pop.Model{Value: models.UserRole{}}, "user_roles.*",
 err := pop.Q(models.DB).RawQuery(sql, args...).All(&roles)
 ```
 
+#### Testing
+
+To enable SQL logging:
+```
+pop.Debug = true
+```
+
+To disable auto assignment of created_at and updated_at to allow custom updating:
+```
+pop.TouchTimeOnSave = false
+```
+
+
