@@ -8,9 +8,6 @@ import (
 	uuid "github.com/satori/go.uuid"
 )
 
-//forces created_at, updated_at on create/update
-var TouchTimeOnSave = true
-
 func (c *Connection) Reload(model interface{}) error {
 	sm := Model{Value: model}
 	return c.Find(model, sm.ID())
@@ -77,10 +74,8 @@ func (c *Connection) Create(model interface{}, excludeColumns ...string) error {
 		cols := ColumnsForStructWithAlias(model, sm.TableName(), sm.As)
 		cols.Remove(excludeColumns...)
 
-		if TouchTimeOnSave {
-			sm.touchCreatedAt()
-			sm.touchUpdatedAt()
-		}
+		sm.touchCreatedAt()
+		sm.touchUpdatedAt()
 
 		if err = c.Dialect.Create(c.Store, sm, cols); err != nil {
 			return err
@@ -122,9 +117,7 @@ func (c *Connection) Update(model interface{}, excludeColumns ...string) error {
 		cols.Remove("id", "created_at")
 		cols.Remove(excludeColumns...)
 
-		if TouchTimeOnSave {
-			sm.touchUpdatedAt()
-		}
+		sm.touchUpdatedAt()
 
 		if err = c.Dialect.Update(c.Store, sm, cols); err != nil {
 			return err
