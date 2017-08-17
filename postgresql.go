@@ -10,6 +10,7 @@ import (
 	"sync"
 
 	_ "github.com/lib/pq"
+	"github.com/markbates/going/defaults"
 	. "github.com/markbates/pop/columns"
 	"github.com/markbates/pop/fizz"
 	"github.com/markbates/pop/fizz/translators"
@@ -41,11 +42,11 @@ func (p *postgresql) Create(s store, model *Model, cols Columns) error {
 		Log(query)
 		stmt, err := s.PrepareNamed(query)
 		if err != nil {
-			return errors.Wrapf(err, "postgres error preparing insert statement %s", query)
+			return errors.WithStack(err)
 		}
 		err = stmt.Get(&id, model.Value)
 		if err != nil {
-			return errors.Wrap(err, "postgres error inserting record")
+			return errors.WithStack(err)
 		}
 		model.setID(id.ID)
 		return nil
@@ -56,19 +57,19 @@ func (p *postgresql) Create(s store, model *Model, cols Columns) error {
 }
 
 func (p *postgresql) Update(s store, model *Model, cols Columns) error {
-	return errors.Wrap(genericUpdate(s, model, cols), "postgres update")
+	return genericUpdate(s, model, cols)
 }
 
 func (p *postgresql) Destroy(s store, model *Model) error {
-	return errors.Wrap(genericDestroy(s, model), "postgres destroy")
+	return genericDestroy(s, model)
 }
 
 func (p *postgresql) SelectOne(s store, model *Model, query Query) error {
-	return errors.Wrap(genericSelectOne(s, model, query), "postgres select one")
+	return genericSelectOne(s, model, query)
 }
 
 func (p *postgresql) SelectMany(s store, models *Model, query Query) error {
-	return errors.Wrap(genericSelectMany(s, models, query), "postgres select many")
+	return genericSelectMany(s, models, query)
 }
 
 func (p *postgresql) CreateDB() error {
@@ -104,9 +105,10 @@ func (m *postgresql) URL() string {
 	if c.URL != "" {
 		return c.URL
 	}
+	ssl := defaults.String(c.Options["sslmode"], "disable")
 
-	s := "postgres://%s:%s@%s:%s/%s?sslmode=disable"
-	return fmt.Sprintf(s, c.User, c.Password, c.Host, c.Port, c.Database)
+	s := "postgres://%s:%s@%s:%s/%s?sslmode=%s"
+	return fmt.Sprintf(s, c.User, c.Password, c.Host, c.Port, c.Database, ssl)
 }
 
 func (m *postgresql) MigrationURL() string {

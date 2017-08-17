@@ -40,7 +40,7 @@ func (c *Connection) MigrationURL() string {
 func NewConnection(deets *ConnectionDetails) (*Connection, error) {
 	err := deets.Finalize()
 	if err != nil {
-		return nil, errors.Wrap(err, "could not create a new connection")
+		return nil, errors.WithStack(err)
 	}
 	c := &Connection{
 		ID: randx.String(30),
@@ -113,7 +113,7 @@ func (c *Connection) Transaction(fn func(tx *Connection) error) error {
 			dberr = cn.TX.Commit()
 		}
 		if err != nil {
-			return errors.Wrap(err, "error inside of calling function")
+			return errors.WithStack(err)
 		}
 		return errors.Wrap(dberr, "error committing or rolling back transaction")
 	})
@@ -174,5 +174,8 @@ func (c *Connection) timeFunc(name string, fn func() error) error {
 	now := time.Now()
 	err := fn()
 	atomic.AddInt64(&c.Elapsed, int64(time.Now().Sub(now)))
-	return errors.Wrap(err, "error inside of calling function")
+	if err != nil {
+		return errors.WithStack(err)
+	}
+	return nil
 }
