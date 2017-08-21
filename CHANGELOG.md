@@ -1,5 +1,14 @@
 # Change Log
 
+## [v3.30.1](https://github.com/markbates/pop/tree/v3.30.1) (2017-08-08)
+[Full Changelog](https://github.com/markbates/pop/compare/v3.30.0...v3.30.1)
+
+**Closed issues:**
+
+- Killed: 9 running test [\#110](https://github.com/markbates/pop/issues/110)
+- \[feature\] new cache? [\#109](https://github.com/markbates/pop/issues/109)
+- soda pg migrate change\_column to uuid fails [\#107](https://github.com/markbates/pop/issues/107)
+
 ## [v3.30.0](https://github.com/markbates/pop/tree/v3.30.0) (2017-07-27)
 [Full Changelog](https://github.com/markbates/pop/compare/v3.29.1...v3.30.0)
 

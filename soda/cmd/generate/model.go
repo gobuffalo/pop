@@ -183,17 +183,23 @@ var ModelCmd = &cobra.Command{
 }
 
 func colType(s string) string {
-	switch s {
+	switch strings.ToLower(s) {
 	case "text":
 		return "string"
 	case "time", "timestamp", "datetime":
 		return "time.Time"
-	case "nulls.Text":
+	case "nulls.text":
 		return "nulls.String"
 	case "uuid":
 		return "uuid.UUID"
 	case "json", "jsonb":
 		return "slices.Map"
+	case "[]string":
+		return "slices.String"
+	case "[]int":
+		return "slices.Int"
+	case "slices.float", "[]float", "[]float32", "[]float64":
+		return "slices.Float"
 	default:
 		return s
 	}
@@ -209,9 +215,9 @@ func fizzColType(s string) string {
 		return "uuid"
 	case "nulls.float32", "nulls.float64":
 		return "float"
-	case "slices.string":
+	case "slices.string", "[]string":
 		return "varchar[]"
-	case "slices.float":
+	case "slices.float", "[]float", "[]float32", "[]float64":
 		return "numeric[]"
 	case "slices.int":
 		return "int[]"
