@@ -23,16 +23,17 @@ func (q *Query) Exec() error {
 }
 
 func (q *Query) ExecWithCount() (int64, error) {
-	return q.Connection.timeFuncWithCount("Exec", func() (int64, error) {
+	count := int64(0)
+	return count, q.Connection.timeFunc("Exec", func() error {
 		sql, args := q.ToSQL(nil)
 		Log(sql, args...)
 		result, err := q.Connection.Store.Exec(sql, args...)
 		if err != nil {
-			return 0, err
+			return err
 		}
 
-		count, err := result.RowsAffected()
-		return count, err
+		count, err = result.RowsAffected()
+		return err
 	})
 }
 
