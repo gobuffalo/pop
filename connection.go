@@ -176,3 +176,10 @@ func (c *Connection) timeFunc(name string, fn func() error) error {
 	atomic.AddInt64(&c.Elapsed, int64(time.Now().Sub(now)))
 	return errors.Wrap(err, "error inside of calling function")
 }
+
+func (c *Connection) timeFuncWithCount(name string, fn func() (int64, error)) (int64, error) {
+	now := time.Now()
+	count, err := fn()
+	atomic.AddInt64(&c.Elapsed, int64(time.Now().Sub(now)))
+	return count, errors.Wrap(err, "error inside of calling function")
+}

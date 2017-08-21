@@ -22,6 +22,20 @@ func (q *Query) Exec() error {
 	})
 }
 
+func (q *Query) ExecWithCount() (int64, error) {
+	return q.Connection.timeFuncWithCount("Exec", func() (int64, error) {
+		sql, args := q.ToSQL(nil)
+		Log(sql, args...)
+		result, err := q.Connection.Store.Exec(sql, args...)
+		if err != nil {
+			return 0, err
+		}
+
+		count, err := result.RowsAffected()
+		return count, err
+	})
+}
+
 func (c *Connection) ValidateAndSave(model interface{}, excludeColumns ...string) (*validate.Errors, error) {
 	sm := &Model{Value: model}
 	verrs, err := sm.validateSave(c)
