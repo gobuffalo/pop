@@ -1,5 +1,23 @@
 # Change Log
 
+## [v3.32.1](https://github.com/markbates/pop/tree/v3.32.1) (2017-08-22)
+[Full Changelog](https://github.com/markbates/pop/compare/v3.32.0...v3.32.1)
+
+## [v3.32.0](https://github.com/markbates/pop/tree/v3.32.0) (2017-08-22)
+[Full Changelog](https://github.com/markbates/pop/compare/v3.31.0...v3.32.0)
+
+**Closed issues:**
+
+- introduce dep for vendor management [\#90](https://github.com/markbates/pop/issues/90)
+- add\_column not supported on same migration file as create [\#80](https://github.com/markbates/pop/issues/80)
+
+## [v3.31.0](https://github.com/markbates/pop/tree/v3.31.0) (2017-08-17)
+[Full Changelog](https://github.com/markbates/pop/compare/v3.30.1...v3.31.0)
+
+**Closed issues:**
+
+- Custom field type possible? [\#111](https://github.com/markbates/pop/issues/111)
+
 ## [v3.30.1](https://github.com/markbates/pop/tree/v3.30.1) (2017-08-08)
 [Full Changelog](https://github.com/markbates/pop/compare/v3.30.0...v3.30.1)
 
