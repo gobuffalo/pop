@@ -26,7 +26,7 @@ function test {
   ./tsoda migrate down -e $SODA_DIALECT -c ./database.yml
   ./tsoda migrate down -e $SODA_DIALECT -c ./database.yml
   ./tsoda migrate -e $SODA_DIALECT -c ./database.yml
-  go test ./...
+  go test $(go list ./... | grep -v /vendor/)
 }
 
 test "postgres"
