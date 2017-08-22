@@ -59,6 +59,11 @@ func packagePath(rootPath string) string {
 }
 
 func GenerateConfig(cfgFile string, data map[string]interface{}) error {
+	if data["appPath"] == nil {
+		pwd, _ := os.Getwd()
+		data["appPath"] = pwd
+	}
+
 	dialect = strings.ToLower(data["dialect"].(string))
 	if t, ok := configTemplates[dialect]; ok {
 		g := makr.New()
