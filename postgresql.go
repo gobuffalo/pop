@@ -75,7 +75,7 @@ func (p *postgresql) SelectMany(s store, models *Model, query Query) error {
 func (p *postgresql) CreateDB() error {
 	// createdb -h db -p 5432 -U postgres enterprise_development
 	deets := p.ConnectionDetails
-	cmd := exec.Command("createdb", "-e", "-h", deets.Host, "-p", deets.Port, "-U", deets.User, deets.Database)
+	cmd := exec.Command("psql", p.urlWithoutDb(), "-c", fmt.Sprintf("create database %s", deets.Database))
 	Log(strings.Join(cmd.Args, " "))
 	comboOut, err := cmd.CombinedOutput()
 	if err != nil {
@@ -89,7 +89,7 @@ func (p *postgresql) CreateDB() error {
 
 func (p *postgresql) DropDB() error {
 	deets := p.ConnectionDetails
-	cmd := exec.Command("dropdb", "-e", "-h", deets.Host, "-p", deets.Port, "-U", deets.User, deets.Database)
+	cmd := exec.Command("psql", p.urlWithoutDb(), "-c", fmt.Sprintf("drop database %s", deets.Database))
 	Log(strings.Join(cmd.Args, " "))
 	comboOut, err := cmd.CombinedOutput()
 	if err != nil {
@@ -109,6 +109,14 @@ func (m *postgresql) URL() string {
 
 	s := "postgres://%s:%s@%s:%s/%s?sslmode=%s"
 	return fmt.Sprintf(s, c.User, c.Password, c.Host, c.Port, c.Database, ssl)
+}
+
+func (m *postgresql) urlWithoutDb() string {
+	c := m.ConnectionDetails
+	ssl := defaults.String(c.Options["sslmode"], "disable")
+
+	s := "postgres://%s:%s@%s:%s/?sslmode=%s"
+	return fmt.Sprintf(s, c.User, c.Password, c.Host, c.Port, ssl)
 }
 
 func (m *postgresql) MigrationURL() string {
