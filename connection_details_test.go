@@ -24,6 +24,96 @@ func Test_ConnectionDetails_Finalize(t *testing.T) {
 	r.Equal(cd.User, "user")
 }
 
+func Test_ConnectionDetails_Finalize_MySQL_Legacy(t *testing.T) {
+	r := require.New(t)
+
+	url := "mysql://user:pass@host:port/legacy?something"
+	cd := &pop.ConnectionDetails{
+		URL: url,
+	}
+	err := cd.Finalize()
+	r.NoError(err)
+
+	r.Equal(url, cd.URL)
+	r.Equal("mysql", cd.Dialect)
+	r.Equal("user", cd.User)
+	r.Equal("pass", cd.Password)
+	r.Equal("host", cd.Host)
+	r.Equal("port", cd.Port)
+	r.Equal("legacy", cd.Database)
+}
+
+func Test_ConnectionDetails_Finalize_MySQL_DSN(t *testing.T) {
+	r := require.New(t)
+
+	url := "mysql://user:pass@(host:port)/dsndb"
+	cd := &pop.ConnectionDetails{
+		URL: url,
+	}
+	err := cd.Finalize()
+	r.NoError(err)
+
+	r.Equal(url, cd.URL)
+	r.Equal("mysql", cd.Dialect)
+	r.Equal("user", cd.User)
+	r.Equal("pass", cd.Password)
+	r.Equal("host", cd.Host)
+	r.Equal("port", cd.Port)
+	r.Equal("dsndb", cd.Database)
+}
+
+func Test_ConnectionDetails_Finalize_MySQL_DSN_DefaultPort(t *testing.T) {
+	r := require.New(t)
+
+	url := "mysql://user:pass@host/defaultport"
+	cd := &pop.ConnectionDetails{
+		URL: url,
+	}
+	err := cd.Finalize()
+	r.NoError(err)
+
+	r.Equal(url, cd.URL)
+	r.Equal("mysql", cd.Dialect)
+	r.Equal("user", cd.User)
+	r.Equal("pass", cd.Password)
+	r.Equal("host", cd.Host)
+	r.Equal("3006", cd.Port)
+	r.Equal("defaultport", cd.Database)
+}
+
+func Test_ConnectionDetails_Finalize_MySQL_DSN_Protocol(t *testing.T) {
+	r := require.New(t)
+
+	url := "mysql://user:pass@tcp(host:port)/protocol"
+	cd := &pop.ConnectionDetails{
+		URL: url,
+	}
+	err := cd.Finalize()
+	r.NoError(err)
+
+	r.Equal(url, cd.URL)
+	r.Equal("mysql", cd.Dialect)
+	r.Equal("user", cd.User)
+	r.Equal("pass", cd.Password)
+	r.Equal("host", cd.Host)
+	r.Equal("port", cd.Port)
+	r.Equal("protocol", cd.Database)
+}
+
+func Test_ConnectionDetails_Finalize_MySQL_DSN_Socket(t *testing.T) {
+	r := require.New(t)
+
+	url := "mysql://user:pass@unix(/path/to/socket)/socket"
+	cd := &pop.ConnectionDetails{
+		URL: url,
+	}
+	err := cd.Finalize()
+	r.NoError(err)
+
+	r.Equal(url, cd.URL)
+	r.Equal("mysql", cd.Dialect)
+}
+
 func Test_ConnectionDetails_Finalize_UnknownDialect(t *testing.T) {
 	r := require.New(t)
 	cd := &pop.ConnectionDetails{

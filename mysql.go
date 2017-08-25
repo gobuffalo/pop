@@ -27,7 +27,7 @@ func (m *mysql) Details() *ConnectionDetails {
 func (m *mysql) URL() string {
 	c := m.ConnectionDetails
 	if m.ConnectionDetails.URL != "" {
-		return m.ConnectionDetails.URL
+		return strings.TrimPrefix(m.ConnectionDetails.URL, "mysql://")
 	}
 	s := "%s:%s@(%s:%s)/%s?parseTime=true&multiStatements=true&readTimeout=1s"
 	return fmt.Sprintf(s, c.User, c.Password, c.Host, c.Port, c.Database)
