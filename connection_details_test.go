@@ -77,7 +77,7 @@ func Test_ConnectionDetails_Finalize_MySQL_DSN_DefaultPort(t *testing.T) {
 	r.Equal("user", cd.User)
 	r.Equal("pass", cd.Password)
 	r.Equal("host", cd.Host)
-	r.Equal("3006", cd.Port)
+	r.Equal("3306", cd.Port)
 	r.Equal("defaultport", cd.Database)
 }
 
