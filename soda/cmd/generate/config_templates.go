@@ -23,10 +23,10 @@ var mysqlConfig = `development:
   password: "root"
 
 test:
-  url: {{"{{"}}envOr "TEST_DATABASE_URL" "mysql://root:root@(localhost:3306)/{{.name}}_test"}}
+  url: {{"{{"}}envOr "TEST_DATABASE_URL" "mysql://root:root@(localhost:3306)/{{.name}}_test?parseTime=true&multiStatements=true&readTimeout=1s"}}
 
 production:
-  url: {{"{{"}}envOr "DATABASE_URL" "mysql://root:root@(localhost:3306)/{{.name}}_production"}}`
+  url: {{"{{"}}envOr "DATABASE_URL" "mysql://root:root@(localhost:3306)/{{.name}}_production?parseTime=true&multiStatements=true&readTimeout=1s"}}`
 
 var sqliteConfig = `development:
   dialect: "sqlite3"

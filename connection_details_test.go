@@ -27,7 +27,7 @@ func Test_ConnectionDetails_Finalize(t *testing.T) {
 func Test_ConnectionDetails_Finalize_MySQL_Legacy(t *testing.T) {
 	r := require.New(t)
 
-	url := "mysql://user:pass@host:port/legacy?something"
+	url := "mysql://user:pass@host:port/legacy?param1=value1&param2=value2"
 	cd := &pop.ConnectionDetails{
 		URL: url,
 	}
