@@ -24,29 +24,10 @@ func Test_ConnectionDetails_Finalize(t *testing.T) {
 	r.Equal(cd.User, "user")
 }
 
-func Test_ConnectionDetails_Finalize_MySQL_Legacy(t *testing.T) {
-	r := require.New(t)
-
-	url := "mysql://user:pass@host:port/legacy?param1=value1&param2=value2"
-	cd := &pop.ConnectionDetails{
-		URL: url,
-	}
-	err := cd.Finalize()
-	r.NoError(err)
-
-	r.Equal(url, cd.URL)
-	r.Equal("mysql", cd.Dialect)
-	r.Equal("user", cd.User)
-	r.Equal("pass", cd.Password)
-	r.Equal("host", cd.Host)
-	r.Equal("port", cd.Port)
-	r.Equal("legacy", cd.Database)
-}
-
 func Test_ConnectionDetails_Finalize_MySQL_DSN(t *testing.T) {
 	r := require.New(t)
 
-	url := "mysql://user:pass@(host:port)/dsndb"
+	url := "mysql://user:pass@(host:port)/database?param1=value1&param2=value2"
 	cd := &pop.ConnectionDetails{
 		URL: url,
 	}
@@ -59,26 +40,7 @@ func Test_ConnectionDetails_Finalize_MySQL_DSN(t *testing.T) {
 	r.Equal("pass", cd.Password)
 	r.Equal("host", cd.Host)
 	r.Equal("port", cd.Port)
-	r.Equal("dsndb", cd.Database)
-}
-
-func Test_ConnectionDetails_Finalize_MySQL_DSN_DefaultPort(t *testing.T) {
-	r := require.New(t)
-
-	url := "mysql://user:pass@host/defaultport"
-	cd := &pop.ConnectionDetails{
-		URL: url,
-	}
-	err := cd.Finalize()
-	r.NoError(err)
-
-	r.Equal(url, cd.URL)
-	r.Equal("mysql", cd.Dialect)
-	r.Equal("user", cd.User)
-	r.Equal("pass", cd.Password)
-	r.Equal("host", cd.Host)
-	r.Equal("3306", cd.Port)
-	r.Equal("defaultport", cd.Database)
+	r.Equal("database", cd.Database)
 }
 
 func Test_ConnectionDetails_Finalize_MySQL_DSN_Protocol(t *testing.T) {
@@ -112,6 +74,11 @@ func Test_ConnectionDetails_Finalize_MySQL_DSN_Socket(t *testing.T) {
 
 	r.Equal(url, cd.URL)
 	r.Equal("mysql", cd.Dialect)
+	r.Equal("user", cd.User)
+	r.Equal("pass", cd.Password)
+	r.Equal("/path/to/socket", cd.Host)
+	r.Equal("socket", cd.Port)
+	r.Equal("socket", cd.Database)
 }
 
 func Test_ConnectionDetails_Finalize_UnknownDialect(t *testing.T) {
