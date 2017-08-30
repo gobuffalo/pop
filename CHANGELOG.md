@@ -1,5 +1,18 @@
 # Change Log
 
+## [v3.33.0](https://github.com/markbates/pop/tree/v3.33.0) (2017-08-30)
+[Full Changelog](https://github.com/markbates/pop/compare/v3.32.1...v3.33.0)
+
+**Closed issues:**
+
+- c.ValidateAndSave error classification [\#117](https://github.com/markbates/pop/issues/117)
+
+**Merged pull requests:**
+
+- fixed mysql url parser using underlying driver's parser. [\#119](https://github.com/markbates/pop/pull/119) ([sio4](https://github.com/sio4))
+- handle url configuration for mysql properly [\#118](https://github.com/markbates/pop/pull/118) ([sio4](https://github.com/sio4))
+- create/drop db via psql, trust auth not required [\#115](https://github.com/markbates/pop/pull/115) ([j0hnsmith](https://github.com/j0hnsmith))
+
 ## [v3.32.1](https://github.com/markbates/pop/tree/v3.32.1) (2017-08-22)
 [Full Changelog](https://github.com/markbates/pop/compare/v3.32.0...v3.32.1)
 
