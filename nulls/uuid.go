@@ -21,8 +21,8 @@ func (ns UUID) Interface() interface{} {
 	return ns.UUID
 }
 
-// NewString returns a new, properly instantiated
-// String object.
+// NewUUID returns a new, properly instantiated
+// UUID object.
 func NewUUID(u uuid.UUID) UUID {
 	return UUID{UUID: u, Valid: true}
 }
