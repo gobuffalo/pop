@@ -5,6 +5,7 @@ import (
 
 	"github.com/markbates/pop"
 	"github.com/markbates/pop/nulls"
+	uuid "github.com/satori/go.uuid"
 	"github.com/stretchr/testify/require"
 )
 
@@ -180,6 +181,28 @@ func Test_Create_UUID(t *testing.T) {
 		q := tx.Where("title = ?", "Automatic Buffalo")
 		err = q.First(&u)
 		a.NoError(err)
+	})
+}
+
+func Test_Create_Existing_UUID(t *testing.T) {
+	transaction(func(tx *pop.Connection) {
+		r := require.New(t)
+		id := uuid.NewV4()
+
+		count, _ := tx.Count(&Song{})
+		song := Song{
+			ID:    id,
+			Title: "Automatic Buffalo",
+		}
+
+		err := tx.Create(&song)
+		r.NoError(err)
+		r.NotZero(song.ID)
+		r.Equal(id.String(), song.ID.String())
+
+		ctx, _ := tx.Count(&Song{})
+		r.Equal(count+1, ctx)
+
 	})
 }
 
