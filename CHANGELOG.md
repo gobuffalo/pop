@@ -1,5 +1,12 @@
 # Change Log
 
+## [v3.34.0](https://github.com/markbates/pop/tree/v3.34.0) (2017-09-13)
+[Full Changelog](https://github.com/markbates/pop/compare/v3.33.0...v3.34.0)
+
+**Merged pull requests:**
+
+- Fix comment [\#126](https://github.com/markbates/pop/pull/126) ([corylanou](https://github.com/corylanou))
+
 ## [v3.33.0](https://github.com/markbates/pop/tree/v3.33.0) (2017-08-30)
 [Full Changelog](https://github.com/markbates/pop/compare/v3.32.1...v3.33.0)
 
