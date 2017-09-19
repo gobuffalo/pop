@@ -1,5 +1,8 @@
 # Change Log
 
+## [v3.35.0](https://github.com/markbates/pop/tree/v3.35.0) (2017-09-19)
+[Full Changelog](https://github.com/markbates/pop/compare/v3.34.0...v3.35.0)
+
 ## [v3.34.0](https://github.com/markbates/pop/tree/v3.34.0) (2017-09-13)
 [Full Changelog](https://github.com/markbates/pop/compare/v3.33.0...v3.34.0)
 
