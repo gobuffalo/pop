@@ -23,7 +23,12 @@ var migrateCmd = &cobra.Command{
 		if err != nil {
 			return errors.WithStack(err)
 		}
-		return mig.Up()
+		err = mig.Up()
+		if err != nil {
+			return errors.WithStack(err)
+		}
+
+		return mig.DumpMigrationSchema()
 	},
 }
 
