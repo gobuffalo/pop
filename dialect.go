@@ -55,7 +55,9 @@ func genericCreate(s store, model *Model, cols Columns) error {
 		}
 		return nil
 	case "UUID":
-		model.setID(uuid.NewV4())
+		if model.ID() == emptyUUID {
+			model.setID(uuid.NewV4())
+		}
 		w := cols.Writeable()
 		w.Add("id")
 		query := fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s)", model.TableName(), w.String(), w.SymbolizedString())

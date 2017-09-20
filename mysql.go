@@ -27,7 +27,7 @@ func (m *mysql) Details() *ConnectionDetails {
 func (m *mysql) URL() string {
 	c := m.ConnectionDetails
 	if m.ConnectionDetails.URL != "" {
-		return m.ConnectionDetails.URL
+		return strings.TrimPrefix(m.ConnectionDetails.URL, "mysql://")
 	}
 	s := "%s:%s@(%s:%s)/%s?parseTime=true&multiStatements=true&readTimeout=1s"
 	return fmt.Sprintf(s, c.User, c.Password, c.Host, c.Port, c.Database)
@@ -60,6 +60,9 @@ func (m *mysql) SelectMany(s store, models *Model, query Query) error {
 func (m *mysql) CreateDB() error {
 	c := m.ConnectionDetails
 	cmd := exec.Command("mysql", "-u", c.User, "-p"+c.Password, "-h", c.Host, "-P", c.Port, "-e", fmt.Sprintf("create database `%s`", c.Database))
+	if c.Port == "socket" {
+		cmd = exec.Command("mysql", "-u", c.User, "-p"+c.Password, "-S", c.Host, "-e", fmt.Sprintf("create database `%s`", c.Database))
+	}
 	Log(strings.Join(cmd.Args, " "))
 	comboOut, err := cmd.CombinedOutput()
 	if err != nil {
@@ -73,6 +76,9 @@ func (m *mysql) CreateDB() error {
 func (m *mysql) DropDB() error {
 	c := m.ConnectionDetails
 	cmd := exec.Command("mysql", "-u", c.User, "-p"+c.Password, "-h", c.Host, "-P", c.Port, "-e", fmt.Sprintf("drop database `%s`", c.Database))
+	if c.Port == "socket" {
+		cmd = exec.Command("mysql", "-u", c.User, "-p"+c.Password, "-S", c.Host, "-e", fmt.Sprintf("drop database `%s`", c.Database))
+	}
 	Log(strings.Join(cmd.Args, " "))
 	comboOut, err := cmd.CombinedOutput()
 	if err != nil {
@@ -99,6 +105,9 @@ func (m *mysql) Lock(fn func() error) error {
 func (m *mysql) DumpSchema(w io.Writer) error {
 	deets := m.Details()
 	cmd := exec.Command("mysqldump", "-d", "-h", deets.Host, "-P", deets.Port, "-u", deets.User, fmt.Sprintf("--password=%s", deets.Password), deets.Database)
+	if deets.Port == "socket" {
+		cmd = exec.Command("mysqldump", "-d", "-S", deets.Host, "-u", deets.User, fmt.Sprintf("--password=%s", deets.Password), deets.Database)
+	}
 	Log(strings.Join(cmd.Args, " "))
 	cmd.Stdout = w
 	cmd.Stderr = os.Stderr
@@ -115,6 +124,9 @@ func (m *mysql) DumpSchema(w io.Writer) error {
 func (m *mysql) LoadSchema(r io.Reader) error {
 	deets := m.Details()
 	cmd := exec.Command("mysql", "-u", deets.User, fmt.Sprintf("--password=%s", deets.Password), "-h", deets.Host, "-P", deets.Port, "-D", deets.Database)
+	if deets.Port == "socket" {
+		cmd = exec.Command("mysql", "-u", deets.User, fmt.Sprintf("--password=%s", deets.Password), "-S", deets.Host, "-D", deets.Database)
+	}
 	in, err := cmd.StdinPipe()
 	if err != nil {
 		return err

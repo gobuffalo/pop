@@ -23,22 +23,22 @@ var mysqlConfig = `development:
   password: "root"
 
 test:
-  url: {{"{{"}}envOr "TEST_DATABASE_URL" "mysql://root:root@localhost:3306/{{.name}}_test"}}
+  url: {{"{{"}}envOr "TEST_DATABASE_URL" "mysql://root:root@(localhost:3306)/{{.name}}_test?parseTime=true&multiStatements=true&readTimeout=1s"}}
 
 production:
-  url: {{"{{"}}envOr "DATABASE_URL" "mysql://root:root@localhost:3306/{{.name}}_production"}}`
+  url: {{"{{"}}envOr "DATABASE_URL" "mysql://root:root@(localhost:3306)/{{.name}}_production?parseTime=true&multiStatements=true&readTimeout=1s"}}`
 
 var sqliteConfig = `development:
   dialect: "sqlite3"
-  database: {{"{{"}}env "GOPATH" {{"}}"}}/{{.packagePath}}/{{.name}}_development.sqlite
+  database: {{.appPath}}/{{.name}}_development.sqlite
 
 test:
   dialect: "sqlite3"
-  database: {{"{{"}}env "GOPATH" {{"}}"}}/{{.packagePath}}/{{.name}}_test.sqlite
+  database: {{.appPath}}/{{.name}}_test.sqlite
 
 production:
   dialect: "sqlite3"
-  database: {{"{{"}}env "GOPATH" {{"}}"}}/{{.packagePath}}/{{.name}}_production.sqlite`
+  database: {{.appPath}}/{{.name}}_production.sqlite`
 
 var configTemplates = map[string]string{
 	"postgres":   pgConfig,

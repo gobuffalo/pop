@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	_mysql "github.com/go-sql-driver/mysql"
 	"github.com/markbates/going/defaults"
 	"github.com/pkg/errors"
 )
@@ -71,8 +72,34 @@ func (cd *ConnectionDetails) Finalize() error {
 		cd.Port = defaults.String(cd.Port, "5432")
 		cd.Database = strings.TrimPrefix(cd.Database, "/")
 	case "mysql":
-		cd.Port = defaults.String(cd.Port, "3006")
-		cd.Database = strings.TrimPrefix(cd.Database, "/")
+		// parse and verify whether URL is supported by underlying driver or not.
+		if cd.URL != "" {
+			cfg, err := _mysql.ParseDSN(strings.TrimPrefix(cd.URL, "mysql://"))
+			if err != nil {
+				return errors.Errorf("The URL is not supported by MySQL driver.")
+			}
+			cd.User = cfg.User
+			cd.Password = cfg.Passwd
+			cd.Database = cfg.DBName
+			addr := strings.TrimSuffix(strings.TrimPrefix(cfg.Addr, "("), ")")
+			if cfg.Net == "unix" {
+				cd.Port = "socket"
+				cd.Host = addr
+			} else {
+				tmp := strings.Split(addr, ":")
+				switch len(tmp) {
+				case 1:
+					cd.Host = tmp[0]
+					cd.Port = "3306"
+				case 2:
+					cd.Host = tmp[0]
+					cd.Port = tmp[1]
+				}
+			}
+		} else {
+			cd.Port = defaults.String(cd.Port, "3306")
+			cd.Database = strings.TrimPrefix(cd.Database, "/")
+		}
 	case "sqlite", "sqlite3":
 		cd.Dialect = "sqlite3"
 	default:

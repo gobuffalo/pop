@@ -25,6 +25,7 @@ func NewFileMigrator(path string, c *Connection) (FileMigrator, error) {
 		Migrator: NewMigrator(c),
 		Path:     path,
 	}
+	fm.SchemaPath = path
 
 	err := fm.findMigrations()
 	if err != nil {

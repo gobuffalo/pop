@@ -24,6 +24,63 @@ func Test_ConnectionDetails_Finalize(t *testing.T) {
 	r.Equal(cd.User, "user")
 }
 
+func Test_ConnectionDetails_Finalize_MySQL_DSN(t *testing.T) {
+	r := require.New(t)
+
+	url := "mysql://user:pass@(host:port)/database?param1=value1&param2=value2"
+	cd := &pop.ConnectionDetails{
+		URL: url,
+	}
+	err := cd.Finalize()
+	r.NoError(err)
+
+	r.Equal(url, cd.URL)
+	r.Equal("mysql", cd.Dialect)
+	r.Equal("user", cd.User)
+	r.Equal("pass", cd.Password)
+	r.Equal("host", cd.Host)
+	r.Equal("port", cd.Port)
+	r.Equal("database", cd.Database)
+}
+
+func Test_ConnectionDetails_Finalize_MySQL_DSN_Protocol(t *testing.T) {
+	r := require.New(t)
+
+	url := "mysql://user:pass@tcp(host:port)/protocol"
+	cd := &pop.ConnectionDetails{
+		URL: url,
+	}
+	err := cd.Finalize()
+	r.NoError(err)
+
+	r.Equal(url, cd.URL)
+	r.Equal("mysql", cd.Dialect)
+	r.Equal("user", cd.User)
+	r.Equal("pass", cd.Password)
+	r.Equal("host", cd.Host)
+	r.Equal("port", cd.Port)
+	r.Equal("protocol", cd.Database)
+}
+
+func Test_ConnectionDetails_Finalize_MySQL_DSN_Socket(t *testing.T) {
+	r := require.New(t)
+
+	url := "mysql://user:pass@unix(/path/to/socket)/socket"
+	cd := &pop.ConnectionDetails{
+		URL: url,
+	}
+	err := cd.Finalize()
+	r.NoError(err)
+
+	r.Equal(url, cd.URL)
+	r.Equal("mysql", cd.Dialect)
+	r.Equal("user", cd.User)
+	r.Equal("pass", cd.Password)
+	r.Equal("/path/to/socket", cd.Host)
+	r.Equal("socket", cd.Port)
+	r.Equal("socket", cd.Database)
+}
+
 func Test_ConnectionDetails_Finalize_UnknownDialect(t *testing.T) {
 	r := require.New(t)
 	cd := &pop.ConnectionDetails{

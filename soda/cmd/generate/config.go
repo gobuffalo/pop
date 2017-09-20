@@ -3,6 +3,7 @@ package generate
 import (
 	"os"
 	"path"
+	"path/filepath"
 	"strings"
 
 	"github.com/gobuffalo/envy"
@@ -28,25 +29,41 @@ var ConfigCmd = &cobra.Command{
 		if err != nil {
 			return errors.Wrap(err, "couldn't get the current directory")
 		}
+		pwd, _ := os.Getwd()
 		data := map[string]interface{}{
-			"dialect":     dialect,
-			"name":        path.Base(dir),
-			"packagePath": pkgPath(),
+			"dialect": dialect,
+			"name":    path.Base(dir),
+			"appPath": pwd,
 		}
 		return GenerateConfig(cfgFile, data)
 	},
 }
 
-func pkgPath() string {
-	pwd, _ := os.Getwd()
+func goPath(root string) string {
+	gpMultiple := envy.GoPaths()
+	path := ""
 
-	for _, p := range envy.GoPaths() {
-		pwd = strings.TrimPrefix(pwd, p)
+	for i := 0; i < len(gpMultiple); i++ {
+		if strings.HasPrefix(root, filepath.Join(gpMultiple[i], "src")) {
+			path = gpMultiple[i]
+			break
+		}
 	}
-	return pwd
+	return path
+}
+
+func packagePath(rootPath string) string {
+	gosrcpath := strings.Replace(filepath.Join(goPath(rootPath), "src"), "\\", "/", -1)
+	rootPath = strings.Replace(rootPath, "\\", "/", -1)
+	return strings.Replace(rootPath, gosrcpath+"/", "", 2)
 }
 
 func GenerateConfig(cfgFile string, data map[string]interface{}) error {
+	if data["appPath"] == nil {
+		pwd, _ := os.Getwd()
+		data["appPath"] = pwd
+	}
+
 	dialect = strings.ToLower(data["dialect"].(string))
 	if t, ok := configTemplates[dialect]; ok {
 		g := makr.New()
