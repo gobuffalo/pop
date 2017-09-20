@@ -1,5 +1,12 @@
 # Change Log
 
+## [v3.36.0](https://github.com/markbates/pop/tree/v3.36.0) (2017-09-20)
+[Full Changelog](https://github.com/markbates/pop/compare/v3.35.0...v3.36.0)
+
+**Closed issues:**
+
+- soda: when generate model, can't use single char in  [\#128](https://github.com/markbates/pop/issues/128)
+
 ## [v3.35.0](https://github.com/markbates/pop/tree/v3.35.0) (2017-09-19)
 [Full Changelog](https://github.com/markbates/pop/compare/v3.34.0...v3.35.0)
 
@@ -413,13 +420,13 @@
 [Full Changelog](https://github.com/markbates/pop/compare/v3.5.1.1...v3.6.0)
 
 ## [v3.5.1.1](https://github.com/markbates/pop/tree/v3.5.1.1) (2016-08-26)
-[Full Changelog](https://github.com/markbates/pop/compare/v3.5.1...v3.5.1.1)
-
-## [v3.5.1](https://github.com/markbates/pop/tree/v3.5.1) (2016-08-26)
-[Full Changelog](https://github.com/markbates/pop/compare/v3.5.2...v3.5.1)
+[Full Changelog](https://github.com/markbates/pop/compare/v3.5.2...v3.5.1.1)
 
 ## [v3.5.2](https://github.com/markbates/pop/tree/v3.5.2) (2016-08-26)
-[Full Changelog](https://github.com/markbates/pop/compare/v3.5.0...v3.5.2)
+[Full Changelog](https://github.com/markbates/pop/compare/v3.5.1...v3.5.2)
+
+## [v3.5.1](https://github.com/markbates/pop/tree/v3.5.1) (2016-08-26)
+[Full Changelog](https://github.com/markbates/pop/compare/v3.5.0...v3.5.1)
 
 ## [v3.5.0](https://github.com/markbates/pop/tree/v3.5.0) (2016-08-25)
 [Full Changelog](https://github.com/markbates/pop/compare/v3.4.1...v3.5.0)
