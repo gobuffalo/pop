@@ -1,5 +1,12 @@
 # Change Log
 
+## [v3.36.1](https://github.com/markbates/pop/tree/v3.36.1) (2017-09-22)
+[Full Changelog](https://github.com/markbates/pop/compare/v3.36.0...v3.36.1)
+
+**Merged pull requests:**
+
+- Feature/fix migrator down [\#129](https://github.com/markbates/pop/pull/129) ([shaunnbarron](https://github.com/shaunnbarron))
+
 ## [v3.36.0](https://github.com/markbates/pop/tree/v3.36.0) (2017-09-20)
 [Full Changelog](https://github.com/markbates/pop/compare/v3.35.0...v3.36.0)
 
