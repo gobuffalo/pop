@@ -75,7 +75,7 @@ func (m Migrator) Up() error {
 }
 
 // Down runs pending "down" migrations and rolls back the
-// database by the specfied number of steps.
+// database by the specified number of steps.
 func (m Migrator) Down(step int) error {
 	c := m.Connection
 	return m.exec(func() error {
@@ -106,10 +106,11 @@ func (m Migrator) Down(step int) error {
 				err = tx.RawQuery("delete from schema_migration where version = ?", mi.Version).Exec()
 				return errors.Wrapf(err, "problem deleting migration version %s", mi.Version)
 			})
-			if err == nil {
-				fmt.Printf("< %s\n", mi.Name)
+			if err != nil {
+				return err
 			}
-			return err
+
+			fmt.Printf("< %s\n", mi.Name)
 		}
 		return nil
 	})
