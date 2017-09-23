@@ -38,6 +38,14 @@ func (s *String) UnmarshalText(text []byte) error {
 	return nil
 }
 
+func (s String) TagValue() string {
+	return s.Format(",")
+}
+
+func (s String) Format(sep string) string {
+	return strings.Join([]string(s), sep)
+}
+
 func strToString(s string) []string {
 	r := strings.Trim(s, "{}")
 	return strings.Split(r, ",")
