@@ -75,7 +75,7 @@ func (p *postgresql) SelectMany(s store, models *Model, query Query) error {
 func (p *postgresql) CreateDB() error {
 	// createdb -h db -p 5432 -U postgres enterprise_development
 	deets := p.ConnectionDetails
-	cmd := exec.Command("psql", p.urlWithoutDb(), "-c", fmt.Sprintf("create database %s", deets.Database))
+	cmd := exec.Command("psql", "-c", fmt.Sprintf("create database %s", deets.Database), p.urlWithoutDb())
 	Log(strings.Join(cmd.Args, " "))
 	comboOut, err := cmd.CombinedOutput()
 	if err != nil {
