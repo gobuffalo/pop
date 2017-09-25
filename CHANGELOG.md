@@ -1,5 +1,16 @@
 # Change Log
 
+## [v3.37.1](https://github.com/markbates/pop/tree/v3.37.1) (2017-09-25)
+[Full Changelog](https://github.com/markbates/pop/compare/v3.37.0...v3.37.1)
+
+**Closed issues:**
+
+- Default id column for models generation should be an integer [\#33](https://github.com/markbates/pop/issues/33)
+
+**Merged pull requests:**
+
+- Postgresql database creation [\#131](https://github.com/markbates/pop/pull/131) ([spankie](https://github.com/spankie))
+
 ## [v3.37.0](https://github.com/markbates/pop/tree/v3.37.0) (2017-09-23)
 [Full Changelog](https://github.com/markbates/pop/compare/v3.36.1...v3.37.0)
 
