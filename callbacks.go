@@ -1,5 +1,16 @@
 package pop
 
+type afterFindable interface {
+	AfterFind(*Connection) error
+}
+
+func (m *Model) afterFind(c *Connection) error {
+	if x, ok := m.Value.(afterFindable); ok {
+		return x.AfterFind(c)
+	}
+	return nil
+}
+
 type beforeSaveable interface {
 	BeforeSave(*Connection) error
 }
