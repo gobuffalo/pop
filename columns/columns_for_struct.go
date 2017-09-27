@@ -34,12 +34,13 @@ func ColumnsForStructWithAlias(s interface{}, tableName string, tableAlias strin
 
 	for i := 0; i < field_count; i++ {
 		field := st.Field(i)
+		assoc := field.Tag.Get("assoc") != ""
 		tag := field.Tag.Get("db")
 		if tag == "" {
 			tag = field.Name
 		}
 
-		if tag != "-" {
+		if tag != "-" && !assoc {
 			rw := field.Tag.Get("rw")
 			if rw != "" {
 				tag = tag + "," + rw

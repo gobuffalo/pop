@@ -1,0 +1,8 @@
+create_table("games", func(t) {
+  t.Column("id", "uuid", {"primary":true})
+})
+
+create_table("players", func(t) {
+  t.Column("id", "uuid", {"primary":true})
+  t.Column("game_id", "uuid", {})
+})

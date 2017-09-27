@@ -51,7 +51,7 @@ func (q *Query) First(model interface{}) error {
 		if err := q.Connection.Dialect.SelectOne(q.Connection.Store, m, *q); err != nil {
 			return err
 		}
-		return m.afterFind(q.Connection)
+		return q.findAssociations(m)
 	})
 }
 
@@ -73,7 +73,7 @@ func (q *Query) Last(model interface{}) error {
 		if err := q.Connection.Dialect.SelectOne(q.Connection.Store, m, *q); err != nil {
 			return err
 		}
-		return m.afterFind(q.Connection)
+		return q.findAssociations(m)
 	})
 }
 
@@ -106,7 +106,7 @@ func (q *Query) All(models interface{}) error {
 		if err != nil {
 			return err
 		}
-		return m.afterFind(q.Connection)
+		return q.findAssociations(m)
 	})
 }
 

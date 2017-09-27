@@ -16,6 +16,7 @@ type Query struct {
 	havingClauses           havingClauses
 	Paginator               *Paginator
 	Connection              *Connection
+	withAssociations        []string
 }
 
 // RawQuery will override the query building feature of Pop and will use
@@ -90,11 +91,21 @@ func (q *Query) Limit(limit int) *Query {
 	return q
 }
 
+func (c *Connection) With(assocs ...string) *Query {
+	return Q(c).With(assocs...)
+}
+
+func (q *Query) With(assocs ...string) *Query {
+	q.withAssociations = append(q.withAssociations, assocs...)
+	return q
+}
+
 // Q will create a new "empty" query from the current connection.
 func Q(c *Connection) *Query {
 	return &Query{
-		RawSQL:     &clause{},
-		Connection: c,
+		RawSQL:           &clause{},
+		Connection:       c,
+		withAssociations: []string{},
 	}
 }
 

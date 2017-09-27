@@ -59,6 +59,7 @@ func init() {
 }
 
 func transaction(fn func(tx *pop.Connection)) {
+	defer func() { pop.Debug = false }()
 	err := PDB.Rollback(func(tx *pop.Connection) {
 		fn(tx)
 	})
@@ -196,4 +197,21 @@ func (u *CallbacksUser) AfterCreate(tx *pop.Connection) error {
 func (u *CallbacksUser) AfterDestroy(tx *pop.Connection) error {
 	u.AfterD = "AfterDestroy"
 	return nil
+}
+
+type Game struct {
+	ID        uuid.UUID `json:"id" db:"id"`
+	CreatedAt time.Time `json:"created_at" db:"created_at"`
+	UpdatedAt time.Time `json:"updated_at" db:"updated_at"`
+
+	Players []Player `json:"-" db:"-"`
+}
+
+type Player struct {
+	ID        uuid.UUID `json:"id" db:"id"`
+	GameID    uuid.UUID `json:"game_id" db:"game_id"`
+	CreatedAt time.Time `json:"created_at" db:"created_at"`
+	UpdatedAt time.Time `json:"updated_at" db:"updated_at"`
+
+	OurGame Game `json:"-" assoc:"the-game" assockey:"GameID"`
 }

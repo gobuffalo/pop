@@ -13,6 +13,8 @@ type foo struct {
 	Unwanted  string `db:"-"`
 	ReadOnly  string `db:"read" rw:"r"`
 	WriteOnly string `db:"write" rw:"w"`
+	BarAssoc  string `db:"-"`
+	FooAssoc  string `assoc:"foo"`
 }
 
 type foos []foo

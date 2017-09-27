@@ -29,7 +29,7 @@ func (c *Columns) Add(names ...string) []*Column {
 		var xs []string
 		var col *Column
 		ss := ""
-		//support for distinct xx, or distinct on (field) table.fields
+		// support for distinct xx, or distinct on (field) table.fields
 		if strings.HasSuffix(name, ",r") || strings.HasSuffix(name, ",w") {
 			xs = []string{name[0 : len(name)-2], name[len(name)-1 : len(name)]}
 		} else {
@@ -37,11 +37,11 @@ func (c *Columns) Add(names ...string) []*Column {
 		}
 
 		xs[0] = strings.TrimSpace(xs[0])
-		//eg: id id2 - select id as id2
+		// eg: id id2 - select id as id2
 		// also distinct columnname
 		// and distinct on (column1) column2
 		if strings.Contains(strings.ToUpper(xs[0]), " AS ") {
-			//eg: select id as id2
+			// eg: select id as id2
 			i := strings.LastIndex(strings.ToUpper(xs[0]), " AS ")
 			ss = xs[0]
 			xs[0] = xs[0][i+4 : len(xs[0])] //get id2

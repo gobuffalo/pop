@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/kr/pretty"
 	"github.com/markbates/inflect"
 	"github.com/pkg/errors"
 	"github.com/satori/go.uuid"
@@ -71,7 +72,12 @@ func (m *Model) TableName() string {
 	}
 
 	t := reflect.TypeOf(m.Value)
+	if tt, ok := m.Value.(reflect.Type); ok {
+		fmt.Println("this is already a type")
+		t = tt
+	}
 	name := m.typeName(t)
+	pretty.Println("### name ->", name)
 
 	defer tableMapMu.Unlock()
 	tableMapMu.Lock()
@@ -87,6 +93,9 @@ func (m *Model) typeName(t reflect.Type) string {
 	if t.Kind() == reflect.Ptr {
 		t = t.Elem()
 	}
+	pretty.Println("### t.Name() ->", t.Name())
+	pretty.Println("### t.Kind() ->", t.Kind().String())
+	pretty.Println("### t ->", t)
 	switch t.Kind() {
 	case reflect.String:
 		return m.Value.(string)
@@ -96,9 +105,9 @@ func (m *Model) typeName(t reflect.Type) string {
 			el = el.Elem()
 		}
 		return el.Name()
-	default:
-		return t.Name()
+	case reflect.Interface:
 	}
+	return t.Name()
 }
 
 func (m *Model) fieldByName(s string) (reflect.Value, error) {
