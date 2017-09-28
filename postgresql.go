@@ -1,6 +1,7 @@
 package pop
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"os"
@@ -182,13 +183,19 @@ func (p *postgresql) LoadSchema(r io.Reader) error {
 		io.Copy(in, r)
 	}()
 	Log(strings.Join(cmd.Args, " "))
+
+	bb := &bytes.Buffer{}
+	cmd.Stdout = bb
+	cmd.Stderr = bb
+
 	err = cmd.Start()
 	if err != nil {
-		return err
+		return errors.WithMessage(err, bb.String())
 	}
+
 	err = cmd.Wait()
 	if err != nil {
-		return err
+		return errors.WithMessage(err, bb.String())
 	}
 
 	fmt.Printf("loaded schema for %s\n", p.Details().Database)
