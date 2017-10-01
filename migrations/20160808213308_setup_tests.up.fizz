@@ -29,6 +29,7 @@ create_table("callbacks_users", func(t) {
   t.Column("after_c", "string", {})
   t.Column("after_u", "string", {})
   t.Column("after_d", "string", {})
+  t.Column("after_f", "string", {})
 })
 
 create_table("books", func(t) {
