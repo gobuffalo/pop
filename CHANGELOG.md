@@ -1,5 +1,12 @@
 # Change Log
 
+## [v3.38.0](https://github.com/markbates/pop/tree/v3.38.0) (2017-10-01)
+[Full Changelog](https://github.com/markbates/pop/compare/v3.37.2...v3.38.0)
+
+**Merged pull requests:**
+
+- added AfterFind callback hook [\#133](https://github.com/markbates/pop/pull/133) ([markbates](https://github.com/markbates))
+
 ## [v3.37.2](https://github.com/markbates/pop/tree/v3.37.2) (2017-09-28)
 [Full Changelog](https://github.com/markbates/pop/compare/v3.37.1...v3.37.2)
 
