@@ -167,18 +167,13 @@ The other two files correspond to the migrations as explained below.
 
 The `soda` command supports the creation and running of migrations.
 
-A full list of commands available for migration can be found by asking for help:
-
-```bash
-$ soda migrate help
-```
 
 #### Create Migrations
 
 The `soda` command will generate SQL migrations (both the up and down) files for you.
 
 ```bash
-$ soda migrate create name_of_migration
+$ soda generate fizz name_of_migration
 ```
 
 Running this command with generate the following files:
@@ -193,7 +188,7 @@ The generated files are `fizz` files. [Fizz](./fizz/README.md) lets you use a co
 If you want to generate old fashion `.sql` files you can use the `-t` flag for that:
 
 ```bash
-$ soda migrate create name_of_migration -t sql
+$ soda generate sql name_of_migration
 ```
 
 Running this command with generate the following files:
