@@ -167,6 +167,11 @@ The other two files correspond to the migrations as explained below.
 
 The `soda` command supports the creation and running of migrations.
 
+A full list of commands available for migration can be found by asking for help:
+
+```bash
+$ soda migrate --help
+```
 
 #### Create Migrations
 
