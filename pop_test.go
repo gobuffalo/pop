@@ -154,9 +154,12 @@ type CallbacksUser struct {
 	AfterC    string    `db:"after_c"`
 	AfterU    string    `db:"after_u"`
 	AfterD    string    `db:"after_d"`
+	AfterF    string    `db:"after_f"`
 	CreatedAt time.Time `json:"created_at" db:"created_at"`
 	UpdatedAt time.Time `json:"updated_at" db:"updated_at"`
 }
+
+type CallbacksUsers []CallbacksUser
 
 func (u *CallbacksUser) BeforeSave(tx *pop.Connection) error {
 	u.BeforeS = "BeforeSave"
@@ -195,5 +198,10 @@ func (u *CallbacksUser) AfterCreate(tx *pop.Connection) error {
 
 func (u *CallbacksUser) AfterDestroy(tx *pop.Connection) error {
 	u.AfterD = "AfterDestroy"
+	return nil
+}
+
+func (u *CallbacksUser) AfterFind(tx *pop.Connection) error {
+	u.AfterF = "AfterFind"
 	return nil
 }

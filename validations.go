@@ -5,11 +5,20 @@ import (
 	"github.com/pkg/errors"
 )
 
+type beforeValidatable interface {
+	BeforeValidations(*Connection) error
+}
+
 type validateable interface {
 	Validate(*Connection) (*validate.Errors, error)
 }
 
 func (m *Model) validate(c *Connection) (*validate.Errors, error) {
+	if x, ok := m.Value.(beforeValidatable); ok {
+		if err := x.BeforeValidations(c); err != nil {
+			return validate.NewErrors(), errors.WithStack(err)
+		}
+	}
 	if x, ok := m.Value.(validateable); ok {
 		return x.Validate(c)
 	}

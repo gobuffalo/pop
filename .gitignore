@@ -20,6 +20,7 @@ solr/
 .jhw-cache/
 jhw.*
 *.sublime*
+.idea
 node_modules/
 dist/
 generated/
@@ -29,3 +30,4 @@ gin-bin
 *.sqlite
 vendor/
 tsoda
+migrations/schema.sql

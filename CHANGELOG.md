@@ -1,5 +1,43 @@
 # Change Log
 
+## [v3.38.0](https://github.com/markbates/pop/tree/v3.38.0) (2017-10-01)
+[Full Changelog](https://github.com/markbates/pop/compare/v3.37.2...v3.38.0)
+
+**Merged pull requests:**
+
+- added AfterFind callback hook [\#133](https://github.com/markbates/pop/pull/133) ([markbates](https://github.com/markbates))
+
+## [v3.37.2](https://github.com/markbates/pop/tree/v3.37.2) (2017-09-28)
+[Full Changelog](https://github.com/markbates/pop/compare/v3.37.1...v3.37.2)
+
+## [v3.37.1](https://github.com/markbates/pop/tree/v3.37.1) (2017-09-25)
+[Full Changelog](https://github.com/markbates/pop/compare/v3.37.0...v3.37.1)
+
+**Closed issues:**
+
+- Default id column for models generation should be an integer [\#33](https://github.com/markbates/pop/issues/33)
+
+**Merged pull requests:**
+
+- Postgresql database creation [\#131](https://github.com/markbates/pop/pull/131) ([spankie](https://github.com/spankie))
+
+## [v3.37.0](https://github.com/markbates/pop/tree/v3.37.0) (2017-09-23)
+[Full Changelog](https://github.com/markbates/pop/compare/v3.36.1...v3.37.0)
+
+## [v3.36.1](https://github.com/markbates/pop/tree/v3.36.1) (2017-09-22)
+[Full Changelog](https://github.com/markbates/pop/compare/v3.36.0...v3.36.1)
+
+**Merged pull requests:**
+
+- Feature/fix migrator down [\#129](https://github.com/markbates/pop/pull/129) ([shaunnbarron](https://github.com/shaunnbarron))
+
+## [v3.36.0](https://github.com/markbates/pop/tree/v3.36.0) (2017-09-20)
+[Full Changelog](https://github.com/markbates/pop/compare/v3.35.0...v3.36.0)
+
+**Closed issues:**
+
+- soda: when generate model, can't use single char in  [\#128](https://github.com/markbates/pop/issues/128)
+
 ## [v3.35.0](https://github.com/markbates/pop/tree/v3.35.0) (2017-09-19)
 [Full Changelog](https://github.com/markbates/pop/compare/v3.34.0...v3.35.0)
 

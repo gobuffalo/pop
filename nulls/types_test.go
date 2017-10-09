@@ -43,7 +43,7 @@ const schema = `CREATE TABLE "main"."foos" (
 	 "uid" uuid
 );`
 
-var uid = "3c9228a9-8549-4d52-8261-dfe0ab0ee6d4"
+var uid = uuid.NewV4()
 var now = time.Now()
 
 func newValidFoo() Foo {
@@ -58,7 +58,7 @@ func newValidFoo() Foo {
 		IntType:    NewInt(2),
 		Int32Type:  NewInt32(3),
 		UInt32Type: NewUInt32(5),
-		UID:        NewUUID(uuid.FromStringOrNil(uid)),
+		UID:        NewUUID(uid),
 	}
 }
 
@@ -70,7 +70,7 @@ func Test_TypesMarshalProperly(t *testing.T) {
 
 	ti, _ := json.Marshal(now)
 	ba, _ := json.Marshal(f.Bytes)
-	jsonString := fmt.Sprintf(`{"id":1,"name":"Mark","alive":true,"price":9.99,"birth":%s,"price32":3.33,"bytes":%s,"intType":2,"int32Type":3,"uint32Type":5,"uid":"%s"}`, ti, ba, uid)
+	jsonString := fmt.Sprintf(`{"id":1,"name":"Mark","alive":true,"price":9.99,"birth":%s,"price32":3.33,"bytes":%s,"intType":2,"int32Type":3,"uint32Type":5,"uid":"%s"}`, ti, ba, uid.String())
 
 	// check marshalling to json works:
 	data, _ := json.Marshal(f)
@@ -89,7 +89,7 @@ func Test_TypesMarshalProperly(t *testing.T) {
 	a.Equal(f.IntType.Int, 2)
 	a.Equal(f.Int32Type.Int32, int32(3))
 	a.Equal(f.UInt32Type.UInt32, uint32(5))
-	a.Equal(uid, f.UID.UUID.String())
+	a.Equal(uid.String(), f.UID.UUID.String())
 
 	// check marshalling nulls works:
 	f = Foo{}
@@ -185,7 +185,7 @@ func Test_TypeSaveAndRetrieveProperly(t *testing.T) {
 		a.Equal(f.IntType.Int, 2)
 		a.Equal(f.Int32Type.Int32, int32(3))
 		a.Equal(f.UInt32Type.UInt32, uint32(5))
-		a.Equal(f.UID.UUID.String(), uid)
+		a.Equal(uid.String(), f.UID.UUID.String())
 
 		tx.Rollback()
 	})

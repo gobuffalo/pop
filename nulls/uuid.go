@@ -3,7 +3,9 @@ package nulls
 import (
 	"database/sql/driver"
 	"encoding/json"
+	"strings"
 
+	"github.com/pkg/errors"
 	"github.com/satori/go.uuid"
 )
 
@@ -66,13 +68,17 @@ func (ns *UUID) UnmarshalJSON(text []byte) error {
 		return nil
 	}
 
-	s := ""
-	if err := json.Unmarshal(text, &s); err == nil {
-		if u, err := uuid.FromString(s); err == nil {
-			ns.UUID = u
-			ns.Valid = true
-		}
+	s := string(text)
+	s = strings.TrimPrefix(s, "\"")
+	s = strings.TrimSuffix(s, "\"")
+
+	u, err := uuid.FromString(s)
+	if err != nil {
+		return errors.WithStack(err)
 	}
+	ns.UUID = u
+	ns.Valid = true
+
 	return nil
 }
 

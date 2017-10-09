@@ -1,5 +1,49 @@
 package pop
 
+import (
+	"reflect"
+
+	"github.com/pkg/errors"
+	"golang.org/x/sync/errgroup"
+)
+
+type afterFindable interface {
+	AfterFind(*Connection) error
+}
+
+func (m *Model) afterFind(c *Connection) error {
+	if x, ok := m.Value.(afterFindable); ok {
+		if err := x.AfterFind(c); err != nil {
+			return errors.WithStack(err)
+		}
+	}
+
+	// if the "model" is a slice/array we want
+	// to loop through each of the elements in the collection
+	// and call AfterFind on them if they exist.
+	rv := reflect.Indirect(reflect.ValueOf(m.Value))
+	kind := rv.Kind()
+	if kind != reflect.Slice && kind != reflect.Array {
+		return nil
+	}
+
+	wg := &errgroup.Group{}
+	for i := 0; i < rv.Len(); i++ {
+		func(i int) {
+			wg.Go(func() error {
+				y := rv.Index(i)
+				y = y.Addr()
+				if x, ok := y.Interface().(afterFindable); ok {
+					return x.AfterFind(c)
+				}
+				return nil
+			})
+		}(i)
+	}
+
+	return wg.Wait()
+}
+
 type beforeSaveable interface {
 	BeforeSave(*Connection) error
 }

@@ -48,7 +48,10 @@ func (q *Query) First(model interface{}) error {
 	return q.Connection.timeFunc("First", func() error {
 		q.Limit(1)
 		m := &Model{Value: model}
-		return q.Connection.Dialect.SelectOne(q.Connection.Store, m, *q)
+		if err := q.Connection.Dialect.SelectOne(q.Connection.Store, m, *q); err != nil {
+			return err
+		}
+		return m.afterFind(q.Connection)
 	})
 }
 
@@ -67,7 +70,10 @@ func (q *Query) Last(model interface{}) error {
 		q.Limit(1)
 		q.Order("id desc")
 		m := &Model{Value: model}
-		return q.Connection.Dialect.SelectOne(q.Connection.Store, m, *q)
+		if err := q.Connection.Dialect.SelectOne(q.Connection.Store, m, *q); err != nil {
+			return err
+		}
+		return m.afterFind(q.Connection)
 	})
 }
 
@@ -97,7 +103,10 @@ func (q *Query) All(models interface{}) error {
 				}
 			}
 		}
-		return err
+		if err != nil {
+			return err
+		}
+		return m.afterFind(q.Connection)
 	})
 }
 
