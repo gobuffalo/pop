@@ -1,5 +1,17 @@
 # Change Log
 
+## [v3.38.1](https://github.com/markbates/pop/tree/v3.38.1) (2017-10-12)
+[Full Changelog](https://github.com/markbates/pop/compare/v3.38.0...v3.38.1)
+
+**Closed issues:**
+
+- count sql with group by and having? [\#137](https://github.com/markbates/pop/issues/137)
+- Can't create migration [\#134](https://github.com/markbates/pop/issues/134)
+
+**Merged pull requests:**
+
+- Updated instructions on how to generate migrations [\#135](https://github.com/markbates/pop/pull/135) ([fdonzello](https://github.com/fdonzello))
+
 ## [v3.38.0](https://github.com/markbates/pop/tree/v3.38.0) (2017-10-01)
 [Full Changelog](https://github.com/markbates/pop/compare/v3.37.2...v3.38.0)
 
@@ -29,7 +41,7 @@
 
 **Merged pull requests:**
 
-- Feature/fix migrator down [\#129](https://github.com/markbates/pop/pull/129) ([shaunnbarron](https://github.com/shaunnbarron))
+- Feature/fix migrator down [\#129](https://github.com/markbates/pop/pull/129) ([barrongineer](https://github.com/barrongineer))
 
 ## [v3.36.0](https://github.com/markbates/pop/tree/v3.36.0) (2017-09-20)
 [Full Changelog](https://github.com/markbates/pop/compare/v3.35.0...v3.36.0)
@@ -375,7 +387,7 @@
 
 **Merged pull requests:**
 
-- Distinguish between empty strings and NULL \(?\) [\#28](https://github.com/markbates/pop/pull/28) ([hyPiRion](https://github.com/hyPiRion))
+- Distinguish between empty strings and NULL \(?\) [\#28](https://github.com/markbates/pop/pull/28) ([hypirion](https://github.com/hypirion))
 - Mem patch 3 [\#24](https://github.com/markbates/pop/pull/24) ([markbates](https://github.com/markbates))
 - Update import path for nulls [\#23](https://github.com/markbates/pop/pull/23) ([mem](https://github.com/mem))
 - Add soda generate model documentation to README.md [\#22](https://github.com/markbates/pop/pull/22) ([mem](https://github.com/mem))
