@@ -2,6 +2,7 @@ package slices
 
 import (
 	"database/sql/driver"
+	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -35,6 +36,15 @@ func (s *String) UnmarshalText(text []byte) error {
 		ss = append(ss, strings.TrimSpace(x))
 	}
 	(*s) = ss
+	return nil
+}
+
+func (s *String) UnmarshalJSON(data []byte) error {
+	ss := []string{}
+	if err := json.Unmarshal(data, &ss); err != nil {
+		return err
+	}
+	(*s) = String(ss)
 	return nil
 }
 
