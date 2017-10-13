@@ -134,14 +134,19 @@ func (q Query) Count(model interface{}) (int, error) {
 }
 
 func (q Query) CountByField(model interface{}, field string) (int, error) {
+	tmpQuery := Q(q.Connection)
+	q.Clone(tmpQuery) //avoid mendling with original query
+
 	res := &rowCount{}
-	err := q.Connection.timeFunc("Count", func() error {
-		q.Paginator = nil
-		col := fmt.Sprintf("count(%s) as row_count", field)
-		q.orderClauses = clauses{}
-		query, args := q.ToSQL(&Model{Value: model}, col)
-		Log(query, args...)
-		return q.Connection.Store.Get(res, query, args...)
+	err := tmpQuery.Connection.timeFunc("Count", func() error {
+		tmpQuery.Paginator = nil
+		tmpQuery.orderClauses = clauses{}
+		query, args := tmpQuery.ToSQL(&Model{Value: model})
+
+		countQuery := fmt.Sprintf("select count(%s) as row_count from (%s) a", field, query)
+
+		Log(countQuery, args...)
+		return q.Connection.Store.Get(res, countQuery, args...)
 	})
 	return res.Count, err
 }
