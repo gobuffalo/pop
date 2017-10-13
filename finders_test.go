@@ -172,6 +172,13 @@ func Test_Count_RawQuery(t *testing.T) {
 		a.NoError(err)
 		a.Equal(c, 1)
 
+		c, err = tx.RawQuery("select name from users order by name asc limit 5").Count(nil)
+		a.NoError(err)
+		a.Equal(c, 1)
+
+		c, err = tx.RawQuery("select name from users order by name asc limit 5 offset 0").Count(nil)
+		a.NoError(err)
+		a.Equal(c, 1)
 	})
 }
 

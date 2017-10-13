@@ -3,6 +3,7 @@ package pop
 import (
 	"fmt"
 	"reflect"
+	"regexp"
 	"strconv"
 
 	"github.com/satori/go.uuid"
@@ -141,10 +142,21 @@ func (q Query) CountByField(model interface{}, field string) (int, error) {
 	err := tmpQuery.Connection.timeFunc("Count", func() error {
 		tmpQuery.Paginator = nil
 		tmpQuery.orderClauses = clauses{}
+		tmpQuery.limitResults = 0
 		query, args := tmpQuery.ToSQL(&Model{Value: model})
+		//when query contains custom selected fields / executed using RawQuery,
+		//	sql may already contains limit and offset
+		r, _ := regexp.Compile("(?i)(limit [0-9]+ offset [0-9]+)$")
+		if r.MatchString(query) {
+			foundLimit := r.FindString(query)
+			query = query[0 : len(query)-len(foundLimit)]
+		} else {
+			r, _ := regexp.Compile("(?i)(limit [0-9])$")
+			foundLimit := r.FindString(query)
+			query = query[0 : len(query)-len(foundLimit)]
+		}
 
 		countQuery := fmt.Sprintf("select count(%s) as row_count from (%s) a", field, query)
-
 		Log(countQuery, args...)
 		return q.Connection.Store.Get(res, countQuery, args...)
 	})
