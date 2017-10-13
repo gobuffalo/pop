@@ -31,11 +31,15 @@ func (q *Query) Clone(targetQ *Query) {
 	targetQ.groupClauses = q.groupClauses
 	targetQ.havingClauses = q.havingClauses
 
-	paginator := *q.Paginator
-	connection := *q.Connection
+	if q.Paginator != nil {
+		paginator := *q.Paginator
+		targetQ.Paginator = &paginator
+	}
 
-	targetQ.Paginator = &paginator
-	targetQ.Connection = &connection
+	if q.Connection != nil {
+		connection := *q.Connection
+		targetQ.Connection = &connection
+	}
 }
 
 // RawQuery will override the query building feature of Pop and will use

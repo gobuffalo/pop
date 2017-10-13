@@ -160,17 +160,18 @@ func Test_Count_RawQuery(t *testing.T) {
 		err := tx.Create(&user)
 		a.NoError(err)
 
-		c, err := tx.RawQuery("select count(*) as row_count from users as users").Count(nil)
+		c, err := tx.RawQuery("select * from users as users").Count(nil)
 		a.NoError(err)
 		a.Equal(c, 1)
 
-		c, err = tx.RawQuery("select count(*) as row_count from users as users where id = -1").Count(nil)
+		c, err = tx.RawQuery("select * from users as users where id = -1").Count(nil)
 		a.NoError(err)
 		a.Equal(c, 0)
 
-		c, err = tx.RawQuery("select count(*) as row_count from (select id, name from users group by name asc) a").Count(nil)
+		c, err = tx.RawQuery("select name, max(created_at) from users as users group by name").Count(nil)
 		a.NoError(err)
-		a.Equal(c, 0)
+		a.Equal(c, 1)
+
 	})
 }
 

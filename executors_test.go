@@ -142,7 +142,7 @@ func Test_ExecCount(t *testing.T) {
 		count, err := q.ExecWithCount()
 		a.NoError(err)
 
-		a.Equal(int64(1), count)
+		a.Equal(1, count)
 
 		ctx, _ = tx.Count(user)
 		a.Equal(0, ctx)

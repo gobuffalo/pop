@@ -22,7 +22,12 @@ func (q *Query) Exec() error {
 	})
 }
 
-func (q *Query) ExecWithCount() (int64, error) {
+func (q *Query) ExecWithCount() (int, error) {
+	count, err := q.ExecWithCount64()
+	return int(count), err
+}
+
+func (q *Query) ExecWithCount64() (int64, error) {
 	count := int64(0)
 	return count, q.Connection.timeFunc("Exec", func() error {
 		sql, args := q.ToSQL(nil)
