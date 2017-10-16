@@ -65,6 +65,7 @@ type model struct {
 
 func (m model) Generate() error {
 	g := makr.New()
+	defer g.Fmt(".")
 	ctx := makr.Data{}
 	ctx["model"] = m
 	ctx["plural_model_name"] = m.Names.Plural

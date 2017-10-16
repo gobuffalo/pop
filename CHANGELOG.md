@@ -1,5 +1,11 @@
 # Change Log
 
+## [v3.38.3](https://github.com/markbates/pop/tree/v3.38.3) (2017-10-13)
+[Full Changelog](https://github.com/markbates/pop/compare/v3.38.2...v3.38.3)
+
+## [v3.38.2](https://github.com/markbates/pop/tree/v3.38.2) (2017-10-13)
+[Full Changelog](https://github.com/markbates/pop/compare/v3.38.1...v3.38.2)
+
 ## [v3.38.1](https://github.com/markbates/pop/tree/v3.38.1) (2017-10-12)
 [Full Changelog](https://github.com/markbates/pop/compare/v3.38.0...v3.38.1)
 
@@ -18,6 +24,7 @@
 **Merged pull requests:**
 
 - added AfterFind callback hook [\#133](https://github.com/markbates/pop/pull/133) ([markbates](https://github.com/markbates))
+- Escape postgres database name [\#132](https://github.com/markbates/pop/pull/132) ([duckbrain](https://github.com/duckbrain))
 
 ## [v3.37.2](https://github.com/markbates/pop/tree/v3.37.2) (2017-09-28)
 [Full Changelog](https://github.com/markbates/pop/compare/v3.37.1...v3.37.2)
@@ -463,13 +470,13 @@
 [Full Changelog](https://github.com/markbates/pop/compare/v3.5.1.1...v3.6.0)
 
 ## [v3.5.1.1](https://github.com/markbates/pop/tree/v3.5.1.1) (2016-08-26)
-[Full Changelog](https://github.com/markbates/pop/compare/v3.5.1...v3.5.1.1)
-
-## [v3.5.1](https://github.com/markbates/pop/tree/v3.5.1) (2016-08-26)
-[Full Changelog](https://github.com/markbates/pop/compare/v3.5.2...v3.5.1)
+[Full Changelog](https://github.com/markbates/pop/compare/v3.5.2...v3.5.1.1)
 
 ## [v3.5.2](https://github.com/markbates/pop/tree/v3.5.2) (2016-08-26)
-[Full Changelog](https://github.com/markbates/pop/compare/v3.5.0...v3.5.2)
+[Full Changelog](https://github.com/markbates/pop/compare/v3.5.1...v3.5.2)
+
+## [v3.5.1](https://github.com/markbates/pop/tree/v3.5.1) (2016-08-26)
+[Full Changelog](https://github.com/markbates/pop/compare/v3.5.0...v3.5.1)
 
 ## [v3.5.0](https://github.com/markbates/pop/tree/v3.5.0) (2016-08-25)
 [Full Changelog](https://github.com/markbates/pop/compare/v3.4.1...v3.5.0)
