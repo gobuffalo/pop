@@ -9,6 +9,9 @@ import (
 	"github.com/satori/go.uuid"
 )
 
+var rLimitOffset = regexp.MustCompile("(?i)(limit [0-9]+ offset [0-9]+)$")
+var rLimit = regexp.MustCompile("(?i)(limit [0-9]+)$")
+
 // Find the first record of the model in the database with a particular id.
 //
 //	c.Find(&User{}, 1)
@@ -139,20 +142,21 @@ func (q Query) CountByField(model interface{}, field string) (int, error) {
 	q.Clone(tmpQuery) //avoid mendling with original query
 
 	res := &rowCount{}
-	err := tmpQuery.Connection.timeFunc("Count", func() error {
+
+	err := tmpQuery.Connection.timeFunc("CountByField", func() error {
 		tmpQuery.Paginator = nil
 		tmpQuery.orderClauses = clauses{}
 		tmpQuery.limitResults = 0
 		query, args := tmpQuery.ToSQL(&Model{Value: model})
 		//when query contains custom selected fields / executed using RawQuery,
 		//	sql may already contains limit and offset
-		r, _ := regexp.Compile("(?i)(limit [0-9]+ offset [0-9]+)$")
-		if r.MatchString(query) {
-			foundLimit := r.FindString(query)
+
+		if rLimitOffset.MatchString(query) {
+			foundLimit := rLimitOffset.FindString(query)
 			query = query[0 : len(query)-len(foundLimit)]
 		} else {
-			r, _ := regexp.Compile("(?i)(limit [0-9]+)$")
-			foundLimit := r.FindString(query)
+			rLimit, _ := regexp.Compile("(?i)(limit [0-9]+)$")
+			foundLimit := rLimit.FindString(query)
 			query = query[0 : len(query)-len(foundLimit)]
 		}
 
