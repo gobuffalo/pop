@@ -10,6 +10,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 	"github.com/markbates/going/defaults"
 	. "github.com/markbates/pop/columns"
@@ -76,11 +77,16 @@ func (p *postgresql) SelectMany(s store, models *Model, query Query) error {
 func (p *postgresql) CreateDB() error {
 	// createdb -h db -p 5432 -U postgres enterprise_development
 	deets := p.ConnectionDetails
-	cmd := exec.Command("psql", "-c", fmt.Sprintf("create database \"%s\"", deets.Database), p.urlWithoutDb())
-	Log(strings.Join(cmd.Args, " "))
-	comboOut, err := cmd.CombinedOutput()
+	db, err := sqlx.Open(deets.Dialect, p.urlWithoutDb())
 	if err != nil {
-		err = fmt.Errorf("%s: %s", err.Error(), string(comboOut))
+		return errors.Wrapf(err, "error creating PostgreSQL database %s", deets.Database)
+	}
+	defer db.Close()
+	query := fmt.Sprintf("CREATE DATABASE \"%s\"", deets.Database)
+	Log(query)
+
+	_, err = db.Exec(query)
+	if err != nil {
 		return errors.Wrapf(err, "error creating PostgreSQL database %s", deets.Database)
 	}
 
@@ -90,13 +96,19 @@ func (p *postgresql) CreateDB() error {
 
 func (p *postgresql) DropDB() error {
 	deets := p.ConnectionDetails
-	cmd := exec.Command("psql", p.urlWithoutDb(), "-c", fmt.Sprintf("drop database %s", deets.Database))
-	Log(strings.Join(cmd.Args, " "))
-	comboOut, err := cmd.CombinedOutput()
+	db, err := sqlx.Open(deets.Dialect, p.urlWithoutDb())
 	if err != nil {
-		err = fmt.Errorf("%s: %s", err.Error(), string(comboOut))
 		return errors.Wrapf(err, "error dropping PostgreSQL database %s", deets.Database)
 	}
+	defer db.Close()
+	query := fmt.Sprintf("DROP DATABASE \"%s\"", deets.Database)
+	Log(query)
+
+	_, err = db.Exec(query)
+	if err != nil {
+		return errors.Wrapf(err, "error dropping PostgreSQL database %s", deets.Database)
+	}
+
 	fmt.Printf("dropped database %s\n", deets.Database)
 	return nil
 }

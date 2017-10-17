@@ -10,14 +10,19 @@ var all bool
 var dropCmd = &cobra.Command{
 	Use:   "drop",
 	Short: "Drops databases for you",
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
+		var err error
 		if all {
 			for _, conn := range pop.Connections {
-				pop.DropDB(conn)
+				err = pop.DropDB(conn)
+				if err != nil {
+					return err
+				}
 			}
 		} else {
-			pop.DropDB(getConn())
+			err = pop.DropDB(getConn())
 		}
+		return err
 	},
 }
 
