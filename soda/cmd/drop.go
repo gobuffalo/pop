@@ -20,7 +20,7 @@ var dropCmd = &cobra.Command{
 				}
 			}
 		} else {
-			err = pop.DropDB(getConn())
+			pop.DropDB(getConn())
 		}
 		return err
 	},
