@@ -1,5 +1,18 @@
 # Change Log
 
+## [v3.39.0](https://github.com/markbates/pop/tree/v3.39.0) (2017-10-17)
+[Full Changelog](https://github.com/markbates/pop/compare/v3.38.3...v3.39.0)
+
+**Closed issues:**
+
+- id entered multiple times with model generate [\#87](https://github.com/markbates/pop/issues/87)
+- If id field is provided to soda, default ID should not be generated [\#73](https://github.com/markbates/pop/issues/73)
+
+**Merged pull requests:**
+
+- \[PostgreSQL\] Use SQL instead of psql for create and drop DB [\#140](https://github.com/markbates/pop/pull/140) ([stanislas-m](https://github.com/stanislas-m))
+- Fix \#73: prevent auto ID if a custom one is provided [\#138](https://github.com/markbates/pop/pull/138) ([stanislas-m](https://github.com/stanislas-m))
+
 ## [v3.38.3](https://github.com/markbates/pop/tree/v3.38.3) (2017-10-13)
 [Full Changelog](https://github.com/markbates/pop/compare/v3.38.2...v3.38.3)
 
