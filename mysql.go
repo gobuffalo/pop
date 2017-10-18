@@ -9,6 +9,7 @@ import (
 
 	// Load MySQL Go driver
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/jmoiron/sqlx"
 	. "github.com/markbates/pop/columns"
 	"github.com/markbates/pop/fizz"
 	"github.com/markbates/pop/fizz/translators"
@@ -32,6 +33,15 @@ func (m *mysql) URL() string {
 	}
 	s := "%s:%s@(%s:%s)/%s?parseTime=true&multiStatements=true&readTimeout=1s"
 	return fmt.Sprintf(s, c.User, c.Password, c.Host, c.Port, c.Database)
+}
+
+func (m *mysql) urlWithoutDb() string {
+	c := m.ConnectionDetails
+	if m.ConnectionDetails.URL != "" {
+		return strings.TrimPrefix(m.ConnectionDetails.URL, "mysql://")
+	}
+	s := "%s:%s@(%s:%s)/?parseTime=true&multiStatements=true&readTimeout=1s"
+	return fmt.Sprintf(s, c.User, c.Password, c.Host, c.Port)
 }
 
 func (m *mysql) MigrationURL() string {
@@ -58,35 +68,43 @@ func (m *mysql) SelectMany(s store, models *Model, query Query) error {
 	return errors.Wrap(genericSelectMany(s, models, query), "mysql select many")
 }
 
+// CreateDB creates a new database, from the given connection credentials
 func (m *mysql) CreateDB() error {
-	c := m.ConnectionDetails
-	cmd := exec.Command("mysql", "-u", c.User, "-p"+c.Password, "-h", c.Host, "-P", c.Port, "-e", fmt.Sprintf("create database `%s`", c.Database))
-	if c.Port == "socket" {
-		cmd = exec.Command("mysql", "-u", c.User, "-p"+c.Password, "-S", c.Host, "-e", fmt.Sprintf("create database `%s`", c.Database))
-	}
-	Log(strings.Join(cmd.Args, " "))
-	comboOut, err := cmd.CombinedOutput()
+	deets := m.ConnectionDetails
+	db, err := sqlx.Open(deets.Dialect, m.urlWithoutDb())
 	if err != nil {
-		err = fmt.Errorf("%s: %s", err.Error(), string(comboOut))
-		return errors.Wrapf(err, "error creating MySQL database %s", c.Database)
+		return errors.Wrapf(err, "error creating MySQL database %s", deets.Database)
 	}
-	fmt.Printf("created database %s\n", c.Database)
+	defer db.Close()
+	query := fmt.Sprintf("CREATE DATABASE `%s` DEFAULT COLLATE `utf8_general_ci`", deets.Database)
+	Log(query)
+
+	_, err = db.Exec(query)
+	if err != nil {
+		return errors.Wrapf(err, "error creating MySQL database %s", deets.Database)
+	}
+
+	fmt.Printf("created database %s\n", deets.Database)
 	return nil
 }
 
+// DropDB drops an existing database, from the given connection credentials
 func (m *mysql) DropDB() error {
-	c := m.ConnectionDetails
-	cmd := exec.Command("mysql", "-u", c.User, "-p"+c.Password, "-h", c.Host, "-P", c.Port, "-e", fmt.Sprintf("drop database `%s`", c.Database))
-	if c.Port == "socket" {
-		cmd = exec.Command("mysql", "-u", c.User, "-p"+c.Password, "-S", c.Host, "-e", fmt.Sprintf("drop database `%s`", c.Database))
-	}
-	Log(strings.Join(cmd.Args, " "))
-	comboOut, err := cmd.CombinedOutput()
+	deets := m.ConnectionDetails
+	db, err := sqlx.Open(deets.Dialect, m.urlWithoutDb())
 	if err != nil {
-		err = fmt.Errorf("%s: %s", err.Error(), string(comboOut))
-		return errors.Wrapf(err, "error dropping MySQL database %s", c.Database)
+		return errors.Wrapf(err, "error dropping MySQL database %s", deets.Database)
 	}
-	fmt.Printf("dropped database %s\n", c.Database)
+	defer db.Close()
+	query := fmt.Sprintf("DROP DATABASE `%s`", deets.Database)
+	Log(query)
+
+	_, err = db.Exec(query)
+	if err != nil {
+		return errors.Wrapf(err, "error dropping MySQL database %s", deets.Database)
+	}
+
+	fmt.Printf("dropped database %s\n", deets.Database)
 	return nil
 }
 
