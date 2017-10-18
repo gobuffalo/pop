@@ -184,22 +184,21 @@ var columnCacheMutex = sync.Mutex{}
 func (sq *sqlBuilder) buildColumns() Columns {
 	tableName := sq.Model.TableName()
 	acl := len(sq.AddColumns)
+	var cols Columns
 	if acl <= 0 {
 		columnCacheMutex.Lock()
 		cols, ok := columnCache[tableName]
 		columnCacheMutex.Unlock()
 		//if alias is different, remake columns
-		if ok && cols.TableAlias == sq.Model.As {
-			return cols
+		if !ok || cols.TableAlias != sq.Model.As {
+			cols = ColumnsForStructWithAlias(sq.Model.Value, tableName, sq.Model.As)
+			columnCacheMutex.Lock()
+			columnCache[tableName] = cols
+			columnCacheMutex.Unlock()
 		}
-		cols = ColumnsForStructWithAlias(sq.Model.Value, tableName, sq.Model.As)
-		columnCacheMutex.Lock()
-		columnCache[tableName] = cols
-		columnCacheMutex.Unlock()
-		return cols
 	} else {
-		cols := NewColumns("")
+		cols = NewColumns("")
 		cols.Add(sq.AddColumns...)
-		return cols
 	}
+	return cols
 }

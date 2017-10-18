@@ -16,6 +16,8 @@ import (
 )
 
 var lookupPaths = []string{"", "./config", "/config", "../", "../config", "../..", "../../config"}
+
+// ConfigName is the name of the YAML databases config file
 var ConfigName = "database.yml"
 
 func init() {
@@ -62,7 +64,7 @@ func findConfigPath() (string, error) {
 			return path, err
 		}
 	}
-	return "", errors.New("[POP]: Tried to load configuration file, but couldn't find it.")
+	return "", errors.New("[POP]: Tried to load configuration file, but couldn't find it")
 }
 
 // LoadFrom reads a configuration from the reader and sets up the connections

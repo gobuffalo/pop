@@ -11,6 +11,7 @@ import (
 	"sync"
 
 	"github.com/jmoiron/sqlx"
+	// Load PostgreSQL Go driver
 	_ "github.com/lib/pq"
 	"github.com/markbates/going/defaults"
 	. "github.com/markbates/pop/columns"
@@ -113,8 +114,8 @@ func (p *postgresql) DropDB() error {
 	return nil
 }
 
-func (m *postgresql) URL() string {
-	c := m.ConnectionDetails
+func (p *postgresql) URL() string {
+	c := p.ConnectionDetails
 	if c.URL != "" {
 		return c.URL
 	}
@@ -124,16 +125,16 @@ func (m *postgresql) URL() string {
 	return fmt.Sprintf(s, c.User, c.Password, c.Host, c.Port, c.Database, ssl)
 }
 
-func (m *postgresql) urlWithoutDb() string {
-	c := m.ConnectionDetails
+func (p *postgresql) urlWithoutDb() string {
+	c := p.ConnectionDetails
 	ssl := defaults.String(c.Options["sslmode"], "disable")
 
 	s := "postgres://%s:%s@%s:%s/?sslmode=%s"
 	return fmt.Sprintf(s, c.User, c.Password, c.Host, c.Port, ssl)
 }
 
-func (m *postgresql) MigrationURL() string {
-	return m.URL()
+func (p *postgresql) MigrationURL() string {
+	return p.URL()
 }
 
 func (p *postgresql) TranslateSQL(sql string) string {
@@ -151,7 +152,7 @@ func (p *postgresql) TranslateSQL(sql string) string {
 			for _, char := range str {
 				out = append(out, byte(char))
 			}
-			curr += 1
+			curr++
 		} else {
 			out = append(out, sql[i])
 		}
