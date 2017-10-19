@@ -100,14 +100,11 @@ func (m model) Fizz() string {
 }
 
 func newModel(name string) model {
-	id := newName("id")
-	id.Proper = "ID"
 	m := model{
 		Package: "models",
-		Imports: []string{"time", "encoding/json", "github.com/markbates/pop", "github.com/markbates/validate", "github.com/satori/go.uuid"},
+		Imports: []string{"time", "encoding/json", "github.com/markbates/pop", "github.com/markbates/validate"},
 		Names:   newName(name),
 		Attributes: []attribute{
-			{Names: id, OriginalType: "uuid.UUID", GoType: "uuid.UUID"},
 			{Names: newName("created_at"), OriginalType: "time.Time", GoType: "time.Time"},
 			{Names: newName("updated_at"), OriginalType: "time.Time", GoType: "time.Time"},
 		},
@@ -128,12 +125,15 @@ var ModelCmd = &cobra.Command{
 
 		model := newModel(args[0])
 
+		hasId := false
+		hasUuid := false
 		hasNulls := false
 		for _, def := range args[1:] {
 			col := strings.Split(def, ":")
 			if len(col) == 1 {
 				col = append(col, "string")
 			}
+
 			nullable := nrx.MatchString(col[1])
 			if !hasNulls && nullable {
 				hasNulls = true
@@ -141,6 +141,9 @@ var ModelCmd = &cobra.Command{
 			}
 			if strings.HasPrefix(col[1], "slices.") {
 				model.Imports = append(model.Imports, "github.com/markbates/pop/slices")
+			} else if !hasUuid && col[1] == "uuid" {
+				hasUuid = true
+				model.Imports = append(model.Imports, "github.com/satori/go.uuid")
 			}
 
 			a := attribute{
@@ -149,7 +152,14 @@ var ModelCmd = &cobra.Command{
 				GoType:       colType(col[1]),
 				Nullable:     nullable,
 			}
-			model.Attributes = append(model.Attributes, a)
+			if col[0] == "id" {
+				// No need to create a default ID
+				hasId = true
+				// Ensure ID is the first attribute
+				model.Attributes = append([]attribute{a}, model.Attributes...)
+			} else {
+				model.Attributes = append(model.Attributes, a)
+			}
 			if !a.Nullable {
 				if a.GoType == "string" || a.GoType == "time.Time" || a.GoType == "int" {
 					if a.GoType == "time.Time" {
@@ -158,6 +168,18 @@ var ModelCmd = &cobra.Command{
 					model.ValidatableAttributes = append(model.ValidatableAttributes, a)
 				}
 			}
+		}
+
+		// Add a default UUID, if no custom ID is provided
+		if !hasId {
+			if !hasUuid {
+				model.Imports = append(model.Imports, "github.com/satori/go.uuid")
+			}
+			id := newName("id")
+			id.Proper = "ID"
+			a := attribute{Names: id, OriginalType: "uuid.UUID", GoType: "uuid.UUID"}
+			// Ensure ID is the first attribute
+			model.Attributes = append([]attribute{a}, model.Attributes...)
 		}
 
 		err := os.MkdirAll(model.Package, 0766)

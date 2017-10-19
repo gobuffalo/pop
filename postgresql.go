@@ -10,6 +10,8 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/jmoiron/sqlx"
+	// Load PostgreSQL Go driver
 	_ "github.com/lib/pq"
 	"github.com/markbates/going/defaults"
 	. "github.com/markbates/pop/columns"
@@ -76,11 +78,16 @@ func (p *postgresql) SelectMany(s store, models *Model, query Query) error {
 func (p *postgresql) CreateDB() error {
 	// createdb -h db -p 5432 -U postgres enterprise_development
 	deets := p.ConnectionDetails
-	cmd := exec.Command("psql", "-c", fmt.Sprintf("create database \"%s\"", deets.Database), p.urlWithoutDb())
-	Log(strings.Join(cmd.Args, " "))
-	comboOut, err := cmd.CombinedOutput()
+	db, err := sqlx.Open(deets.Dialect, p.urlWithoutDb())
 	if err != nil {
-		err = fmt.Errorf("%s: %s", err.Error(), string(comboOut))
+		return errors.Wrapf(err, "error creating PostgreSQL database %s", deets.Database)
+	}
+	defer db.Close()
+	query := fmt.Sprintf("CREATE DATABASE \"%s\"", deets.Database)
+	Log(query)
+
+	_, err = db.Exec(query)
+	if err != nil {
 		return errors.Wrapf(err, "error creating PostgreSQL database %s", deets.Database)
 	}
 
@@ -90,19 +97,25 @@ func (p *postgresql) CreateDB() error {
 
 func (p *postgresql) DropDB() error {
 	deets := p.ConnectionDetails
-	cmd := exec.Command("psql", p.urlWithoutDb(), "-c", fmt.Sprintf("drop database %s", deets.Database))
-	Log(strings.Join(cmd.Args, " "))
-	comboOut, err := cmd.CombinedOutput()
+	db, err := sqlx.Open(deets.Dialect, p.urlWithoutDb())
 	if err != nil {
-		err = fmt.Errorf("%s: %s", err.Error(), string(comboOut))
 		return errors.Wrapf(err, "error dropping PostgreSQL database %s", deets.Database)
 	}
+	defer db.Close()
+	query := fmt.Sprintf("DROP DATABASE \"%s\"", deets.Database)
+	Log(query)
+
+	_, err = db.Exec(query)
+	if err != nil {
+		return errors.Wrapf(err, "error dropping PostgreSQL database %s", deets.Database)
+	}
+
 	fmt.Printf("dropped database %s\n", deets.Database)
 	return nil
 }
 
-func (m *postgresql) URL() string {
-	c := m.ConnectionDetails
+func (p *postgresql) URL() string {
+	c := p.ConnectionDetails
 	if c.URL != "" {
 		return c.URL
 	}
@@ -112,16 +125,16 @@ func (m *postgresql) URL() string {
 	return fmt.Sprintf(s, c.User, c.Password, c.Host, c.Port, c.Database, ssl)
 }
 
-func (m *postgresql) urlWithoutDb() string {
-	c := m.ConnectionDetails
+func (p *postgresql) urlWithoutDb() string {
+	c := p.ConnectionDetails
 	ssl := defaults.String(c.Options["sslmode"], "disable")
 
 	s := "postgres://%s:%s@%s:%s/?sslmode=%s"
 	return fmt.Sprintf(s, c.User, c.Password, c.Host, c.Port, ssl)
 }
 
-func (m *postgresql) MigrationURL() string {
-	return m.URL()
+func (p *postgresql) MigrationURL() string {
+	return p.URL()
 }
 
 func (p *postgresql) TranslateSQL(sql string) string {
@@ -139,7 +152,7 @@ func (p *postgresql) TranslateSQL(sql string) string {
 			for _, char := range str {
 				out = append(out, byte(char))
 			}
-			curr += 1
+			curr++
 		} else {
 			out = append(out, sql[i])
 		}

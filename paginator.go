@@ -35,14 +35,14 @@ func (p Paginator) String() string {
 
 // NewPaginator returns a new `Paginator` value with the appropriate
 // defaults set.
-func NewPaginator(page int, per_page int) *Paginator {
+func NewPaginator(page int, perPage int) *Paginator {
 	if page < 1 {
 		page = 1
 	}
-	if per_page < 1 {
-		per_page = 20
+	if perPage < 1 {
+		perPage = 20
 	}
-	p := &Paginator{Page: page, PerPage: per_page}
+	p := &Paginator{Page: page, PerPage: perPage}
 	p.Offset = (page - 1) * p.PerPage
 	return p
 }
@@ -59,14 +59,14 @@ type PaginationParams interface {
 func NewPaginatorFromParams(params PaginationParams) *Paginator {
 	page := defaults.String(params.Get("page"), "1")
 
-	per_page := defaults.String(params.Get("per_page"), strconv.Itoa(PaginatorPerPageDefault))
+	perPage := defaults.String(params.Get("per_page"), strconv.Itoa(PaginatorPerPageDefault))
 
 	p, err := strconv.Atoi(page)
 	if err != nil {
 		p = 1
 	}
 
-	pp, err := strconv.Atoi(per_page)
+	pp, err := strconv.Atoi(perPage)
 	if err != nil {
 		pp = PaginatorPerPageDefault
 	}
@@ -78,8 +78,8 @@ func NewPaginatorFromParams(params PaginationParams) *Paginator {
 //	q := c.Paginate(2, 15)
 //	q.All(&[]User{})
 //	q.Paginator
-func (c *Connection) Paginate(page int, per_page int) *Query {
-	return Q(c).Paginate(page, per_page)
+func (c *Connection) Paginate(page int, perPage int) *Query {
+	return Q(c).Paginate(page, perPage)
 }
 
 // Paginate records returned from the database.
@@ -87,8 +87,8 @@ func (c *Connection) Paginate(page int, per_page int) *Query {
 //	q = q.Paginate(2, 15)
 //	q.All(&[]User{})
 //	q.Paginator
-func (q *Query) Paginate(page int, per_page int) *Query {
-	q.Paginator = NewPaginator(page, per_page)
+func (q *Query) Paginate(page int, perPage int) *Query {
+	q.Paginator = NewPaginator(page, perPage)
 	return q
 }
 

@@ -7,6 +7,7 @@ import (
 	"os/exec"
 	"strings"
 
+	// Load MySQL Go driver
 	_ "github.com/go-sql-driver/mysql"
 	. "github.com/markbates/pop/columns"
 	"github.com/markbates/pop/fizz"

@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"fmt"
+
 	"github.com/markbates/pop"
 	"github.com/spf13/cobra"
 )
@@ -11,12 +13,18 @@ var dropCmd = &cobra.Command{
 	Use:   "drop",
 	Short: "Drops databases for you",
 	Run: func(cmd *cobra.Command, args []string) {
+		var err error
 		if all {
 			for _, conn := range pop.Connections {
-				pop.DropDB(conn)
+				err = pop.DropDB(conn)
+				if err != nil {
+					fmt.Println(err)
+				}
 			}
 		} else {
-			pop.DropDB(getConn())
+			if err := pop.DropDB(getConn()); err != nil {
+				fmt.Println(err)
+			}
 		}
 	},
 }

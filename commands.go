@@ -6,6 +6,7 @@ import (
 	"github.com/pkg/errors"
 )
 
+// CreateDB creates a database, given a connection definition
 func CreateDB(c *Connection) error {
 	deets := c.Dialect.Details()
 	if deets.Database != "" {
@@ -15,6 +16,7 @@ func CreateDB(c *Connection) error {
 	return nil
 }
 
+// DropDB drops an existing database, given a connection definition
 func DropDB(c *Connection) error {
 	deets := c.Dialect.Details()
 	if deets.Database != "" {

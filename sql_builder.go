@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
+	"sync"
 
 	"github.com/jmoiron/sqlx"
 	. "github.com/markbates/pop/columns"
@@ -44,6 +45,8 @@ func (sq *sqlBuilder) Args() []interface{} {
 	return sq.args
 }
 
+var inRegex = regexp.MustCompile(`(?i)in\s*\(\s*\?\s*\)`)
+
 func (sq *sqlBuilder) compile() {
 	if sq.sql == "" {
 		if sq.Query.RawSQL.Fragment != "" {
@@ -51,8 +54,8 @@ func (sq *sqlBuilder) compile() {
 		} else {
 			sq.sql = sq.buildSelectSQL()
 		}
-		re := regexp.MustCompile(`(?i)in\s*\(\s*\?\s*\)`)
-		if re.MatchString(sq.sql) {
+
+		if inRegex.MatchString(sq.sql) {
 			s, _, err := sqlx.In(sq.sql, sq.Args())
 			if err == nil {
 				sq.sql = s
@@ -176,18 +179,23 @@ func (sq *sqlBuilder) buildPaginationClauses(sql string) string {
 }
 
 var columnCache = map[string]Columns{}
+var columnCacheMutex = sync.Mutex{}
 
 func (sq *sqlBuilder) buildColumns() Columns {
 	tableName := sq.Model.TableName()
 	acl := len(sq.AddColumns)
 	if acl <= 0 {
+		columnCacheMutex.Lock()
 		cols, ok := columnCache[tableName]
+		columnCacheMutex.Unlock()
 		//if alias is different, remake columns
 		if ok && cols.TableAlias == sq.Model.As {
 			return cols
 		}
 		cols = ColumnsForStructWithAlias(sq.Model.Value, tableName, sq.Model.As)
+		columnCacheMutex.Lock()
 		columnCache[tableName] = cols
+		columnCacheMutex.Unlock()
 		return cols
 	} else {
 		cols := NewColumns("")
