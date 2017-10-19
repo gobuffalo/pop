@@ -4,6 +4,7 @@ import (
 	"strings"
 )
 
+// GroupClause holds the field to apply the GROUP clause on
 type GroupClause struct {
 	Field string
 }

@@ -12,6 +12,7 @@ import (
 	"github.com/pkg/errors"
 )
 
+// MigrationCreate writes contents for a given migration in normalized files
 func MigrationCreate(path, name, ext string, up, down []byte) error {
 	n := time.Now().UTC()
 	s := n.Format("20060102150405")

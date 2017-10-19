@@ -2,6 +2,7 @@ package pop
 
 import "fmt"
 
+// GroupBy will append a GROUP BY clause to the query
 func (q *Query) GroupBy(field string, fields ...string) *Query {
 	if q.RawSQL.Fragment != "" {
 		fmt.Println("Warning: Query is setup to use raw SQL")

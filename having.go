@@ -5,6 +5,7 @@ import (
 	"strings"
 )
 
+// HavingClause defines a condition and its arguments for a HAVING clause
 type HavingClause struct {
 	Condition string
 	Arguments []interface{}
