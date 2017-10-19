@@ -155,7 +155,6 @@ func (q Query) CountByField(model interface{}, field string) (int, error) {
 			foundLimit := rLimitOffset.FindString(query)
 			query = query[0 : len(query)-len(foundLimit)]
 		} else {
-			rLimit, _ := regexp.Compile("(?i)(limit [0-9]+)$")
 			foundLimit := rLimit.FindString(query)
 			query = query[0 : len(query)-len(foundLimit)]
 		}
