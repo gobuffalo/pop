@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"io"
 
-	. "github.com/markbates/pop/columns"
+	"github.com/markbates/pop/columns"
 	"github.com/markbates/pop/fizz"
 	"github.com/pkg/errors"
 	uuid "github.com/satori/go.uuid"
@@ -20,8 +20,8 @@ type dialect interface {
 	MigrationURL() string
 	Details() *ConnectionDetails
 	TranslateSQL(string) string
-	Create(store, *Model, Columns) error
-	Update(store, *Model, Columns) error
+	Create(store, *Model, columns.Columns) error
+	Update(store, *Model, columns.Columns) error
 	Destroy(store, *Model) error
 	SelectOne(store, *Model, Query) error
 	SelectMany(store, *Model, Query) error
@@ -34,7 +34,7 @@ type dialect interface {
 	TruncateAll(*Connection) error
 }
 
-func genericCreate(s store, model *Model, cols Columns) error {
+func genericCreate(s store, model *Model, cols columns.Columns) error {
 	keyType := model.PrimaryKeyType()
 	switch keyType {
 	case "int", "int64":
@@ -75,7 +75,7 @@ func genericCreate(s store, model *Model, cols Columns) error {
 	return errors.Errorf("can not use %s as a primary key type!", keyType)
 }
 
-func genericUpdate(s store, model *Model, cols Columns) error {
+func genericUpdate(s store, model *Model, cols columns.Columns) error {
 	stmt := fmt.Sprintf("UPDATE %s SET %s where %s", model.TableName(), cols.Writeable().UpdateString(), model.whereID())
 	Log(stmt)
 	_, err := s.NamedExec(stmt, model.Value)

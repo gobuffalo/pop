@@ -1,5 +1,14 @@
 # Change Log
 
+## [v3.39.2](https://github.com/markbates/pop/tree/v3.39.2) (2017-10-20)
+[Full Changelog](https://github.com/markbates/pop/compare/v3.39.1...v3.39.2)
+
+**Merged pull requests:**
+
+- Handle remaining golint issues [\#144](https://github.com/markbates/pop/pull/144) ([stanislas-m](https://github.com/stanislas-m))
+- \[MySQL\] Use SQL instead of mysql client for create and drop DB [\#142](https://github.com/markbates/pop/pull/142) ([stanislas-m](https://github.com/stanislas-m))
+- Fix some golint issues [\#141](https://github.com/markbates/pop/pull/141) ([stanislas-m](https://github.com/stanislas-m))
+
 ## [v3.39.1](https://github.com/markbates/pop/tree/v3.39.1) (2017-10-17)
 [Full Changelog](https://github.com/markbates/pop/compare/v3.39.0...v3.39.1)
 

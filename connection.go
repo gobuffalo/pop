@@ -27,10 +27,12 @@ func (c *Connection) String() string {
 	return c.URL()
 }
 
+// URL returns the datasource connection string
 func (c *Connection) URL() string {
 	return c.Dialect.URL()
 }
 
+// MigrationURL returns the datasource connection string used for running the migrations
 func (c *Connection) MigrationURL() string {
 	return c.Dialect.MigrationURL()
 }
@@ -80,6 +82,7 @@ func Connect(e string) (*Connection, error) {
 	return c, errors.Wrapf(err, "couldn't open connection for %s", e)
 }
 
+// Open creates a new datasource connection
 func (c *Connection) Open() error {
 	if c.Store != nil {
 		return nil
@@ -92,6 +95,7 @@ func (c *Connection) Open() error {
 	return errors.Wrap(err, "coudn't connection to database")
 }
 
+// Close destroys an active datasource connection
 func (c *Connection) Close() error {
 	return errors.Wrap(c.Store.Close(), "couldn't close connection")
 }
@@ -120,6 +124,7 @@ func (c *Connection) Transaction(fn func(tx *Connection) error) error {
 
 }
 
+// NewTransaction starts a new transaction on the connection
 func (c *Connection) NewTransaction() (*Connection, error) {
 	var cn *Connection
 	if c.TX == nil {
@@ -166,6 +171,7 @@ func (c *Connection) Q() *Query {
 	return Q(c)
 }
 
+// TruncateAll truncates all data from the datasource
 func (c *Connection) TruncateAll() error {
 	return c.Dialect.TruncateAll(c)
 }

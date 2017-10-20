@@ -2,6 +2,7 @@ package pop
 
 import "github.com/pkg/errors"
 
+// Migration handles the data for a given database migration
 type Migration struct {
 	// Path to the migration (./migrations/123_create_widgets.up.sql)
 	Path string
@@ -26,6 +27,7 @@ func (mf Migration) Run(c *Connection) error {
 	return mf.Runner(mf, c)
 }
 
+// Migrations is a collection of Migration
 type Migrations []Migration
 
 func (mfs Migrations) Len() int {

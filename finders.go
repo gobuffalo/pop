@@ -137,6 +137,9 @@ func (q Query) Count(model interface{}) (int, error) {
 	return q.CountByField(model, "*")
 }
 
+// CountByField counts the number of records in the database, for a given field.
+//
+//	q.Where("sex = ?", "f").Count(&User{}, "name")
 func (q Query) CountByField(model interface{}, field string) (int, error) {
 	tmpQuery := Q(q.Connection)
 	q.Clone(tmpQuery) //avoid mendling with original query

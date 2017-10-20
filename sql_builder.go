@@ -7,7 +7,7 @@ import (
 	"sync"
 
 	"github.com/jmoiron/sqlx"
-	. "github.com/markbates/pop/columns"
+	"github.com/markbates/pop/columns"
 )
 
 type sqlBuilder struct {
@@ -178,10 +178,10 @@ func (sq *sqlBuilder) buildPaginationClauses(sql string) string {
 	return sql
 }
 
-var columnCache = map[string]Columns{}
+var columnCache = map[string]columns.Columns{}
 var columnCacheMutex = sync.Mutex{}
 
-func (sq *sqlBuilder) buildColumns() Columns {
+func (sq *sqlBuilder) buildColumns() columns.Columns {
 	tableName := sq.Model.TableName()
 	acl := len(sq.AddColumns)
 	if acl <= 0 {
@@ -192,14 +192,15 @@ func (sq *sqlBuilder) buildColumns() Columns {
 		if ok && cols.TableAlias == sq.Model.As {
 			return cols
 		}
-		cols = ColumnsForStructWithAlias(sq.Model.Value, tableName, sq.Model.As)
+		cols = columns.ColumnsForStructWithAlias(sq.Model.Value, tableName, sq.Model.As)
 		columnCacheMutex.Lock()
 		columnCache[tableName] = cols
 		columnCacheMutex.Unlock()
 		return cols
-	} else {
-		cols := NewColumns("")
-		cols.Add(sq.AddColumns...)
-		return cols
 	}
+
+	// acl > 0
+	cols := columns.NewColumns("")
+	cols.Add(sq.AddColumns...)
+	return cols
 }

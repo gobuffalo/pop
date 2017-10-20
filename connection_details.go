@@ -13,6 +13,7 @@ import (
 	"github.com/pkg/errors"
 )
 
+// ConnectionDetails stores the data needed to connect to a datasource
 type ConnectionDetails struct {
 	// Example: "postgres" or "sqlite3" or "mysql"
 	Dialect string
@@ -114,6 +115,7 @@ func (cd *ConnectionDetails) Parse(port string) error {
 	return cd.Finalize()
 }
 
+// RetrySleep returns the amount of time to wait between two connection retries
 func (cd *ConnectionDetails) RetrySleep() time.Duration {
 	d, err := time.ParseDuration(defaults.String(cd.Options["retry_sleep"], "1ms"))
 	if err != nil {
@@ -122,6 +124,7 @@ func (cd *ConnectionDetails) RetrySleep() time.Duration {
 	return d
 }
 
+// RetryLimit returns the maximum number of accepted connection retries
 func (cd *ConnectionDetails) RetryLimit() int {
 	i, err := strconv.Atoi(defaults.String(cd.Options["retry_limit"], "1000"))
 	if err != nil {

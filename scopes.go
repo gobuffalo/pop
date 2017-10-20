@@ -1,5 +1,6 @@
 package pop
 
+// ScopeFunc applies a custom operation on a given `Query`
 type ScopeFunc func(q *Query) *Query
 
 // Scope the query by using a `ScopeFunc`

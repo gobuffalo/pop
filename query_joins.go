@@ -2,6 +2,7 @@ package pop
 
 import "fmt"
 
+// Join will append a JOIN clause to the query
 func (q *Query) Join(table string, on string, args ...interface{}) *Query {
 	if q.RawSQL.Fragment != "" {
 		fmt.Println("Warning: Query is setup to use raw SQL")
@@ -11,6 +12,7 @@ func (q *Query) Join(table string, on string, args ...interface{}) *Query {
 	return q
 }
 
+// LeftJoin will append a LEFT JOIN clause to the query
 func (q *Query) LeftJoin(table string, on string, args ...interface{}) *Query {
 	if q.RawSQL.Fragment != "" {
 		fmt.Println("Warning: Query is setup to use raw SQL")
@@ -20,6 +22,7 @@ func (q *Query) LeftJoin(table string, on string, args ...interface{}) *Query {
 	return q
 }
 
+// RightJoin will append a RIGHT JOIN clause to the query
 func (q *Query) RightJoin(table string, on string, args ...interface{}) *Query {
 	if q.RawSQL.Fragment != "" {
 		fmt.Println("Warning: Query is setup to use raw SQL")
@@ -29,6 +32,7 @@ func (q *Query) RightJoin(table string, on string, args ...interface{}) *Query {
 	return q
 }
 
+// LeftOuterJoin will append a LEFT OUTER JOIN clause to the query
 func (q *Query) LeftOuterJoin(table string, on string, args ...interface{}) *Query {
 	if q.RawSQL.Fragment != "" {
 		fmt.Println("Warning: Query is setup to use raw SQL")
@@ -38,6 +42,7 @@ func (q *Query) LeftOuterJoin(table string, on string, args ...interface{}) *Que
 	return q
 }
 
+// RightOuterJoin will append a RIGHT OUTER JOIN clause to the query
 func (q *Query) RightOuterJoin(table string, on string, args ...interface{}) *Query {
 	if q.RawSQL.Fragment != "" {
 		fmt.Println("Warning: Query is setup to use raw SQL")
@@ -47,6 +52,7 @@ func (q *Query) RightOuterJoin(table string, on string, args ...interface{}) *Qu
 	return q
 }
 
+// LeftInnerJoin will append a LEFT INNER JOIN clause to the query
 func (q *Query) LeftInnerJoin(table string, on string, args ...interface{}) *Query {
 	if q.RawSQL.Fragment != "" {
 		fmt.Println("Warning: Query is setup to use raw SQL")
@@ -56,6 +62,7 @@ func (q *Query) LeftInnerJoin(table string, on string, args ...interface{}) *Que
 	return q
 }
 
+// RightInnerJoin will append a RIGHT INNER JOIN clause to the query
 func (q *Query) RightInnerJoin(table string, on string, args ...interface{}) *Query {
 	if q.RawSQL.Fragment != "" {
 		fmt.Println("Warning: Query is setup to use raw SQL")

@@ -13,7 +13,7 @@ import (
 	"time"
 
 	"github.com/markbates/going/defaults"
-	. "github.com/markbates/pop/columns"
+	"github.com/markbates/pop/columns"
 	"github.com/markbates/pop/fizz"
 	"github.com/markbates/pop/fizz/translators"
 	// Load SQLite3 CGo driver
@@ -41,13 +41,13 @@ func (m *sqlite) MigrationURL() string {
 	return m.ConnectionDetails.URL
 }
 
-func (m *sqlite) Create(s store, model *Model, cols Columns) error {
+func (m *sqlite) Create(s store, model *Model, cols columns.Columns) error {
 	return m.locker(m.smGil, func() error {
 		return errors.Wrap(genericCreate(s, model, cols), "sqlite create")
 	})
 }
 
-func (m *sqlite) Update(s store, model *Model, cols Columns) error {
+func (m *sqlite) Update(s store, model *Model, cols columns.Columns) error {
 	return m.locker(m.smGil, func() error {
 		return errors.Wrap(genericUpdate(s, model, cols), "sqlite update")
 	})

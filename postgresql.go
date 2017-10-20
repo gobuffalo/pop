@@ -14,7 +14,7 @@ import (
 	// Load PostgreSQL Go driver
 	_ "github.com/lib/pq"
 	"github.com/markbates/going/defaults"
-	. "github.com/markbates/pop/columns"
+	"github.com/markbates/pop/columns"
 	"github.com/markbates/pop/fizz"
 	"github.com/markbates/pop/fizz/translators"
 	"github.com/pkg/errors"
@@ -32,7 +32,7 @@ func (p *postgresql) Details() *ConnectionDetails {
 	return p.ConnectionDetails
 }
 
-func (p *postgresql) Create(s store, model *Model, cols Columns) error {
+func (p *postgresql) Create(s store, model *Model, cols columns.Columns) error {
 	keyType := model.PrimaryKeyType()
 	switch keyType {
 	case "int", "int64":
@@ -59,7 +59,7 @@ func (p *postgresql) Create(s store, model *Model, cols Columns) error {
 	return errors.Errorf("can not use %s as a primary key type!", keyType)
 }
 
-func (p *postgresql) Update(s store, model *Model, cols Columns) error {
+func (p *postgresql) Update(s store, model *Model, cols columns.Columns) error {
 	return genericUpdate(s, model, cols)
 }
 
