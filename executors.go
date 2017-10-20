@@ -24,6 +24,21 @@ func (q *Query) Exec() error {
 	})
 }
 
+func (q *Query) ExecWithCount() (int, error) {
+	count := int64(0)
+	return int(count), q.Connection.timeFunc("Exec", func() error {
+		sql, args := q.ToSQL(nil)
+		Log(sql, args...)
+		result, err := q.Connection.Store.Exec(sql, args...)
+		if err != nil {
+			return err
+		}
+
+		count, err = result.RowsAffected()
+		return err
+	})
+}
+
 // ValidateAndSave applies validation rules on the given entry, then save it
 // if the validation succeed, excluding the given columns.
 func (c *Connection) ValidateAndSave(model interface{}, excludeColumns ...string) (*validate.Errors, error) {

@@ -1,7 +1,7 @@
 mysql:
   dialect: "mysql"
   database: "pop_test"
-  host: {{ envOr "MYSQL_HOST" "localhost"  }}
+  host: {{ envOr "MYSQL_HOST" "127.0.0.1"  }}
   port: {{ envOr "MYSQL_PORT" "3306"  }}
   user: {{ envOr "MYSQL_USER"  "root"  }}
   password: {{ envOr "MYSQL_PASSWORD"  "root"  }}
@@ -9,7 +9,7 @@ mysql:
 mysql_travis:
   dialect: "mysql"
   database: "pop_test"
-  host: {{ envOr "MYSQL_HOST" "localhost"  }}
+  host: {{ envOr "MYSQL_HOST" "127.0.0.1"  }}
   port: {{ envOr "MYSQL_PORT" "3306"  }}
   user: {{ envOr "MYSQL_USER"  "root"  }}
   password: {{ envOr "MYSQL_PASSWORD"  ""  }}

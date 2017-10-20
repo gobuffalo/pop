@@ -128,6 +128,27 @@ func Test_Exec(t *testing.T) {
 	})
 }
 
+func Test_ExecCount(t *testing.T) {
+	transaction(func(tx *pop.Connection) {
+		a := require.New(t)
+
+		user := User{Name: nulls.NewString("Mark 'Awesome' Bates")}
+		tx.Create(&user)
+
+		ctx, _ := tx.Count(user)
+		a.Equal(1, ctx)
+
+		q := tx.RawQuery("delete from users where id = ?", user.ID)
+		count, err := q.ExecWithCount()
+		a.NoError(err)
+
+		a.Equal(1, count)
+
+		ctx, _ = tx.Count(user)
+		a.Equal(0, ctx)
+	})
+}
+
 func Test_Save(t *testing.T) {
 	r := require.New(t)
 	transaction(func(tx *pop.Connection) {

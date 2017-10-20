@@ -18,6 +18,30 @@ type Query struct {
 	Connection              *Connection
 }
 
+func (q *Query) Clone(targetQ *Query) {
+	rawSQL := *q.RawSQL
+	targetQ.RawSQL = &rawSQL
+
+	targetQ.limitResults = q.limitResults
+	targetQ.whereClauses = q.whereClauses
+	targetQ.orderClauses = q.orderClauses
+	targetQ.fromClauses = q.fromClauses
+	targetQ.belongsToThroughClauses = q.belongsToThroughClauses
+	targetQ.joinClauses = q.joinClauses
+	targetQ.groupClauses = q.groupClauses
+	targetQ.havingClauses = q.havingClauses
+
+	if q.Paginator != nil {
+		paginator := *q.Paginator
+		targetQ.Paginator = &paginator
+	}
+
+	if q.Connection != nil {
+		connection := *q.Connection
+		targetQ.Connection = &connection
+	}
+}
+
 // RawQuery will override the query building feature of Pop and will use
 // whatever query you want to execute against the `Connection`. You can continue
 // to use the `?` argument syntax.
