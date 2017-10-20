@@ -7,8 +7,14 @@ import (
 	"github.com/markbates/going/defaults"
 )
 
+// PaginatorPerPageDefault is the amount of results per page
 var PaginatorPerPageDefault = 20
+
+// PaginatorPageKey is the query parameter holding the current page index
 var PaginatorPageKey = "page"
+
+// PaginatorPerPageKey is the query parameter holding the amount of results per page
+// to override the default one
 var PaginatorPerPageKey = "per_page"
 
 // Paginator is a type used to represent the pagination of records
@@ -47,6 +53,7 @@ func NewPaginator(page int, perPage int) *Paginator {
 	return p
 }
 
+// PaginationParams is a parameters provider interface to get the pagination params from
 type PaginationParams interface {
 	Get(key string) string
 }
@@ -92,7 +99,7 @@ func (q *Query) Paginate(page int, perPage int) *Query {
 	return q
 }
 
-// Paginate records returned from the database.
+// PaginateFromParams paginates records returned from the database.
 //
 //	q := c.PaginateFromParams(req.URL.Query())
 //	q.All(&[]User{})
@@ -101,7 +108,7 @@ func (c *Connection) PaginateFromParams(params PaginationParams) *Query {
 	return Q(c).PaginateFromParams(params)
 }
 
-// Paginate records returned from the database.
+// PaginateFromParams paginates records returned from the database.
 //
 //	q = q.PaginateFromParams(req.URL.Query())
 //	q.All(&[]User{})

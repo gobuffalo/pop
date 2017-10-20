@@ -31,6 +31,7 @@ func MapTableName(name string, tableName string) {
 	tableMap[name] = tableName
 }
 
+// Value is the contents of a `Model`.
 type Value interface{}
 
 // Model is used throughout Pop to wrap the end user interface
@@ -54,6 +55,7 @@ func (m *Model) ID() interface{} {
 	return fbn.Interface()
 }
 
+// PrimaryKeyType gives the primary key type of the `Model`.
 func (m *Model) PrimaryKeyType() string {
 	fbn, err := m.fieldByName("ID")
 	if err != nil {

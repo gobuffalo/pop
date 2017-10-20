@@ -10,7 +10,7 @@ import (
 	// Load MySQL Go driver
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
-	. "github.com/markbates/pop/columns"
+	"github.com/markbates/pop/columns"
 	"github.com/markbates/pop/fizz"
 	"github.com/markbates/pop/fizz/translators"
 	"github.com/pkg/errors"
@@ -45,11 +45,11 @@ func (m *mysql) MigrationURL() string {
 	return m.URL()
 }
 
-func (m *mysql) Create(s store, model *Model, cols Columns) error {
+func (m *mysql) Create(s store, model *Model, cols columns.Columns) error {
 	return errors.Wrap(genericCreate(s, model, cols), "mysql create")
 }
 
-func (m *mysql) Update(s store, model *Model, cols Columns) error {
+func (m *mysql) Update(s store, model *Model, cols columns.Columns) error {
 	return errors.Wrap(genericUpdate(s, model, cols), "mysql update")
 }
 

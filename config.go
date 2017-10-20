@@ -32,6 +32,7 @@ func init() {
 	LoadConfigFile()
 }
 
+// LoadConfigFile loads a POP config file from the configured lookup paths
 func LoadConfigFile() error {
 	path, err := findConfigPath()
 	if err != nil {
@@ -48,10 +49,12 @@ func LoadConfigFile() error {
 	return LoadFrom(f)
 }
 
+// LookupPaths returns the current configuration lookup paths
 func LookupPaths() []string {
 	return lookupPaths
 }
 
+// AddLookupPaths add paths to the current lookup paths list
 func AddLookupPaths(paths ...string) error {
 	lookupPaths = append(paths, lookupPaths...)
 	return LoadConfigFile()
