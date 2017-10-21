@@ -3,10 +3,14 @@ package pop
 import (
 	"fmt"
 	"reflect"
+	"regexp"
 	"strconv"
 
 	"github.com/satori/go.uuid"
 )
+
+var rLimitOffset = regexp.MustCompile("(?i)(limit [0-9]+ offset [0-9]+)$")
+var rLimit = regexp.MustCompile("(?i)(limit [0-9]+)$")
 
 // Find the first record of the model in the database with a particular id.
 //
@@ -137,14 +141,30 @@ func (q Query) Count(model interface{}) (int, error) {
 //
 //	q.Where("sex = ?", "f").Count(&User{}, "name")
 func (q Query) CountByField(model interface{}, field string) (int, error) {
+	tmpQuery := Q(q.Connection)
+	q.Clone(tmpQuery) //avoid mendling with original query
+
 	res := &rowCount{}
-	err := q.Connection.timeFunc("Count", func() error {
-		q.Paginator = nil
-		col := fmt.Sprintf("count(%s) as row_count", field)
-		q.orderClauses = clauses{}
-		query, args := q.ToSQL(&Model{Value: model}, col)
-		Log(query, args...)
-		return q.Connection.Store.Get(res, query, args...)
+
+	err := tmpQuery.Connection.timeFunc("CountByField", func() error {
+		tmpQuery.Paginator = nil
+		tmpQuery.orderClauses = clauses{}
+		tmpQuery.limitResults = 0
+		query, args := tmpQuery.ToSQL(&Model{Value: model})
+		//when query contains custom selected fields / executed using RawQuery,
+		//	sql may already contains limit and offset
+
+		if rLimitOffset.MatchString(query) {
+			foundLimit := rLimitOffset.FindString(query)
+			query = query[0 : len(query)-len(foundLimit)]
+		} else if rLimit.MatchString(query) {
+			foundLimit := rLimit.FindString(query)
+			query = query[0 : len(query)-len(foundLimit)]
+		}
+
+		countQuery := fmt.Sprintf("select count(%s) as row_count from (%s) a", field, query)
+		Log(countQuery, args...)
+		return q.Connection.Store.Get(res, countQuery, args...)
 	})
 	return res.Count, err
 }
