@@ -2,11 +2,11 @@ package pop
 
 import (
 	"bytes"
-	"html/template"
 	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"text/template"
 
 	"github.com/markbates/pop/fizz"
 	"github.com/pkg/errors"
