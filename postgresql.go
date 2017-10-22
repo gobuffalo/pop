@@ -13,6 +13,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	// Load PostgreSQL Go driver
 	_ "github.com/lib/pq"
+
 	"github.com/markbates/going/defaults"
 	"github.com/markbates/pop/columns"
 	"github.com/markbates/pop/fizz"
@@ -230,13 +231,18 @@ func newPostgreSQL(deets *ConnectionDetails) dialect {
 
 const pgTruncate = `DO
 $func$
+DECLARE
+   _tbl text;
+   _sch text;
 BEGIN
-   EXECUTE
-  (SELECT 'TRUNCATE TABLE '
-       || string_agg(quote_ident(schemaname) || '.' || quote_ident(tablename), ', ')
-       || ' CASCADE'
-   FROM   pg_tables
-   WHERE  schemaname = 'public'
-   );
+   FOR _sch, _tbl IN
+      SELECT schemaname, tablename
+      FROM   pg_tables
+      WHERE    schemaname = 'public'
+   LOOP
+      --RAISE ERROR '%',
+      EXECUTE  -- dangerous, test before you execute!
+         format('TRUNCATE TABLE %I.%I CASCADE', _sch, _tbl);
+   END LOOP;
 END
 $func$;`
