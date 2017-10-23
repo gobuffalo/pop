@@ -255,3 +255,36 @@ sql, args := query.ToSQL(&pop.Model{Value: models.UserRole{}}, "user_roles.*",
 err := models.DB.RawQuery(sql, args...).All(&roles)
 ```
 
+#### Callbacks
+Pop provides a means to execute code before and after database operations.
+This is done by defining specific methods on your models. For
+example, to hash a user password you may want to define the following method:
+
+```go
+type User struct {
+	ID       uuid.UUID
+	Email    string
+	Password string
+}
+
+func (u *User) BeforeSave(tx *pop.Connection) error {
+	hash, err := bcrypt.GenerateFromPassword([]byte(u.Password), bcrypt.DefaultCost)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	u.Password = string(hash)
+	
+	return nil
+}
+```
+The available callbacks include:
+* BeforeSave
+* BeforeCreate
+* BeforeUpdate
+* BeforeDestroy
+* AfterSave
+* AfterCreate
+* AfterUpdate
+* AfterDestroy
+* AfterFind
