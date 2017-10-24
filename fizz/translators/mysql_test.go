@@ -41,14 +41,14 @@ CREATE UNIQUE INDEX version_idx ON schema_migrations (version);`
 func (p *MySQLSuite) Test_MySQL_CreateTable() {
 	r := p.Require()
 	ddl := `CREATE TABLE users (
-created_at DATETIME NOT NULL,
-updated_at DATETIME NOT NULL,
+id integer NOT NULL AUTO_INCREMENT,
 first_name VARCHAR (255) NOT NULL,
 last_name VARCHAR (255) NOT NULL,
 email VARCHAR (20) NOT NULL,
 permissions text,
 age integer DEFAULT 40,
-id integer NOT NULL AUTO_INCREMENT,
+created_at DATETIME NOT NULL,
+updated_at DATETIME NOT NULL,
 PRIMARY KEY(id)
 ) ENGINE=InnoDB;`
 
@@ -67,8 +67,6 @@ PRIMARY KEY(id)
 func (p *MySQLSuite) Test_MySQL_CreateTable_UUID() {
 	r := p.Require()
 	ddl := `CREATE TABLE users (
-created_at DATETIME NOT NULL,
-updated_at DATETIME NOT NULL,
 first_name VARCHAR (255) NOT NULL,
 last_name VARCHAR (255) NOT NULL,
 email VARCHAR (20) NOT NULL,
@@ -76,6 +74,8 @@ permissions text,
 age integer DEFAULT 40,
 company_id char(36) NOT NULL DEFAULT 'test',
 uuid char(36) NOT NULL,
+created_at DATETIME NOT NULL,
+updated_at DATETIME NOT NULL,
 PRIMARY KEY(uuid)
 ) ENGINE=InnoDB;`
 
