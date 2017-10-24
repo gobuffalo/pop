@@ -4,6 +4,11 @@ type Table struct {
 	Name    string `db:"name"`
 	Columns []Column
 	Indexes []Index
+	Options map[string]interface{}
+}
+
+func (t *Table) DisableTimestamps() {
+	t.Options["timestamps"] = false
 }
 
 func (t *Table) Column(name string, colType string, options map[string]interface{}) {
@@ -56,11 +61,12 @@ func (t *Table) HasColumns(args ...string) bool {
 }
 
 func (f fizzer) CreateTable() interface{} {
-	return func(name string, fn func(t *Table), options map[string]interface{}) {
+	return func(name string, fn func(t *Table)) {
 		t := Table{
 			Name:    name,
 			Columns: []Column{},
 		}
+
 		fn(&t)
 		var foundPrimary bool
 		for _, c := range t.Columns {
@@ -74,8 +80,8 @@ func (f fizzer) CreateTable() interface{} {
 			t.Columns = append([]Column{INT_ID_COL}, t.Columns...)
 		}
 
-		if value, exists := options["timestamps"]; !exists || true == value {
-			t.Columns = append(t.Columns, CREATED_COL, UPDATED_COL)
+		if enabled, exists := t.Options["timestamps"]; !exists || enabled == true {
+			t.Timestamps()
 		}
 
 		f.add(f.Bubbler.CreateTable(t))
