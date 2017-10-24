@@ -29,14 +29,14 @@ func (p *fauxSchema) TableInfo(table string) (*fizz.Table, error) {
 func (p *SQLiteSuite) Test_SQLite_CreateTable() {
 	r := p.Require()
 	ddl := `CREATE TABLE "users" (
-"created_at" DATETIME NOT NULL,
-"updated_at" DATETIME NOT NULL,
+"id" INTEGER PRIMARY KEY AUTOINCREMENT,
 "first_name" TEXT NOT NULL,
 "last_name" TEXT NOT NULL,
 "email" TEXT NOT NULL,
 "permissions" text,
 "age" integer DEFAULT '40',
-"id" INTEGER PRIMARY KEY AUTOINCREMENT
+"created_at" DATETIME NOT NULL,
+"updated_at" DATETIME NOT NULL
 );`
 
 	res, _ := fizz.AString(`
@@ -54,15 +54,15 @@ func (p *SQLiteSuite) Test_SQLite_CreateTable() {
 func (p *SQLiteSuite) Test_SQLite_CreateTable_UUID() {
 	r := p.Require()
 	ddl := `CREATE TABLE "users" (
-"created_at" DATETIME NOT NULL,
-"updated_at" DATETIME NOT NULL,
 "first_name" TEXT NOT NULL,
 "last_name" TEXT NOT NULL,
 "email" TEXT NOT NULL,
 "permissions" text,
 "age" integer DEFAULT '40',
 "company_id" char(36) NOT NULL DEFAULT lower(hex(randomblob(16))),
-"uuid" TEXT PRIMARY KEY
+"uuid" TEXT PRIMARY KEY,
+"created_at" DATETIME NOT NULL,
+"updated_at" DATETIME NOT NULL
 );`
 
 	res, _ := fizz.AString(`

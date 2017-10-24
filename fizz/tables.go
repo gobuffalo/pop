@@ -4,6 +4,11 @@ type Table struct {
 	Name    string `db:"name"`
 	Columns []Column
 	Indexes []Index
+	Options map[string]interface{}
+}
+
+func (t *Table) DisableTimestamps() {
+	t.Options["timestamps"] = false
 }
 
 func (t *Table) Column(name string, colType string, options map[string]interface{}) {
@@ -18,6 +23,20 @@ func (t *Table) Column(name string, colType string, options map[string]interface
 		Primary: primary,
 	}
 	t.Columns = append(t.Columns, c)
+}
+
+func (t *Table) Timestamp(name string) {
+	c := Column{
+		Name:    name,
+		ColType: "timestamp",
+		Options: Options{},
+	}
+
+	t.Columns = append(t.Columns, c)
+}
+
+func (t *Table) Timestamps() {
+	t.Columns = append(t.Columns, []Column{CREATED_COL, UPDATED_COL}...)
 }
 
 func (t *Table) ColumnNames() []string {
@@ -45,8 +64,9 @@ func (f fizzer) CreateTable() interface{} {
 	return func(name string, fn func(t *Table)) {
 		t := Table{
 			Name:    name,
-			Columns: []Column{CREATED_COL, UPDATED_COL},
+			Columns: []Column{},
 		}
+
 		fn(&t)
 		var foundPrimary bool
 		for _, c := range t.Columns {
@@ -55,9 +75,15 @@ func (f fizzer) CreateTable() interface{} {
 				break
 			}
 		}
+
 		if !foundPrimary {
-			t.Columns = append(t.Columns, INT_ID_COL)
+			t.Columns = append([]Column{INT_ID_COL}, t.Columns...)
 		}
+
+		if enabled, exists := t.Options["timestamps"]; !exists || enabled == true {
+			t.Timestamps()
+		}
+
 		f.add(f.Bubbler.CreateTable(t))
 	}
 }
