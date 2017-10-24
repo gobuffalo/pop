@@ -20,6 +20,20 @@ func (t *Table) Column(name string, colType string, options map[string]interface
 	t.Columns = append(t.Columns, c)
 }
 
+func (t *Table) Timestamp(name string) {
+	c := Column{
+		Name:    name,
+		ColType: "timestamp",
+		Options: Options{},
+	}
+
+	t.Columns = append(t.Columns, c)
+}
+
+func (t *Table) Timestamps() {
+	t.Columns = append(t.Columns, []Column{CREATED_COL, UPDATED_COL}...)
+}
+
 func (t *Table) ColumnNames() []string {
 	cols := make([]string, len(t.Columns))
 	for i, c := range t.Columns {
