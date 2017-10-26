@@ -14,6 +14,10 @@ mysql_travis:
   user: {{ envOr "MYSQL_USER"  "root"  }}
   password: {{ envOr "MYSQL_PASSWORD"  ""  }}
 
+cockroach:
+  dialect: "cockroach"
+  url: "postgres://root@localhost:26257/?application_name=cockroach&sslmode=disable"
+
 postgres:
   url: "postgres://postgres:postgres@localhost:5432/pop_test?sslmode=disable"
   pool: 25

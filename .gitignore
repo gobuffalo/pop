@@ -32,3 +32,4 @@ vendor/
 tsoda
 migrations/schema.sql
 .grifter/
+cockroach-data/
