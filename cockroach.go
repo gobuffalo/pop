@@ -222,8 +222,8 @@ func (p *cockroach) TruncateAll(tx *Connection) error {
 		TableName string `sql:"table_name"`
 	}
 
-	tables := &[]table{}
-	if err := tx.RawQuery("select table_name from information_schema.tables;").All(tables); err != nil {
+	tables := []table{}
+	if err := tx.RawQuery("select table_name from information_schema.tables;").All(&tables); err != nil {
 		return err
 	}
 
