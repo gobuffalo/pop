@@ -14,10 +14,6 @@ mysql_travis:
   user: {{ envOr "MYSQL_USER"  "root"  }}
   password: {{ envOr "MYSQL_PASSWORD"  ""  }}
 
-cockroach:
-  dialect: "cockroach"
-  url: "postgres://root@localhost:26257/?application_name=cockroach&sslmode=disable"
-
 postgres:
   url: "postgres://postgres:postgres@localhost:5432/pop_test?sslmode=disable"
   pool: 25
@@ -25,3 +21,13 @@ postgres:
 sqlite:
   dialect: "sqlite3"
   database: "./sql_scripts/sqlite/test.sqlite"
+
+cockroach:
+#  url: "cockroach://root@127.0.0.1:26257/pop_test?application_name=cockroach&sslmode=disable"
+  dialect: "cockroach"
+  database: "pop_test"
+  host: {{ envOr "COCKROACH_HOST" "127.0.0.1"  }}
+  port: {{ envOr "COCKROACH_PORT" "26257"  }}
+  user: {{ envOr "COCKROACH_USER" "root"  }}
+  password: {{ envOr "COCKROACH_PASSWORD" ""  }}
+

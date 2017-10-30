@@ -68,7 +68,7 @@ func (p *Cockroach) ChangeColumn(t fizz.Table) (string, error) {
 		return "", errors.New("Not enough columns supplied!")
 	}
 	c := t.Columns[0]
-	s := fmt.Sprintf("ALTER TABLE \"%s\" ALTER COLUMN %s;", t.Name, p.buildChangeColumn(c))
+	s := p.buildChangeColumn(t.Name, c)
 	return s, nil
 }
 
@@ -145,23 +145,24 @@ func (p *Cockroach) buildAddColumn(c fizz.Column) string {
 	return s
 }
 
-func (p *Cockroach) buildChangeColumn(c fizz.Column) string {
-	s := fmt.Sprintf("\"%s\" TYPE %s", c.Name, p.colType(c))
+func (p *Cockroach) buildChangeColumn(tableName string, c fizz.Column) string {
+	s := fmt.Sprintf("ALTER TABLE \"%s\" ALTER COLUMN \"%s\" TYPE %s;", tableName, c.Name, p.colType(c))
 
 	var sets []string
 	if c.Options["null"] == nil {
-		sets = append(sets, fmt.Sprintf("ALTER COLUMN \"%s\" SET NOT NULL", c.Name))
+		//TODO: make new column with
+		//sets = append(sets, fmt.Sprintf("ALTER TABLE \"%s\" ALTER COLUMN \"%s\" SET NOT NULL;", tableName, c.Name))
 	} else {
-		sets = append(sets, fmt.Sprintf("ALTER COLUMN \"%s\" DROP NOT NULL", c.Name))
+		sets = append(sets, fmt.Sprintf("ALTER TABLE \"%s\" ALTER COLUMN \"%s\" DROP NOT NULL;", tableName, c.Name))
 	}
 	if c.Options["default"] != nil {
-		sets = append(sets, fmt.Sprintf("ALTER COLUMN \"%s\" SET DEFAULT '%v'", c.Name, c.Options["default"]))
+		sets = append(sets, fmt.Sprintf("ALTER TABLE \"%s\" ALTER COLUMN \"%s\" SET DEFAULT '%v';", tableName, c.Name, c.Options["default"]))
 	}
 	if c.Options["default_raw"] != nil {
-		sets = append(sets, fmt.Sprintf("ALTER COLUMN \"%s\" SET DEFAULT %s", c.Name, c.Options["default_raw"]))
+		sets = append(sets, fmt.Sprintf("ALTER TABLE \"%s\" ALTER COLUMN \"%s\" SET DEFAULT %s;", tableName, c.Name, c.Options["default_raw"]))
 	}
 	if len(sets) > 0 {
-		s += ", " + strings.Join(sets, ", ")
+		s += " " + strings.Join(sets, " ")
 	}
 
 	return s

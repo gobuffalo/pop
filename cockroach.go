@@ -13,7 +13,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	// Load CockroachdbQL Go driver
 	_ "github.com/cockroachdb/cockroach-go/crdb"
-	//	_ "github.com/lib/pq"
+	_ "github.com/lib/pq"
 
 	"github.com/markbates/going/defaults"
 	"github.com/markbates/pop/columns"
@@ -104,7 +104,7 @@ func (p *cockroach) DropDB() error {
 		return errors.Wrapf(err, "error dropping Cockroach database %s", deets.Database)
 	}
 	defer db.Close()
-	query := fmt.Sprintf("DROP DATABASE \"%s\"", deets.Database)
+	query := fmt.Sprintf("DROP DATABASE \"%s\" CASCADE;", deets.Database)
 	Log(query)
 
 	_, err = db.Exec(query)
@@ -236,6 +236,7 @@ func (p *cockroach) TruncateAll(tx *Connection) error {
 }
 
 func newCockroach(deets *ConnectionDetails) dialect {
+	deets.Dialect = "postgres"
 	cd := &cockroach{
 		ConnectionDetails: deets,
 		translateCache:    map[string]string{},
