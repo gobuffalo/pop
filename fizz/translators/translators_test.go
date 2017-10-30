@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
-type CockroachDBSuite struct {
+type CockroachSuite struct {
 	suite.Suite
 }
 
@@ -32,7 +32,7 @@ func TestSpecificSuites(t *testing.T) {
 	case "postgres":
 		suite.Run(t, &PostgreSQLSuite{})
 	case "cockroach":
-		suite.Run(t, &CockroachDBSuite{})
+		suite.Run(t, &CockroachSuite{})
 	case "mysql":
 		suite.Run(t, &MySQLSuite{})
 	case "sqlite":
