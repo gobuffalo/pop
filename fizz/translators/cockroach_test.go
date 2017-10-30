@@ -88,7 +88,7 @@ func (p *CockroachSuite) Test_Cockroach_RenameTable_NotEnoughValues() {
 
 func (p *CockroachSuite) Test_Cockroach_ChangeColumn() {
 	r := p.Require()
-	ddl := `ALTER TABLE "mytable" ALTER COLUMN "mycolumn" TYPE VARCHAR (50);ALTER TABLE "mytable" ALTER COLUMN "mycolumn" SET NOT NULL; ALTER TABLE "mytable" ALTER COLUMN "mycolumn" SET DEFAULT 'foo';`
+	ddl := `ALTER TABLE "mytable" ALTER COLUMN "mycolumn" TYPE VARCHAR(50); ALTER TABLE "mytable" ALTER COLUMN "mycolumn" SET NOT NULL; ALTER TABLE "mytable" ALTER COLUMN "mycolumn" SET DEFAULT 'foo';`
 
 	res, _ := fizz.AString(`change_column("mytable", "mycolumn", "string", {"default": "foo", "size": 50})`, crdbt)
 
