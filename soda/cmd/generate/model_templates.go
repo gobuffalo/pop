@@ -19,8 +19,8 @@ type {{.model_name}} struct {
 
 // String is not required by pop and may be deleted
 func ({{.char}} {{.model_name}}) String() string {
-	j{{.char}}, _ := json.Marshal({{.char}})
-	return string(j{{.char}})
+	{{.encoding_type_char}}{{.char}}, _ := {{.encoding_type}}.Marshal({{.char}})
+	return string({{.encoding_type_char}}{{.char}})
 }
 
 // {{.plural_model_name}} is not required by pop and may be deleted
@@ -28,8 +28,8 @@ type {{.plural_model_name}} []{{.model_name}}
 
 // String is not required by pop and may be deleted
 func ({{.char}} {{.plural_model_name}}) String() string {
-	j{{.char}}, _ := json.Marshal({{.char}})
-	return string(j{{.char}})
+	{{.encoding_type_char}}{{.char}}, _ := {{.encoding_type}}.Marshal({{.char}})
+	return string({{.encoding_type_char}}{{.char}})
 }
 
 // Validate gets run every time you call a "pop.Validate*" (pop.ValidateAndSave, pop.ValidateAndCreate, pop.ValidateAndUpdate) method.

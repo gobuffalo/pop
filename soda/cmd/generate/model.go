@@ -17,8 +17,10 @@ import (
 )
 
 var skipMigration bool
+var structTag string
 
 func init() {
+	ModelCmd.Flags().StringVarP(&structTag, "struct-tag", "", "json", "sets the struct tags for model (xml or json) (default \"json\")")
 	ModelCmd.Flags().BoolVarP(&skipMigration, "skip-migration", "s", false, "Skip creating a new fizz migration for this model.")
 }
 
@@ -52,7 +54,7 @@ type attribute struct {
 }
 
 func (a attribute) String() string {
-	return fmt.Sprintf("\t%s %s `json:\"%s\" db:\"%s\"`", a.Names.Proper, a.GoType, a.Names.Original, a.Names.Original)
+	return fmt.Sprintf("\t%s %s `%s:\"%s\" db:\"%s\"`", a.Names.Proper, a.GoType, structTag, a.Names.Original, a.Names.Original)
 }
 
 type model struct {
@@ -72,6 +74,8 @@ func (m model) Generate() error {
 	ctx["model_name"] = m.Names.Proper
 	ctx["package_name"] = m.Package
 	ctx["char"] = m.Names.Char
+	ctx["encoding_type"] = structTag
+	ctx["encoding_type_char"] = strings.ToLower(string([]byte(structTag)[0]))
 
 	fname := filepath.Join(m.Package, m.Names.File+".go")
 	g.Add(makr.NewFile(fname, modelTemplate))
@@ -102,7 +106,7 @@ func (m model) Fizz() string {
 func newModel(name string) model {
 	m := model{
 		Package: "models",
-		Imports: []string{"time", "encoding/json", "github.com/markbates/pop", "github.com/markbates/validate"},
+		Imports: []string{"time", "github.com/markbates/pop", "github.com/markbates/validate"},
 		Names:   newName(name),
 		Attributes: []attribute{
 			{Names: newName("created_at"), OriginalType: "time.Time", GoType: "time.Time"},
@@ -123,7 +127,17 @@ var ModelCmd = &cobra.Command{
 			return errors.New("You must supply a name for your model!")
 		}
 
+		if structTag != "json" && structTag != "xml" {
+			return errors.New("Invalid struct tags (use xml or json)!")
+		}
+
 		model := newModel(args[0])
+
+		if structTag == "json" {
+			model.Imports = append(model.Imports, "encoding/json")
+		} else if structTag == "xml" {
+			model.Imports = append(model.Imports, "encoding/xml")
+		}
 
 		hasId := false
 		hasUuid := false
