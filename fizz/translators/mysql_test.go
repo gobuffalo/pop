@@ -74,6 +74,8 @@ permissions text,
 age integer DEFAULT 40,
 company_id char(36) NOT NULL DEFAULT 'test',
 uuid char(36) NOT NULL,
+deleted_at TIMESTAMP NOT NULL,
+expired_at DATETIME NOT NULL,
 created_at DATETIME NOT NULL,
 updated_at DATETIME NOT NULL,
 PRIMARY KEY(uuid)
@@ -88,6 +90,8 @@ PRIMARY KEY(uuid)
 		t.Column("age", "integer", {"null": true, "default": 40})
 		t.Column("company_id", "uuid", {"default_raw": "'test'"})
 		t.Column("uuid", "uuid", {"primary": true})
+		t.Column("deleted_at", "timestamp")
+		t.Column("expired_at", "datetime")
 	})
 	`, myt)
 	r.Equal(ddl, res)

@@ -169,7 +169,9 @@ func (p *MySQL) colType(c fizz.Column) string {
 		return fmt.Sprintf("VARCHAR (%s)", s)
 	case "uuid":
 		return "char(36)"
-	case "timestamp", "time", "datetime":
+	case "timestamp":
+		return "TIMESTAMP"
+	case "time", "datetime":
 		return "DATETIME"
 	default:
 		return c.ColType
