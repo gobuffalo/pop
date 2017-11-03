@@ -1,5 +1,23 @@
 # Change Log
 
+## [v3.40.1](https://github.com/markbates/pop/tree/v3.40.1) (2017-11-03)
+[Full Changelog](https://github.com/markbates/pop/compare/v3.39.4...v3.40.1)
+
+**Closed issues:**
+
+- Fail to parse \<\> comparison operator in SQL migration [\#151](https://github.com/markbates/pop/issues/151)
+- empty `schema.sql` when migrating down [\#150](https://github.com/markbates/pop/issues/150)
+- Add CockroachDB Support [\#149](https://github.com/markbates/pop/issues/149)
+- Mysql Connection String is broken [\#116](https://github.com/markbates/pop/issues/116)
+
+**Merged pull requests:**
+
+- Revert "Make timestamp to match MySQL's timestamp type." [\#155](https://github.com/markbates/pop/pull/155) ([markbates](https://github.com/markbates))
+- Make timestamp to match MySQL's timestamp type. [\#154](https://github.com/markbates/pop/pull/154) ([calavera](https://github.com/calavera))
+- Add model parameter for generate struct tags [\#153](https://github.com/markbates/pop/pull/153) ([seblw](https://github.com/seblw))
+- improve database migrations [\#148](https://github.com/markbates/pop/pull/148) ([endihunter](https://github.com/endihunter))
+- Some documentation on callbacks. [\#147](https://github.com/markbates/pop/pull/147) ([barrongineer](https://github.com/barrongineer))
+
 ## [v3.39.4](https://github.com/markbates/pop/tree/v3.39.4) (2017-10-22)
 [Full Changelog](https://github.com/markbates/pop/compare/v3.39.3...v3.39.4)
 
@@ -421,7 +439,7 @@
 
 **Merged pull requests:**
 
-- Avoid wrapping mysql table names in strings [\#29](https://github.com/markbates/pop/pull/29) ([r-butler](https://github.com/r-butler))
+- Avoid wrapping mysql table names in strings [\#29](https://github.com/markbates/pop/pull/29) ([rbutler](https://github.com/rbutler))
 
 ## [v3.11.2](https://github.com/markbates/pop/tree/v3.11.2) (2017-02-03)
 [Full Changelog](https://github.com/markbates/pop/compare/v3.11.1...v3.11.2)
