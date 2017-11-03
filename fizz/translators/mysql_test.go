@@ -42,14 +42,14 @@ func (p *MySQLSuite) Test_MySQL_CreateTable() {
 	r := p.Require()
 	ddl := `CREATE TABLE users (
 id integer NOT NULL AUTO_INCREMENT,
+PRIMARY KEY(id),
 first_name VARCHAR (255) NOT NULL,
 last_name VARCHAR (255) NOT NULL,
 email VARCHAR (20) NOT NULL,
 permissions text,
 age integer DEFAULT 40,
 created_at DATETIME NOT NULL,
-updated_at DATETIME NOT NULL,
-PRIMARY KEY(id)
+updated_at DATETIME NOT NULL
 ) ENGINE=InnoDB;`
 
 	res, _ := fizz.AString(`
@@ -74,9 +74,9 @@ permissions text,
 age integer DEFAULT 40,
 company_id char(36) NOT NULL DEFAULT 'test',
 uuid char(36) NOT NULL,
+PRIMARY KEY(uuid),
 created_at DATETIME NOT NULL,
-updated_at DATETIME NOT NULL,
-PRIMARY KEY(uuid)
+updated_at DATETIME NOT NULL
 ) ENGINE=InnoDB;`
 
 	res, _ := fizz.AString(`
