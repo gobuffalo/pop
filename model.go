@@ -22,7 +22,7 @@ var tableMapMu = sync.RWMutex{}
 //	m := &pop.Model{Value: User{}}
 //	m.TableName() // "users"
 //
-//	pop.MapTableName("user", "people")
+//	pop.MapTableName("User", "people")
 //	m = &pop.Model{Value: User{}}
 //	m.TableName() // "people"
 func MapTableName(name string, tableName string) {
