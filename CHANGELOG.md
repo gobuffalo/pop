@@ -1,5 +1,16 @@
 # Change Log
 
+## [v3.41.0](https://github.com/markbates/pop/tree/v3.41.0) (2017-11-19)
+[Full Changelog](https://github.com/markbates/pop/compare/v3.40.1...v3.41.0)
+
+**Closed issues:**
+
+- Whats the correct type to map money. [\#156](https://github.com/markbates/pop/issues/156)
+
+**Merged pull requests:**
+
+- Remove information about default value from struct-tag description [\#157](https://github.com/markbates/pop/pull/157) ([seblw](https://github.com/seblw))
+
 ## [v3.40.1](https://github.com/markbates/pop/tree/v3.40.1) (2017-11-03)
 [Full Changelog](https://github.com/markbates/pop/compare/v3.39.4...v3.40.1)
 
