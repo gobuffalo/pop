@@ -85,6 +85,9 @@ func strToUUID(s string) []string {
 func strSliceToUUIDSlice(ss []string) (UUID, error) {
 	us := make([]uuid.UUID, len(ss))
 	for i, s := range ss {
+		if s == "" {
+			continue
+		}
 		u, err := uuid.FromString(s)
 		if err != nil {
 			return UUID{}, errors.WithStack(err)

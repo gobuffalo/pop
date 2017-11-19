@@ -252,7 +252,7 @@ func fizzColType(s string) string {
 		return "uuid"
 	case "nulls.float32", "nulls.float64":
 		return "float"
-	case "slices.string", "[]string":
+	case "slices.string", "slices.uuid", "[]string":
 		return "varchar[]"
 	case "slices.float", "[]float", "[]float32", "[]float64":
 		return "numeric[]"
