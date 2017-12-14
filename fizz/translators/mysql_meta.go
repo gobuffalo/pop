@@ -35,31 +35,10 @@ func (ti mysqlTableInfo) ToColumn() fizz.Column {
 }
 
 type mysqlSchema struct {
-	URL    string
-	Name   string
-	db     *sqlx.DB
-	schema map[string]*fizz.Table
+	Schema
 }
 
-func (p *mysqlSchema) Delete(table string) {
-	delete(p.schema, table)
-}
-
-func (p *mysqlSchema) TableInfo(table string) (*fizz.Table, error) {
-	if ti, ok := p.schema[table]; ok {
-		return ti, nil
-	}
-	err := p.buildSchema()
-	if err != nil {
-		return nil, err
-	}
-	if ti, ok := p.schema[table]; ok {
-		return ti, nil
-	}
-	return nil, fmt.Errorf("Could not find table data for %s!", table)
-}
-
-func (p *mysqlSchema) buildSchema() error {
+func (p *mysqlSchema) Build() error {
 	var err error
 	p.db, err = sqlx.Open("mysql", p.URL)
 	if err != nil {

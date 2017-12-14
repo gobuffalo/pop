@@ -10,15 +10,19 @@ import (
 )
 
 type SQLite struct {
-	Schema Schema
+	Schema SchemaQuery
 }
 
 func NewSQLite(url string) *SQLite {
-	return &SQLite{
-		Schema: &sqliteSchema{
+	schema := &sqliteSchema{
+		Schema{
 			URL:    url,
 			schema: map[string]*fizz.Table{},
 		},
+	}
+	schema.Builder = schema
+	return &SQLite{
+		Schema: schema,
 	}
 }
 

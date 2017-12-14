@@ -15,6 +15,18 @@ type fauxSchema struct {
 	schema map[string]*fizz.Table
 }
 
+func (s *fauxSchema) Build() error {
+	return nil
+}
+
+func (s *fauxSchema) IndexInfo(table string, column string) (*fizz.Index, error) {
+	return nil, fmt.Errorf("IndexInfo is not implemented for this translator!")
+}
+
+func (s *fauxSchema) ColumnInfo(table string, column string) (*fizz.Column, error) {
+	return nil, fmt.Errorf("ColumnInfo is not implemented for this translator!")
+}
+
 func (p *fauxSchema) Delete(table string) {
 	delete(p.schema, table)
 }
