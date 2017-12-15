@@ -10,10 +10,16 @@ import (
 )
 
 type Cockroach struct {
+	Schema SchemaQuery
 }
 
-func NewCockroach() *Cockroach {
-	return &Cockroach{}
+func NewCockroach(url string) *Cockroach {
+	schema := &cockroachSchema{
+		URL:    url,
+		schema: map[string]*fizz.Table{},
+	}
+	schema.Builder = schema
+	return &Cockroach{Schema: schema}
 }
 
 func (p *Cockroach) CreateTable(t fizz.Table) (string, error) {
