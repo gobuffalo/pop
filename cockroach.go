@@ -165,7 +165,7 @@ func (p *cockroach) TranslateSQL(sql string) string {
 }
 
 func (p *cockroach) FizzTranslator() fizz.Translator {
-	return translators.NewCockroach()
+	return translators.NewCockroach(p.URL(), p.Details().Database)
 }
 
 func (p *cockroach) Lock(fn func() error) error {
