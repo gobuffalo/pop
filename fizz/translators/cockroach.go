@@ -13,10 +13,13 @@ type Cockroach struct {
 	Schema SchemaQuery
 }
 
-func NewCockroach(url string) *Cockroach {
+func NewCockroach(url string, name string) *Cockroach {
 	schema := &cockroachSchema{
-		URL:    url,
-		schema: map[string]*fizz.Table{},
+		Schema{
+			URL:    url,
+			Name:   name,
+			schema: map[string]*fizz.Table{},
+		},
 	}
 	schema.Builder = schema
 	return &Cockroach{Schema: schema}
