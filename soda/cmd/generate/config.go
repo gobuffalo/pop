@@ -24,32 +24,16 @@ var ConfigCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		cflag := cmd.Flag("config")
 		cfgFile := defaults.String(cflag.Value.String(), "database.yml")
-		dir, err := os.Getwd()
+		pwd, err := os.Getwd()
 		if err != nil {
 			return errors.Wrap(err, "couldn't get the current directory")
 		}
-		pwd, _ := os.Getwd()
 		data := map[string]interface{}{
-			"dialect":    dialect,
-			"name":       filepath.Base(dir),
-			"appPath":    pwd,
-			"sqlitePath": filepath.Join(pwd, filepath.Base(dir)),
+			"dialect": dialect,
+			"name":    filepath.Base(pwd),
 		}
 		return GenerateConfig(cfgFile, data)
 	},
-}
-
-func goPath(root string) string {
-	gpMultiple := envy.GoPaths()
-	path := ""
-
-	for i := 0; i < len(gpMultiple); i++ {
-		if strings.HasPrefix(root, filepath.Join(gpMultiple[i], "src")) {
-			path = gpMultiple[i]
-			break
-		}
-	}
-	return path
 }
 
 func packagePath(root string) string {
@@ -59,9 +43,12 @@ func packagePath(root string) string {
 }
 
 func GenerateConfig(cfgFile string, data map[string]interface{}) error {
+	pwd, _ := os.Getwd()
 	if data["appPath"] == nil {
-		pwd, _ := os.Getwd()
 		data["appPath"] = pwd
+	}
+	if data["sqlitePath"] == nil {
+		data["sqlitePath"] = pwd
 	}
 
 	dialect = strings.ToLower(data["dialect"].(string))
