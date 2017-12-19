@@ -2,7 +2,6 @@ package generate
 
 import (
 	"os"
-	"path"
 	"path/filepath"
 	"strings"
 
@@ -31,9 +30,10 @@ var ConfigCmd = &cobra.Command{
 		}
 		pwd, _ := os.Getwd()
 		data := map[string]interface{}{
-			"dialect": dialect,
-			"name":    path.Base(dir),
-			"appPath": pwd,
+			"dialect":    dialect,
+			"name":       filepath.Base(dir),
+			"appPath":    pwd,
+			"sqlitePath": filepath.Join(pwd, filepath.Base(dir)),
 		}
 		return GenerateConfig(cfgFile, data)
 	},
@@ -52,10 +52,10 @@ func goPath(root string) string {
 	return path
 }
 
-func packagePath(rootPath string) string {
-	gosrcpath := strings.Replace(filepath.Join(goPath(rootPath), "src"), "\\", "/", -1)
-	rootPath = strings.Replace(rootPath, "\\", "/", -1)
-	return strings.Replace(rootPath, gosrcpath+"/", "", 2)
+func packagePath(root string) string {
+	src := filepath.ToSlash(filepath.Join(envy.GoPath(), "src"))
+	root = filepath.ToSlash(root)
+	return strings.Replace(root, src+"/", "", 2)
 }
 
 func GenerateConfig(cfgFile string, data map[string]interface{}) error {
