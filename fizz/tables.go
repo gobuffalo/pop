@@ -1,10 +1,11 @@
 package fizz
 
 type Table struct {
-	Name    string `db:"name"`
-	Columns []Column
-	Indexes []Index
-	Options map[string]interface{}
+	Name        string `db:"name"`
+	Columns     []Column
+	Indexes     []Index
+	ForeignKeys []ForeignKey
+	Options     map[string]interface{}
 }
 
 func (t *Table) DisableTimestamps() {
@@ -23,6 +24,15 @@ func (t *Table) Column(name string, colType string, options map[string]interface
 		Primary: primary,
 	}
 	t.Columns = append(t.Columns, c)
+}
+
+func (t *Table) ForeignKey(column string, refs interface{}, options Options) {
+	fk := ForeignKey{
+		Column:     column,
+		References: parseForeignKeyRef(refs),
+		Options:    options,
+	}
+	t.ForeignKeys = append(t.ForeignKeys, fk)
 }
 
 func (t *Table) Timestamp(name string) {

@@ -11,4 +11,6 @@ type Translator interface {
 	AddIndex(Table) (string, error)
 	DropIndex(Table) (string, error)
 	RenameIndex(Table) (string, error)
+	AddForeignKey(Table) (string, error)
+	DropForeignKey(Table) (string, error)
 }

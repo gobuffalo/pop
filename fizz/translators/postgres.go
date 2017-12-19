@@ -129,6 +129,14 @@ func (p *Postgres) RenameIndex(t fizz.Table) (string, error) {
 	return fmt.Sprintf("ALTER INDEX \"%s\" RENAME TO \"%s\";", oi.Name, ni.Name), nil
 }
 
+func (p *Postgres) AddForeignKey(t fizz.Table) (string, error) {
+	return "", nil
+}
+
+func (p *Postgres) DropForeignKey(t fizz.Table) (string, error) {
+	return "", nil
+}
+
 func (p *Postgres) buildAddColumn(c fizz.Column) string {
 	s := fmt.Sprintf("\"%s\" %s", c.Name, p.colType(c))
 
