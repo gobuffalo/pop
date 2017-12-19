@@ -5,7 +5,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/gobuffalo/envy"
 	"github.com/gobuffalo/makr"
 	"github.com/markbates/going/defaults"
 	"github.com/pkg/errors"
@@ -34,12 +33,6 @@ var ConfigCmd = &cobra.Command{
 		}
 		return GenerateConfig(cfgFile, data)
 	},
-}
-
-func packagePath(root string) string {
-	src := filepath.ToSlash(filepath.Join(envy.GoPath(), "src"))
-	root = filepath.ToSlash(root)
-	return strings.Replace(root, src+"/", "", 2)
 }
 
 func GenerateConfig(cfgFile string, data map[string]interface{}) error {
