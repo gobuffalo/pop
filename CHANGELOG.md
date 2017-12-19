@@ -1,5 +1,13 @@
 # Change Log
 
+## [v3.41.2](https://github.com/markbates/pop/tree/v3.41.2) (2017-12-19)
+[Full Changelog](https://github.com/markbates/pop/compare/v3.41.1...v3.41.2)
+
+**Merged pull requests:**
+
+- added a fix for generating sqlite files on windows [\#166](https://github.com/markbates/pop/pull/166) ([markbates](https://github.com/markbates))
+- Schema Query [\#163](https://github.com/markbates/pop/pull/163) ([mclark4386](https://github.com/mclark4386))
+
 ## [v3.41.1](https://github.com/markbates/pop/tree/v3.41.1) (2017-11-19)
 [Full Changelog](https://github.com/markbates/pop/compare/v3.41.0...v3.41.1)
 
