@@ -49,23 +49,27 @@ func (cd *ConnectionDetails) Finalize() error {
 				ul = cd.Dialect + "://" + ul
 			}
 		}
-		u, err := url.Parse(ul)
-		if err != nil {
-			return errors.Wrapf(err, "couldn't parse %s", ul)
-		}
-		cd.Dialect = u.Scheme
-		cd.Database = u.Path
+		cd.Database = cd.URL
+		if !strings.HasPrefix(cd.Dialect, "sqlite") {
+			u, err := url.Parse(ul)
+			if err != nil {
+				return errors.Wrapf(err, "couldn't parse %s", ul)
+			}
+			cd.Dialect = u.Scheme
+			cd.Database = u.Path
 
-		hp := strings.Split(u.Host, ":")
-		cd.Host = hp[0]
-		if len(hp) > 1 {
-			cd.Port = hp[1]
+			hp := strings.Split(u.Host, ":")
+			cd.Host = hp[0]
+			if len(hp) > 1 {
+				cd.Port = hp[1]
+			}
+
+			if u.User != nil {
+				cd.User = u.User.Username()
+				cd.Password, _ = u.User.Password()
+			}
 		}
 
-		if u.User != nil {
-			cd.User = u.User.Username()
-			cd.Password, _ = u.User.Password()
-		}
 	}
 	switch strings.ToLower(cd.Dialect) {
 	case "postgres", "postgresql", "pg":
