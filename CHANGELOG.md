@@ -1,5 +1,12 @@
 # Change Log
 
+## [v3.41.3](https://github.com/markbates/pop/tree/v3.41.3) (2017-12-20)
+[Full Changelog](https://github.com/markbates/pop/compare/v3.41.2...v3.41.3)
+
+**Merged pull requests:**
+
+- hopefully fixed the sqlite on windows parse error [\#167](https://github.com/markbates/pop/pull/167) ([markbates](https://github.com/markbates))
+
 ## [v3.41.2](https://github.com/markbates/pop/tree/v3.41.2) (2017-12-19)
 [Full Changelog](https://github.com/markbates/pop/compare/v3.41.1...v3.41.2)
 
