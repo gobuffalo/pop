@@ -220,7 +220,7 @@ func (p *MySQL) buildForeignKey(t fizz.Table, fk fizz.ForeignKey, onCreate bool)
 	}
 
 	if !onCreate {
-		s = fmt.Sprintf("ALTER TABLE %s ADD CONSTRAINT %s %s", t.Name, fk.Name, s)
+		s = fmt.Sprintf("ALTER TABLE %s ADD CONSTRAINT %s %s;", t.Name, fk.Name, s)
 	}
 
 	return s

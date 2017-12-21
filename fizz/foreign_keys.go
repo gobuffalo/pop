@@ -2,6 +2,7 @@ package fizz
 
 import (
 	"fmt"
+	"strings"
 )
 
 type ForeignKeyRef struct {
@@ -17,17 +18,22 @@ type ForeignKey struct {
 }
 
 func (f fizzer) AddForeignKey() interface{} {
-	return func(table string, name string, column string, refs interface{}, options Options) {
+	return func(table string, column string, refs interface{}, options Options) {
+		fk := ForeignKey{
+			Column:     column,
+			References: parseForeignKeyRef(refs),
+			Options:    options,
+		}
+
+		if options["name"] != nil {
+			fk.Name = options["name"].(string)
+		} else {
+			fk.Name = fmt.Sprintf("%s_%s_%s_fk", table, fk.References.Table, strings.Join(fk.References.Columns, "_"))
+		}
+
 		f.add(f.Bubbler.AddForeignKey(Table{
-			Name: table,
-			ForeignKeys: []ForeignKey{
-				{
-					Name:       name,
-					Column:     column,
-					References: parseForeignKeyRef(refs),
-					Options:    options,
-				},
-			},
+			Name:        table,
+			ForeignKeys: []ForeignKey{fk},
 		}))
 	}
 }

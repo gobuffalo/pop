@@ -226,7 +226,7 @@ func (p *Postgres) buildForeignKey(t fizz.Table, fk fizz.ForeignKey, onCreate bo
 	}
 
 	if !onCreate {
-		s = fmt.Sprintf("ALTER TABLE %s ADD CONSTRAINT %s %s", t.Name, fk.Name, s)
+		s = fmt.Sprintf("ALTER TABLE %s ADD CONSTRAINT %s %s;", t.Name, fk.Name, s)
 	}
 
 	return s
