@@ -11,12 +11,14 @@ import (
 )
 
 type MySQL struct {
-	Schema Schema
+	Schema SchemaQuery
 }
 
 func NewMySQL(url, name string) *MySQL {
+	schema := &mysqlSchema{Schema{URL: url, Name: name, schema: map[string]*fizz.Table{}}}
+	schema.Builder = schema
 	return &MySQL{
-		Schema: &mysqlSchema{URL: url, Name: name, schema: map[string]*fizz.Table{}},
+		Schema: schema,
 	}
 }
 
