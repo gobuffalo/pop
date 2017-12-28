@@ -13,7 +13,7 @@ services:
     ports:
       - "3306:3306"
   postgres:
-    image: postgres
+    image: postgres:9.6
     environment:
       - POSTGRES_DB=pop_test
     ports:

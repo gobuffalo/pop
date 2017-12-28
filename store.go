@@ -14,7 +14,7 @@ type store interface {
 	NamedExec(string, interface{}) (sql.Result, error)
 	Exec(string, ...interface{}) (sql.Result, error)
 	PrepareNamed(string) (*sqlx.NamedStmt, error)
-	Transaction() (*tX, error)
+	Transaction() (*Tx, error)
 	Rollback() error
 	Commit() error
 	Close() error

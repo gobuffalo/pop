@@ -20,7 +20,7 @@ type Connection struct {
 	Store   store
 	Dialect dialect
 	Elapsed int64
-	TX      *tX
+	TX      *Tx
 }
 
 func (c *Connection) String() string {
