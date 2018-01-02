@@ -84,7 +84,7 @@ func commitAndPush(v string) error {
 }
 
 func runReleaser(v string) error {
-	cmd := exec.Command("goreleaser")
+	cmd := exec.Command("goreleaser", "--rm-dist")
 	cmd.Stdin = os.Stdin
 	cmd.Stderr = os.Stderr
 	cmd.Stdout = os.Stdout
