@@ -8,7 +8,7 @@ brew:
   commit_author:
     name: goreleaserbot
     email: goreleaser@carlosbecker.com
-  install: bin.install "pop"
+  install: bin.install "soda"
 builds:
   -
     goos:
