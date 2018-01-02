@@ -3,7 +3,6 @@ package grifts
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -14,6 +13,7 @@ import (
 	"regexp"
 
 	. "github.com/markbates/grift/grift"
+	"github.com/pkg/errors"
 )
 
 var _ = Desc("release", "Generates a CHANGELOG and creates a new GitHub release based on what is in the version.go file.")
@@ -44,7 +44,10 @@ var _ = Add("release", func(c *Context) error {
 		return err
 	}
 
-	return commitAndPush(v)
+	if err := commitAndPush(v); err != nil {
+		return errors.WithStack(err)
+	}
+	return runReleaser(v)
 })
 
 func installBin() error {
@@ -112,6 +115,14 @@ func commitAndPush(v string) error {
 	}
 
 	cmd = exec.Command("git", "push", "origin", "master")
+	cmd.Stdin = os.Stdin
+	cmd.Stderr = os.Stderr
+	cmd.Stdout = os.Stdout
+	return cmd.Run()
+}
+
+func runReleaser(v string) error {
+	cmd := exec.Command("goreleaser")
 	cmd.Stdin = os.Stdin
 	cmd.Stderr = os.Stderr
 	cmd.Stdout = os.Stdout
