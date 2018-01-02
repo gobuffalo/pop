@@ -1,5 +1,12 @@
 # Change Log
 
+## [v3.41.4](https://github.com/markbates/pop/tree/v3.41.4) (2018-01-02)
+[Full Changelog](https://github.com/markbates/pop/compare/v3.41.3...v3.41.4)
+
+**Merged pull requests:**
+
+- Export Tx [\#171](https://github.com/markbates/pop/pull/171) ([afstanton](https://github.com/afstanton))
+
 ## [v3.41.3](https://github.com/markbates/pop/tree/v3.41.3) (2017-12-20)
 [Full Changelog](https://github.com/markbates/pop/compare/v3.41.2...v3.41.3)
 
