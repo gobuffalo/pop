@@ -39,11 +39,6 @@ var _ = Add("release", func(c *Context) error {
 		return err
 	}
 
-	err = runChangelogGenerator(v)
-	if err != nil {
-		return err
-	}
-
 	if err := commitAndPush(v); err != nil {
 		return errors.WithStack(err)
 	}
@@ -96,25 +91,8 @@ func tagRelease(v string) error {
 	return nil
 }
 
-func runChangelogGenerator(v string) error {
-	cmd := exec.Command("github_changelog_generator")
-	cmd.Stdin = os.Stdin
-	cmd.Stderr = os.Stderr
-	cmd.Stdout = os.Stdout
-	return cmd.Run()
-}
-
 func commitAndPush(v string) error {
-	cmd := exec.Command("git", "commit", "CHANGELOG.md", "-m", fmt.Sprintf("Updated changelog for release v%s", v))
-	cmd.Stdin = os.Stdin
-	cmd.Stderr = os.Stderr
-	cmd.Stdout = os.Stdout
-	err := cmd.Run()
-	if err != nil {
-		return err
-	}
-
-	cmd = exec.Command("git", "push", "origin", "master")
+	cmd := exec.Command("git", "push", "origin", "master")
 	cmd.Stdin = os.Stdin
 	cmd.Stderr = os.Stderr
 	cmd.Stdout = os.Stdout
