@@ -1,3 +1,3 @@
 package cmd
 
-const Version = "3.41.5"
+const Version = "3.41.6"
