@@ -1,12 +1,7 @@
 package grifts
 
 import (
-	"bytes"
-	"encoding/json"
-	"fmt"
-	"io"
 	"io/ioutil"
-	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -62,32 +57,21 @@ func localTest() error {
 }
 
 func tagRelease(v string) error {
-	token := os.Getenv("GITHUB_TOKEN")
-	if token == "" {
-		return errors.New("GITHUB_TOKEN is not set!!")
-	}
-
-	body := map[string]interface{}{
-		"tag_name":   fmt.Sprintf("v%s", v),
-		"prerelease": false,
-	}
-
-	b, err := json.Marshal(&body)
-	if err != nil {
+	cmd := exec.Command("git", "tag", v)
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	if err := cmd.Run(); err != nil {
 		return err
 	}
 
-	res, err := http.Post(fmt.Sprintf("https://api.github.com/repos/markbates/pop/releases?access_token=%s", token), "application/json", bytes.NewReader(b))
-	if err != nil {
+	cmd = exec.Command("git", "push", "origin", "--tags")
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	if err := cmd.Run(); err != nil {
 		return err
 	}
-
-	code := res.StatusCode
-	if code < 200 || code >= 300 {
-		io.Copy(os.Stderr, res.Body)
-		return fmt.Errorf("got a not successful status code from github! %d", code)
-	}
-
 	return nil
 }
 
