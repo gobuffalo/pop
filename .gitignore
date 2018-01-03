@@ -31,3 +31,4 @@ gin-bin
 vendor/
 tsoda
 migrations/schema.sql
+.grifter/

@@ -6,7 +6,7 @@ type dB struct {
 	*sqlx.DB
 }
 
-func (db *dB) Transaction() (*tX, error) {
+func (db *dB) Transaction() (*Tx, error) {
 	return newTX(db)
 }
 
