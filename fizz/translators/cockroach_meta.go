@@ -2,7 +2,6 @@ package translators
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/markbates/pop/fizz"
@@ -19,11 +18,11 @@ type cockroachIndexInfo struct {
 }
 
 type cockroachTableInfo struct {
-	Name       string      `db:"column_name"`
-	Type       string      `db:"data_type"`
-	IsNullable bool        `db:"is_nullable"`
-	Default    interface{} `db:"column_default"`
-	PK         bool        `db:"pk"`
+	Name    string      `db:"column_name"`
+	Type    string      `db:"data_type"`
+	NotNull bool        `db:"not_null"`
+	Default interface{} `db:"column_default"`
+	PK      bool        `db:"pk"`
 }
 
 func (t cockroachTableInfo) ToColumn() fizz.Column {
@@ -33,11 +32,11 @@ func (t cockroachTableInfo) ToColumn() fizz.Column {
 		Primary: t.PK,
 		Options: fizz.Options{},
 	}
-	if t.IsNullable {
+	if !t.NotNull {
 		c.Options["null"] = true
 	}
 	if t.Default != nil {
-		c.Options["default"] = strings.TrimSuffix(strings.TrimPrefix(fmt.Sprintf("%s", t.Default), "'"), "'")
+		c.Options["default_raw"] = fmt.Sprint("%s", t.Default) //strings.TrimSuffix(strings.TrimPrefix(fmt.Sprintf("%s", t.Default), "'"), "'")
 	}
 	return c
 }
@@ -54,7 +53,7 @@ func (p *cockroachSchema) Build() error {
 	}
 	defer p.db.Close()
 
-	res, err := p.db.Queryx("SELECT table_name as name FROM information_schema.table;")
+	res, err := p.db.Queryx("SELECT table_name as name FROM information_schema.tables;")
 	if err != nil {
 		return err
 	}
@@ -79,7 +78,7 @@ func (p *cockroachSchema) Build() error {
 }
 
 func (p *cockroachSchema) buildTableData(table *fizz.Table) error {
-	prag := fmt.Sprintf("SELECT c.*, tc.table_schema IS NOT NULL AS \"pk\" FROM information_schema.columns AS c LEFT JOIN information_schema.key_column_usage as kcu ON ((c.table_schema = kcu.table_schema) AND (c.table_name = kcu.table_name) AND (c.column_name = kcu.column_name)) LEFT JOIN information_schema.table_constraints AS tc ON ((tc.table_schema = kcu.table_schema) AND (tc.table_name = kcu.table_name) AND (tc.constraint_name = kcu.constraint_name)) AND (tc.constraint_name = 'primary') WHERE c.table_name = '%s';", table.Name)
+	prag := fmt.Sprintf("SELECT c.column_name, c.data_type, (c.is_nullable = 'NO') as \"not_null\", c.column_default, (tc.table_schema IS NOT NULL)::bool AS \"pk\" FROM information_schema.columns AS c LEFT JOIN information_schema.key_column_usage as kcu ON ((c.table_schema = kcu.table_schema) AND (c.table_name = kcu.table_name) AND (c.column_name = kcu.column_name)) LEFT JOIN information_schema.table_constraints AS tc ON ((tc.table_schema = kcu.table_schema) AND (tc.table_name = kcu.table_name) AND (tc.constraint_name = kcu.constraint_name)) AND (tc.constraint_name = 'primary') WHERE c.table_name = '%s';", table.Name)
 
 	res, err := p.db.Queryx(prag)
 	if err != nil {
