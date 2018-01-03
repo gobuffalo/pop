@@ -43,7 +43,7 @@ const schema = `CREATE TABLE "main"."foos" (
 	 "uid" uuid
 );`
 
-var uid = uuid.NewV4()
+var uid, _ = uuid.NewV4()
 var now = time.Now()
 
 func newValidFoo() Foo {

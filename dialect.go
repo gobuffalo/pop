@@ -56,7 +56,11 @@ func genericCreate(s store, model *Model, cols columns.Columns) error {
 		return nil
 	case "UUID":
 		if model.ID() == emptyUUID {
-			model.setID(uuid.NewV4())
+			u, err := uuid.NewV4()
+			if err != nil {
+				return errors.WithStack(err)
+			}
+			model.setID(u)
 		}
 		w := cols.Writeable()
 		w.Add("id")
