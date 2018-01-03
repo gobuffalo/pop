@@ -62,6 +62,7 @@ func (p *Cockroach) CreateTable(t fizz.Table) (string, error) {
 }
 
 func (p *Cockroach) DropTable(t fizz.Table) (string, error) {
+	p.Schema.Delete(t.Name)
 	return fmt.Sprintf("DROP TABLE \"%s\";", t.Name), nil
 }
 
@@ -69,7 +70,15 @@ func (p *Cockroach) RenameTable(t []fizz.Table) (string, error) {
 	if len(t) < 2 {
 		return "", errors.New("Not enough table names supplied!")
 	}
-	return fmt.Sprintf("ALTER TABLE \"%s\" RENAME TO \"%s\";", t[0].Name, t[1].Name), nil
+	oldName := t[0].Name
+	newName := t[1].Name
+	tableInfo, err := p.Schema.TableInfo(oldName)
+	if err != nil {
+		return "", err
+	}
+	tableInfo.Name = newName
+
+	return fmt.Sprintf("ALTER TABLE \"%s\" RENAME TO \"%s\";", oldName, newName), nil
 }
 
 func (p *Cockroach) ChangeColumn(t fizz.Table) (string, error) {
@@ -77,8 +86,40 @@ func (p *Cockroach) ChangeColumn(t fizz.Table) (string, error) {
 		return "", errors.New("Not enough columns supplied!")
 	}
 	c := t.Columns[0]
-	s := p.buildChangeColumn(t.Name, c)
-	return s, nil
+
+	tableInfo, err := p.Schema.TableInfo(t.Name)
+
+	if err != nil {
+		return "", err
+	}
+
+	for i := range tableInfo.Columns {
+		if tableInfo.Columns[i].Name == t.Columns[0].Name {
+			tableInfo.Columns[i] = c
+			break
+		}
+	}
+
+	sql := []string{}
+	s, err := p.withTempColumn(t.Name, c.Name, func(table fizz.Table, origCol fizz.Column, tempCol string) (string, error) {
+		newCol := p.buildChangeColumn(origCol, c)
+		err1 := p.Schema.ReplaceColumn(table.Name, origCol.Name, newCol)
+		if err1 != nil {
+			return "", err1
+		}
+
+		createColumnSQL := fmt.Sprintf("ALTER TABLE \"%s\" ADD COLUMN %s;", table.Name, p.buildAddColumn(newCol))
+		ins := fmt.Sprintf("UPDATE \"%s\" SET \"%s\" = \"%s\";", t.Name, c.Name, tempCol)
+		return strings.Join([]string{createColumnSQL, ins}, "\n"), nil
+	})
+
+	if err != nil {
+		return "", err
+	}
+
+	sql = append(sql, s)
+
+	return strings.Join(sql, "\n"), nil
 }
 
 func (p *Cockroach) AddColumn(t fizz.Table) (string, error) {
@@ -87,6 +128,22 @@ func (p *Cockroach) AddColumn(t fizz.Table) (string, error) {
 	}
 	c := t.Columns[0]
 	s := fmt.Sprintf("ALTER TABLE \"%s\" ADD COLUMN %s;", t.Name, p.buildAddColumn(c))
+
+	//Update schema cache if we can
+	tableInfo, err := p.Schema.TableInfo(t.Name)
+	if err == nil {
+		found := false
+		for i := range tableInfo.Columns {
+			if tableInfo.Columns[i].Name == c.Name {
+				tableInfo.Columns[i] = c
+				break
+			}
+		}
+		if !found {
+			tableInfo.Columns = append(tableInfo.Columns, c)
+		}
+	}
+
 	return s, nil
 }
 
@@ -95,6 +152,7 @@ func (p *Cockroach) DropColumn(t fizz.Table) (string, error) {
 		return "", errors.New("Not enough columns supplied!")
 	}
 	c := t.Columns[0]
+	p.Schema.DeleteColumn(t.Name, c.Name)
 	return fmt.Sprintf("ALTER TABLE \"%s\" DROP COLUMN \"%s\";", t.Name, c.Name), nil
 }
 
@@ -102,8 +160,21 @@ func (p *Cockroach) RenameColumn(t fizz.Table) (string, error) {
 	if len(t.Columns) < 2 {
 		return "", errors.New("Not enough columns supplied!")
 	}
+
 	oc := t.Columns[0]
 	nc := t.Columns[1]
+
+	tableInfo, err := p.Schema.TableInfo(t.Name)
+	if err != nil {
+		return "", err
+	}
+
+	for ic, c := range tableInfo.Columns {
+		if c.Name == oc.Name {
+			tableInfo.Columns[ic].Name = nc.Name
+		}
+	}
+
 	s := fmt.Sprintf("ALTER TABLE \"%s\" RENAME COLUMN \"%s\" TO \"%s\";", t.Name, oc.Name, nc.Name)
 	return s, nil
 }
@@ -135,7 +206,7 @@ func (p *Cockroach) RenameIndex(t fizz.Table) (string, error) {
 	}
 	oi := ix[0]
 	ni := ix[1]
-	return fmt.Sprintf("ALTER INDEX \"%s\" RENAME TO \"%s\";", oi.Name, ni.Name), nil
+	return fmt.Sprintf("ALTER INDEX \"%s\"@\"%s\" RENAME TO \"%s\";", t.Name, oi.Name, ni.Name), nil
 }
 
 func (p *Cockroach) buildAddColumn(c fizz.Column) string {
@@ -154,27 +225,61 @@ func (p *Cockroach) buildAddColumn(c fizz.Column) string {
 	return s
 }
 
-func (p *Cockroach) buildChangeColumn(tableName string, c fizz.Column) string {
-	s := fmt.Sprintf("ALTER TABLE \"%s\" ALTER COLUMN \"%s\" TYPE %s;", tableName, c.Name, p.colType(c))
-
-	var sets []string
-	if c.Options["null"] == nil {
-		//TODO: make new column with
-		//sets = append(sets, fmt.Sprintf("ALTER TABLE \"%s\" ALTER COLUMN \"%s\" SET NOT NULL;", tableName, c.Name))
-	} else {
-		sets = append(sets, fmt.Sprintf("ALTER TABLE \"%s\" ALTER COLUMN \"%s\" DROP NOT NULL;", tableName, c.Name))
+func (p *Cockroach) buildChangeColumn(oldCol fizz.Column, c fizz.Column) fizz.Column {
+	newCol := fizz.Column{
+		Name:    c.Name,
+		ColType: oldCol.ColType,
+		Options: oldCol.Options,
+		Primary: oldCol.Primary,
 	}
+	fmt.Printf("%v", c)
 	if c.Options["default"] != nil {
-		sets = append(sets, fmt.Sprintf("ALTER TABLE \"%s\" ALTER COLUMN \"%s\" SET DEFAULT '%v';", tableName, c.Name, c.Options["default"]))
+		newCol.Options["default"] = c.Options["default"]
+	}
+	if c.Options["null"] != nil {
+		newCol.Options["null"] = c.Options["null"]
 	}
 	if c.Options["default_raw"] != nil {
-		sets = append(sets, fmt.Sprintf("ALTER TABLE \"%s\" ALTER COLUMN \"%s\" SET DEFAULT %s;", tableName, c.Name, c.Options["default_raw"]))
-	}
-	if len(sets) > 0 {
-		s += " " + strings.Join(sets, " ")
+		newCol.Options["default_raw"] = c.Options["default_raw"]
 	}
 
-	return s
+	return newCol
+}
+
+func (p *Cockroach) withTempTable(table string, fn func(fizz.Table) (string, error)) (string, error) {
+	tempTable := fizz.Table{Name: fmt.Sprintf("_%s_tmp", table)}
+
+	sql := []string{fmt.Sprintf("ALTER TABLE \"%s\" RENAME TO \"%s\";", table, tempTable.Name)}
+	s, err := fn(tempTable)
+	if err != nil {
+		return "", err
+	}
+	sql = append(sql, s, fmt.Sprintf("DROP TABLE \"%s\";", tempTable.Name))
+
+	return strings.Join(sql, "\n"), nil
+}
+
+func (p *Cockroach) withTempColumn(tableName string, column string, fn func(fizz.Table, fizz.Column, string) (string, error)) (string, error) {
+	table, err := p.Schema.TableInfo(tableName)
+	if err != nil {
+		return "", err
+	}
+	col, err1 := p.Schema.ColumnInfo(tableName, column)
+	if err1 != nil {
+		return "", err1
+	}
+
+	tempCol := fmt.Sprintf("_%s_tmp", column)
+
+	sql := []string{fmt.Sprintf("ALTER TABLE \"%s\" RENAME COLUMN \"%s\" TO \"%s\";", tableName, column, tempCol)}
+
+	s, err := fn(*table, *col, tempCol)
+	if err != nil {
+		return "", err
+	}
+	sql = append(sql, s, fmt.Sprintf("ALTER TABLE \"%s\" DROP COLUMN \"%s\";", tableName, tempCol))
+
+	return strings.Join(sql, "\n"), nil
 }
 
 func (p *Cockroach) colType(c fizz.Column) string {

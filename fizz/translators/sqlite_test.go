@@ -23,6 +23,18 @@ func (s *fauxSchema) IndexInfo(table string, column string) (*fizz.Index, error)
 	return nil, fmt.Errorf("IndexInfo is not implemented for this translator!")
 }
 
+func (s *fauxSchema) ReplaceSchema(schema map[string]*fizz.Table) {
+	s.schema = schema
+}
+
+func (s *fauxSchema) DeleteColumn(table string, column string) {
+	return
+}
+
+func (s *fauxSchema) ReplaceColumn(table string, column string, newColumn fizz.Column) error {
+	return fmt.Errorf("ReplaceColumn is not implemented for this translator!")
+}
+
 func (s *fauxSchema) ColumnInfo(table string, column string) (*fizz.Column, error) {
 	return nil, fmt.Errorf("ColumnInfo is not implemented for this translator!")
 }
