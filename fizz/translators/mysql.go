@@ -1,10 +1,12 @@
 package translators
 
 import (
+	"bytes"
 	"fmt"
 	"regexp"
 	"strings"
 
+	"github.com/kr/pretty"
 	"github.com/pkg/errors"
 
 	"github.com/markbates/pop/fizz"
@@ -130,6 +132,14 @@ func (p *MySQL) DropIndex(t fizz.Table) (string, error) {
 }
 
 func (p *MySQL) RenameIndex(t fizz.Table) (string, error) {
+	schema := p.Schema.(*mysqlSchema)
+	version, err := schema.Version()
+	if err != nil {
+		return "", errors.WithStack(err)
+	}
+	if !strings.HasPrefix(version, "5.7") {
+		return p.renameIndex56(t)
+	}
 	ix := t.Indexes
 	if len(ix) < 2 {
 		return "", errors.New("Not enough indexes supplied!")
@@ -137,6 +147,34 @@ func (p *MySQL) RenameIndex(t fizz.Table) (string, error) {
 	oi := ix[0]
 	ni := ix[1]
 	return fmt.Sprintf("ALTER TABLE %s RENAME INDEX %s TO %s;", t.Name, oi.Name, ni.Name), nil
+}
+
+func (p *MySQL) renameIndex56(t fizz.Table) (string, error) {
+	schema := p.Schema.(*mysqlSchema)
+	ix := t.Indexes
+	if len(ix) < 2 {
+		return "", errors.New("not enough indexes supplied")
+	}
+	oi := ix[0]
+	// ni := ix[1]
+
+	ot, err := schema.TableInfo(t.Name)
+	if err != nil {
+		return "", errors.WithStack(err)
+	}
+
+	pretty.Println("### t ->", t)
+	pretty.Println("### ot ->", ot)
+
+	bb := &bytes.Buffer{}
+	bb.WriteString(fmt.Sprintf("ALTER TABLE %s DROP INDEX %s, ", t.Name, oi.Name))
+
+	s, err := p.AddIndex(t)
+	if err != nil {
+		return "", errors.WithStack(err)
+	}
+	bb.WriteString(s)
+	return bb.String(), nil
 }
 
 func (p *MySQL) buildColumn(c fizz.Column) string {

@@ -6,6 +6,7 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	"github.com/markbates/pop/fizz"
+	"github.com/pkg/errors"
 )
 
 type mysqlTableInfo struct {
@@ -15,6 +16,12 @@ type mysqlTableInfo struct {
 	Key     string      `db:"Key"`
 	Default interface{} `db:"Default"`
 	Extra   string      `db:"Extra"`
+}
+
+type mysqlIndexListInfo struct {
+	NonUnique  bool   `db:"non_unique"`
+	IndexName  string `db:"index_name"`
+	ColumnName string `db:"column_name"`
 }
 
 func (ti mysqlTableInfo) ToColumn() fizz.Column {
@@ -36,6 +43,28 @@ func (ti mysqlTableInfo) ToColumn() fizz.Column {
 
 type mysqlSchema struct {
 	Schema
+}
+
+func (p *mysqlSchema) Version() (string, error) {
+	var version string
+	var err error
+
+	p.db, err = sqlx.Open("mysql", p.URL)
+	if err != nil {
+		return version, err
+	}
+	defer p.db.Close()
+
+	res, err := p.db.Queryx("select VERSION()")
+	if err != nil {
+		return version, err
+	}
+
+	for res.Next() {
+		err = res.Scan(&version)
+		return version, err
+	}
+	return "", errors.New("could not locate MySQL version")
 }
 
 func (p *mysqlSchema) Build() error {
@@ -63,7 +92,10 @@ func (p *mysqlSchema) Build() error {
 		if err != nil {
 			return err
 		}
-
+		err = p.buildTableIndexes(table)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -86,5 +118,43 @@ func (p *mysqlSchema) buildTableData(table *fizz.Table) error {
 	}
 
 	p.schema[table.Name] = table
+	return nil
+}
+
+func (p *mysqlSchema) buildTableIndexes(t *fizz.Table) error {
+	indexes := map[string]fizz.Index{}
+
+	prag := fmt.Sprintf("SELECT non_unique, index_name, column_name FROM INFORMATION_SCHEMA.STATISTICS WHERE table_name = '%s' order by seq_in_index", t.Name)
+	res, err := p.db.Queryx(prag)
+	if err != nil {
+		return err
+	}
+
+	for res.Next() {
+		li := mysqlIndexListInfo{}
+		err = res.StructScan(&li)
+		if err != nil {
+			return err
+		}
+
+		i, ok := indexes[li.IndexName]
+		if !ok {
+			i := fizz.Index{
+				Name:    li.IndexName,
+				Unique:  !li.NonUnique,
+				Columns: []string{},
+			}
+			indexes[li.IndexName] = i
+		}
+
+		i.Columns = append(i.Columns, li.ColumnName)
+		indexes[li.IndexName] = i
+	}
+
+	t.Indexes = []fizz.Index{}
+	for _, i := range indexes {
+		t.Indexes = append(t.Indexes, i)
+	}
+
 	return nil
 }
