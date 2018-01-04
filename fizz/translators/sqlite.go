@@ -27,6 +27,8 @@ func NewSQLite(url string) *SQLite {
 }
 
 func (p *SQLite) CreateTable(t fizz.Table) (string, error) {
+	p.Schema.SetTable(&t)
+
 	sql := []string{}
 	cols := []string{}
 	var s string
@@ -56,7 +58,6 @@ func (p *SQLite) CreateTable(t fizz.Table) (string, error) {
 		}
 		sql = append(sql, s)
 	}
-
 	return strings.Join(sql, "\n"), nil
 }
 
@@ -254,6 +255,12 @@ func (p *SQLite) AddIndex(t fizz.Table) (string, error) {
 	if i.Unique {
 		s = strings.Replace(s, "CREATE", "CREATE UNIQUE", 1)
 	}
+
+	tableInfo, err := p.Schema.TableInfo(t.Name)
+	if err != nil {
+		return "", err
+	}
+	tableInfo.Indexes = append(tableInfo.Indexes, i)
 	return s, nil
 }
 
@@ -263,6 +270,19 @@ func (p *SQLite) DropIndex(t fizz.Table) (string, error) {
 	}
 	i := t.Indexes[0]
 	s := fmt.Sprintf("DROP INDEX IF EXISTS \"%s\";", i.Name)
+
+	tableInfo, err := p.Schema.TableInfo(t.Name)
+	if err != nil {
+		return "", err
+	}
+	newIndexes := []fizz.Index{}
+	for _, c := range tableInfo.Indexes {
+		if c.Name != i.Name {
+			newIndexes = append(newIndexes, c)
+		}
+	}
+	tableInfo.Indexes = newIndexes
+
 	return s, nil
 }
 

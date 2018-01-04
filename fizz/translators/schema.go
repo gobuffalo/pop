@@ -14,6 +14,7 @@ type SchemaQuery interface {
 	ColumnInfo(table string, column string) (*fizz.Column, error)
 	IndexInfo(table string, idx string) (*fizz.Index, error)
 	Delete(string)
+	SetTable(*fizz.Table)
 }
 
 type Schema struct {
@@ -84,6 +85,10 @@ func (s *Schema) IndexInfo(table string, idx string) (*fizz.Index, error) {
 
 func (s *Schema) Delete(table string) {
 	delete(s.schema, table)
+}
+
+func (s *Schema) SetTable(table *fizz.Table) {
+	s.schema[table.Name] = table
 }
 
 func (s *Schema) findColumnInfo(tableInfo *fizz.Table, column string) (*fizz.Column, bool) {
