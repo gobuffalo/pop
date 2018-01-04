@@ -20,6 +20,10 @@ func (p *CockroachSuite) crdbt() *translators.Cockroach {
 	ta = &fizz.Table{Name: "mytable"}
 	ta.Column("mycolumn", "type", nil)
 	schema["mytable"] = ta
+	ta = &fizz.Table{Name: "table"}
+	ta.Indexes = []fizz.Index{fizz.Index{Name: "old_ix"}}
+	schema["table"] = ta
+
 	ret.Schema.ReplaceSchema(schema)
 	return ret
 }
