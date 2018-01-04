@@ -174,7 +174,7 @@ func (p *CockroachSuite) Test_Cockroach_AddIndex_CustomName() {
 
 func (p *CockroachSuite) Test_Cockroach_DropIndex() {
 	r := p.Require()
-	ddl := `DROP INDEX "my_idx";`
+	ddl := `DROP INDEX IF EXISTS "my_idx";`
 
 	res, _ := fizz.AString(`drop_index("users", "my_idx")`, p.crdbt())
 	r.Equal(ddl, res)

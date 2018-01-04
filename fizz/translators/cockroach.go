@@ -26,6 +26,7 @@ func NewCockroach(url string, name string) *Cockroach {
 }
 
 func (p *Cockroach) CreateTable(t fizz.Table) (string, error) {
+	p.Schema.SetTable(&t)
 	sql := []string{}
 	cols := []string{}
 	var s string
@@ -188,6 +189,13 @@ func (p *Cockroach) AddIndex(t fizz.Table) (string, error) {
 	if i.Unique {
 		s = strings.Replace(s, "CREATE", "CREATE UNIQUE", 1)
 	}
+
+	tableInfo, err := p.Schema.TableInfo(t.Name)
+	if err != nil {
+		return "", err
+	}
+	tableInfo.Indexes = append(tableInfo.Indexes, i)
+
 	return s, nil
 }
 
@@ -196,7 +204,21 @@ func (p *Cockroach) DropIndex(t fizz.Table) (string, error) {
 		return "", errors.New("Not enough indexes supplied!")
 	}
 	i := t.Indexes[0]
-	return fmt.Sprintf("DROP INDEX \"%s\";", i.Name), nil
+
+	tableInfo, err := p.Schema.TableInfo(t.Name)
+	if err != nil {
+		return "", err
+	}
+
+	newIndexes := []fizz.Index{}
+	for _, c := range tableInfo.Indexes {
+		if c.Name != i.Name {
+			newIndexes = append(newIndexes, c)
+		}
+	}
+	tableInfo.Indexes = newIndexes
+
+	return fmt.Sprintf("DROP INDEX IF EXISTS \"%s\";", i.Name), nil
 }
 
 func (p *Cockroach) RenameIndex(t fizz.Table) (string, error) {
@@ -206,6 +228,18 @@ func (p *Cockroach) RenameIndex(t fizz.Table) (string, error) {
 	}
 	oi := ix[0]
 	ni := ix[1]
+
+	tableInfo, err := p.Schema.TableInfo(t.Name)
+	if err != nil {
+		return "", err
+	}
+
+	for _, c := range tableInfo.Indexes {
+		if c.Name == oi.Name {
+			c.Name = ni.Name
+		}
+	}
+
 	return fmt.Sprintf("ALTER INDEX \"%s\"@\"%s\" RENAME TO \"%s\";", t.Name, oi.Name, ni.Name), nil
 }
 
