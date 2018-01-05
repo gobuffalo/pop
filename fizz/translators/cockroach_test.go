@@ -40,7 +40,7 @@ func (p *CockroachSuite) Test_Cockroach_CreateTable() {
 "company_id" UUID NOT NULL DEFAULT uuid_generate_v1(),
 "created_at" timestamp NOT NULL,
 "updated_at" timestamp NOT NULL
-);`
+);COMMIT TRANSACTION;BEGIN TRANSACTION;`
 
 	res, _ := fizz.AString(`
 	create_table("users", func(t) {
@@ -66,7 +66,7 @@ func (p *CockroachSuite) Test_Cockroach_CreateTable_UUID() {
 "uuid" UUID PRIMARY KEY,
 "created_at" timestamp NOT NULL,
 "updated_at" timestamp NOT NULL
-);`
+);COMMIT TRANSACTION;BEGIN TRANSACTION;`
 
 	res, _ := fizz.AString(`
 	create_table("users", func(t) {
@@ -84,7 +84,7 @@ func (p *CockroachSuite) Test_Cockroach_CreateTable_UUID() {
 func (p *CockroachSuite) Test_Cockroach_DropTable() {
 	r := p.Require()
 
-	ddl := `DROP TABLE "users";`
+	ddl := `DROP TABLE "users";COMMIT TRANSACTION;BEGIN TRANSACTION;`
 
 	res, _ := fizz.AString(`drop_table("users")`, p.crdbt())
 	r.Equal(ddl, res)
@@ -93,7 +93,7 @@ func (p *CockroachSuite) Test_Cockroach_DropTable() {
 func (p *CockroachSuite) Test_Cockroach_RenameTable() {
 	r := p.Require()
 
-	ddl := `ALTER TABLE "users" RENAME TO "people";`
+	ddl := `ALTER TABLE "users" RENAME TO "people";COMMIT TRANSACTION;BEGIN TRANSACTION;`
 
 	res, _ := fizz.AString(`rename_table("users", "people")`, p.crdbt())
 	r.Equal(ddl, res)
@@ -108,10 +108,10 @@ func (p *CockroachSuite) Test_Cockroach_RenameTable_NotEnoughValues() {
 
 func (p *CockroachSuite) Test_Cockroach_ChangeColumn() {
 	r := p.Require()
-	ddl := `ALTER TABLE "mytable" RENAME COLUMN "mycolumn" TO "_mycolumn_tmp";
-ALTER TABLE "mytable" ADD COLUMN "mycolumn" VARCHAR (50) NOT NULL DEFAULT 'foo';
-UPDATE "mytable" SET "mycolumn" = "_mycolumn_tmp";
-ALTER TABLE "mytable" DROP COLUMN "_mycolumn_tmp";`
+	ddl := `ALTER TABLE "mytable" RENAME COLUMN "mycolumn" TO "_mycolumn_tmp";COMMIT TRANSACTION;BEGIN TRANSACTION;
+ALTER TABLE "mytable" ADD COLUMN "mycolumn" VARCHAR (50) NOT NULL DEFAULT 'foo';COMMIT TRANSACTION;BEGIN TRANSACTION;
+UPDATE "mytable" SET "mycolumn" = "_mycolumn_tmp";COMMIT TRANSACTION;BEGIN TRANSACTION;
+ALTER TABLE "mytable" DROP COLUMN "_mycolumn_tmp";COMMIT TRANSACTION;BEGIN TRANSACTION;`
 
 	res, _ := fizz.AString(`change_column("mytable", "mycolumn", "string", {"default": "foo", "size": 50})`, p.crdbt())
 
@@ -120,7 +120,7 @@ ALTER TABLE "mytable" DROP COLUMN "_mycolumn_tmp";`
 
 func (p *CockroachSuite) Test_Cockroach_AddColumn() {
 	r := p.Require()
-	ddl := `ALTER TABLE "mytable" ADD COLUMN "mycolumn" VARCHAR (50) NOT NULL DEFAULT 'foo';`
+	ddl := `ALTER TABLE "mytable" ADD COLUMN "mycolumn" VARCHAR (50) NOT NULL DEFAULT 'foo';COMMIT TRANSACTION;BEGIN TRANSACTION;`
 
 	res, _ := fizz.AString(`add_column("mytable", "mycolumn", "string", {"default": "foo", "size": 50})`, p.crdbt())
 
@@ -129,7 +129,7 @@ func (p *CockroachSuite) Test_Cockroach_AddColumn() {
 
 func (p *CockroachSuite) Test_Cockroach_DropColumn() {
 	r := p.Require()
-	ddl := `ALTER TABLE "table_name" DROP COLUMN "column_name";`
+	ddl := `ALTER TABLE "table_name" DROP COLUMN "column_name";COMMIT TRANSACTION;BEGIN TRANSACTION;`
 
 	res, _ := fizz.AString(`drop_column("table_name", "column_name")`, p.crdbt())
 
@@ -138,7 +138,7 @@ func (p *CockroachSuite) Test_Cockroach_DropColumn() {
 
 func (p *CockroachSuite) Test_Cockroach_RenameColumn() {
 	r := p.Require()
-	ddl := `ALTER TABLE "table_name" RENAME COLUMN "old_column" TO "new_column";`
+	ddl := `ALTER TABLE "table_name" RENAME COLUMN "old_column" TO "new_column";COMMIT TRANSACTION;BEGIN TRANSACTION;`
 
 	res, _ := fizz.AString(`rename_column("table_name", "old_column", "new_column")`, p.crdbt())
 	r.Equal(ddl, res)
@@ -146,7 +146,7 @@ func (p *CockroachSuite) Test_Cockroach_RenameColumn() {
 
 func (p *CockroachSuite) Test_Cockroach_AddIndex() {
 	r := p.Require()
-	ddl := `CREATE INDEX "table_name_column_name_idx" ON "table_name" (column_name);`
+	ddl := `CREATE INDEX "table_name_column_name_idx" ON "table_name" (column_name);COMMIT TRANSACTION;BEGIN TRANSACTION;`
 
 	res, _ := fizz.AString(`add_index("table_name", "column_name", {})`, p.crdbt())
 	r.Equal(ddl, res)
@@ -154,7 +154,7 @@ func (p *CockroachSuite) Test_Cockroach_AddIndex() {
 
 func (p *CockroachSuite) Test_Cockroach_AddIndex_Unique() {
 	r := p.Require()
-	ddl := `CREATE UNIQUE INDEX "table_name_column_name_idx" ON "table_name" (column_name);`
+	ddl := `CREATE UNIQUE INDEX "table_name_column_name_idx" ON "table_name" (column_name);COMMIT TRANSACTION;BEGIN TRANSACTION;`
 
 	res, _ := fizz.AString(`add_index("table_name", "column_name", {"unique": true})`, p.crdbt())
 	r.Equal(ddl, res)
@@ -162,7 +162,7 @@ func (p *CockroachSuite) Test_Cockroach_AddIndex_Unique() {
 
 func (p *CockroachSuite) Test_Cockroach_AddIndex_MultiColumn() {
 	r := p.Require()
-	ddl := `CREATE INDEX "table_name_col1_col2_col3_idx" ON "table_name" (col1, col2, col3);`
+	ddl := `CREATE INDEX "table_name_col1_col2_col3_idx" ON "table_name" (col1, col2, col3);COMMIT TRANSACTION;BEGIN TRANSACTION;`
 
 	res, _ := fizz.AString(`add_index("table_name", ["col1", "col2", "col3"], {})`, p.crdbt())
 	r.Equal(ddl, res)
@@ -170,7 +170,7 @@ func (p *CockroachSuite) Test_Cockroach_AddIndex_MultiColumn() {
 
 func (p *CockroachSuite) Test_Cockroach_AddIndex_CustomName() {
 	r := p.Require()
-	ddl := `CREATE INDEX "custom_name" ON "table_name" (column_name);`
+	ddl := `CREATE INDEX "custom_name" ON "table_name" (column_name);COMMIT TRANSACTION;BEGIN TRANSACTION;`
 
 	res, _ := fizz.AString(`add_index("table_name", "column_name", {"name": "custom_name"})`, p.crdbt())
 	r.Equal(ddl, res)
@@ -178,7 +178,7 @@ func (p *CockroachSuite) Test_Cockroach_AddIndex_CustomName() {
 
 func (p *CockroachSuite) Test_Cockroach_DropIndex() {
 	r := p.Require()
-	ddl := `DROP INDEX IF EXISTS "my_idx";`
+	ddl := `DROP INDEX IF EXISTS "my_idx";COMMIT TRANSACTION;BEGIN TRANSACTION;`
 
 	res, _ := fizz.AString(`drop_index("users", "my_idx")`, p.crdbt())
 	r.Equal(ddl, res)
@@ -187,7 +187,7 @@ func (p *CockroachSuite) Test_Cockroach_DropIndex() {
 func (p *CockroachSuite) Test_Cockroach_RenameIndex() {
 	r := p.Require()
 
-	ddl := `ALTER INDEX "table"@"old_ix" RENAME TO "new_ix";`
+	ddl := `ALTER INDEX "table"@"old_ix" RENAME TO "new_ix";COMMIT TRANSACTION;BEGIN TRANSACTION;`
 
 	res, _ := fizz.AString(`rename_index("table", "old_ix", "new_ix")`, p.crdbt())
 	r.Equal(ddl, res)
