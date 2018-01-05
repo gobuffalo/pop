@@ -22,8 +22,8 @@ function test {
   echo ./tsoda -v
   ! ./tsoda drop -e $SODA_DIALECT -c ./database.yml
   ! ./tsoda create -e $SODA_DIALECT -c ./database.yml
-  ./tsoda migrate -d -e $SODA_DIALECT -c ./database.yml
-  ./tsoda migrate -d down -e $SODA_DIALECT -c ./database.yml
+  ./tsoda migrate -e $SODA_DIALECT -c ./database.yml
+  ./tsoda migrate down -e $SODA_DIALECT -c ./database.yml
   ./tsoda migrate down -e $SODA_DIALECT -c ./database.yml
   ./tsoda migrate -e $SODA_DIALECT -c ./database.yml
   go test $(go list ./... | grep -v /vendor/)
