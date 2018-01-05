@@ -45,7 +45,7 @@ func (p *Cockroach) CreateTable(t fizz.Table) (string, error) {
 		}
 		cols = append(cols, s)
 	}
-	s = fmt.Sprintf("CREATE TABLE \"%s\" (\n%s\n);", t.Name, strings.Join(cols, ",\n"))
+	s = fmt.Sprintf("CREATE TABLE \"%s\" (\n%s\n);COMMIT TRANSACTION;BEGIN TRANSACTION;", t.Name, strings.Join(cols, ",\n"))
 	sql = append(sql, s)
 
 	for _, i := range t.Indexes {
@@ -64,7 +64,7 @@ func (p *Cockroach) CreateTable(t fizz.Table) (string, error) {
 
 func (p *Cockroach) DropTable(t fizz.Table) (string, error) {
 	p.Schema.Delete(t.Name)
-	return fmt.Sprintf("DROP TABLE \"%s\";", t.Name), nil
+	return fmt.Sprintf("DROP TABLE \"%s\";COMMIT TRANSACTION;BEGIN TRANSACTION;", t.Name), nil
 }
 
 func (p *Cockroach) RenameTable(t []fizz.Table) (string, error) {
@@ -79,7 +79,7 @@ func (p *Cockroach) RenameTable(t []fizz.Table) (string, error) {
 	}
 	tableInfo.Name = newName
 
-	return fmt.Sprintf("ALTER TABLE \"%s\" RENAME TO \"%s\";", oldName, newName), nil
+	return fmt.Sprintf("ALTER TABLE \"%s\" RENAME TO \"%s\";COMMIT TRANSACTION;BEGIN TRANSACTION;", oldName, newName), nil
 }
 
 func (p *Cockroach) ChangeColumn(t fizz.Table) (string, error) {
@@ -109,8 +109,8 @@ func (p *Cockroach) ChangeColumn(t fizz.Table) (string, error) {
 			return "", err1
 		}
 
-		createColumnSQL := fmt.Sprintf("ALTER TABLE \"%s\" ADD COLUMN %s;", table.Name, p.buildAddColumn(newCol))
-		ins := fmt.Sprintf("UPDATE \"%s\" SET \"%s\" = \"%s\";", t.Name, c.Name, tempCol)
+		createColumnSQL := fmt.Sprintf("ALTER TABLE \"%s\" ADD COLUMN %s;COMMIT TRANSACTION;BEGIN TRANSACTION;", table.Name, p.buildAddColumn(newCol))
+		ins := fmt.Sprintf("UPDATE \"%s\" SET \"%s\" = \"%s\";COMMIT TRANSACTION;BEGIN TRANSACTION;", t.Name, c.Name, tempCol)
 		return strings.Join([]string{createColumnSQL, ins}, "\n"), nil
 	})
 
@@ -128,7 +128,7 @@ func (p *Cockroach) AddColumn(t fizz.Table) (string, error) {
 		return "", errors.New("Not enough columns supplied!")
 	}
 	c := t.Columns[0]
-	s := fmt.Sprintf("ALTER TABLE \"%s\" ADD COLUMN %s;", t.Name, p.buildAddColumn(c))
+	s := fmt.Sprintf("ALTER TABLE \"%s\" ADD COLUMN %s;COMMIT TRANSACTION;BEGIN TRANSACTION;", t.Name, p.buildAddColumn(c))
 
 	//Update schema cache if we can
 	tableInfo, err := p.Schema.TableInfo(t.Name)
@@ -154,7 +154,7 @@ func (p *Cockroach) DropColumn(t fizz.Table) (string, error) {
 	}
 	c := t.Columns[0]
 	p.Schema.DeleteColumn(t.Name, c.Name)
-	return fmt.Sprintf("ALTER TABLE \"%s\" DROP COLUMN \"%s\";", t.Name, c.Name), nil
+	return fmt.Sprintf("ALTER TABLE \"%s\" DROP COLUMN \"%s\";COMMIT TRANSACTION;BEGIN TRANSACTION;", t.Name, c.Name), nil
 }
 
 func (p *Cockroach) RenameColumn(t fizz.Table) (string, error) {
@@ -176,7 +176,7 @@ func (p *Cockroach) RenameColumn(t fizz.Table) (string, error) {
 		}
 	}
 
-	s := fmt.Sprintf("ALTER TABLE \"%s\" RENAME COLUMN \"%s\" TO \"%s\";", t.Name, oc.Name, nc.Name)
+	s := fmt.Sprintf("ALTER TABLE \"%s\" RENAME COLUMN \"%s\" TO \"%s\";COMMIT TRANSACTION;BEGIN TRANSACTION;", t.Name, oc.Name, nc.Name)
 	return s, nil
 }
 
@@ -185,7 +185,7 @@ func (p *Cockroach) AddIndex(t fizz.Table) (string, error) {
 		return "", errors.New("Not enough indexes supplied!")
 	}
 	i := t.Indexes[0]
-	s := fmt.Sprintf("CREATE INDEX \"%s\" ON \"%s\" (%s);", i.Name, t.Name, strings.Join(i.Columns, ", "))
+	s := fmt.Sprintf("CREATE INDEX \"%s\" ON \"%s\" (%s);COMMIT TRANSACTION;BEGIN TRANSACTION;", i.Name, t.Name, strings.Join(i.Columns, ", "))
 	if i.Unique {
 		s = strings.Replace(s, "CREATE", "CREATE UNIQUE", 1)
 	}
@@ -218,7 +218,7 @@ func (p *Cockroach) DropIndex(t fizz.Table) (string, error) {
 	}
 	tableInfo.Indexes = newIndexes
 
-	return fmt.Sprintf("DROP INDEX IF EXISTS \"%s\";", i.Name), nil
+	return fmt.Sprintf("DROP INDEX IF EXISTS \"%s\";COMMIT TRANSACTION;BEGIN TRANSACTION;", i.Name), nil
 }
 
 func (p *Cockroach) RenameIndex(t fizz.Table) (string, error) {
@@ -240,7 +240,7 @@ func (p *Cockroach) RenameIndex(t fizz.Table) (string, error) {
 		}
 	}
 
-	return fmt.Sprintf("ALTER INDEX \"%s\"@\"%s\" RENAME TO \"%s\";", t.Name, oi.Name, ni.Name), nil
+	return fmt.Sprintf("ALTER INDEX \"%s\"@\"%s\" RENAME TO \"%s\";COMMIT TRANSACTION;BEGIN TRANSACTION;", t.Name, oi.Name, ni.Name), nil
 }
 
 func (p *Cockroach) buildAddColumn(c fizz.Column) string {
@@ -283,12 +283,12 @@ func (p *Cockroach) buildChangeColumn(oldCol fizz.Column, c fizz.Column) fizz.Co
 func (p *Cockroach) withTempTable(table string, fn func(fizz.Table) (string, error)) (string, error) {
 	tempTable := fizz.Table{Name: fmt.Sprintf("_%s_tmp", table)}
 
-	sql := []string{fmt.Sprintf("ALTER TABLE \"%s\" RENAME TO \"%s\";", table, tempTable.Name)}
+	sql := []string{fmt.Sprintf("ALTER TABLE \"%s\" RENAME TO \"%s\";COMMIT TRANSACTION;BEGIN TRANSACTION;", table, tempTable.Name)}
 	s, err := fn(tempTable)
 	if err != nil {
 		return "", err
 	}
-	sql = append(sql, s, fmt.Sprintf("DROP TABLE \"%s\";", tempTable.Name))
+	sql = append(sql, s, fmt.Sprintf("DROP TABLE \"%s\";COMMIT TRANSACTION;BEGIN TRANSACTION;", tempTable.Name))
 
 	return strings.Join(sql, "\n"), nil
 }
@@ -305,13 +305,13 @@ func (p *Cockroach) withTempColumn(tableName string, column string, fn func(fizz
 
 	tempCol := fmt.Sprintf("_%s_tmp", column)
 
-	sql := []string{fmt.Sprintf("ALTER TABLE \"%s\" RENAME COLUMN \"%s\" TO \"%s\";", tableName, column, tempCol)}
+	sql := []string{fmt.Sprintf("ALTER TABLE \"%s\" RENAME COLUMN \"%s\" TO \"%s\";COMMIT TRANSACTION;BEGIN TRANSACTION;", tableName, column, tempCol)}
 
 	s, err := fn(*table, *col, tempCol)
 	if err != nil {
 		return "", err
 	}
-	sql = append(sql, s, fmt.Sprintf("ALTER TABLE \"%s\" DROP COLUMN \"%s\";", tableName, tempCol))
+	sql = append(sql, s, fmt.Sprintf("ALTER TABLE \"%s\" DROP COLUMN \"%s\";COMMIT TRANSACTION;BEGIN TRANSACTION;", tableName, tempCol))
 
 	return strings.Join(sql, "\n"), nil
 }
