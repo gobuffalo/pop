@@ -208,7 +208,8 @@ func Test_Create_UUID(t *testing.T) {
 func Test_Create_Existing_UUID(t *testing.T) {
 	transaction(func(tx *pop.Connection) {
 		r := require.New(t)
-		id := uuid.NewV4()
+		id, err := uuid.NewV4()
+		r.NoError(err)
 
 		count, _ := tx.Count(&Song{})
 		song := Song{
@@ -216,7 +217,7 @@ func Test_Create_Existing_UUID(t *testing.T) {
 			Title: "Automatic Buffalo",
 		}
 
-		err := tx.Create(&song)
+		err = tx.Create(&song)
 		r.NoError(err)
 		r.NotZero(song.ID)
 		r.Equal(id.String(), song.ID.String())

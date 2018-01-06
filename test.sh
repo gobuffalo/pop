@@ -17,7 +17,7 @@ sleep 4 # Ensure mysql is online
 go build -v -o tsoda ./soda
 
 function test {
-  echo "!!!Testing $1"
+  echo "!!! Testing $1"
   export SODA_DIALECT=$1
   echo ./tsoda -v
   ! ./tsoda drop -e $SODA_DIALECT -c ./database.yml

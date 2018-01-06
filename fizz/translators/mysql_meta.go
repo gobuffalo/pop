@@ -6,6 +6,7 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	"github.com/markbates/pop/fizz"
+	"github.com/pkg/errors"
 )
 
 type mysqlTableInfo struct {
@@ -38,6 +39,28 @@ type mysqlSchema struct {
 	Schema
 }
 
+func (p *mysqlSchema) Version() (string, error) {
+	var version string
+	var err error
+
+	p.db, err = sqlx.Open("mysql", p.URL)
+	if err != nil {
+		return version, err
+	}
+	defer p.db.Close()
+
+	res, err := p.db.Queryx("select VERSION()")
+	if err != nil {
+		return version, err
+	}
+
+	for res.Next() {
+		err = res.Scan(&version)
+		return version, err
+	}
+	return "", errors.New("could not locate MySQL version")
+}
+
 func (p *mysqlSchema) Build() error {
 	var err error
 	p.db, err = sqlx.Open("mysql", p.URL)
@@ -63,7 +86,6 @@ func (p *mysqlSchema) Build() error {
 		if err != nil {
 			return err
 		}
-
 	}
 	return nil
 }

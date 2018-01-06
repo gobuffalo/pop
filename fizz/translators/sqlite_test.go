@@ -31,6 +31,10 @@ func (p *fauxSchema) Delete(table string) {
 	delete(p.schema, table)
 }
 
+func (s *fauxSchema) SetTable(table *fizz.Table) {
+	s.schema[table.Name] = table
+}
+
 func (p *fauxSchema) TableInfo(table string) (*fizz.Table, error) {
 	if ti, ok := p.schema[table]; ok {
 		return ti, nil
@@ -203,6 +207,16 @@ DROP TABLE "_users_tmp";`
 
 func (p *SQLiteSuite) Test_SQLite_AddIndex() {
 	r := p.Require()
+
+	schema.schema["table_name"] = &fizz.Table{
+		Name: "table_name",
+		Columns: []fizz.Column{
+			fizz.Column{
+				Name: "column_name",
+			},
+		},
+	}
+
 	ddl := `CREATE INDEX "table_name_column_name_idx" ON "table_name" (column_name);`
 
 	res, _ := fizz.AString(`add_index("table_name", "column_name", {})`, sqt)
@@ -235,6 +249,16 @@ func (p *SQLiteSuite) Test_SQLite_AddIndex_CustomName() {
 
 func (p *SQLiteSuite) Test_SQLite_DropIndex() {
 	r := p.Require()
+
+	schema.schema["my_table"] = &fizz.Table{
+		Name: "my_table",
+		Indexes: []fizz.Index{
+			fizz.Index{
+				Name: "my_idx",
+			},
+		},
+	}
+
 	ddl := `DROP INDEX IF EXISTS "my_idx";`
 
 	res, _ := fizz.AString(`drop_index("my_table", "my_idx")`, sqt)

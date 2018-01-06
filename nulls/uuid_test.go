@@ -10,7 +10,8 @@ import (
 
 func Test_UUID_UnmarshalJSON(t *testing.T) {
 	r := require.New(t)
-	id := uuid.NewV4()
+	id, err := uuid.NewV4()
+	r.NoError(err)
 
 	b, err := json.Marshal(id)
 	r.NoError(err)
