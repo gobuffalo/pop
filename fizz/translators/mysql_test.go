@@ -93,6 +93,42 @@ updated_at DATETIME NOT NULL
 	r.Equal(ddl, res)
 }
 
+func (p *MySQLSuite) Test_MySQL_CreateTables_WithForeignKeys() {
+	r := p.Require()
+	ddl := `CREATE TABLE users (
+id INT NOT NULL AUTO_INCREMENT,
+PRIMARY KEY(id),
+email VARCHAR (20) NOT NULL,
+created_at DATETIME NOT NULL,
+updated_at DATETIME NOT NULL
+) ENGINE=InnoDB;
+CREATE TABLE profiles (
+id INT NOT NULL AUTO_INCREMENT,
+PRIMARY KEY(id),
+user_id INT NOT NULL,
+first_name VARCHAR (255) NOT NULL,
+last_name VARCHAR (255) NOT NULL,
+created_at DATETIME NOT NULL,
+updated_at DATETIME NOT NULL,
+FOREIGN KEY (user_id) REFERENCES users (id)
+) ENGINE=InnoDB;`
+
+	res, _ := fizz.AString(`
+	create_table("users", func(t) {
+		t.Column("id", "INT", {"primary": true})
+		t.Column("email", "string", {"size":20})
+	})
+	create_table("profiles", func(t) {
+		t.Column("id", "INT", {"primary": true})
+		t.Column("user_id", "INT", {})
+		t.Column("first_name", "string", {})
+		t.Column("last_name", "string", {})
+		t.ForeignKey("user_id", {"users": ["id"]}, {})
+	})
+	`, myt)
+	r.Equal(ddl, res)
+}
+
 func (p *MySQLSuite) Test_MySQL_DropTable() {
 	r := p.Require()
 
