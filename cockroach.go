@@ -173,7 +173,12 @@ func (p *cockroach) Lock(fn func() error) error {
 }
 
 func (p *cockroach) DumpSchema(w io.Writer) error {
-	cmd := exec.Command("cockroach", "dump", p.Details().Database, "--dump-mode=schema")
+	secure := ""
+	c := p.ConnectionDetails
+	if defaults.String(c.Options["sslmode"], "disable") == "disable" {
+		secure = "--insecure"
+	}
+	cmd := exec.Command("cockroach", "dump", p.Details().Database, "--dump-mode=schema", secure)
 	Log(strings.Join(cmd.Args, " "))
 	cmd.Stdout = w
 	cmd.Stderr = os.Stderr
@@ -188,7 +193,13 @@ func (p *cockroach) DumpSchema(w io.Writer) error {
 }
 
 func (p *cockroach) LoadSchema(r io.Reader) error {
-	cmd := exec.Command("cockroach", "sql", "--insecure", fmt.Sprintf("--database=%s", p.Details().Database), "--user=maxroach")
+	secure := ""
+	c := p.ConnectionDetails
+	if defaults.String(c.Options["sslmode"], "disable") == "disable" {
+		secure = "--insecure"
+	}
+
+	cmd := exec.Command("cockroach", "sql", secure, fmt.Sprintf("--database=%s", p.Details().Database), "--user=maxroach")
 	in, err := cmd.StdinPipe()
 	if err != nil {
 		return err
