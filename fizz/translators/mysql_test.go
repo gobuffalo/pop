@@ -237,3 +237,19 @@ func (p *MySQLSuite) Test_MySQL_RenameIndex() {
 	res, _ := fizz.AString(`rename_index("users", "email_idx", "email_address_ix")`, myt)
 	r.Equal(ddl, res)
 }
+
+func (p *MySQLSuite) Test_MySQL_AddForeignKey() {
+	r := p.Require()
+	ddl := `ALTER TABLE profiles ADD CONSTRAINT profiles_users_id_fk FOREIGN KEY (user_id) REFERENCES users (id);`
+
+	res, _ := fizz.AString(`add_foreign_key("profiles", "user_id", {"users": ["id"]}, {})`, myt)
+	r.Equal(ddl, res)
+}
+
+func (p *MySQLSuite) Test_MySQL_DropForeignKey() {
+	r := p.Require()
+	ddl := `ALTER TABLE profiles DROP FOREIGN KEY  profiles_users_id_fk;`
+
+	res, _ := fizz.AString(`drop_foreign_key("profiles", "profiles_users_id_fk", {})`, myt)
+	r.Equal(ddl, res)
+}

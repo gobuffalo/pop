@@ -172,7 +172,7 @@ func (p *MySQL) DropForeignKey(t fizz.Table) (string, error) {
 		ifExists = "IF EXISTS"
 	}
 
-	s := fmt.Sprintf("ALTER TABLE %s DROP FOREIGN KEY %s %s", t.Name, ifExists, fk.Name)
+	s := fmt.Sprintf("ALTER TABLE %s DROP FOREIGN KEY %s %s;", t.Name, ifExists, fk.Name)
 	return s, nil
 }
 
@@ -192,7 +192,7 @@ func (p *MySQL) buildColumn(c fizz.Column) string {
 		s = fmt.Sprintf("%s DEFAULT %s", s, d)
 	}
 
-	if c.Primary && (c.ColType == "integer" || c.ColType == "INT") {
+	if c.Primary && (c.ColType == "integer" || strings.ToLower(c.ColType) == "int") {
 		s = fmt.Sprintf("%s AUTO_INCREMENT", s)
 	}
 	return s

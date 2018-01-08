@@ -25,7 +25,7 @@ func (p *Postgres) CreateTable(t fizz.Table) (string, error) {
 			switch c.ColType {
 			case "string", "uuid":
 				s = fmt.Sprintf("\"%s\" %s PRIMARY KEY", c.Name, p.colType(c))
-			case "integer":
+			case "integer", "INT", "int":
 				s = fmt.Sprintf("\"%s\" SERIAL PRIMARY KEY", c.Name)
 			default:
 				return "", errors.Errorf("can not use %s as a primary key", c.ColType)
@@ -154,7 +154,7 @@ func (p *Postgres) DropForeignKey(t fizz.Table) (string, error) {
 		ifExists = "IF EXISTS"
 	}
 
-	s := fmt.Sprintf("ALTER TABLE %s DROP CONSTRAINT %s %s", t.Name, ifExists, fk.Name)
+	s := fmt.Sprintf("ALTER TABLE %s DROP CONSTRAINT %s %s;", t.Name, ifExists, fk.Name)
 	return s, nil
 }
 
