@@ -266,7 +266,7 @@ func (p *Cockroach) buildChangeColumn(oldCol fizz.Column, c fizz.Column) fizz.Co
 		Options: oldCol.Options,
 		Primary: oldCol.Primary,
 	}
-	fmt.Printf("%v", c)
+
 	if c.Options["default"] != nil {
 		newCol.Options["default"] = c.Options["default"]
 	}
