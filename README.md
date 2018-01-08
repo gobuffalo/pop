@@ -230,7 +230,7 @@ err := tx.Find(&user, id)
 #### Query
 ```
 tx := models.DB
-query = tx.Where("id = 1").Where("name = 'Mark'")
+query := tx.Where("id = 1").Where("name = 'Mark'")
 users := []models.User{}
 err := query.All(&users)
 
