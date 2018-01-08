@@ -1,0 +1,15 @@
+language: go
+go:
+  - 1.7.x
+  - 1.8.x
+  - 1.9.x
+  - tip
+before_install:
+    - go get github.com/daviddengcn/go-colortext
+script:
+    - go build
+    - go test -v ./ast/util
+    - go test -v ./vm
+    - go test -v ./builtins
+    - ./t/test.sh
+    - ./anko ./_example/scripts/term.ank
