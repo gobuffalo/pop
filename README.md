@@ -18,6 +18,7 @@ Pop, by default, follows conventions that were defined by the ActiveRecord Ruby 
 * PostgreSQL (>= 9.3)
 * MySQL (>= 5.7)
 * SQLite (>= 3.x)
+* CockraochDB (>= 1.1.1)
 
 ## Connecting to Databases
 
