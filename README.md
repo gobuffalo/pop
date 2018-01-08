@@ -63,7 +63,7 @@ You can generate a default configuration file using the `init` command:
 $ soda g config
 ```
 
-The default will generate a `database.yml` file in the current directory for a PostgreSQL database. You can override the type of database using the `-t` flag and passing in any of the supported database types: `postgres`, `mysql`, or `sqlite3`.
+The default will generate a `database.yml` file in the current directory for a PostgreSQL database. You can override the type of database using the `-t` flag and passing in any of the supported database types: `postgres`, `cockroach`, `mysql`, or `sqlite3`.
 
 CockroachDB currently works best if you DO NOT use a url and instead define each key item. Because CockroachDB more or less uses the same driver as postgres you have the same configuration options for both. In production you will also want to make sure you are using a [secure cluster](https://www.cockroachlabs.com/docs/stable/manual-deployment.html) and have set all the needed [connection parameters](https://godoc.org/github.com/lib/pq#hdr-Connection_String_Parameters) for said secure connection. If you do not set the sslmode or set it to `disable` this will put dump and load commands into `--insecure` mode.
 
