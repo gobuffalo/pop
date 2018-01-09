@@ -30,5 +30,6 @@ gin-bin
 tsoda
 migrations/schema.sql
 .grifter/
+cockroach-data/
 vendor/
 cockroach-data/
