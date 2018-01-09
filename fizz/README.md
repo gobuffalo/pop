@@ -9,7 +9,7 @@ create_table("users", func(t) {
   t.Column("email", "string", {})
   t.Column("twitter_handle", "string", {"size": 50})
   t.Column("age", "integer", {"default": 0})
-  t.Column("admin", "boolean", {"default": false})
+  t.Column("admin", "bool", {"default": false})
   t.Column("company_id", "uuid", {"default_raw": "uuid_generate_v1()"})
   t.Column("bio", "text", {"null": true})
   t.Column("joined_at", "timestamp", {})
@@ -26,7 +26,7 @@ Columns all have the same syntax. First is the name of the column. Second is the
 * `text`
 * `timestamp`, `time`, `datetime`
 * `integer`
-* `boolean`
+* `bool`
 
 Any other type passed it will be be passed straight through to the underlying database. For example for PostgreSQL you could pass `jsonb`and it will be supported, however, SQLite will yell very loudly at you if you do the same thing!
 
