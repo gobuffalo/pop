@@ -50,3 +50,16 @@ func Test_MapTableName(t *testing.T) {
 	m = pop.Model{Value: &[]Friend{}}
 	r.Equal(m.TableName(), "good_friends")
 }
+
+type tn struct{}
+
+func (tn) TableName() string {
+	return "this is my table name"
+}
+
+func Test_TableName(t *testing.T) {
+	r := require.New(t)
+
+	m := pop.Model{Value: tn{}}
+	r.Equal("this is my table name", m.TableName())
+}

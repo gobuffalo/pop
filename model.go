@@ -2,7 +2,9 @@ package pop
 
 import (
 	"fmt"
+	"log"
 	"reflect"
+	"runtime"
 	"sync"
 	"time"
 
@@ -14,18 +16,16 @@ import (
 var tableMap = map[string]string{}
 var tableMapMu = sync.RWMutex{}
 
-// MapTableName allows for the customize table mapping
-// between a name and the database. For example the value
-// `User{}` will automatically map to "users".
-// MapTableName would allow this to change.
-//
-//	m := &pop.Model{Value: User{}}
-//	m.TableName() // "users"
-//
-//	pop.MapTableName("User", "people")
-//	m = &pop.Model{Value: User{}}
-//	m.TableName() // "people"
+// MapTableName is deprecated. Please implement the `TableNameAble`
+// interface instead.
 func MapTableName(name string, tableName string) {
+	warningMsg := "MapTableName is deprecated, and will be removed in a later version of Pop. Use the pop.TableNameAble interface instead."
+	_, file, no, ok := runtime.Caller(1)
+	if ok {
+		warningMsg = fmt.Sprintf("%s Called from %s:%d", warningMsg, file, no)
+	}
+
+	log.Println(warningMsg)
 	defer tableMapMu.Unlock()
 	tableMapMu.Lock()
 	tableMap[name] = tableName
@@ -64,10 +64,24 @@ func (m *Model) PrimaryKeyType() string {
 	return fbn.Type().Name()
 }
 
+// TableNameAble interface allows for the customize table mapping
+// between a name and the database. For example the value
+// `User{}` will automatically map to "users". Implementing `TableNameAble`
+// would allow this to change to be changed to whatever you would like.
+type TableNameAble interface {
+	TableName() string
+}
+
 // TableName returns the corresponding name of the underlying database table
-// for a given `Model`. See also `MapTableName` to change the default name of
-// the table.
+// for a given `Model`. See also `TableNameAble` to change the default name of the table.
 func (m *Model) TableName() string {
+	if s, ok := m.Value.(string); ok {
+		return s
+	}
+	if n, ok := m.Value.(TableNameAble); ok {
+		return n.TableName()
+	}
+
 	if m.tableName != "" {
 		return m.tableName
 	}
@@ -90,8 +104,6 @@ func (m *Model) typeName(t reflect.Type) string {
 		t = t.Elem()
 	}
 	switch t.Kind() {
-	case reflect.String:
-		return m.Value.(string)
 	case reflect.Slice, reflect.Array:
 		el := t.Elem()
 		if el.Kind() == reflect.Ptr {
