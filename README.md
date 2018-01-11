@@ -291,3 +291,6 @@ The available callbacks include:
 * AfterUpdate
 * AfterDestroy
 * AfterFind
+
+#### Further reading
+[The Unofficial pop Book: a gentle introduction to new users.](https://andrew-sledge.gitbooks.io/the-unofficial-pop-book/content/)
