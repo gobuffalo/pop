@@ -218,7 +218,7 @@ func (p *Postgres) buildForeignKey(t fizz.Table, fk fizz.ForeignKey, onCreate bo
 	s := fmt.Sprintf("FOREIGN KEY (%s) REFERENCES %s", fk.Column, refs)
 
 	if onUpdate, ok := fk.Options["on_update"]; ok {
-		s += fmt.Sprintf(" ON DELETE %s", onUpdate)
+		s += fmt.Sprintf(" ON UPDATE %s", onUpdate)
 	}
 
 	if onDelete, ok := fk.Options["on_delete"]; ok {

@@ -58,7 +58,7 @@ func parseForeignKeyRef(refs interface{}) (fkr ForeignKeyRef) {
 		fmt.Printf(`invalid references format %s\nmust be "{"table": ["colum1", "column2"]}"`, refs)
 		return
 	}
-	if len(refMap) > 1 {
+	if len(refMap) != 1 {
 		fmt.Printf("only one table is supported as Foreign key reference")
 		return
 	}
