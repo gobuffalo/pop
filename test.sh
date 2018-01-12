@@ -29,8 +29,9 @@ function test {
   go test $(go list ./... | grep -v /vendor/)
 }
 
-test "postgres"
+test "cockroach"
 test "sqlite"
+test "postgres"
 test "mysql"
 
 docker-compose down

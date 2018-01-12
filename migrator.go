@@ -14,11 +14,6 @@ import (
 
 var mrx = regexp.MustCompile("(\\d+)_(.+)\\.(up|down)\\.(sql|fizz)")
 
-func init() {
-	MapTableName("schema_migrations", "schema_migration")
-	MapTableName("schema_migration", "schema_migration")
-}
-
 // NewMigrator returns a new "blank" migrator. It is recommended
 // to use something like MigrationBox or FileMigrator. A "blank"
 // Migrator should only be used as the basis for a new type of

@@ -12,7 +12,7 @@ import (
 )
 
 func init() {
-	ConfigCmd.Flags().StringVarP(&dialect, "type", "t", "postgres", "What type of database do you want to use? (postgres, mysql, sqlite3)")
+	ConfigCmd.Flags().StringVarP(&dialect, "type", "t", "postgres", "What type of database do you want to use? (postgres, mysql, sqlite3, cockroach)")
 }
 
 var dialect string

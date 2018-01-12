@@ -9,12 +9,15 @@ import (
 )
 
 type SchemaQuery interface {
+	ReplaceSchema(map[string]*fizz.Table)
 	Build() error
 	TableInfo(string) (*fizz.Table, error)
+	ReplaceColumn(table string, oldColumn string, newColumn fizz.Column) error
 	ColumnInfo(table string, column string) (*fizz.Column, error)
 	IndexInfo(table string, idx string) (*fizz.Index, error)
 	Delete(string)
 	SetTable(*fizz.Table)
+	DeleteColumn(string, string)
 }
 
 type Schema struct {
@@ -31,6 +34,10 @@ func CreateSchema(name string, url string, schema map[string]*fizz.Table) Schema
 		URL:    url,
 		schema: schema,
 	}
+}
+
+func (s *Schema) ReplaceSchema(newSchema map[string]*fizz.Table) {
+	s.schema = newSchema
 }
 
 func (s *Schema) Build() error {
@@ -57,6 +64,20 @@ func (p *Schema) TableInfo(table string) (*fizz.Table, error) {
 		return ti, nil
 	}
 	return nil, fmt.Errorf("Could not find table data for %s!", table)
+}
+
+func (s *Schema) ReplaceColumn(table string, oldColumn string, newColumn fizz.Column) error {
+	tableInfo, err := s.TableInfo(table)
+	if err != nil {
+		return err
+	}
+	for i, col := range tableInfo.Columns {
+		if strings.ToLower(strings.TrimSpace(col.Name)) == strings.ToLower(strings.TrimSpace(oldColumn)) {
+			tableInfo.Columns[i] = newColumn
+			return nil
+		}
+	}
+	return fmt.Errorf("Could not find column(%s) in table(%s)!", oldColumn, table)
 }
 
 func (s *Schema) ColumnInfo(table string, column string) (*fizz.Column, error) {
@@ -89,6 +110,19 @@ func (s *Schema) Delete(table string) {
 
 func (s *Schema) SetTable(table *fizz.Table) {
 	s.schema[table.Name] = table
+}
+
+func (s *Schema) DeleteColumn(table string, column string) {
+	tableInfo, err := s.TableInfo(table)
+	if err != nil {
+		return
+	}
+	for i, col := range tableInfo.Columns {
+		if strings.ToLower(strings.TrimSpace(col.Name)) == strings.ToLower(strings.TrimSpace(column)) {
+			tableInfo.Columns = append(tableInfo.Columns[:i], tableInfo.Columns[i+1:]...)
+			return
+		}
+	}
 }
 
 func (s *Schema) findColumnInfo(tableInfo *fizz.Table, column string) (*fizz.Column, bool) {

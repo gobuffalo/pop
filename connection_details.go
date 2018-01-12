@@ -76,6 +76,10 @@ func (cd *ConnectionDetails) Finalize() error {
 		cd.Dialect = "postgres"
 		cd.Port = defaults.String(cd.Port, "5432")
 		cd.Database = strings.TrimPrefix(cd.Database, "/")
+	case "cockroach", "cockroachdb", "crdb":
+		cd.Dialect = "cockroach"
+		cd.Port = defaults.String(cd.Port, "26257")
+		cd.Database = strings.TrimPrefix(cd.Database, "/")
 	case "mysql":
 		// parse and verify whether URL is supported by underlying driver or not.
 		if cd.URL != "" {
