@@ -279,6 +279,7 @@ func (p *Cockroach) DropForeignKey(t fizz.Table) (string, error) {
 			newFKs = append(newFKs, key)
 		}
 	}
+	tableInfo.ForeignKeys = newFKs
 
 	var ifExists string
 	if v, ok := fk.Options["if_exists"]; ok && v.(bool) {
