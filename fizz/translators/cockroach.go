@@ -253,12 +253,11 @@ func (p *Cockroach) AddForeignKey(t fizz.Table) (string, error) {
 		return "", errors.New("Not enough foreign keys supplied!")
 	}
 
-	// tableInfo, err := p.Schema.TableInfo(t.Name)
-	// fmt.Println(tableInfo)
-	// if err != nil {
-	// 	return "", err
-	// }
-	// tableInfo.ForeignKeys = append(tableInfo.ForeignKeys, t.ForeignKeys[0])
+	tableInfo, err := p.Schema.TableInfo(t.Name)
+	if err != nil {
+		return "", err
+	}
+	tableInfo.ForeignKeys = append(tableInfo.ForeignKeys, t.ForeignKeys[0])
 
 	return p.buildForeignKey(t, t.ForeignKeys[0], false), nil
 }
@@ -270,16 +269,16 @@ func (p *Cockroach) DropForeignKey(t fizz.Table) (string, error) {
 
 	fk := t.ForeignKeys[0]
 
-	// tableInfo, err := p.Schema.TableInfo(t.Name)
-	// if err != nil {
-	// 	return "", err
-	// }
-	// newFKs := []fizz.ForeignKey{}
-	// for _, key := range tableInfo.ForeignKeys {
-	// 	if key.Name != fk.Name {
-	// 		newFKs = append(newFKs, key)
-	// 	}
-	// }
+	tableInfo, err := p.Schema.TableInfo(t.Name)
+	if err != nil {
+		return "", err
+	}
+	newFKs := []fizz.ForeignKey{}
+	for _, key := range tableInfo.ForeignKeys {
+		if key.Name != fk.Name {
+			newFKs = append(newFKs, key)
+		}
+	}
 
 	var ifExists string
 	if v, ok := fk.Options["if_exists"]; ok && v.(bool) {

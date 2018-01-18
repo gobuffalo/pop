@@ -23,7 +23,7 @@ sqlite:
   database: "./sql_scripts/sqlite/test.sqlite"
 
 cockroach:
-#  url: "cockroach://root@127.0.0.1:26257/pop_test?application_name=cockroach&sslmode=disable"
+  # url: "cockroach://root@127.0.0.1:26257/pop_test?application_name=cockroach&sslmode=disable"
   dialect: "cockroach"
   database: "pop_test"
   host: {{ envOr "COCKROACH_HOST" "127.0.0.1"  }}
