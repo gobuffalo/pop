@@ -26,8 +26,7 @@ func (q *Query) BelongsTo(model interface{}) *Query {
 // "model" passed into it, using an alias.
 func (q *Query) BelongsToAs(model interface{}, as string) *Query {
 	m := &Model{Value: model}
-	m.tableName = as
-	q.Where(fmt.Sprintf("%s = ?", m.associationName()), m.ID())
+	q.Where(fmt.Sprintf("%s = ?", as), m.ID())
 	return q
 }
 

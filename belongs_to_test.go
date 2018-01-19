@@ -21,7 +21,7 @@ func Test_BelongsTo(t *testing.T) {
 func Test_BelongsToAs(t *testing.T) {
 	r := require.New(t)
 
-	q := PDB.BelongsToAs(&User{ID: 1}, "u")
+	q := PDB.BelongsToAs(&User{ID: 1}, "u_id")
 
 	m := &pop.Model{Value: &Enemy{}}
 
