@@ -30,9 +30,9 @@ func ColumnsForStructWithAlias(s interface{}, tableName string, tableAlias strin
 		}
 	}
 
-	field_count := st.NumField()
+	fieldCount := st.NumField()
 
-	for i := 0; i < field_count; i++ {
+	for i := 0; i < fieldCount; i++ {
 		field := st.Field(i)
 		tag := field.Tag.Get("db")
 		if tag == "" {
@@ -44,6 +44,14 @@ func ColumnsForStructWithAlias(s interface{}, tableName string, tableAlias strin
 			if rw != "" {
 				tag = tag + "," + rw
 			}
+
+			if tag == "preload" {
+				cs := columns.Add(field.Name)
+				c := cs[0]
+				c.SetPreload()
+				continue
+			}
+
 			cs := columns.Add(tag)
 			c := cs[0]
 			tag = field.Tag.Get("select")

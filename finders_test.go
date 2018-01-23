@@ -25,6 +25,40 @@ func Test_Find(t *testing.T) {
 	})
 }
 
+func Test_FindPreload(t *testing.T) {
+	transaction(func(tx *pop.Connection) {
+		a := require.New(t)
+
+		user := User{Name: nulls.NewString("Mark")}
+		err := tx.Create(&user)
+		a.NoError(err)
+
+		book := Book{
+			UserID: user.ID,
+			Title:  "The Unoficial Pop Book",
+			Isbn:   "TUPB",
+		}
+		err = tx.Create(&book)
+		a.NoError(err)
+
+		niceSong := Song{
+			UserID: user.ID,
+			Title:  "Hook",
+		}
+		err = tx.Create(&niceSong)
+		a.NoError(err)
+
+		u := User{}
+		err = tx.FindPreload(&u, user.ID)
+		a.NoError(err)
+
+		a.NotEqual(u.ID, 0)
+		a.Equal(u.Name.String, "Mark")
+		a.Equal(len(u.Books), 1)
+		a.Equal(niceSong.Title, u.FavoriteSong.Title)
+	})
+}
+
 func Test_First(t *testing.T) {
 	transaction(func(tx *pop.Connection) {
 		a := require.New(t)

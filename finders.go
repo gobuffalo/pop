@@ -6,6 +6,8 @@ import (
 	"regexp"
 	"strconv"
 
+	"github.com/markbates/pop/columns"
+
 	"github.com/satori/go.uuid"
 )
 
@@ -17,6 +19,14 @@ var rLimit = regexp.MustCompile("(?i)(limit [0-9]+)$")
 //	c.Find(&User{}, 1)
 func (c *Connection) Find(model interface{}, id interface{}) error {
 	return Q(c).Find(model, id)
+}
+
+// FindPreload finds the first record of the model in the database with a particular id.
+// and preload tables associated records.
+//
+//	c.FindPreload(&User{}, 1)
+func (c *Connection) FindPreload(model interface{}, id interface{}) error {
+	return Q(c).FindPreload(model, id)
 }
 
 // Find the first record of the model in the database with a particular id.
@@ -36,6 +46,48 @@ func (q *Query) Find(model interface{}, id interface{}) error {
 		}
 	}
 	return q.Where(idq, id).First(model)
+}
+
+// FindPreload finds the first record of the model in the database with a particular id.
+// and preload tables associated records.
+func (q *Query) FindPreload(model interface{}, id interface{}) error {
+	userQuery := Q(q.Connection)
+	err := userQuery.Find(model, id)
+	if err != nil {
+		return err
+	}
+
+	v := reflect.ValueOf(model)
+	if v.Kind() == reflect.Ptr {
+		v = v.Elem()
+	}
+
+	m := &Model{Value: model}
+	cols := columns.ColumnsForStructWithAlias(model, m.TableName(), m.As).Preload()
+
+	for name := range cols.Cols {
+		f := v.FieldByName(name)
+		i := f.Addr().Interface()
+
+		newQuery := Q(q.Connection)
+		newQuery = newQuery.Where(fmt.Sprintf("%s = ?", m.associationName()), id)
+
+		if f.Kind() == reflect.Slice || f.Kind() == reflect.Array {
+			err = newQuery.All(i)
+			f.Set(reflect.ValueOf(i).Elem())
+		}
+
+		if f.Kind() == reflect.Struct {
+			err = newQuery.First(i)
+			f.Set(reflect.ValueOf(i).Elem())
+		}
+
+		if err != nil {
+			return err
+		}
+	}
+
+	return err
 }
 
 // First record of the model in the database that matches the query.
