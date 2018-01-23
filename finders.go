@@ -51,8 +51,7 @@ func (q *Query) Find(model interface{}, id interface{}) error {
 // FindPreload finds the first record of the model in the database with a particular id.
 // and preload tables associated records.
 func (q *Query) FindPreload(model interface{}, id interface{}) error {
-	userQuery := Q(q.Connection)
-	err := userQuery.Find(model, id)
+	err := q.Find(model, id)
 	if err != nil {
 		return err
 	}
