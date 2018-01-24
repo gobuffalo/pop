@@ -27,6 +27,7 @@ func (f fizzer) Exec(out io.Writer) interface{} {
 	return func(s string) error {
 		args := strings.Split(s, " ")
 		cmd := exec.Command(args[0], args[1:]...)
+		cmd.Env = os.Environ()
 		cmd.Stdin = os.Stdin
 		cmd.Stdout = out
 		cmd.Stderr = os.Stderr
