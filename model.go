@@ -109,6 +109,18 @@ func (m *Model) typeName(t reflect.Type) string {
 		if el.Kind() == reflect.Ptr {
 			el = el.Elem()
 		}
+
+		// validates if the elem of slice or array implements TableNameAble interface.
+		tableNameAble := (*TableNameAble)(nil)
+		if el.Implements(reflect.TypeOf(tableNameAble).Elem()) {
+			v := reflect.New(el)
+			out := v.MethodByName("TableName").Call([]reflect.Value{})
+			name := out[0].String()
+			if tableMap[el.Name()] == "" {
+				tableMap[el.Name()] = name
+			}
+		}
+
 		return el.Name()
 	default:
 		return t.Name()
