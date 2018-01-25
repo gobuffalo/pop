@@ -65,12 +65,29 @@ func (q *Query) FindPreload(model interface{}, id interface{}) error {
 	cols := columns.ColumnsForStructWithAlias(model, m.TableName(), m.As).Preload()
 
 	for name := range cols.Cols {
+		var i interface{}
 		f := v.FieldByName(name)
-		i := f.Addr().Interface()
 
 		newQuery := Q(q.Connection)
 		newQuery = newQuery.Where(fmt.Sprintf("%s = ?", m.associationName()), id)
 
+		if f.Kind() == reflect.Ptr {
+			el := reflect.New(f.Type().Elem())
+			i = el.Interface()
+
+			if el.Elem().Kind() == reflect.Slice || el.Elem().Kind() == reflect.Array {
+				err = newQuery.All(i)
+				f.Set(reflect.ValueOf(i))
+			}
+
+			if el.Elem().Kind() == reflect.Struct {
+				err = newQuery.First(i)
+				f.Set(reflect.ValueOf(i))
+			}
+			continue
+		}
+
+		i = f.Addr().Interface()
 		if f.Kind() == reflect.Slice || f.Kind() == reflect.Array {
 			err = newQuery.All(i)
 			f.Set(reflect.ValueOf(i).Elem())
