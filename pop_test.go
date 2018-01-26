@@ -72,28 +72,30 @@ func ts(s string) string {
 }
 
 type User struct {
-	ID           int           `db:"id"`
-	Email        string        `db:"email"`
-	Name         nulls.String  `db:"name"`
-	Alive        nulls.Bool    `db:"alive"`
-	CreatedAt    time.Time     `db:"created_at"`
-	UpdatedAt    time.Time     `db:"updated_at"`
-	BirthDate    nulls.Time    `db:"birth_date"`
-	Bio          nulls.String  `db:"bio"`
-	Price        nulls.Float64 `db:"price"`
-	FullName     nulls.String  `db:"full_name" select:"name as full_name"`
-	Books        Books         `db:"preload"`
-	FavoriteSong Song          `db:"preload"`
+	ID        int           `db:"id"`
+	Email     string        `db:"email"`
+	Name      nulls.String  `db:"name"`
+	Alive     nulls.Bool    `db:"alive"`
+	CreatedAt time.Time     `db:"created_at"`
+	UpdatedAt time.Time     `db:"updated_at"`
+	BirthDate nulls.Time    `db:"birth_date"`
+	Bio       nulls.String  `db:"bio"`
+	Price     nulls.Float64 `db:"price"`
+	FullName  nulls.String  `db:"full_name" select:"name as full_name"`
+	Books     Books         `has_many:"books"`
 }
 
 type Users []User
 
 type Book struct {
-	Title     string    `db:"title"`
-	Isbn      string    `db:"isbn"`
-	UserID    int       `db:"user_id"`
-	CreatedAt time.Time `db:"created_at"`
-	UpdatedAt time.Time `db:"updated_at"`
+	ID          int       `db:"id"`
+	Title       string    `db:"title"`
+	Isbn        string    `db:"isbn"`
+	UserID      int       `db:"user_id"`
+	User        User      `belongs_to:"user"`
+	Description string    `db:"description"`
+	CreatedAt   time.Time `db:"created_at"`
+	UpdatedAt   time.Time `db:"updated_at"`
 }
 
 type Books []Book
@@ -115,7 +117,6 @@ type Enemy struct {
 type Song struct {
 	ID        uuid.UUID `db:"id"`
 	Title     string    `db:"title"`
-	UserID    int       `db:"user_id"`
 	CreatedAt time.Time `json:"created_at" db:"created_at"`
 	UpdatedAt time.Time `json:"updated_at" db:"updated_at"`
 }

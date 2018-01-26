@@ -6,8 +6,7 @@ import (
 	"regexp"
 	"strconv"
 
-	"github.com/markbates/pop/columns"
-
+	"github.com/markbates/pop/associations"
 	"github.com/satori/go.uuid"
 )
 
@@ -21,18 +20,14 @@ func (c *Connection) Find(model interface{}, id interface{}) error {
 	return Q(c).Find(model, id)
 }
 
-// FindPreload finds the first record of the model in the database with a particular id.
-// and preload tables associated records.
-//
-//	c.FindPreload(&User{}, 1)
-func (c *Connection) FindPreload(model interface{}, id interface{}) error {
-	return Q(c).FindPreload(model, id)
-}
-
 // Find the first record of the model in the database with a particular id.
 //
 //	q.Find(&User{}, 1)
 func (q *Query) Find(model interface{}, id interface{}) error {
+	if q.eager {
+		return q.findEager(model, id)
+	}
+
 	m := &Model{Value: model}
 	idq := fmt.Sprintf("%s.id = ?", m.TableName())
 	switch t := id.(type) {
@@ -48,62 +43,16 @@ func (q *Query) Find(model interface{}, id interface{}) error {
 	return q.Where(idq, id).First(model)
 }
 
-// FindPreload finds the first record of the model in the database with a particular id.
-// and preload tables associated records.
-func (q *Query) FindPreload(model interface{}, id interface{}) error {
+func (q *Query) findEager(model interface{}, id interface{}) error {
+	// deactive eager flag so it can not create an infinite loop and
+	// it can be able to take into account where, join and order clauses.
+	// This is the reason why it can not create a new connection.
+	q.eager = false
 	err := q.Find(model, id)
 	if err != nil {
 		return err
 	}
-
-	v := reflect.ValueOf(model)
-	if v.Kind() == reflect.Ptr {
-		v = v.Elem()
-	}
-
-	m := &Model{Value: model}
-	cols := columns.ColumnsForStructWithAlias(model, m.TableName(), m.As).Preload()
-
-	for name := range cols.Cols {
-		var i interface{}
-		f := v.FieldByName(name)
-
-		newQuery := Q(q.Connection)
-		newQuery = newQuery.Where(fmt.Sprintf("%s = ?", m.associationName()), id)
-
-		if f.Kind() == reflect.Ptr {
-			el := reflect.New(f.Type().Elem())
-			i = el.Interface()
-
-			if el.Elem().Kind() == reflect.Slice || el.Elem().Kind() == reflect.Array {
-				err = newQuery.All(i)
-				f.Set(reflect.ValueOf(i))
-			}
-
-			if el.Elem().Kind() == reflect.Struct {
-				err = newQuery.First(i)
-				f.Set(reflect.ValueOf(i))
-			}
-			continue
-		}
-
-		i = f.Addr().Interface()
-		if f.Kind() == reflect.Slice || f.Kind() == reflect.Array {
-			err = newQuery.All(i)
-			f.Set(reflect.ValueOf(i).Elem())
-		}
-
-		if f.Kind() == reflect.Struct {
-			err = newQuery.First(i)
-			f.Set(reflect.ValueOf(i).Elem())
-		}
-
-		if err != nil {
-			return err
-		}
-	}
-
-	return err
+	return q.eagerAssociations(model)
 }
 
 // First record of the model in the database that matches the query.
@@ -117,6 +66,10 @@ func (c *Connection) First(model interface{}) error {
 //
 //	q.Where("name = ?", "mark").First(&User{})
 func (q *Query) First(model interface{}) error {
+	if q.eager {
+		return q.firstEager(model)
+	}
+
 	return q.Connection.timeFunc("First", func() error {
 		q.Limit(1)
 		m := &Model{Value: model}
@@ -125,6 +78,18 @@ func (q *Query) First(model interface{}) error {
 		}
 		return m.afterFind(q.Connection)
 	})
+}
+
+func (q *Query) firstEager(model interface{}) error {
+	// deactive eager flag so it can not create an infinite loop and
+	// it can be able to take into account where, join and order clauses.
+	// This is the reason why it can not create a new connection.
+	q.eager = false
+	err := q.First(model)
+	if err != nil {
+		return err
+	}
+	return q.eagerAssociations(model)
 }
 
 // Last record of the model in the database that matches the query.
@@ -138,6 +103,10 @@ func (c *Connection) Last(model interface{}) error {
 //
 //	q.Where("name = ?", "mark").Last(&User{})
 func (q *Query) Last(model interface{}) error {
+	if q.eager {
+		return q.lastEager(model)
+	}
+
 	return q.Connection.timeFunc("Last", func() error {
 		q.Limit(1)
 		q.Order("id desc")
@@ -147,6 +116,18 @@ func (q *Query) Last(model interface{}) error {
 		}
 		return m.afterFind(q.Connection)
 	})
+}
+
+func (q *Query) lastEager(model interface{}) error {
+	// deactive eager flag so it can not create an infinite loop and
+	// it can be able to take into account where, join and order clauses.
+	// This is the reason why it can not create a new connection.
+	q.eager = false
+	err := q.Last(model)
+	if err != nil {
+		return err
+	}
+	return q.eagerAssociations(model)
 }
 
 // All retrieves all of the records in the database that match the query.
@@ -160,6 +141,10 @@ func (c *Connection) All(models interface{}) error {
 //
 //	q.Where("name = ?", "mark").All(&[]User{})
 func (q *Query) All(models interface{}) error {
+	if q.eager {
+		return q.allEager(models)
+	}
+
 	return q.Connection.timeFunc("All", func() error {
 		m := &Model{Value: models}
 		err := q.Connection.Dialect.SelectMany(q.Connection.Store, m, *q)
@@ -180,6 +165,55 @@ func (q *Query) All(models interface{}) error {
 		}
 		return m.afterFind(q.Connection)
 	})
+}
+
+func (q *Query) allEager(models interface{}) error {
+	// deactive eager flag so it can not create an infinite loop and
+	// it can be able to take into account where, join and order clauses.
+	// This is the reason why it can not create a new connection.
+	q.eager = false
+	err := q.All(models)
+	if err != nil {
+		return err
+	}
+
+	v := reflect.ValueOf(models).Elem()
+	for i := 0; i < v.Len(); i++ {
+		err = q.eagerAssociations(v.Index(i).Addr().Interface())
+		if err != nil {
+			return err
+		}
+	}
+
+	return err
+}
+
+func (q *Query) eagerAssociations(model interface{}) error {
+	var err error
+	associations := associations.AssociationsForStruct(model)
+	for _, association := range associations {
+		query := Q(q.Connection)
+		whereCondition, args := association.SQLConstraint()
+		query = query.Where(whereCondition, args...)
+
+		sql, args := query.ToSQL(&Model{Value: association.TableName()})
+		query = query.RawQuery(sql, args...)
+
+		if association.Type() == reflect.Slice {
+			err = query.All(association.Interface())
+			if err != nil {
+				return err
+			}
+		}
+
+		if association.Type() == reflect.Struct {
+			err = query.First(association.Interface())
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }
 
 // Exists returns true/false if a record exists in the database that matches

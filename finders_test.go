@@ -25,7 +25,7 @@ func Test_Find(t *testing.T) {
 	})
 }
 
-func Test_FindPreload(t *testing.T) {
+func Test_Find_Eager(t *testing.T) {
 	transaction(func(tx *pop.Connection) {
 		a := require.New(t)
 
@@ -33,29 +33,19 @@ func Test_FindPreload(t *testing.T) {
 		err := tx.Create(&user)
 		a.NoError(err)
 
-		book := Book{
-			UserID: user.ID,
-			Title:  "The Unoficial Pop Book",
-			Isbn:   "TUPB",
-		}
+		book := Book{Title: "Pop Book", Isbn: "PB1", UserID: user.ID}
 		err = tx.Create(&book)
 		a.NoError(err)
 
-		niceSong := Song{
-			UserID: user.ID,
-			Title:  "Hook",
-		}
-		err = tx.Create(&niceSong)
-		a.NoError(err)
-
 		u := User{}
-		err = tx.FindPreload(&u, user.ID)
+		err = tx.Eager().Find(&u, user.ID)
 		a.NoError(err)
 
 		a.NotEqual(u.ID, 0)
 		a.Equal(u.Name.String, "Mark")
-		a.Equal(len(u.Books), 1)
-		a.Equal(niceSong.Title, u.FavoriteSong.Title)
+		books := u.Books
+		a.NotEqual(len(books), 0)
+		a.Equal(books[0].Title, book.Title)
 	})
 }
 
@@ -118,6 +108,30 @@ func Test_All(t *testing.T) {
 		err = tx.Where("name = 'Mark'").All(&u)
 		a.NoError(err)
 		a.Equal(len(u), 1)
+	})
+}
+
+func Test_All_Eager(t *testing.T) {
+	transaction(func(tx *pop.Connection) {
+		a := require.New(t)
+
+		for _, name := range []string{"Mark", "Joe", "Jane"} {
+			user := User{Name: nulls.NewString(name)}
+			err := tx.Create(&user)
+			a.NoError(err)
+
+			if name == "Mark" {
+				book := Book{Title: "Pop Book", Isbn: "PB1", UserID: user.ID}
+				err = tx.Create(&book)
+				a.NoError(err)
+			}
+		}
+
+		u := Users{}
+		err := tx.Eager().Where("name = 'Mark'").All(&u)
+		a.NoError(err)
+		a.Equal(len(u), 1)
+		a.Equal(len(u[0].Books), 1)
 	})
 }
 

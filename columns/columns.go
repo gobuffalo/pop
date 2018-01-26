@@ -117,16 +117,6 @@ func (c Columns) Readable() *ReadableColumns {
 	return w
 }
 
-func (c Columns) Preload() *PreloadColumns {
-	p := &PreloadColumns{NewColumnsWithAlias(c.TableName, c.TableAlias)}
-	for _, col := range c.Cols {
-		if col.Preload {
-			p.Cols[col.Name] = col
-		}
-	}
-	return p
-}
-
 func (c Columns) String() string {
 	xs := []string{}
 	for _, t := range c.Cols {
