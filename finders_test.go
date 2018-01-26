@@ -97,6 +97,7 @@ func Test_Find_Eager_Has_One(t *testing.T) {
 
 		a.NotEqual(u.ID, 0)
 		a.Equal(u.Name.String, "Mark")
+		a.Equal(u.FavoriteSong.ID, coolSong.ID)
 	})
 }
 
