@@ -63,3 +63,10 @@ func Test_TableName(t *testing.T) {
 	m := pop.Model{Value: tn{}}
 	r.Equal("this is my table name", m.TableName())
 }
+
+func Test_TableName_With_Array(t *testing.T) {
+	r := require.New(t)
+
+	m := pop.Model{Value: []tn{}}
+	r.Equal("this is my table name", m.TableName())
+}
