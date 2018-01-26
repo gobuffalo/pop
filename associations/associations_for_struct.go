@@ -47,22 +47,8 @@ func AssociationsForStruct(s interface{}) Associations {
 }
 
 func getModelDefinition(s interface{}) (reflect.Type, reflect.Value) {
-	t := reflect.TypeOf(s)
-	if t.Kind() == reflect.Ptr {
-		t = t.Elem()
-	}
-
-	if t.Kind() == reflect.Slice {
-		t = t.Elem()
-		if t.Kind() == reflect.Ptr {
-			t = t.Elem()
-		}
-	}
-
 	v := reflect.ValueOf(s)
-	if v.Kind() == reflect.Ptr {
-		v = v.Elem()
-	}
-
+	v = reflect.Indirect(v)
+	t := v.Type()
 	return t, v
 }
