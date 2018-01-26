@@ -1,6 +1,7 @@
 package associations
 
 import (
+	"fmt"
 	"reflect"
 
 	"github.com/markbates/pop/columns"
@@ -27,6 +28,18 @@ func AssociationsForStruct(s interface{}) Associations {
 				value:     v.Field(i),
 				ownerName: t.Name(),
 				ownerID:   v.FieldByName("ID").Interface(),
+			})
+			continue
+		}
+
+		// Find belongs_to association.
+		tag = tags.Find("belongs_to")
+		if !tag.Empty() {
+			fval := v.FieldByName(f.Name)
+			associations = append(associations, &belongsToAssociation{
+				ownerModel: fval,
+				ownerType:  fval.Type(),
+				ownerID:    v.FieldByName(fmt.Sprintf("%s%s", fval.Type().Name(), "ID")),
 			})
 		}
 	}

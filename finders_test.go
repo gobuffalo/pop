@@ -25,7 +25,7 @@ func Test_Find(t *testing.T) {
 	})
 }
 
-func Test_Find_Eager(t *testing.T) {
+func Test_Find_Eager_Has_Many(t *testing.T) {
 	transaction(func(tx *pop.Connection) {
 		a := require.New(t)
 
@@ -46,6 +46,28 @@ func Test_Find_Eager(t *testing.T) {
 		books := u.Books
 		a.NotEqual(len(books), 0)
 		a.Equal(books[0].Title, book.Title)
+	})
+}
+
+func Test_Find_Eager_Belongs_To(t *testing.T) {
+	transaction(func(tx *pop.Connection) {
+		a := require.New(t)
+
+		user := User{Name: nulls.NewString("Mark")}
+		err := tx.Create(&user)
+		a.NoError(err)
+
+		book := Book{Title: "Pop Book", Isbn: "PB1", UserID: user.ID}
+		err = tx.Create(&book)
+		a.NoError(err)
+
+		b := Book{}
+		err = tx.Eager().Find(&b, book.ID)
+		a.NoError(err)
+
+		a.NotEqual(b.ID, 0)
+		a.NotEqual(b.User.ID, 0)
+		a.Equal(b.User.ID, user.ID)
 	})
 }
 
