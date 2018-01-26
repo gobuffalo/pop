@@ -225,13 +225,13 @@ $ soda migrate down
 ```
 
 #### Find
-```
+```go
 user := models.User{}
 err := tx.Find(&user, id)
 ```
 
 #### Query
-```
+```go
 tx := models.DB
 query := tx.Where("id = 1").Where("name = 'Mark'")
 users := []models.User{}
@@ -242,7 +242,7 @@ err = tx.Where("id in (?)", 1, 2, 3).All(&users)
 
 ##### Join Query
 
-```
+```go
 // page: page number
 // perpage: limit
 roles := []models.UserRole{}
@@ -256,6 +256,43 @@ sql, args := query.ToSQL(&pop.Model{Value: models.UserRole{}}, "user_roles.*",
   "roles.name as role_name", "u.first_name", "u.last_name")
 //log.Printf("sql: %s, args: %v", sql, args)
 err := models.DB.RawQuery(sql, args...).All(&roles)
+```
+
+#### Eager Loading
+**pop** allows you to perform an eager loading for associations defined in a model. By using `pop.Connection.Eager()` function plus some fields tags predefined in your model you can extract associated data to a model from database.
+
+```go
+type User struct {
+	ID           uuid.UUID
+	Email        string
+  Password     string
+  Books        Books     `has_many:"books"`
+  FavoriteSong Song      `has_one:"song" fk_id:"u_id"`
+}
+```
+
+```go
+type Book struct {
+	ID      uuid.UUID
+	Title   string
+  Isbn    string
+  UserID  uuid.UUID
+}
+```
+
+```go
+type Song struct {
+	ID      uuid.UUID
+	Title   string
+  UserID  uuid.UUID   `db:"u_id"`
+}
+```
+
+
+```go
+u := Users{}
+ err := tx.Eager().Where("name = 'Mark'").All(&u)  // preload all associations.
+ err  = tx.Eager("Books").Where("name = 'Mark'").All(&u) // preload only Books association.
 ```
 
 #### Callbacks
