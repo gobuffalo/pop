@@ -10,12 +10,18 @@ import (
 // AssociationsForStruct returns all associations for
 // the struct specified. It takes into account tags
 // associations like has_many, belongs_to, has_one.
-func AssociationsForStruct(s interface{}) Associations {
+func AssociationsForStruct(s interface{}, fields ...string) Associations {
 	associations := Associations{}
 	t, v := getModelDefinition(s)
 
 	for i := 0; i < t.NumField(); i++ {
 		f := t.Field(i)
+
+		// ignores those fields not included in fields list.
+		if len(fields) > 0 && fieldIgnoredIn(fields, f.Name) {
+			continue
+		}
+
 		tags := columns.TagsFor(f)
 
 		// Find has_many association.
@@ -65,4 +71,13 @@ func getModelDefinition(s interface{}) (reflect.Type, reflect.Value) {
 	v = reflect.Indirect(v)
 	t := v.Type()
 	return t, v
+}
+
+func fieldIgnoredIn(fields []string, field string) bool {
+	for _, f := range fields {
+		if f == field {
+			return false
+		}
+	}
+	return true
 }

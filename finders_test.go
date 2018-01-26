@@ -37,12 +37,8 @@ func Test_Find_Eager_Has_Many(t *testing.T) {
 		err = tx.Create(&book)
 		a.NoError(err)
 
-		song := Song{Title: "Hook - Blues Traveler", UserID: user.ID}
-		err = tx.Create(&song)
-		a.NoError(err)
-
 		u := User{}
-		err = tx.Eager().Find(&u, user.ID)
+		err = tx.Eager("Books").Find(&u, user.ID)
 		a.NoError(err)
 
 		a.NotEqual(u.ID, 0)
@@ -63,10 +59,6 @@ func Test_Find_Eager_Belongs_To(t *testing.T) {
 
 		book := Book{Title: "Pop Book", Isbn: "PB1", UserID: user.ID}
 		err = tx.Create(&book)
-		a.NoError(err)
-
-		song := Song{Title: "Hook - Blues Traveler", UserID: user.ID}
-		err = tx.Create(&song)
 		a.NoError(err)
 
 		b := Book{}
@@ -176,15 +168,11 @@ func Test_All_Eager(t *testing.T) {
 				book := Book{Title: "Pop Book", Isbn: "PB1", UserID: user.ID}
 				err = tx.Create(&book)
 				a.NoError(err)
-
-				song := Song{Title: "Hook - Blues Traveler", UserID: user.ID}
-				err = tx.Create(&song)
-				a.NoError(err)
 			}
 		}
 
 		u := Users{}
-		err := tx.Eager().Where("name = 'Mark'").All(&u)
+		err := tx.Eager("Books").Where("name = 'Mark'").All(&u)
 		a.NoError(err)
 		a.Equal(len(u), 1)
 		a.Equal(len(u[0].Books), 1)
