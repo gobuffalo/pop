@@ -1,5 +1,6 @@
 create_table("songs", func(t) {
   t.Column("id", "uuid", {"primary":true})
+  t.Column("u_id", "int", {"null":true})
   t.Column("title", "string", {})
 })
 

@@ -15,6 +15,7 @@ type hasManyAssociation struct {
 	value     reflect.Value
 	ownerName string
 	ownerID   interface{}
+	fkID      string
 }
 
 func (a *hasManyAssociation) TableName() string {
@@ -45,5 +46,9 @@ func (a *hasManyAssociation) Interface() interface{} {
 // needed to execute it.
 func (a *hasManyAssociation) SQLConstraint() (string, []interface{}) {
 	tn := strings.ToLower(a.ownerName)
-	return fmt.Sprintf("%s_id = ?", tn), []interface{}{a.ownerID}
+	condition := fmt.Sprintf("%s_id = ?", tn)
+	if a.fkID != "" {
+		condition = fmt.Sprintf("%s = ?", a.fkID)
+	}
+	return condition, []interface{}{a.ownerID}
 }

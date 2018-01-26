@@ -28,6 +28,7 @@ func AssociationsForStruct(s interface{}) Associations {
 				value:     v.Field(i),
 				ownerName: t.Name(),
 				ownerID:   v.FieldByName("ID").Interface(),
+				fkID:      tags.Find("fk_id").Value,
 			})
 			continue
 		}
@@ -40,6 +41,19 @@ func AssociationsForStruct(s interface{}) Associations {
 				ownerModel: fval,
 				ownerType:  fval.Type(),
 				ownerID:    v.FieldByName(fmt.Sprintf("%s%s", fval.Type().Name(), "ID")),
+			})
+		}
+
+		// Find has_one association.
+		tag = tags.Find("has_one")
+		if !tag.Empty() {
+			fval := v.FieldByName(f.Name)
+			associations = append(associations, &hasOneAssociation{
+				ownedModel: fval,
+				ownedType:  fval.Type(),
+				ownerID:    v.FieldByName("ID").Interface(),
+				ownerName:  t.Name(),
+				fkID:       tags.Find("fk_id").Value,
 			})
 		}
 	}

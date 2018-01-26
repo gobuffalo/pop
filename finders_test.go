@@ -37,6 +37,10 @@ func Test_Find_Eager_Has_Many(t *testing.T) {
 		err = tx.Create(&book)
 		a.NoError(err)
 
+		song := Song{Title: "Hook - Blues Traveler", UserID: user.ID}
+		err = tx.Create(&song)
+		a.NoError(err)
+
 		u := User{}
 		err = tx.Eager().Find(&u, user.ID)
 		a.NoError(err)
@@ -61,6 +65,10 @@ func Test_Find_Eager_Belongs_To(t *testing.T) {
 		err = tx.Create(&book)
 		a.NoError(err)
 
+		song := Song{Title: "Hook - Blues Traveler", UserID: user.ID}
+		err = tx.Create(&song)
+		a.NoError(err)
+
 		b := Book{}
 		err = tx.Eager().Find(&b, book.ID)
 		a.NoError(err)
@@ -68,6 +76,27 @@ func Test_Find_Eager_Belongs_To(t *testing.T) {
 		a.NotEqual(b.ID, 0)
 		a.NotEqual(b.User.ID, 0)
 		a.Equal(b.User.ID, user.ID)
+	})
+}
+
+func Test_Find_Eager_Has_One(t *testing.T) {
+	transaction(func(tx *pop.Connection) {
+		a := require.New(t)
+
+		user := User{Name: nulls.NewString("Mark")}
+		err := tx.Create(&user)
+		a.NoError(err)
+
+		coolSong := Song{Title: "Hook - Blues Traveler", UserID: user.ID}
+		err = tx.Create(&coolSong)
+		a.NoError(err)
+
+		u := User{}
+		err = tx.Eager().Find(&u, user.ID)
+		a.NoError(err)
+
+		a.NotEqual(u.ID, 0)
+		a.Equal(u.Name.String, "Mark")
 	})
 }
 
@@ -145,6 +174,10 @@ func Test_All_Eager(t *testing.T) {
 			if name == "Mark" {
 				book := Book{Title: "Pop Book", Isbn: "PB1", UserID: user.ID}
 				err = tx.Create(&book)
+				a.NoError(err)
+
+				song := Song{Title: "Hook - Blues Traveler", UserID: user.ID}
+				err = tx.Create(&song)
 				a.NoError(err)
 			}
 		}
