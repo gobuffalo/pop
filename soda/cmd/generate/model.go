@@ -237,6 +237,8 @@ func colType(s string) string {
 		return "slices.Int"
 	case "slices.float", "[]float", "[]float32", "[]float64":
 		return "slices.Float"
+	case "decimal":
+		return "float64"
 	default:
 		return s
 	}
@@ -260,6 +262,8 @@ func fizzColType(s string) string {
 		return "int[]"
 	case "slices.map":
 		return "jsonb"
+	case "float32", "float64", "float":
+		return "decimal"
 	default:
 		if nrx.MatchString(s) {
 			return fizzColType(strings.Replace(s, "nulls.", "", -1))
