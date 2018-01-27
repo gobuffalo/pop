@@ -82,7 +82,7 @@ type User struct {
 	Bio          nulls.String  `db:"bio"`
 	Price        nulls.Float64 `db:"price"`
 	FullName     nulls.String  `db:"full_name" select:"name as full_name"`
-	Books        Books         `has_many:"books"`
+	Books        Books         `has_many:"books" order_by:"title asc"`
 	FavoriteSong Song          `has_one:"song" fk_id:"u_id"`
 }
 

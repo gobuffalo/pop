@@ -35,6 +35,7 @@ func AssociationsForStruct(s interface{}, fields ...string) Associations {
 				ownerName: t.Name(),
 				ownerID:   v.FieldByName("ID").Interface(),
 				fkID:      tags.Find("fk_id").Value,
+				orderBy:   tags.Find("order_by").Value,
 			})
 			continue
 		}
@@ -48,6 +49,7 @@ func AssociationsForStruct(s interface{}, fields ...string) Associations {
 				ownerType:  fval.Type(),
 				ownerID:    v.FieldByName(fmt.Sprintf("%s%s", fval.Type().Name(), "ID")),
 			})
+			continue
 		}
 
 		// Find has_one association.

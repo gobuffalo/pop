@@ -190,11 +190,21 @@ func (q *Query) allEager(models interface{}) error {
 
 func (q *Query) eagerAssociations(model interface{}) error {
 	var err error
-	associations := associations.AssociationsForStruct(model, q.eagerFields...)
-	for _, association := range associations {
+	assos := associations.AssociationsForStruct(model, q.eagerFields...)
+	for _, association := range assos {
 		query := Q(q.Connection)
 		whereCondition, args := association.SQLConstraint()
 		query = query.Where(whereCondition, args...)
+
+		// validates if association is Sortable
+		sortable := (*associations.AssociationSortable)(nil)
+		t := reflect.TypeOf(association)
+		if t.Implements(reflect.TypeOf(sortable).Elem()) {
+			m := reflect.ValueOf(association).MethodByName("OrderBy")
+			out := m.Call([]reflect.Value{})
+			orderClause := out[0].String()
+			query = query.Order(orderClause)
+		}
 
 		sql, args := query.ToSQL(&Model{Value: association.TableName()})
 		query = query.RawQuery(sql, args...)

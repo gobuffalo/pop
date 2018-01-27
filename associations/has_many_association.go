@@ -16,6 +16,7 @@ type hasManyAssociation struct {
 	ownerName string
 	ownerID   interface{}
 	fkID      string
+	orderBy   string
 }
 
 func (a *hasManyAssociation) TableName() string {
@@ -51,4 +52,8 @@ func (a *hasManyAssociation) SQLConstraint() (string, []interface{}) {
 		condition = fmt.Sprintf("%s = ?", a.fkID)
 	}
 	return condition, []interface{}{a.ownerID}
+}
+
+func (a *hasManyAssociation) OrderBy() string {
+	return a.orderBy
 }

@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-var tags = "db rw select belongs_to has_many has_one fk_id"
+var tags = "db rw select belongs_to has_many has_one fk_id order_by"
 
 // Tag represents a field tag defined exclusively for pop package.
 type Tag struct {
