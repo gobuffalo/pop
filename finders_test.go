@@ -197,7 +197,7 @@ func Test_All_Eager(t *testing.T) {
 		}
 
 		u := Users{}
-		err := tx.Eager("Books").Where("name = 'Mark'").All(&u)
+		err := tx.Eager(" Books ", " ").Where("name = 'Mark'").All(&u)
 		a.NoError(err)
 		a.Equal(len(u), 1)
 		a.Equal(len(u[0].Books), 1)

@@ -3,6 +3,7 @@ package associations
 import (
 	"fmt"
 	"reflect"
+	"strings"
 
 	"github.com/markbates/pop/columns"
 )
@@ -13,6 +14,7 @@ import (
 func AssociationsForStruct(s interface{}, fields ...string) Associations {
 	associations := Associations{}
 	t, v := getModelDefinition(s)
+	fields = trimFields(fields)
 
 	for i := 0; i < t.NumField(); i++ {
 		f := t.Field(i)
@@ -73,6 +75,16 @@ func getModelDefinition(s interface{}) (reflect.Type, reflect.Value) {
 	v = reflect.Indirect(v)
 	t := v.Type()
 	return t, v
+}
+
+func trimFields(fields []string) []string {
+	trimFields := []string{}
+	for _, f := range fields {
+		if strings.TrimSpace(f) != "" {
+			trimFields = append(trimFields, strings.TrimSpace(f))
+		}
+	}
+	return trimFields
 }
 
 func fieldIgnoredIn(fields []string, field string) bool {
