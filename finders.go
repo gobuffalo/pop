@@ -203,7 +203,9 @@ func (q *Query) eagerAssociations(model interface{}) error {
 			m := reflect.ValueOf(association).MethodByName("OrderBy")
 			out := m.Call([]reflect.Value{})
 			orderClause := out[0].String()
-			query = query.Order(orderClause)
+			if orderClause != "" {
+				query = query.Order(orderClause)
+			}
 		}
 
 		sql, args := query.ToSQL(&Model{Value: association.TableName()})
