@@ -1,6 +1,7 @@
 package pop
 
 import (
+	"database/sql"
 	"fmt"
 	"reflect"
 	"regexp"
@@ -208,21 +209,19 @@ func (q *Query) eagerAssociations(model interface{}) error {
 			}
 		}
 
-		sql, args := query.ToSQL(&Model{Value: association.TableName()})
-		query = query.RawQuery(sql, args...)
+		sqlSentence, args := query.ToSQL(&Model{Value: association.TableName()})
+		query = query.RawQuery(sqlSentence, args...)
 
 		if association.Type() == reflect.Slice {
 			err = query.All(association.Interface())
-			if err != nil {
-				return err
-			}
 		}
 
 		if association.Type() == reflect.Struct {
 			err = query.First(association.Interface())
-			if err != nil {
-				return err
-			}
+		}
+
+		if err != nil && err.Error() != sql.ErrNoRows.Error() {
+			return err
 		}
 	}
 	return nil
