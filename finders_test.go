@@ -66,7 +66,7 @@ func Test_Find_Eager_Has_Many_Order_By(t *testing.T) {
 		a.NoError(err)
 
 		u := User{}
-		err = tx.Eager("Books").Find(&u, user.ID)
+		err = tx.Eager().Find(&u, user.ID)
 		a.NoError(err)
 
 		a.Equal(len(u.Books), 2)

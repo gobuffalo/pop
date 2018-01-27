@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"regexp"
 	"strconv"
+	"strings"
 
 	"github.com/markbates/pop/associations"
 	"github.com/satori/go.uuid"
@@ -220,7 +221,7 @@ func (q *Query) eagerAssociations(model interface{}) error {
 			err = query.First(association.Interface())
 		}
 
-		if err != nil && err.Error() != sql.ErrNoRows.Error() {
+		if err != nil && !strings.Contains(err.Error(), sql.ErrNoRows.Error()) {
 			return err
 		}
 	}
