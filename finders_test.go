@@ -204,6 +204,45 @@ func Test_All_Eager(t *testing.T) {
 	})
 }
 
+func Test_All_Eager_Field_Not_Found_Error(t *testing.T) {
+	transaction(func(tx *pop.Connection) {
+		a := require.New(t)
+
+		user := User{Name: nulls.NewString("Mark")}
+		err := tx.Create(&user)
+		a.NoError(err)
+
+		u := Users{}
+		err = tx.Eager("FieldNotFound").Where("name = 'Mark'").All(&u)
+		a.Error(err)
+		a.Equal("field FieldNotFound does not exist in model User", err.Error())
+	})
+}
+
+func Test_All_Eager_Allow_Chain_Call(t *testing.T) {
+	transaction(func(tx *pop.Connection) {
+		a := require.New(t)
+
+		user := User{Name: nulls.NewString("Mark")}
+		err := tx.Create(&user)
+		a.NoError(err)
+
+		coolSong := Song{Title: "Hook - Blues Traveler", UserID: user.ID}
+		err = tx.Create(&coolSong)
+		a.NoError(err)
+
+		book := Book{Title: "Pop Book", Isbn: "PB1", UserID: user.ID}
+		err = tx.Create(&book)
+		a.NoError(err)
+
+		u := Users{}
+		err = tx.Eager("Books").Eager("FavoriteSong").Where("name = 'Mark'").All(&u)
+		a.Equal(len(u), 1)
+		a.Equal(len(u[0].Books), 1)
+		a.Equal(u[0].FavoriteSong.Title, coolSong.Title)
+	})
+}
+
 func Test_Count(t *testing.T) {
 	transaction(func(tx *pop.Connection) {
 		a := require.New(t)

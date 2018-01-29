@@ -192,7 +192,12 @@ func (q *Query) allEager(models interface{}) error {
 
 func (q *Query) eagerAssociations(model interface{}) error {
 	var err error
-	assos := associations.AssociationsForStruct(model, q.eagerFields...)
+	assos, err := associations.AssociationsForStruct(model, q.eagerFields...)
+
+	if err != nil {
+		return err
+	}
+
 	for _, association := range assos {
 		query := Q(q.Connection)
 		whereCondition, args := association.SQLConstraint()

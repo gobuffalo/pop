@@ -81,7 +81,7 @@ func (c *Connection) Eager(fields ...string) *Query {
 // 	q.Eager("Books").Find(model, 1) // will load only Book association for model.
 func (q *Query) Eager(fields ...string) *Query {
 	q.eager = true
-	q.eagerFields = fields
+	q.eagerFields = append(q.eagerFields, fields...)
 	return q
 }
 

@@ -11,10 +11,19 @@ import (
 // AssociationsForStruct returns all associations for
 // the struct specified. It takes into account tags
 // associations like has_many, belongs_to, has_one.
-func AssociationsForStruct(s interface{}, fields ...string) Associations {
+// it throws an error when it finds a field that does
+// not exist for a model.
+func AssociationsForStruct(s interface{}, fields ...string) (Associations, error) {
 	associations := Associations{}
 	t, v := getModelDefinition(s)
 	fields = trimFields(fields)
+
+	// validate if fields contains a non existing field in struct.
+	for _, f := range fields {
+		if _, ok := t.FieldByName(f); !ok {
+			return associations, fmt.Errorf("field %s does not exist in model %s", f, t.Name())
+		}
+	}
 
 	for i := 0; i < t.NumField(); i++ {
 		f := t.Field(i)
@@ -67,7 +76,7 @@ func AssociationsForStruct(s interface{}, fields ...string) Associations {
 			})
 		}
 	}
-	return associations
+	return associations, nil
 }
 
 func getModelDefinition(s interface{}) (reflect.Type, reflect.Value) {
