@@ -98,7 +98,7 @@ CREATE TABLE "profiles" (
 "last_name" VARCHAR (255) NOT NULL,
 "created_at" timestamp NOT NULL,
 "updated_at" timestamp NOT NULL,
-FOREIGN KEY (user_id) REFERENCES users (id)
+CONSTRAINT profiles_users_id_fk FOREIGN KEY (user_id) REFERENCES users (id)
 );COMMIT TRANSACTION;BEGIN TRANSACTION;`
 
 	res, _ := fizz.AString(`

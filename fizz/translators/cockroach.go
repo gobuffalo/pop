@@ -382,7 +382,7 @@ func (p *Cockroach) colType(c fizz.Column) string {
 
 func (p *Cockroach) buildForeignKey(t fizz.Table, fk fizz.ForeignKey, onCreate bool) string {
 	refs := fmt.Sprintf("%s (%s)", fk.References.Table, strings.Join(fk.References.Columns, ", "))
-	s := fmt.Sprintf("FOREIGN KEY (%s) REFERENCES %s", fk.Column, refs)
+	s := fmt.Sprintf("CONSTRAINT %s FOREIGN KEY (%s) REFERENCES %s", fk.Name, fk.Column, refs)
 
 	if onUpdate, ok := fk.Options["on_update"]; ok {
 		s += fmt.Sprintf(" ON UPDATE %s", onUpdate)
@@ -393,7 +393,7 @@ func (p *Cockroach) buildForeignKey(t fizz.Table, fk fizz.ForeignKey, onCreate b
 	}
 
 	if !onCreate {
-		s = fmt.Sprintf("ALTER TABLE %s ADD CONSTRAINT %s %s;COMMIT TRANSACTION;BEGIN TRANSACTION;", t.Name, fk.Name, s)
+		s = fmt.Sprintf("ALTER TABLE %s ADD %s;COMMIT TRANSACTION;BEGIN TRANSACTION;", t.Name, s)
 	}
 
 	return s
