@@ -259,12 +259,12 @@ err := models.DB.RawQuery(sql, args...).All(&roles)
 ```
 
 #### Eager Loading
-**pop** allows you to perform an eager loading for associations defined in a model. By using `pop.Connection.Eager()` function plus some fields tags predefined in your model you can extract associated data to a model from database.
+**pop** allows you to perform an eager loading for associations defined in a model. By using `pop.Connection.Eager()` function plus some fields tags predefined in your model you can extract associated data from a model.
 
 ```go
 type User struct {
-	ID           uuid.UUID
-	Email        string
+  ID           uuid.UUID
+  Email        string
   Password     string
   Books        Books     `has_many:"books"`
   FavoriteSong Song      `has_one:"song" fk_id:"u_id"`
@@ -273,17 +273,18 @@ type User struct {
 
 ```go
 type Book struct {
-	ID      uuid.UUID
-	Title   string
+  ID      uuid.UUID
+  Title   string
   Isbn    string
-  UserID  uuid.UUID
+  User    User        `belongs_to:"user"`
+  UserID  uuid.UUID
 }
 ```
 
 ```go
 type Song struct {
-	ID      uuid.UUID
-	Title   string
+  ID      uuid.UUID
+  Title   string
   UserID  uuid.UUID   `db:"u_id"`
 }
 ```
@@ -291,8 +292,8 @@ type Song struct {
 
 ```go
 u := Users{}
- err := tx.Eager().Where("name = 'Mark'").All(&u)  // preload all associations.
- err  = tx.Eager("Books").Where("name = 'Mark'").All(&u) // preload only Books association.
+err := tx.Eager().Where("name = 'Mark'").All(&u)  // preload all associations for user with name 'Mark', i.e Books and FavoriteSong
+err  = tx.Eager("Books").Where("name = 'Mark'").All(&u) // preload only Books association for user with name 'Mark'.
 ```
 
 #### Callbacks
