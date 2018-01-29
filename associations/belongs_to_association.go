@@ -1,6 +1,7 @@
 package associations
 
 import (
+	"fmt"
 	"reflect"
 
 	"github.com/markbates/inflect"
@@ -14,12 +15,27 @@ type belongsToAssociation struct {
 	ownerID    reflect.Value
 }
 
-func (b *belongsToAssociation) TableName() string {
-	return inflect.Tableize(b.ownerType.Name())
+func init() {
+	associationBuilders["belongs_to"] = belongsToAssociationBuilder
 }
 
-func (b *belongsToAssociation) FieldName() string {
-	return b.ownerType.Name()
+func belongsToAssociationBuilder(p associationParams) (Association, error) {
+	fval := p.modelValue.FieldByName(p.field.Name)
+	ownerIDField := fmt.Sprintf("%s%s", fval.Type().Name(), "ID")
+
+	if _, found := p.modelType.FieldByName(ownerIDField); !found {
+		return nil, fmt.Errorf("there is no %s defined in model %s", ownerIDField, fval.Type().Name())
+	}
+
+	return &belongsToAssociation{
+		ownerModel: fval,
+		ownerType:  fval.Type(),
+		ownerID:    p.modelValue.FieldByName(ownerIDField),
+	}, nil
+}
+
+func (b *belongsToAssociation) TableName() string {
+	return inflect.Tableize(b.ownerType.Name())
 }
 
 func (b *belongsToAssociation) Type() reflect.Kind {

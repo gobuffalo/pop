@@ -2,6 +2,8 @@ package associations
 
 import (
 	"reflect"
+
+	"github.com/markbates/pop/columns"
 )
 
 // Association represents a definition of a model association
@@ -9,7 +11,6 @@ import (
 // belongs_to or has_one, and other customized types.
 type Association interface {
 	TableName() string
-	FieldName() string
 	Type() reflect.Kind
 	Interface() interface{}
 	SQLConstraint() (string, []interface{})
@@ -23,3 +24,16 @@ type AssociationSortable interface {
 
 // Associations a group of model associations.
 type Associations []Association
+
+// associationParams a wrapper for associations definition
+// and creation.
+type associationParams struct {
+	field      reflect.StructField // an association field defined in model.
+	modelType  reflect.Type        // the model type where this field is defined.
+	modelValue reflect.Value       // the model value where this field is defined.
+	popTags    columns.Tags        // the tags defined in this association field.
+}
+
+// associationBuilder is a type representing an association builder implementation.
+// see the builder defined in ./has_many_association.go as a guide of how to use it.
+type associationBuilder func(associationParams) (Association, error)

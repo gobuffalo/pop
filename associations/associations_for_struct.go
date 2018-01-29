@@ -8,6 +8,11 @@ import (
 	"github.com/markbates/pop/columns"
 )
 
+// associationBuilders is a map that helps to aisle associations finding process
+// with the associations implementation. Every association MUST register its builder
+// in this map using its init() method. see ./has_many_association.go as a guide.
+var associationBuilders = map[string]associationBuilder{}
+
 // AssociationsForStruct returns all associations for
 // the struct specified. It takes into account tags
 // associations like has_many, belongs_to, has_one.
@@ -35,45 +40,24 @@ func AssociationsForStruct(s interface{}, fields ...string) (Associations, error
 
 		tags := columns.TagsFor(f)
 
-		// Find has_many association.
-		tag := tags.Find("has_many")
-		if !tag.Empty() {
-			associations = append(associations, &hasManyAssociation{
-				fieldName: f.Name,
-				tableName: tag.Value,
-				field:     f,
-				value:     v.Field(i),
-				ownerName: t.Name(),
-				ownerID:   v.FieldByName("ID").Interface(),
-				fkID:      tags.Find("fk_id").Value,
-				orderBy:   tags.Find("order_by").Value,
-			})
-			continue
-		}
+		for name, builder := range associationBuilders {
+			tag := tags.Find(name)
+			if !tag.Empty() {
+				params := associationParams{
+					field:      f,
+					modelType:  t,
+					modelValue: v,
+					popTags:    tags,
+				}
 
-		// Find belongs_to association.
-		tag = tags.Find("belongs_to")
-		if !tag.Empty() {
-			fval := v.FieldByName(f.Name)
-			associations = append(associations, &belongsToAssociation{
-				ownerModel: fval,
-				ownerType:  fval.Type(),
-				ownerID:    v.FieldByName(fmt.Sprintf("%s%s", fval.Type().Name(), "ID")),
-			})
-			continue
-		}
+				a, err := builder(params)
+				if err != nil {
+					return associations, err
+				}
 
-		// Find has_one association.
-		tag = tags.Find("has_one")
-		if !tag.Empty() {
-			fval := v.FieldByName(f.Name)
-			associations = append(associations, &hasOneAssociation{
-				ownedModel: fval,
-				ownedType:  fval.Type(),
-				ownerID:    v.FieldByName("ID").Interface(),
-				ownerName:  t.Name(),
-				fkID:       tags.Find("fk_id").Value,
-			})
+				associations = append(associations, a)
+				break
+			}
 		}
 	}
 	return associations, nil

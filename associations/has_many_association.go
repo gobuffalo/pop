@@ -9,7 +9,6 @@ import (
 // hasManyAssociation is the implementation for the has_many
 // association type in a model.
 type hasManyAssociation struct {
-	fieldName string
 	tableName string
 	field     reflect.StructField
 	value     reflect.Value
@@ -19,12 +18,24 @@ type hasManyAssociation struct {
 	orderBy   string
 }
 
-func (a *hasManyAssociation) TableName() string {
-	return a.tableName
+func init() {
+	associationBuilders["has_many"] = hasManyAssociationBuilder
 }
 
-func (a *hasManyAssociation) FieldName() string {
-	return a.fieldName
+func hasManyAssociationBuilder(p associationParams) (Association, error) {
+	return &hasManyAssociation{
+		tableName: p.popTags.Find("has_many").Value,
+		field:     p.field,
+		value:     p.modelValue.FieldByName(p.field.Name),
+		ownerName: p.modelType.Name(),
+		ownerID:   p.modelValue.FieldByName("ID").Interface(),
+		fkID:      p.popTags.Find("fk_id").Value,
+		orderBy:   p.popTags.Find("order_by").Value,
+	}, nil
+}
+
+func (a *hasManyAssociation) TableName() string {
+	return a.tableName
 }
 
 func (a *hasManyAssociation) Type() reflect.Kind {

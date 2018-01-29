@@ -16,12 +16,23 @@ type hasOneAssociation struct {
 	fkID       string
 }
 
-func (h *hasOneAssociation) TableName() string {
-	return inflect.Tableize(h.ownedType.Name())
+func init() {
+	associationBuilders["has_one"] = hasOneAssociationBuilder
 }
 
-func (h *hasOneAssociation) FieldName() string {
-	return h.ownedType.Name()
+func hasOneAssociationBuilder(p associationParams) (Association, error) {
+	fval := p.modelValue.FieldByName(p.field.Name)
+	return &hasOneAssociation{
+		ownedModel: fval,
+		ownedType:  fval.Type(),
+		ownerID:    p.modelValue.FieldByName("ID").Interface(),
+		ownerName:  p.modelType.Name(),
+		fkID:       p.popTags.Find("fk_id").Value,
+	}, nil
+}
+
+func (h *hasOneAssociation) TableName() string {
+	return inflect.Tableize(h.ownedType.Name())
 }
 
 func (h *hasOneAssociation) Type() reflect.Kind {
