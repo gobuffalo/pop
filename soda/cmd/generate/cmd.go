@@ -40,7 +40,7 @@ var ModelCmd = &cobra.Command{
 
 		for _, def := range args[1:] {
 			a := newAttribute(def, &model)
-			model.AppendAttribute(a)
+			model.addAttribute(a)
 		}
 
 		// Add a default UUID, if no custom ID is provided
