@@ -43,7 +43,7 @@ func (b *belongsToAssociation) TableName() string {
 	return inflect.Tableize(b.ownerType.Name())
 }
 
-func (b *belongsToAssociation) Type() reflect.Kind {
+func (b *belongsToAssociation) Kind() reflect.Kind {
 	if b.ownerType.Kind() == reflect.Ptr {
 		return b.ownerType.Elem().Kind()
 	}
@@ -59,8 +59,8 @@ func (b *belongsToAssociation) Interface() interface{} {
 	return b.ownerModel.Addr().Interface()
 }
 
-// SQLConstraint returns the content for a where clause, and the args
+// Constraint returns the content for a where clause, and the args
 // needed to execute it.
-func (b *belongsToAssociation) SQLConstraint() (string, []interface{}) {
+func (b *belongsToAssociation) Constraint() (string, []interface{}) {
 	return "id = ?", []interface{}{b.ownerID.Interface()}
 }

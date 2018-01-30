@@ -37,7 +37,7 @@ func (m *manyToManyAssociation) TableName() string {
 	return inflect.Tableize(m.fieldType.Name())
 }
 
-func (m *manyToManyAssociation) Type() reflect.Kind {
+func (m *manyToManyAssociation) Kind() reflect.Kind {
 	return m.fieldType.Kind()
 }
 
@@ -50,14 +50,14 @@ func (m *manyToManyAssociation) Interface() interface{} {
 	return m.fieldValue.Addr().Interface()
 }
 
-// SQLConstraint returns the content for a where clause, and the args
+// Constraint returns the content for a where clause, and the args
 // needed to execute it.
-func (m *manyToManyAssociation) SQLConstraint() (string, []interface{}) {
+func (m *manyToManyAssociation) Constraint() (string, []interface{}) {
 	modelColumnID := fmt.Sprintf("%s%s", strings.ToLower(m.model.Type().Name()), "_id")
 
 	var columnFieldID string
 	i := reflect.Indirect(m.fieldValue)
-	if i.Kind() == reflect.Slice {
+	if i.Kind() == reflect.Slice || i.Kind() == reflect.Array {
 		t := i.Type().Elem()
 		columnFieldID = fmt.Sprintf("%s%s", strings.ToLower(t.Name()), "_id")
 	} else {

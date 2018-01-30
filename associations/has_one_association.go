@@ -40,7 +40,7 @@ func (h *hasOneAssociation) TableName() string {
 	return inflect.Tableize(h.ownedType.Name())
 }
 
-func (h *hasOneAssociation) Type() reflect.Kind {
+func (h *hasOneAssociation) Kind() reflect.Kind {
 	return h.ownedType.Kind()
 }
 
@@ -53,9 +53,9 @@ func (h *hasOneAssociation) Interface() interface{} {
 	return h.ownedModel.Addr().Interface()
 }
 
-// SQLConstraint returns the content for a where clause, and the args
+// Constraint returns the content for a where clause, and the args
 // needed to execute it.
-func (h *hasOneAssociation) SQLConstraint() (string, []interface{}) {
+func (h *hasOneAssociation) Constraint() (string, []interface{}) {
 	tn := strings.ToLower(h.ownerName)
 	condition := fmt.Sprintf("%s_id = ?", tn)
 	if h.fkID != "" {

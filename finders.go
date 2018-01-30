@@ -6,9 +6,9 @@ import (
 	"reflect"
 	"regexp"
 	"strconv"
-	"strings"
 
 	"github.com/markbates/pop/associations"
+	"github.com/pkg/errors"
 	"github.com/satori/go.uuid"
 )
 
@@ -26,10 +26,6 @@ func (c *Connection) Find(model interface{}, id interface{}) error {
 //
 //	q.Find(&User{}, 1)
 func (q *Query) Find(model interface{}, id interface{}) error {
-	if q.eager {
-		return q.findEager(model, id)
-	}
-
 	m := &Model{Value: model}
 	idq := fmt.Sprintf("%s.id = ?", m.TableName())
 	switch t := id.(type) {
@@ -42,19 +38,8 @@ func (q *Query) Find(model interface{}, id interface{}) error {
 			return q.Where(idq, t).First(model)
 		}
 	}
-	return q.Where(idq, id).First(model)
-}
 
-func (q *Query) findEager(model interface{}, id interface{}) error {
-	// deactive eager flag so it can not create an infinite loop and
-	// it can be able to take into account where, join and order clauses.
-	// This is the reason why it can not create a new connection.
-	q.eager = false
-	err := q.Find(model, id)
-	if err != nil {
-		return err
-	}
-	return q.eagerAssociations(model)
+	return q.Where(idq, id).First(model)
 }
 
 // First record of the model in the database that matches the query.
@@ -68,11 +53,7 @@ func (c *Connection) First(model interface{}) error {
 //
 //	q.Where("name = ?", "mark").First(&User{})
 func (q *Query) First(model interface{}) error {
-	if q.eager {
-		return q.firstEager(model)
-	}
-
-	return q.Connection.timeFunc("First", func() error {
+	err := q.Connection.timeFunc("First", func() error {
 		q.Limit(1)
 		m := &Model{Value: model}
 		if err := q.Connection.Dialect.SelectOne(q.Connection.Store, m, *q); err != nil {
@@ -80,18 +61,15 @@ func (q *Query) First(model interface{}) error {
 		}
 		return m.afterFind(q.Connection)
 	})
-}
 
-func (q *Query) firstEager(model interface{}) error {
-	// deactive eager flag so it can not create an infinite loop and
-	// it can be able to take into account where, join and order clauses.
-	// This is the reason why it can not create a new connection.
-	q.eager = false
-	err := q.First(model)
 	if err != nil {
 		return err
 	}
-	return q.eagerAssociations(model)
+
+	if q.eager {
+		return q.eagerAssociations(model)
+	}
+	return nil
 }
 
 // Last record of the model in the database that matches the query.
@@ -105,11 +83,7 @@ func (c *Connection) Last(model interface{}) error {
 //
 //	q.Where("name = ?", "mark").Last(&User{})
 func (q *Query) Last(model interface{}) error {
-	if q.eager {
-		return q.lastEager(model)
-	}
-
-	return q.Connection.timeFunc("Last", func() error {
+	err := q.Connection.timeFunc("Last", func() error {
 		q.Limit(1)
 		q.Order("id desc")
 		m := &Model{Value: model}
@@ -118,18 +92,16 @@ func (q *Query) Last(model interface{}) error {
 		}
 		return m.afterFind(q.Connection)
 	})
-}
 
-func (q *Query) lastEager(model interface{}) error {
-	// deactive eager flag so it can not create an infinite loop and
-	// it can be able to take into account where, join and order clauses.
-	// This is the reason why it can not create a new connection.
-	q.eager = false
-	err := q.Last(model)
 	if err != nil {
 		return err
 	}
-	return q.eagerAssociations(model)
+
+	if q.eager {
+		return q.eagerAssociations(model)
+	}
+
+	return nil
 }
 
 // All retrieves all of the records in the database that match the query.
@@ -143,11 +115,7 @@ func (c *Connection) All(models interface{}) error {
 //
 //	q.Where("name = ?", "mark").All(&[]User{})
 func (q *Query) All(models interface{}) error {
-	if q.eager {
-		return q.allEager(models)
-	}
-
-	return q.Connection.timeFunc("All", func() error {
+	err := q.Connection.timeFunc("All", func() error {
 		m := &Model{Value: models}
 		err := q.Connection.Dialect.SelectMany(q.Connection.Store, m, *q)
 		if err == nil && q.Paginator != nil {
@@ -167,27 +135,22 @@ func (q *Query) All(models interface{}) error {
 		}
 		return m.afterFind(q.Connection)
 	})
-}
 
-func (q *Query) allEager(models interface{}) error {
-	// deactive eager flag so it can not create an infinite loop and
-	// it can be able to take into account where, join and order clauses.
-	// This is the reason why it can not create a new connection.
-	q.eager = false
-	err := q.All(models)
 	if err != nil {
 		return err
 	}
 
-	v := reflect.ValueOf(models).Elem()
-	for i := 0; i < v.Len(); i++ {
-		err = q.eagerAssociations(v.Index(i).Addr().Interface())
-		if err != nil {
-			return err
+	if q.eager {
+		v := reflect.ValueOf(models).Elem()
+		for i := 0; i < v.Len(); i++ {
+			err := q.eagerAssociations(v.Index(i).Addr().Interface())
+			if err != nil {
+				return err
+			}
 		}
 	}
 
-	return err
+	return nil
 }
 
 func (q *Query) eagerAssociations(model interface{}) error {
@@ -200,7 +163,7 @@ func (q *Query) eagerAssociations(model interface{}) error {
 
 	for _, association := range assos {
 		query := Q(q.Connection)
-		whereCondition, args := association.SQLConstraint()
+		whereCondition, args := association.Constraint()
 		query = query.Where(whereCondition, args...)
 
 		// validates if association is Sortable
@@ -218,15 +181,15 @@ func (q *Query) eagerAssociations(model interface{}) error {
 		sqlSentence, args := query.ToSQL(&Model{Value: association.TableName()})
 		query = query.RawQuery(sqlSentence, args...)
 
-		if association.Type() == reflect.Slice {
+		if association.Kind() == reflect.Slice || association.Kind() == reflect.Array {
 			err = query.All(association.Interface())
 		}
 
-		if association.Type() == reflect.Struct {
+		if association.Kind() == reflect.Struct {
 			err = query.First(association.Interface())
 		}
 
-		if err != nil && !strings.Contains(err.Error(), sql.ErrNoRows.Error()) {
+		if err != nil && errors.Cause(err) != sql.ErrNoRows {
 			return err
 		}
 	}

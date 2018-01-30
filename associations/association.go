@@ -11,9 +11,9 @@ import (
 // belongs_to or has_one, and other customized types.
 type Association interface {
 	TableName() string
-	Type() reflect.Kind
+	Kind() reflect.Kind
 	Interface() interface{}
-	SQLConstraint() (string, []interface{})
+	Constraint() (string, []interface{})
 }
 
 // AssociationSortable a type to be sortable.
