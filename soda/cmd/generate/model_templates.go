@@ -38,7 +38,7 @@ func ({{.char}} *{{.model_name}}) Validate(tx *pop.Connection) (*validate.Errors
 	{{ if .model.ValidatableAttributes -}}
 	return validate.Validate(
 		{{ range $a := .model.ValidatableAttributes -}}
-		&validators.{{capitalize $a.GoType}}IsPresent{Field: {{$.char}}.{{$a.Names.Proper}}, Name: "{{$a.Names.Proper}}"},
+		&validators.{{capitalize $a.GoType}}IsPresent{Field: {{$.char}}.{{$a.Name.VarCaseSingular}}, Name: "{{$a.Name.VarCaseSingular}}"},
 		{{end -}}
 	), nil
 	{{ else -}}
