@@ -32,6 +32,11 @@ func hasOneAssociationBuilder(p associationParams) (Association, error) {
 }
 
 func (h *hasOneAssociation) TableName() string {
+	m := h.ownedModel.MethodByName("TableName")
+	if m.IsValid() {
+		out := m.Call([]reflect.Value{})
+		return out[0].String()
+	}
 	return inflect.Tableize(h.ownedType.Name())
 }
 

@@ -84,6 +84,7 @@ type User struct {
 	FullName     nulls.String  `db:"full_name" select:"name as full_name"`
 	Books        Books         `has_many:"books" order_by:"title asc"`
 	FavoriteSong Song          `has_one:"song" fk_id:"u_id"`
+	Houses       Addresses     `db:"-" many_to_many:"users_addresses"`
 }
 
 type Users []User
@@ -100,6 +101,24 @@ type Book struct {
 }
 
 type Books []Book
+
+type Address struct {
+	ID          int       `db:"id"`
+	Street      string    `db:"street"`
+	HouseNumber int       `db:"house_number"`
+	CreatedAt   time.Time `db:"created_at"`
+	UpdatedAt   time.Time `db:"updated_at"`
+}
+
+type Addresses []Address
+
+type UsersAddress struct {
+	ID        int       `db:"id"`
+	UserID    int       `db:"user_id"`
+	AddressID int       `db:"address_id"`
+	CreatedAt time.Time `db:"created_at"`
+	UpdatedAt time.Time `db:"updated_at"`
+}
 
 type Friend struct {
 	ID        int       `db:"id"`

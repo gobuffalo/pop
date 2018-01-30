@@ -35,6 +35,11 @@ func belongsToAssociationBuilder(p associationParams) (Association, error) {
 }
 
 func (b *belongsToAssociation) TableName() string {
+	m := b.ownerModel.MethodByName("TableName")
+	if m.IsValid() {
+		out := m.Call([]reflect.Value{})
+		return out[0].String()
+	}
 	return inflect.Tableize(b.ownerType.Name())
 }
 

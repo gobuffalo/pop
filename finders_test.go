@@ -118,6 +118,34 @@ func Test_Find_Eager_Has_One(t *testing.T) {
 	})
 }
 
+func Test_Find_Eager_Many_To_Many(t *testing.T) {
+	transaction(func(tx *pop.Connection) {
+		a := require.New(t)
+
+		user := User{Name: nulls.NewString("Mark")}
+		err := tx.Create(&user)
+		a.NoError(err)
+
+		address := Address{Street: "Pop Avenue", HouseNumber: 1}
+		err = tx.Create(&address)
+		a.NoError(err)
+
+		ownerProperty := UsersAddress{UserID: user.ID, AddressID: address.ID}
+		err = tx.Create(&ownerProperty)
+		a.NoError(err)
+
+		u := User{}
+		err = tx.Eager("Houses").Find(&u, user.ID)
+		a.NoError(err)
+
+		a.NotEqual(u.ID, 0)
+		a.Equal(u.Name.String, "Mark")
+
+		a.Equal(len(u.Houses), 1)
+		a.Equal(u.Houses[0].Street, address.Street)
+	})
+}
+
 func Test_First(t *testing.T) {
 	transaction(func(tx *pop.Connection) {
 		a := require.New(t)

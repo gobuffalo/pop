@@ -268,6 +268,7 @@ type User struct {
   Password     string
   Books        Books     `has_many:"books"`
   FavoriteSong Song      `has_one:"song" fk_id:"u_id"`
+  Houses       Addresses `many_to_many:"users_addresses"`
 }
 ```
 
@@ -289,10 +290,20 @@ type Song struct {
 }
 ```
 
+```go
+type Address struct {
+  ID           uuid.UUID
+  Street       string
+  HouseNumber  int
+}
+
+type Addresses []Address
+```
+
 
 ```go
 u := Users{}
-err := tx.Eager().Where("name = 'Mark'").All(&u)  // preload all associations for user with name 'Mark', i.e Books and FavoriteSong
+err := tx.Eager().Where("name = 'Mark'").All(&u)  // preload all associations for user with name 'Mark', i.e Books, Houses and FavoriteSong
 err  = tx.Eager("Books").Where("name = 'Mark'").All(&u) // preload only Books association for user with name 'Mark'.
 ```
 
