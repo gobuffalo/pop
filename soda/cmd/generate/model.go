@@ -46,7 +46,7 @@ func (m model) Generate() error {
 	return g.Run(".", ctx)
 }
 
-func (m model) AppendAttribute(a attribute) {
+func (m *model) AppendAttribute(a attribute) {
 	if a.Name == "id" {
 		// No need to create a default ID
 		m.HasID = true
