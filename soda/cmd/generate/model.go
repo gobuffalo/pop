@@ -22,9 +22,10 @@ type model struct {
 	Attributes            []attribute
 	ValidatableAttributes []attribute
 
-	HasNulls bool
-	HasUUID  bool
-	HasID    bool
+	HasNulls  bool
+	HasUUID   bool
+	HasSlices bool
+	HasID     bool
 }
 
 func (m model) Generate() error {
@@ -138,4 +139,30 @@ func newModel(name string) model {
 		ValidatableAttributes: []attribute{},
 	}
 	return m
+}
+
+func fizzColType(s string) string {
+	switch strings.ToLower(s) {
+	case "int":
+		return "integer"
+	case "time", "datetime":
+		return "timestamp"
+	case "uuid.uuid", "uuid":
+		return "uuid"
+	case "nulls.float32", "nulls.float64":
+		return "float"
+	case "slices.string", "slices.uuid", "[]string":
+		return "varchar[]"
+	case "slices.float", "[]float", "[]float32", "[]float64":
+		return "numeric[]"
+	case "slices.int":
+		return "int[]"
+	case "slices.map":
+		return "jsonb"
+	default:
+		if nrx.MatchString(s) {
+			return fizzColType(strings.Replace(s, "nulls.", "", -1))
+		}
+		return strings.ToLower(s)
+	}
 }

@@ -2,7 +2,6 @@ package generate
 
 import (
 	"regexp"
-	"strings"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -63,53 +62,4 @@ var ModelCmd = &cobra.Command{
 
 		return nil
 	},
-}
-
-func colType(s string) string {
-	switch strings.ToLower(s) {
-	case "text":
-		return "string"
-	case "time", "timestamp", "datetime":
-		return "time.Time"
-	case "nulls.text":
-		return "nulls.String"
-	case "uuid":
-		return "uuid.UUID"
-	case "json", "jsonb":
-		return "slices.Map"
-	case "[]string":
-		return "slices.String"
-	case "[]int":
-		return "slices.Int"
-	case "slices.float", "[]float", "[]float32", "[]float64":
-		return "slices.Float"
-	default:
-		return s
-	}
-}
-
-func fizzColType(s string) string {
-	switch strings.ToLower(s) {
-	case "int":
-		return "integer"
-	case "time", "datetime":
-		return "timestamp"
-	case "uuid.uuid", "uuid":
-		return "uuid"
-	case "nulls.float32", "nulls.float64":
-		return "float"
-	case "slices.string", "slices.uuid", "[]string":
-		return "varchar[]"
-	case "slices.float", "[]float", "[]float32", "[]float64":
-		return "numeric[]"
-	case "slices.int":
-		return "int[]"
-	case "slices.map":
-		return "jsonb"
-	default:
-		if nrx.MatchString(s) {
-			return fizzColType(strings.Replace(s, "nulls.", "", -1))
-		}
-		return strings.ToLower(s)
-	}
 }

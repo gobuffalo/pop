@@ -30,7 +30,8 @@ func newAttribute(base string, model *model) attribute {
 		model.Imports = append(model.Imports, "github.com/markbates/pop/nulls")
 	}
 
-	if strings.HasPrefix(col[1], "slices.") {
+	if !model.HasSlices && strings.HasPrefix(col[1], "slices.") {
+		model.HasSlices = true
 		model.Imports = append(model.Imports, "github.com/markbates/pop/slices")
 	}
 
@@ -47,4 +48,27 @@ func newAttribute(base string, model *model) attribute {
 	}
 
 	return a
+}
+
+func colType(s string) string {
+	switch strings.ToLower(s) {
+	case "text":
+		return "string"
+	case "time", "timestamp", "datetime":
+		return "time.Time"
+	case "nulls.text":
+		return "nulls.String"
+	case "uuid":
+		return "uuid.UUID"
+	case "json", "jsonb":
+		return "slices.Map"
+	case "[]string":
+		return "slices.String"
+	case "[]int":
+		return "slices.Int"
+	case "slices.float", "[]float", "[]float32", "[]float64":
+		return "slices.Float"
+	default:
+		return s
+	}
 }
