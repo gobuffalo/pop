@@ -3,7 +3,6 @@ package associations
 import (
 	"fmt"
 	"reflect"
-	"strings"
 
 	"github.com/markbates/inflect"
 )
@@ -13,6 +12,7 @@ type hasOneAssociation struct {
 	ownedType  reflect.Type
 	ownerID    interface{}
 	ownerName  string
+	owner      interface{}
 	fkID       string
 }
 
@@ -23,6 +23,7 @@ func init() {
 func hasOneAssociationBuilder(p associationParams) (Association, error) {
 	fval := p.modelValue.FieldByName(p.field.Name)
 	return &hasOneAssociation{
+		owner:      p.model,
 		ownedModel: fval,
 		ownedType:  fval.Type(),
 		ownerID:    p.modelValue.FieldByName("ID").Interface(),
@@ -32,10 +33,8 @@ func hasOneAssociationBuilder(p associationParams) (Association, error) {
 }
 
 func (h *hasOneAssociation) TableName() string {
-	m := h.ownedModel.MethodByName("TableName")
-	if m.IsValid() {
-		out := m.Call([]reflect.Value{})
-		return out[0].String()
+	if m, ok := h.owner.(tableNameable); ok {
+		return m.TableName()
 	}
 	return inflect.Tableize(h.ownedType.Name())
 }
@@ -56,7 +55,7 @@ func (h *hasOneAssociation) Interface() interface{} {
 // Constraint returns the content for a where clause, and the args
 // needed to execute it.
 func (h *hasOneAssociation) Constraint() (string, []interface{}) {
-	tn := strings.ToLower(h.ownerName)
+	tn := inflect.Underscore(h.ownerName)
 	condition := fmt.Sprintf("%s_id = ?", tn)
 	if h.fkID != "" {
 		condition = fmt.Sprintf("%s = ?", h.fkID)

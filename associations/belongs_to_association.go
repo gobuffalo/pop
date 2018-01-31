@@ -13,6 +13,7 @@ type belongsToAssociation struct {
 	ownerModel reflect.Value
 	ownerType  reflect.Type
 	ownerID    reflect.Value
+	owner      interface{}
 }
 
 func init() {
@@ -21,25 +22,26 @@ func init() {
 
 func belongsToAssociationBuilder(p associationParams) (Association, error) {
 	fval := p.modelValue.FieldByName(p.field.Name)
-	ownerIDField := fmt.Sprintf("%s%s", fval.Type().Name(), "ID")
+	ownerIDField := fmt.Sprintf("%s%s", inflect.Capitalize(fval.Type().Name()), "ID")
 
 	if _, found := p.modelType.FieldByName(ownerIDField); !found {
-		return nil, fmt.Errorf("there is no %s defined in model %s", ownerIDField, fval.Type().Name())
+		return nil, fmt.Errorf("there is no '%s' defined in model '%s'", ownerIDField, p.modelType.Name())
 	}
 
 	return &belongsToAssociation{
 		ownerModel: fval,
 		ownerType:  fval.Type(),
 		ownerID:    p.modelValue.FieldByName(ownerIDField),
+		owner:      p.model,
 	}, nil
 }
 
 func (b *belongsToAssociation) TableName() string {
-	m := b.ownerModel.MethodByName("TableName")
-	if m.IsValid() {
-		out := m.Call([]reflect.Value{})
-		return out[0].String()
+	i := b.ownerModel.Interface()
+	if m, ok := i.(tableNameable); ok {
+		return m.TableName()
 	}
+
 	return inflect.Tableize(b.ownerType.Name())
 }
 

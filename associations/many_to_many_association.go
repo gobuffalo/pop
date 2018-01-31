@@ -3,7 +3,6 @@ package associations
 import (
 	"fmt"
 	"reflect"
-	"strings"
 
 	"github.com/markbates/inflect"
 )
@@ -13,6 +12,7 @@ type manyToManyAssociation struct {
 	fieldValue          reflect.Value
 	model               reflect.Value
 	manyToManyTableName string
+	owner               interface{}
 	fkID                string
 }
 
@@ -21,6 +21,7 @@ func init() {
 		return &manyToManyAssociation{
 			fieldType:           p.modelValue.FieldByName(p.field.Name).Type(),
 			fieldValue:          p.modelValue.FieldByName(p.field.Name),
+			owner:               p.model,
 			model:               p.modelValue,
 			manyToManyTableName: p.popTags.Find("many_to_many").Value,
 			fkID:                p.popTags.Find("fk_id").Value,
@@ -29,10 +30,9 @@ func init() {
 }
 
 func (m *manyToManyAssociation) TableName() string {
-	method := m.fieldValue.MethodByName("TableName")
-	if method.IsValid() {
-		out := method.Call([]reflect.Value{})
-		return out[0].String()
+	i := m.fieldValue.Interface()
+	if m, ok := i.(tableNameable); ok {
+		return m.TableName()
 	}
 	return inflect.Tableize(m.fieldType.Name())
 }
@@ -53,15 +53,15 @@ func (m *manyToManyAssociation) Interface() interface{} {
 // Constraint returns the content for a where clause, and the args
 // needed to execute it.
 func (m *manyToManyAssociation) Constraint() (string, []interface{}) {
-	modelColumnID := fmt.Sprintf("%s%s", strings.ToLower(m.model.Type().Name()), "_id")
+	modelColumnID := fmt.Sprintf("%s%s", inflect.Underscore(m.model.Type().Name()), "_id")
 
 	var columnFieldID string
 	i := reflect.Indirect(m.fieldValue)
 	if i.Kind() == reflect.Slice || i.Kind() == reflect.Array {
 		t := i.Type().Elem()
-		columnFieldID = fmt.Sprintf("%s%s", strings.ToLower(t.Name()), "_id")
+		columnFieldID = fmt.Sprintf("%s%s", inflect.Underscore(t.Name()), "_id")
 	} else {
-		columnFieldID = fmt.Sprintf("%s%s", strings.ToLower(i.Type().Name()), "_id")
+		columnFieldID = fmt.Sprintf("%s%s", inflect.Underscore(i.Type().Name()), "_id")
 	}
 
 	if m.fkID != "" {

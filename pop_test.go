@@ -84,7 +84,7 @@ type User struct {
 	FullName     nulls.String  `db:"full_name" select:"name as full_name"`
 	Books        Books         `has_many:"books" order_by:"title asc"`
 	FavoriteSong Song          `has_one:"song" fk_id:"u_id"`
-	Houses       Addresses     `db:"-" many_to_many:"users_addresses"`
+	Houses       Addresses     `many_to_many:"users_addresses"`
 }
 
 type Users []User

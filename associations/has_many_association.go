@@ -3,7 +3,8 @@ package associations
 import (
 	"fmt"
 	"reflect"
-	"strings"
+
+	"github.com/markbates/inflect"
 )
 
 // hasManyAssociation is the implementation for the has_many
@@ -57,7 +58,7 @@ func (a *hasManyAssociation) Interface() interface{} {
 // Constraint returns the content for a where clause, and the args
 // needed to execute it.
 func (a *hasManyAssociation) Constraint() (string, []interface{}) {
-	tn := strings.ToLower(a.ownerName)
+	tn := inflect.Underscore(a.ownerName)
 	condition := fmt.Sprintf("%s_id = ?", tn)
 	if a.fkID != "" {
 		condition = fmt.Sprintf("%s = ?", a.fkID)

@@ -45,6 +45,7 @@ func AssociationsForStruct(s interface{}, fields ...string) (Associations, error
 			if !tag.Empty() {
 				params := associationParams{
 					field:      f,
+					model:      s,
 					modelType:  t,
 					modelValue: v,
 					popTags:    tags,

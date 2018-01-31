@@ -32,8 +32,14 @@ type associationParams struct {
 	modelType  reflect.Type        // the model type where this field is defined.
 	modelValue reflect.Value       // the model value where this field is defined.
 	popTags    columns.Tags        // the tags defined in this association field.
+	model      interface{}         // the model, owner of the association.
 }
 
 // associationBuilder is a type representing an association builder implementation.
 // see the builder defined in ./has_many_association.go as a guide of how to use it.
 type associationBuilder func(associationParams) (Association, error)
+
+// tableNameable represents a model with a customized table name.
+type tableNameable interface {
+	TableName() string
+}
