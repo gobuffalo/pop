@@ -14,6 +14,7 @@ type manyToManyAssociation struct {
 	manyToManyTableName string
 	owner               interface{}
 	fkID                string
+	orderBy             string
 }
 
 func init() {
@@ -25,6 +26,7 @@ func init() {
 			model:               p.modelValue,
 			manyToManyTableName: p.popTags.Find("many_to_many").Value,
 			fkID:                p.popTags.Find("fk_id").Value,
+			orderBy:             p.popTags.Find("order_by").Value,
 		}, nil
 	}
 }
@@ -72,4 +74,8 @@ func (m *manyToManyAssociation) Constraint() (string, []interface{}) {
 	modelIDValue := m.model.FieldByName("ID").Interface()
 
 	return fmt.Sprintf("id in (%s)", subQuery), []interface{}{modelIDValue}
+}
+
+func (m *manyToManyAssociation) OrderBy() string {
+	return m.orderBy
 }
