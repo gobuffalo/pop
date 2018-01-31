@@ -72,6 +72,8 @@ func colType(s string) string {
 		return "slices.Int"
 	case "slices.float", "[]float", "[]float32", "[]float64":
 		return "slices.Float"
+	case "decimal", "float":
+		return "float64"
 	default:
 		return s
 	}
