@@ -300,11 +300,15 @@ type Address struct {
 type Addresses []Address
 ```
 
-**has_many**: will load all records from the `books` table that have a column named `user_id` or the column specified with **fk_id** that matches the `User.ID` value.
-**belongs_to**: will load a record from `users` table that have a column named `id` that matches with `Book.UserID` value.
-**has_one**: will load a record from the `songs` table that have a column named `user_id` or the column specified with **fk_id** that matches the `User.ID` value.
-**many_to_many**: will load all records from the `addresses` table through the table `users_addresses`. Table `users_addresses` MUST define `address_id`  and `user_id` columns to match `User.ID` and `Address.ID` values. You can also define a **fk_id** tag that will be used in the target association i.e `addresses` table.
-**fk_id**: defines the column name in the target association that matches model `ID`. In the example above `Song` has a column named `u_id` that represents `id` of `users` table. When loading `FavoriteSong`, `u_id` will be used instead `user_id`.
+  **has_many**: will load all records from the `books` table that have a column named `user_id` or the column specified with **fk_id** that matches the `User.ID` value.    
+  
+  **belongs_to**: will load a record from `users` table that have a column named `id` that matches with `Book.UserID` value.
+  
+  **has_one**: will load a record from the `songs` table that have a column named `user_id` or the column specified with **fk_id** that matches the `User.ID` value.    
+  
+  **many_to_many**: will load all records from the `addresses` table through the table `users_addresses`. Table `users_addresses` MUST define `address_id`  and `user_id` columns to match `User.ID` and `Address.ID` values. You can also define a **fk_id** tag that will be used in the target association i.e `addresses` table.    
+  
+  **fk_id**: defines the column name in the target association that matches model `ID`. In the example above `Song` has a column named `u_id` that represents `id` of `users` table. When loading `FavoriteSong`, `u_id` will be used instead of `user_id`.
 
 
 ```go
