@@ -18,6 +18,10 @@ func (a attribute) String() string {
 	return fmt.Sprintf("\t%s %s `%s:\"%s\" db:\"%s\"`", a.Name.Model(), a.GoType, structTag, a.Name, a.Name)
 }
 
+func (a attribute) IsValidable() bool {
+	return a.GoType == "string" || a.GoType == "time.Time" || a.GoType == "int"
+}
+
 func newAttribute(base string, model *model) attribute {
 	col := strings.Split(base, ":")
 	if len(col) == 1 {

@@ -1,6 +1,7 @@
 package generate
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -48,16 +49,18 @@ func Test_newAttribute(t *testing.T) {
 		},
 	}
 
-	for _, tcase := range cases {
-		model := newModel("car")
-		a := newAttribute(tcase.AttributeInput, &model)
+	for index, tcase := range cases {
+		t.Run(fmt.Sprintf("%v", index), func(tt *testing.T) {
+			model := newModel("car")
+			a := newAttribute(tcase.AttributeInput, &model)
 
-		r.Equal(a.GoType, tcase.ResultType)
-		r.Equal(a.Nullable, tcase.Nullable)
+			r.Equal(a.GoType, tcase.ResultType)
+			r.Equal(a.Nullable, tcase.Nullable)
 
-		r.Equal(model.HasUUID, tcase.ModelHasUUID)
-		r.Equal(model.HasNulls, tcase.ModelHasNulls)
-		r.Equal(model.HasSlices, tcase.ModelHasSlices)
+			r.Equal(model.HasUUID, tcase.ModelHasUUID)
+			r.Equal(model.HasNulls, tcase.ModelHasNulls)
+			r.Equal(model.HasSlices, tcase.ModelHasSlices)
+		})
 	}
 
 }

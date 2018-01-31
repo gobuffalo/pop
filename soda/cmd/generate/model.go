@@ -61,7 +61,7 @@ func (m *model) addAttribute(a attribute) {
 		return
 	}
 
-	if a.GoType == "string" || a.GoType == "time.Time" || a.GoType == "int" {
+	if a.IsValidable() {
 		if a.GoType == "time.Time" {
 			a.GoType = "Time"
 		}
@@ -69,12 +69,13 @@ func (m *model) addAttribute(a attribute) {
 	}
 }
 
-func (m model) addID() {
+func (m *model) addID() {
 	if m.HasID {
 		return
 	}
 
 	if !m.HasUUID {
+		m.HasUUID = true
 		m.Imports = append(m.Imports, "github.com/satori/go.uuid")
 	}
 
@@ -82,6 +83,7 @@ func (m model) addID() {
 	a := attribute{Name: id, OriginalType: "uuid.UUID", GoType: "uuid.UUID"}
 	// Ensure ID is the first attribute
 	m.Attributes = append([]attribute{a}, m.Attributes...)
+	m.HasID = true
 }
 
 func (m model) generateModelFile() error {
