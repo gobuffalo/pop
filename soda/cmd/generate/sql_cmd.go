@@ -8,12 +8,13 @@ import (
 	"github.com/spf13/cobra"
 )
 
+//SQLCmd generates a SQL migration
 var SQLCmd = &cobra.Command{
 	Use:   "sql [name]",
 	Short: "Generates Up/Down migrations for your database using SQL.",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) == 0 {
-			return errors.New("You must supply a name for your migration!")
+			return errors.New("You must supply a name for your migration")
 		}
 		cflag := cmd.Flag("path")
 		migrationPath := defaults.String(cflag.Value.String(), "./migrates")
