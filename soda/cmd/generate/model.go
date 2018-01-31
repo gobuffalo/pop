@@ -33,7 +33,7 @@ func (m model) Generate() error {
 	defer g.Fmt(".")
 	ctx := makr.Data{}
 	ctx["model"] = m
-	ctx["plural_model_name"] = m.Name.Plural()
+	ctx["plural_model_name"] = m.Name.ModelPlural()
 	ctx["model_name"] = m.Name.Model()
 	ctx["package_name"] = m.Package
 	ctx["char"] = strings.ToLower(string([]byte(m.Name)[0]))
