@@ -36,15 +36,6 @@ func belongsToAssociationBuilder(p associationParams) (Association, error) {
 	}, nil
 }
 
-func (b *belongsToAssociation) TableName() string {
-	i := b.ownerModel.Interface()
-	if m, ok := i.(tableNameable); ok {
-		return m.TableName()
-	}
-
-	return inflect.Tableize(b.ownerType.Name())
-}
-
 func (b *belongsToAssociation) Kind() reflect.Kind {
 	if b.ownerType.Kind() == reflect.Ptr {
 		return b.ownerType.Elem().Kind()

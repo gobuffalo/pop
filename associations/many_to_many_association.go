@@ -31,14 +31,6 @@ func init() {
 	}
 }
 
-func (m *manyToManyAssociation) TableName() string {
-	i := m.fieldValue.Interface()
-	if m, ok := i.(tableNameable); ok {
-		return m.TableName()
-	}
-	return inflect.Tableize(m.fieldType.Name())
-}
-
 func (m *manyToManyAssociation) Kind() reflect.Kind {
 	return m.fieldType.Kind()
 }

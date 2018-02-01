@@ -10,7 +10,6 @@ import (
 // field. It can represent a association of the type has_many
 // belongs_to or has_one, and other customized types.
 type Association interface {
-	TableName() string
 	Kind() reflect.Kind
 	Interface() interface{}
 	Constraint() (string, []interface{})

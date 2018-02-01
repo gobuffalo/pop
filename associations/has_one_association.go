@@ -32,13 +32,6 @@ func hasOneAssociationBuilder(p associationParams) (Association, error) {
 	}, nil
 }
 
-func (h *hasOneAssociation) TableName() string {
-	if m, ok := h.owner.(tableNameable); ok {
-		return m.TableName()
-	}
-	return inflect.Tableize(h.ownedType.Name())
-}
-
 func (h *hasOneAssociation) Kind() reflect.Kind {
 	return h.ownedType.Kind()
 }

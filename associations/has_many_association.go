@@ -35,10 +35,6 @@ func hasManyAssociationBuilder(p associationParams) (Association, error) {
 	}, nil
 }
 
-func (a *hasManyAssociation) TableName() string {
-	return a.tableName
-}
-
 func (a *hasManyAssociation) Kind() reflect.Kind {
 	if a.field.Type.Kind() == reflect.Ptr {
 		return a.field.Type.Elem().Kind()

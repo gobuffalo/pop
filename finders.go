@@ -178,7 +178,7 @@ func (q *Query) eagerAssociations(model interface{}) error {
 			}
 		}
 
-		sqlSentence, args := query.ToSQL(&Model{Value: association.TableName()})
+		sqlSentence, args := query.ToSQL(&Model{Value: association.Interface()})
 		query = query.RawQuery(sqlSentence, args...)
 
 		if association.Kind() == reflect.Slice || association.Kind() == reflect.Array {
