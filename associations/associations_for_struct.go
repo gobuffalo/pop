@@ -8,6 +8,11 @@ import (
 	"github.com/markbates/pop/columns"
 )
 
+type innerAssociation struct {
+	s      interface{}
+	fields string
+}
+
 // associationBuilders is a map that helps to aisle associations finding process
 // with the associations implementation. Every association MUST register its builder
 // in this map using its init() method. see ./has_many_association.go as a guide.
@@ -20,13 +25,26 @@ var associationBuilders = map[string]associationBuilder{}
 // not exist for a model.
 func AssociationsForStruct(s interface{}, fields ...string) (Associations, error) {
 	associations := Associations{}
+	innerAssociations := []innerAssociation{}
+
 	t, v := getModelDefinition(s)
 	fields = trimFields(fields)
 
 	// validate if fields contains a non existing field in struct.
-	for _, f := range fields {
-		if _, ok := t.FieldByName(f); !ok {
-			return associations, fmt.Errorf("field %s does not exist in model %s", f, t.Name())
+	for i := range fields {
+		var innerField, field string
+
+		if strings.Contains(fields[i], ".") {
+			field = fields[i][:strings.Index(fields[i], ".")]
+			innerField = fields[i][strings.Index(fields[i], ".")+1:]
+			fields[i] = field
+		}
+		if _, ok := t.FieldByName(fields[i]); !ok {
+			return associations, fmt.Errorf("field %s does not exist in model %s", fields[i], t.Name())
+		}
+
+		if innerField != "" {
+			innerAssociations = append(innerAssociations, innerAssociation{v.FieldByName(fields[i]).Addr().Interface(), innerField})
 		}
 	}
 
@@ -61,6 +79,18 @@ func AssociationsForStruct(s interface{}, fields ...string) (Associations, error
 			}
 		}
 	}
+
+	if len(innerAssociations) > 0 {
+		for _, ia := range innerAssociations {
+			assos, err := AssociationsForStruct(ia.s, ia.fields)
+			if err != nil {
+				return associations, err
+			}
+
+			associations = append(associations, assos...)
+		}
+	}
+
 	return associations, nil
 }
 

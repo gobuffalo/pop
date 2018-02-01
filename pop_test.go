@@ -135,11 +135,20 @@ type Enemy struct {
 }
 
 type Song struct {
-	ID        uuid.UUID `db:"id"`
-	Title     string    `db:"title"`
-	UserID    int       `db:"u_id"`
-	CreatedAt time.Time `json:"created_at" db:"created_at"`
-	UpdatedAt time.Time `json:"updated_at" db:"updated_at"`
+	ID         uuid.UUID `db:"id"`
+	Title      string    `db:"title"`
+	UserID     int       `db:"u_id"`
+	CreatedAt  time.Time `json:"created_at" db:"created_at"`
+	UpdatedAt  time.Time `json:"updated_at" db:"updated_at"`
+	ComposerID int       `json:"composer_id" db:"composer_id"`
+	ComposedBy Composer  `belongs_to:"composer"`
+}
+
+type Composer struct {
+	ID        int       `db:"id"`
+	Name      string    `db:"name"`
+	CreatedAt time.Time `db:"created_at"`
+	UpdatedAt time.Time `db:"updated_at"`
 }
 
 type ValidatableCar struct {
