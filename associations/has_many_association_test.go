@@ -30,7 +30,6 @@ func Test_Has_Many_Association(t *testing.T) {
 
 	a.NoError(err)
 	a.Equal(len(as), 1)
-	a.Equal("bar_has_manies", as[0].TableName())
 	a.Equal(reflect.Slice, as[0].Kind())
 
 	where, args := as[0].Constraint()

@@ -34,7 +34,6 @@ func Test_Belongs_To_Association(t *testing.T) {
 
 	a.NoError(err)
 	a.Equal(len(as), 1)
-	a.Equal("foosy", as[0].TableName())
 	a.Equal(reflect.Struct, as[0].Kind())
 
 	where, args := as[0].Constraint()
