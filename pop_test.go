@@ -96,11 +96,23 @@ type Book struct {
 	UserID      int       `db:"user_id"`
 	User        User      `belongs_to:"user"`
 	Description string    `db:"description"`
+	Writers     Writers   `has_many:"writers"`
 	CreatedAt   time.Time `db:"created_at"`
 	UpdatedAt   time.Time `db:"updated_at"`
 }
 
 type Books []Book
+
+type Writer struct {
+	ID        int       `db:"id"`
+	Name      string    `db:"name"`
+	BookID    int       `db:"book_id"`
+	Book      Book      `belongs_to:"book"`
+	CreatedAt time.Time `db:"created_at"`
+	UpdatedAt time.Time `db:"updated_at"`
+}
+
+type Writers []Writer
 
 type Address struct {
 	ID          int       `db:"id"`

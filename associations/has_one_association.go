@@ -8,12 +8,13 @@ import (
 )
 
 type hasOneAssociation struct {
-	ownedModel reflect.Value
-	ownedType  reflect.Type
-	ownerID    interface{}
-	ownerName  string
-	owner      interface{}
-	fkID       string
+	ownedModel        reflect.Value
+	ownedType         reflect.Type
+	ownerID           interface{}
+	ownerName         string
+	owner             interface{}
+	fkID              string
+	innerAssociations InnerAssociations
 }
 
 func init() {
@@ -23,13 +24,18 @@ func init() {
 func hasOneAssociationBuilder(p associationParams) (Association, error) {
 	fval := p.modelValue.FieldByName(p.field.Name)
 	return &hasOneAssociation{
-		owner:      p.model,
-		ownedModel: fval,
-		ownedType:  fval.Type(),
-		ownerID:    p.modelValue.FieldByName("ID").Interface(),
-		ownerName:  p.modelType.Name(),
-		fkID:       p.popTags.Find("fk_id").Value,
+		owner:             p.model,
+		ownedModel:        fval,
+		ownedType:         fval.Type(),
+		ownerID:           p.modelValue.FieldByName("ID").Interface(),
+		ownerName:         p.modelType.Name(),
+		fkID:              p.popTags.Find("fk_id").Value,
+		innerAssociations: p.innerAssociations,
 	}, nil
+}
+
+func (h *hasOneAssociation) InnerAssociations() InnerAssociations {
+	return h.innerAssociations
 }
 
 func (h *hasOneAssociation) Kind() reflect.Kind {

@@ -141,20 +141,32 @@ func (q *Query) All(models interface{}) error {
 	}
 
 	if q.eager {
-		v := reflect.ValueOf(models).Elem()
+		err = q.eagerAssociations(models)
+	}
+
+	return err
+}
+
+// eagerAssociations loads all associations from the already loaded model
+// passed as a parameter. model can be a pointer to a slice,array or struct.
+func (q *Query) eagerAssociations(model interface{}) error {
+	var err error
+
+	// eagerAssociations for a slice or array model passed as a param.
+	v := reflect.ValueOf(model)
+	if reflect.Indirect(v).Type().Kind() == reflect.Slice ||
+		reflect.Indirect(v).Type().Kind() == reflect.Array {
+		v = v.Elem()
 		for i := 0; i < v.Len(); i++ {
-			err := q.eagerAssociations(v.Index(i).Addr().Interface())
+			err = q.eagerAssociations(v.Index(i).Addr().Interface())
 			if err != nil {
 				return err
 			}
 		}
+		return err
 	}
 
-	return nil
-}
-
-func (q *Query) eagerAssociations(model interface{}) error {
-	var err error
+	// eagerAssociations for a simple struct type model.
 	assos, err := associations.AssociationsForStruct(model, q.eagerFields...)
 
 	if err != nil {
@@ -191,6 +203,17 @@ func (q *Query) eagerAssociations(model interface{}) error {
 
 		if err != nil && errors.Cause(err) != sql.ErrNoRows {
 			return err
+		}
+
+		// load all inner associations.
+		innerAssociations := association.InnerAssociations()
+		for _, inner := range innerAssociations {
+			v = reflect.Indirect(reflect.ValueOf(model)).FieldByName(inner.Name)
+			q.eagerFields = []string{inner.Fields}
+			err = q.eagerAssociations(v.Addr().Interface())
+			if err != nil {
+				return err
+			}
 		}
 	}
 	return nil

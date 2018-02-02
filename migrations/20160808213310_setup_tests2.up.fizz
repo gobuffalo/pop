@@ -9,6 +9,11 @@ create_table("composers", func(t) {
   t.Column("name", "string", {})
 })
 
+create_table("writers", func(t) {
+  t.Column("name", "string", {})
+  t.Column("book_id", "int", {})
+})
+
 create_table("addresses", func(t) {
   t.Column("street", "string", {})
   t.Column("house_number", "int", {})

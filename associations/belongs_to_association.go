@@ -10,10 +10,11 @@ import (
 // belongsToAssociation is the implementation for the belongs_to
 // association type in a model.
 type belongsToAssociation struct {
-	ownerModel reflect.Value
-	ownerType  reflect.Type
-	ownerID    reflect.Value
-	owner      interface{}
+	ownerModel        reflect.Value
+	ownerType         reflect.Type
+	ownerID           reflect.Value
+	owner             interface{}
+	innerAssociations InnerAssociations
 }
 
 func init() {
@@ -29,11 +30,16 @@ func belongsToAssociationBuilder(p associationParams) (Association, error) {
 	}
 
 	return &belongsToAssociation{
-		ownerModel: fval,
-		ownerType:  fval.Type(),
-		ownerID:    p.modelValue.FieldByName(ownerIDField),
-		owner:      p.model,
+		ownerModel:        fval,
+		ownerType:         fval.Type(),
+		ownerID:           p.modelValue.FieldByName(ownerIDField),
+		owner:             p.model,
+		innerAssociations: p.innerAssociations,
 	}, nil
+}
+
+func (b *belongsToAssociation) InnerAssociations() InnerAssociations {
+	return b.innerAssociations
 }
 
 func (b *belongsToAssociation) Kind() reflect.Kind {

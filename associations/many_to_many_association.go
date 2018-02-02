@@ -15,6 +15,7 @@ type manyToManyAssociation struct {
 	owner               interface{}
 	fkID                string
 	orderBy             string
+	innerAssociations   InnerAssociations
 }
 
 func init() {
@@ -27,8 +28,13 @@ func init() {
 			manyToManyTableName: p.popTags.Find("many_to_many").Value,
 			fkID:                p.popTags.Find("fk_id").Value,
 			orderBy:             p.popTags.Find("order_by").Value,
+			innerAssociations:   p.innerAssociations,
 		}, nil
 	}
+}
+
+func (m *manyToManyAssociation) InnerAssociations() InnerAssociations {
+	return m.innerAssociations
 }
 
 func (m *manyToManyAssociation) Kind() reflect.Kind {
