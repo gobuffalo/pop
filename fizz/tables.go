@@ -1,5 +1,10 @@
 package fizz
 
+import (
+	"fmt"
+	"strings"
+)
+
 type Table struct {
 	Name        string `db:"name"`
 	Columns     []Column
@@ -32,6 +37,13 @@ func (t *Table) ForeignKey(column string, refs interface{}, options Options) {
 		References: parseForeignKeyRef(refs),
 		Options:    options,
 	}
+
+	if options["name"] != nil {
+		fk.Name = options["name"].(string)
+	} else {
+		fk.Name = fmt.Sprintf("%s_%s_%s_fk", t.Name, fk.References.Table, strings.Join(fk.References.Columns, "_"))
+	}
+
 	t.ForeignKeys = append(t.ForeignKeys, fk)
 }
 

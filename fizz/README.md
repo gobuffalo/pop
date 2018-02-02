@@ -143,6 +143,8 @@ add_foreign_key("table_name", "field", {"ref_table_name": ["ref_column"]}, {
 * `on_delete` - `CASCADE`, `SET NULL`, ...
 * `on_update`
 
+**Note:** `on_update` and `on_delete` are not supported on cockroachDB yet.
+
 ## Drop a Foreign Key
 
 ```javascript
