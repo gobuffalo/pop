@@ -16,6 +16,16 @@ type Association interface {
 	InnerAssociations() InnerAssociations
 }
 
+// associationComposite adds the ability for a Association to
+// have nested associations.
+type associationComposite struct {
+	innerAssociations InnerAssociations
+}
+
+func (a *associationComposite) InnerAssociations() InnerAssociations {
+	return a.innerAssociations
+}
+
 // InnerAssociation is a struct that represents a deep level
 // association. per example Song.Composer, Composer is an inner
 // association for Song.

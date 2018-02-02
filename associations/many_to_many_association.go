@@ -15,26 +15,22 @@ type manyToManyAssociation struct {
 	owner               interface{}
 	fkID                string
 	orderBy             string
-	innerAssociations   InnerAssociations
+	*associationComposite
 }
 
 func init() {
 	associationBuilders["many_to_many"] = func(p associationParams) (Association, error) {
 		return &manyToManyAssociation{
-			fieldType:           p.modelValue.FieldByName(p.field.Name).Type(),
-			fieldValue:          p.modelValue.FieldByName(p.field.Name),
-			owner:               p.model,
-			model:               p.modelValue,
-			manyToManyTableName: p.popTags.Find("many_to_many").Value,
-			fkID:                p.popTags.Find("fk_id").Value,
-			orderBy:             p.popTags.Find("order_by").Value,
-			innerAssociations:   p.innerAssociations,
+			fieldType:            p.modelValue.FieldByName(p.field.Name).Type(),
+			fieldValue:           p.modelValue.FieldByName(p.field.Name),
+			owner:                p.model,
+			model:                p.modelValue,
+			manyToManyTableName:  p.popTags.Find("many_to_many").Value,
+			fkID:                 p.popTags.Find("fk_id").Value,
+			orderBy:              p.popTags.Find("order_by").Value,
+			associationComposite: &associationComposite{innerAssociations: p.innerAssociations},
 		}, nil
 	}
-}
-
-func (m *manyToManyAssociation) InnerAssociations() InnerAssociations {
-	return m.innerAssociations
 }
 
 func (m *manyToManyAssociation) Kind() reflect.Kind {
