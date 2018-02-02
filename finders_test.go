@@ -176,6 +176,29 @@ func Test_Find_Eager_Has_One_With_Inner_Associations_Slice(t *testing.T) {
 	})
 }
 
+func Test_Eager_Bad_Format(t *testing.T) {
+	transaction(func(tx *pop.Connection) {
+		a := require.New(t)
+
+		user := User{Name: nulls.NewString("Mark")}
+		err := tx.Create(&user)
+		a.NoError(err)
+
+		u := User{}
+		err = tx.Eager("Books.").First(&u)
+		a.Error(err)
+
+		err = tx.Eager("Books.*").First(&u)
+		a.Error(err)
+
+		err = tx.Eager(".*").First(&u)
+		a.Error(err)
+
+		err = tx.Eager(".").First(&u)
+		a.Error(err)
+	})
+}
+
 func Test_Find_Eager_Many_To_Many(t *testing.T) {
 	transaction(func(tx *pop.Connection) {
 		a := require.New(t)

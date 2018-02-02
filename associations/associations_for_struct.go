@@ -3,14 +3,18 @@ package associations
 import (
 	"fmt"
 	"reflect"
+	"regexp"
 	"strings"
 
 	"github.com/markbates/pop/columns"
 )
 
-// Things that we need to add. based on new feature.
-// validAssociationExpRegexp := regexp.MustCompile(`^([a-zA-Z][a-zA-Z0-9]*)(\.[a-zA-Z0-9\*]+)?$`)
-// if a field match with the passed string through validAssociationExpRegexp.MatchString(field)
+// If a field match with the regexp, it will be considered as a valid field definition.
+// e.g: "MyField"             => valid.
+// e.g: "MyField.NestedField" => valid.
+// e.g: "MyField."            => not valid.
+// e.g: "MyField.*"           => not valid for now.
+var validAssociationExpRegexp = regexp.MustCompile(`^(([a-zA-Z0-9]*)(\.[a-zA-Z0-9]+)?)+$`)
 
 // associationBuilders is a map that helps to aisle associations finding process
 // with the associations implementation. Every association MUST register its builder
@@ -33,6 +37,10 @@ func AssociationsForStruct(s interface{}, fields ...string) (Associations, error
 	// and vefiry is it has inner associations.
 	for i := range fields {
 		var innerField, field string
+
+		if !validAssociationExpRegexp.MatchString(fields[i]) {
+			return associations, fmt.Errorf("association '%s' does not match the format %s", fields[i], "'<field>' or '<field>.<nested-field>'")
+		}
 
 		if strings.Contains(fields[i], ".") {
 			field = fields[i][:strings.Index(fields[i], ".")]
