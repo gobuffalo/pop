@@ -12,7 +12,8 @@ import (
 )
 
 type fooBelongsTo struct {
-	ID uuid.UUID `db:"id"`
+	ID         uuid.UUID   `db:"id"`
+	NestedBars []nestedBar `has_many:"nested_bars"`
 }
 
 func (f fooBelongsTo) TableName() string {
@@ -22,6 +23,12 @@ func (f fooBelongsTo) TableName() string {
 type barBelongsTo struct {
 	FooBelongsToID uuid.UUID    `db:"foo_id"`
 	Foo            fooBelongsTo `belongs_to:"foo"`
+	NestedBar      nestedBar    `has_one:"nestedBar"`
+}
+
+type nestedBar struct {
+	ID             uuid.UUID `db:"id"`
+	fooBelongsToID uuid.UUID `db:"foo_belongs_to_id"`
 }
 
 func Test_Belongs_To_Association(t *testing.T) {
@@ -30,8 +37,7 @@ func Test_Belongs_To_Association(t *testing.T) {
 	id, _ := uuid.NewV1()
 	bar := barBelongsTo{FooBelongsToID: id}
 
-	as, err := associations.AssociationsForStruct(&bar)
-
+	as, err := associations.AssociationsForStruct(&bar, "Foo.NestedBars")
 	a.NoError(err)
 	a.Equal(len(as), 1)
 	a.Equal(reflect.Struct, as[0].Kind())
