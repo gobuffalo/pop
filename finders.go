@@ -163,8 +163,8 @@ func (q *Query) eagerAssociations(model interface{}) error {
 
 	// eagerAssociations for a slice or array model passed as a param.
 	v := reflect.ValueOf(model)
-	if reflect.Indirect(v).Type().Kind() == reflect.Slice ||
-		reflect.Indirect(v).Type().Kind() == reflect.Array {
+	if reflect.Indirect(v).Kind() == reflect.Slice ||
+		reflect.Indirect(v).Kind() == reflect.Array {
 		v = v.Elem()
 		for i := 0; i < v.Len(); i++ {
 			err = q.eagerAssociations(v.Index(i).Addr().Interface())
