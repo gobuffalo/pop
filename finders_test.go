@@ -227,6 +227,32 @@ func Test_Find_Eager_Many_To_Many(t *testing.T) {
 	})
 }
 
+func Test_Load_Associations_Loaded_Model(t *testing.T) {
+	transaction(func(tx *pop.Connection) {
+		a := require.New(t)
+
+		user := User{Name: nulls.NewString("Mark")}
+		err := tx.Create(&user)
+		a.NoError(err)
+
+		book := Book{Title: "Pop Book", Isbn: "PB1", UserID: user.ID}
+		err = tx.Create(&book)
+		a.NoError(err)
+
+		u := User{}
+		err = tx.Find(&u, user.ID)
+
+		a.NoError(err)
+		a.Zero(len(u.Books))
+
+		err = tx.Load(&u)
+
+		a.NoError(err)
+		a.Equal(len(u.Books), 1)
+		a.Equal(u.Books[0].Title, book.Title)
+	})
+}
+
 func Test_First(t *testing.T) {
 	transaction(func(tx *pop.Connection) {
 		a := require.New(t)

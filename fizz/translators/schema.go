@@ -44,23 +44,23 @@ func (s *Schema) Build() error {
 	return fmt.Errorf("Build not implemented for this translator!")
 }
 
-func (p *Schema) TableInfo(table string) (*fizz.Table, error) {
-	if ti, ok := p.schema[table]; ok {
+func (s *Schema) TableInfo(table string) (*fizz.Table, error) {
+	if ti, ok := s.schema[table]; ok {
 		return ti, nil
 	}
 
-	if p.Builder != nil {
-		err := p.Builder.Build()
+	if s.Builder != nil {
+		err := s.Builder.Build()
 		if err != nil {
 			return nil, err
 		}
 	} else {
-		err := p.Build()
+		err := s.Build()
 		if err != nil {
 			return nil, err
 		}
 	}
-	if ti, ok := p.schema[table]; ok {
+	if ti, ok := s.schema[table]; ok {
 		return ti, nil
 	}
 	return nil, fmt.Errorf("Could not find table data for %s!", table)
