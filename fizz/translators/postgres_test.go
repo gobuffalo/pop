@@ -61,6 +61,40 @@ func (p *PostgreSQLSuite) Test_Postgres_CreateTable_UUID() {
 	r.Equal(ddl, res)
 }
 
+func (p *PostgreSQLSuite) Test_Postgre_CreateTables_WithForeignKeys() {
+	r := p.Require()
+	ddl := `CREATE TABLE "users" (
+"id" SERIAL PRIMARY KEY,
+"email" VARCHAR (20) NOT NULL,
+"created_at" timestamp NOT NULL,
+"updated_at" timestamp NOT NULL
+);
+CREATE TABLE "profiles" (
+"id" SERIAL PRIMARY KEY,
+"user_id" INT NOT NULL,
+"first_name" VARCHAR (255) NOT NULL,
+"last_name" VARCHAR (255) NOT NULL,
+"created_at" timestamp NOT NULL,
+"updated_at" timestamp NOT NULL,
+FOREIGN KEY (user_id) REFERENCES users (id)
+);`
+
+	res, _ := fizz.AString(`
+	create_table("users", func(t) {
+		t.Column("id", "INT", {"primary": true})
+		t.Column("email", "string", {"size":20})
+	})
+	create_table("profiles", func(t) {
+		t.Column("id", "INT", {"primary": true})
+		t.Column("user_id", "INT", {})
+		t.Column("first_name", "string", {})
+		t.Column("last_name", "string", {})
+		t.ForeignKey("user_id", {"users": ["id"]}, {})
+	})
+	`, pgt)
+	r.Equal(ddl, res)
+}
+
 func (p *PostgreSQLSuite) Test_Postgres_DropTable() {
 	r := p.Require()
 
@@ -167,5 +201,23 @@ func (p *PostgreSQLSuite) Test_Postgres_RenameIndex() {
 	ddl := `ALTER INDEX "old_ix" RENAME TO "new_ix";`
 
 	res, _ := fizz.AString(`rename_index("table", "old_ix", "new_ix")`, pgt)
+	r.Equal(ddl, res)
+}
+
+func (p *PostgreSQLSuite) Test_Postgres_AddForeignKey() {
+	r := p.Require()
+
+	ddl := `ALTER TABLE profiles ADD CONSTRAINT profiles_users_id_fk FOREIGN KEY (user_id) REFERENCES users (id);`
+
+	res, _ := fizz.AString(`add_foreign_key("profiles", "user_id", {"users": ["id"]}, {})`, pgt)
+	r.Equal(ddl, res)
+}
+
+func (p *PostgreSQLSuite) Test_Postgres_DropForeignKey() {
+	r := p.Require()
+
+	ddl := `ALTER TABLE profiles DROP CONSTRAINT  profiles_users_id_fk;`
+
+	res, _ := fizz.AString(`drop_foreign_key("profiles", "profiles_users_id_fk", {})`, pgt)
 	r.Equal(ddl, res)
 }
