@@ -33,7 +33,7 @@ func Test_Find_Eager_Has_Many(t *testing.T) {
 		err := tx.Create(&user)
 		a.NoError(err)
 
-		book := Book{Title: "Pop Book", Isbn: "PB1", UserID: user.ID}
+		book := Book{Title: "Pop Book", Isbn: "PB1", UserID: nulls.NewInt(user.ID)}
 		err = tx.Create(&book)
 		a.NoError(err)
 
@@ -57,11 +57,11 @@ func Test_Find_Eager_Has_Many_Order_By(t *testing.T) {
 		err := tx.Create(&user)
 		a.NoError(err)
 
-		book1 := Book{Title: "Pop Book", Isbn: "PB1", UserID: user.ID}
+		book1 := Book{Title: "Pop Book", Isbn: "PB1", UserID: nulls.NewInt(user.ID)}
 		err = tx.Create(&book1)
 		a.NoError(err)
 
-		book2 := Book{Title: "New Pop Book", Isbn: "PB2", UserID: user.ID}
+		book2 := Book{Title: "New Pop Book", Isbn: "PB2", UserID: nulls.NewInt(user.ID)}
 		err = tx.Create(&book2)
 		a.NoError(err)
 
@@ -82,7 +82,7 @@ func Test_Find_Eager_Belongs_To(t *testing.T) {
 		err := tx.Create(&user)
 		a.NoError(err)
 
-		book := Book{Title: "Pop Book", Isbn: "PB1", UserID: user.ID}
+		book := Book{Title: "Pop Book", Isbn: "PB1", UserID: nulls.NewInt(user.ID)}
 		err = tx.Create(&book)
 		a.NoError(err)
 
@@ -93,6 +93,26 @@ func Test_Find_Eager_Belongs_To(t *testing.T) {
 		a.NotEqual(b.ID, 0)
 		a.NotEqual(b.User.ID, 0)
 		a.Equal(b.User.ID, user.ID)
+	})
+}
+
+func Test_Find_Eager_Belongs_To_Nulls(t *testing.T) {
+	transaction(func(tx *pop.Connection) {
+		a := require.New(t)
+
+		user := User{Name: nulls.NewString("Mark")}
+		err := tx.Create(&user)
+		a.NoError(err)
+
+		book := Book{Title: "Pop Book", Isbn: "PB1"}
+		err = tx.Create(&book)
+		a.NoError(err)
+
+		u := User{}
+		err = tx.Eager().Find(&u, user.ID)
+		a.NoError(err)
+
+		a.Equal(0, len(u.Books))
 	})
 }
 
@@ -154,7 +174,7 @@ func Test_Load_Associations_Loaded_Model(t *testing.T) {
 		err := tx.Create(&user)
 		a.NoError(err)
 
-		book := Book{Title: "Pop Book", Isbn: "PB1", UserID: user.ID}
+		book := Book{Title: "Pop Book", Isbn: "PB1", UserID: nulls.NewInt(user.ID)}
 		err = tx.Create(&book)
 		a.NoError(err)
 
@@ -244,7 +264,7 @@ func Test_All_Eager(t *testing.T) {
 			a.NoError(err)
 
 			if name == "Mark" {
-				book := Book{Title: "Pop Book", Isbn: "PB1", UserID: user.ID}
+				book := Book{Title: "Pop Book", Isbn: "PB1", UserID: nulls.NewInt(user.ID)}
 				err = tx.Create(&book)
 				a.NoError(err)
 			}
@@ -285,7 +305,7 @@ func Test_All_Eager_Allow_Chain_Call(t *testing.T) {
 		err = tx.Create(&coolSong)
 		a.NoError(err)
 
-		book := Book{Title: "Pop Book", Isbn: "PB1", UserID: user.ID}
+		book := Book{Title: "Pop Book", Isbn: "PB1", UserID: nulls.NewInt(user.ID)}
 		err = tx.Create(&book)
 		a.NoError(err)
 

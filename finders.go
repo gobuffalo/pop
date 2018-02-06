@@ -182,6 +182,11 @@ func (q *Query) eagerAssociations(model interface{}) error {
 	}
 
 	for _, association := range assos {
+		// skip nil associations.
+		if association == nil {
+			continue
+		}
+
 		query := Q(q.Connection)
 		whereCondition, args := association.Constraint()
 		query = query.Where(whereCondition, args...)

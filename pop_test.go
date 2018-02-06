@@ -93,7 +93,7 @@ type Book struct {
 	ID          int       `db:"id"`
 	Title       string    `db:"title"`
 	Isbn        string    `db:"isbn"`
-	UserID      int       `db:"user_id"`
+	UserID      nulls.Int `db:"user_id"`
 	User        User      `belongs_to:"user"`
 	Description string    `db:"description"`
 	CreatedAt   time.Time `db:"created_at"`
