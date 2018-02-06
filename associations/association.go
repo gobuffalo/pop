@@ -24,6 +24,10 @@ type AssociationSortable interface {
 // Associations a group of model associations.
 type Associations []Association
 
+// SkippedAssociation an empty association used to indicate
+// an association should not be queried.
+var SkippedAssociation = (Association)(nil)
+
 // associationParams a wrapper for associations definition
 // and creation.
 type associationParams struct {

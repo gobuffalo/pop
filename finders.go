@@ -182,8 +182,7 @@ func (q *Query) eagerAssociations(model interface{}) error {
 	}
 
 	for _, association := range assos {
-		// skip nil associations.
-		if association == nil {
+		if association == associations.SkippedAssociation {
 			continue
 		}
 

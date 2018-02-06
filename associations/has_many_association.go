@@ -27,7 +27,7 @@ func hasManyAssociationBuilder(p associationParams) (Association, error) {
 	// Validates if ownerID is nil, this association will be skipped.
 	ownerID := p.modelValue.FieldByName("ID")
 	if fieldIsNil(ownerID) {
-		return (Association)(nil), nil
+		return SkippedAssociation, nil
 	}
 
 	return &hasManyAssociation{

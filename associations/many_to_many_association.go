@@ -22,7 +22,7 @@ func init() {
 		// Validates if model.ID is nil, this association will be skipped.
 		model := p.modelValue
 		if fieldIsNil(model.FieldByName("ID")) {
-			return (Association)(nil), nil
+			return SkippedAssociation, nil
 		}
 
 		return &manyToManyAssociation{

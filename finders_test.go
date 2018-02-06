@@ -108,11 +108,9 @@ func Test_Find_Eager_Belongs_To_Nulls(t *testing.T) {
 		err = tx.Create(&book)
 		a.NoError(err)
 
-		u := User{}
-		err = tx.Eager().Find(&u, user.ID)
+		b := Book{}
+		err = tx.Eager().Find(&b, book.ID)
 		a.NoError(err)
-
-		a.Equal(0, len(u.Books))
 	})
 }
 
