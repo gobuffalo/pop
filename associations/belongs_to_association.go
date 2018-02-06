@@ -29,10 +29,16 @@ func belongsToAssociationBuilder(p associationParams) (Association, error) {
 		return nil, fmt.Errorf("there is no '%s' defined in model '%s'", ownerIDField, p.modelType.Name())
 	}
 
+	// Validates if ownerIDField is nil, this association will be skipped.
+	f := p.modelValue.FieldByName(ownerIDField)
+	if fieldIsNil(f) {
+		return SkippedAssociation, nil
+	}
+
 	return &belongsToAssociation{
 		ownerModel:           fval,
 		ownerType:            fval.Type(),
-		ownerID:              p.modelValue.FieldByName(ownerIDField),
+		ownerID:              f,
 		owner:                p.model,
 		associationComposite: &associationComposite{innerAssociations: p.innerAssociations},
 	}, nil

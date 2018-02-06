@@ -25,12 +25,18 @@ func init() {
 }
 
 func hasManyAssociationBuilder(p associationParams) (Association, error) {
+	// Validates if ownerID is nil, this association will be skipped.
+	ownerID := p.modelValue.FieldByName("ID")
+	if fieldIsNil(ownerID) {
+		return SkippedAssociation, nil
+	}
+
 	return &hasManyAssociation{
 		tableName:            p.popTags.Find("has_many").Value,
 		field:                p.field,
 		value:                p.modelValue.FieldByName(p.field.Name),
 		ownerName:            p.modelType.Name(),
-		ownerID:              p.modelValue.FieldByName("ID").Interface(),
+		ownerID:              ownerID.Interface(),
 		fkID:                 p.popTags.Find("fk_id").Value,
 		orderBy:              p.popTags.Find("order_by").Value,
 		associationComposite: &associationComposite{innerAssociations: p.innerAssociations},

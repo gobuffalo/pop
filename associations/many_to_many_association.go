@@ -20,11 +20,17 @@ type manyToManyAssociation struct {
 
 func init() {
 	associationBuilders["many_to_many"] = func(p associationParams) (Association, error) {
+		// Validates if model.ID is nil, this association will be skipped.
+		model := p.modelValue
+		if fieldIsNil(model.FieldByName("ID")) {
+			return SkippedAssociation, nil
+		}
+
 		return &manyToManyAssociation{
 			fieldType:            p.modelValue.FieldByName(p.field.Name).Type(),
 			fieldValue:           p.modelValue.FieldByName(p.field.Name),
 			owner:                p.model,
-			model:                p.modelValue,
+			model:                model,
 			manyToManyTableName:  p.popTags.Find("many_to_many").Value,
 			fkID:                 p.popTags.Find("fk_id").Value,
 			orderBy:              p.popTags.Find("order_by").Value,

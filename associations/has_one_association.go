@@ -22,12 +22,18 @@ func init() {
 }
 
 func hasOneAssociationBuilder(p associationParams) (Association, error) {
+	// Validates if ownerIDField is nil, this association will be skipped.
+	ownerID := p.modelValue.FieldByName("ID")
+	if fieldIsNil(ownerID) {
+		return SkippedAssociation, nil
+	}
+
 	fval := p.modelValue.FieldByName(p.field.Name)
 	return &hasOneAssociation{
 		owner:                p.model,
 		ownedModel:           fval,
 		ownedType:            fval.Type(),
-		ownerID:              p.modelValue.FieldByName("ID").Interface(),
+		ownerID:              ownerID.Interface(),
 		ownerName:            p.modelType.Name(),
 		fkID:                 p.popTags.Find("fk_id").Value,
 		associationComposite: &associationComposite{innerAssociations: p.innerAssociations},
