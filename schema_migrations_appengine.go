@@ -2,7 +2,7 @@
 
 package pop
 
-import "github.com/markbates/pop/fizz"
+import "github.com/gobuffalo/pop/fizz"
 
 var schemaMigrations = fizz.Table{
 	Name: "schema_migration",

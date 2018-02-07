@@ -3,7 +3,7 @@ package associations
 import (
 	"reflect"
 
-	"github.com/markbates/pop/columns"
+	"github.com/gobuffalo/pop/columns"
 )
 
 // Association represents a definition of a model association

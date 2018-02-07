@@ -7,9 +7,9 @@ import (
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/gobuffalo/pop"
+	"github.com/gobuffalo/pop/nulls"
 	_ "github.com/lib/pq"
-	"github.com/markbates/pop"
-	"github.com/markbates/pop/nulls"
 	"github.com/markbates/validate"
 	"github.com/markbates/validate/validators"
 	_ "github.com/mattn/go-sqlite3"

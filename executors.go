@@ -3,7 +3,7 @@ package pop
 import (
 	"fmt"
 
-	"github.com/markbates/pop/columns"
+	"github.com/gobuffalo/pop/columns"
 	"github.com/markbates/validate"
 	uuid "github.com/satori/go.uuid"
 )

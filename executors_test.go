@@ -3,8 +3,8 @@ package pop_test
 import (
 	"testing"
 
-	"github.com/markbates/pop"
-	"github.com/markbates/pop/nulls"
+	"github.com/gobuffalo/pop"
+	"github.com/gobuffalo/pop/nulls"
 	uuid "github.com/satori/go.uuid"
 	"github.com/stretchr/testify/require"
 )

@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"text/template"
 
-	"github.com/markbates/pop/fizz"
+	"github.com/gobuffalo/pop/fizz"
 	"github.com/pkg/errors"
 )
 
