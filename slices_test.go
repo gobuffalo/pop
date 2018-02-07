@@ -3,8 +3,8 @@ package pop_test
 import (
 	"time"
 
-	"github.com/markbates/pop"
-	"github.com/markbates/pop/slices"
+	"github.com/gobuffalo/pop"
+	"github.com/gobuffalo/pop/slices"
 )
 
 type Cake struct {

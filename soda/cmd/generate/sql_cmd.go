@@ -3,8 +3,8 @@ package generate
 import (
 	"github.com/pkg/errors"
 
+	"github.com/gobuffalo/pop"
 	"github.com/markbates/going/defaults"
-	"github.com/markbates/pop"
 	"github.com/spf13/cobra"
 )
 

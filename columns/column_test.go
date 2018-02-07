@@ -3,7 +3,7 @@ package columns_test
 import (
 	"testing"
 
-	"github.com/markbates/pop/columns"
+	"github.com/gobuffalo/pop/columns"
 	"github.com/stretchr/testify/require"
 )
 

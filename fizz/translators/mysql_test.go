@@ -1,9 +1,9 @@
 package translators_test
 
 import (
-	"github.com/markbates/pop"
-	"github.com/markbates/pop/fizz"
-	"github.com/markbates/pop/fizz/translators"
+	"github.com/gobuffalo/pop"
+	"github.com/gobuffalo/pop/fizz"
+	"github.com/gobuffalo/pop/fizz/translators"
 )
 
 var _ fizz.Translator = (*translators.MySQL)(nil)

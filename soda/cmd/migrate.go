@@ -3,7 +3,7 @@ package cmd
 import (
 	"os"
 
-	"github.com/markbates/pop"
+	"github.com/gobuffalo/pop"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )

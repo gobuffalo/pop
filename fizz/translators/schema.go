@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/gobuffalo/pop/fizz"
 	"github.com/jmoiron/sqlx"
-	"github.com/markbates/pop/fizz"
 )
 
 type SchemaQuery interface {

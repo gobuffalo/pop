@@ -7,7 +7,7 @@ import (
 	"regexp"
 	"strconv"
 
-	"github.com/markbates/pop/associations"
+	"github.com/gobuffalo/pop/associations"
 	"github.com/pkg/errors"
 	"github.com/satori/go.uuid"
 )
