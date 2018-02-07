@@ -7,7 +7,7 @@ import (
 
 	"github.com/gobuffalo/pop/columns"
 	"github.com/gobuffalo/pop/fizz"
-	uuid "github.com/gobuffalo/uuid"
+	"github.com/gobuffalo/uuid"
 	"github.com/pkg/errors"
 )
 

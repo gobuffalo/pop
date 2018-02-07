@@ -9,7 +9,7 @@ import (
 	"time"
 
 	. "github.com/gobuffalo/pop/nulls"
-	uuid "github.com/gobuffalo/uuid"
+	"github.com/gobuffalo/uuid"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/stretchr/testify/require"
