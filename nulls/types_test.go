@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
+	. "github.com/gobuffalo/pop/nulls"
 	"github.com/jmoiron/sqlx"
-	. "github.com/markbates/pop/nulls"
 	_ "github.com/mattn/go-sqlite3"
 	uuid "github.com/satori/go.uuid"
 	"github.com/stretchr/testify/require"

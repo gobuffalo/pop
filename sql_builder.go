@@ -6,8 +6,8 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/gobuffalo/pop/columns"
 	"github.com/jmoiron/sqlx"
-	"github.com/markbates/pop/columns"
 )
 
 type sqlBuilder struct {

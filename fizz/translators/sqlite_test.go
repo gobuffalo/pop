@@ -3,8 +3,8 @@ package translators_test
 import (
 	"fmt"
 
-	"github.com/markbates/pop/fizz"
-	"github.com/markbates/pop/fizz/translators"
+	"github.com/gobuffalo/pop/fizz"
+	"github.com/gobuffalo/pop/fizz/translators"
 )
 
 var _ fizz.Translator = (*translators.SQLite)(nil)
