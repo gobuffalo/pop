@@ -8,7 +8,7 @@ import (
 
 	"github.com/gobuffalo/pop/associations"
 
-	"github.com/satori/go.uuid"
+	"github.com/gobuffalo/uuid"
 )
 
 type fooBelongsTo struct {
