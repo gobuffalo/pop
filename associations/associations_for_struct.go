@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/markbates/pop/columns"
+	"github.com/gobuffalo/pop/columns"
 )
 
 // associationBuilders is a map that helps to aisle associations finding process

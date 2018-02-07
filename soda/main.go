@@ -1,6 +1,6 @@
 package main
 
-import "github.com/markbates/pop/soda/cmd"
+import "github.com/gobuffalo/pop/soda/cmd"
 
 func main() {
 	cmd.RootCmd.Use = "soda"

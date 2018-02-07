@@ -10,9 +10,9 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
 
+	"github.com/gobuffalo/pop"
 	"github.com/markbates/going/defaults"
 	"github.com/markbates/inflect"
-	"github.com/markbates/pop"
 )
 
 type model struct {
@@ -132,7 +132,7 @@ func (m model) Fizz() string {
 func newModel(name string) model {
 	m := model{
 		Package: "models",
-		Imports: []string{"time", "github.com/markbates/pop", "github.com/markbates/validate"},
+		Imports: []string{"time", "github.com/gobuffalo/pop", "github.com/markbates/validate"},
 		Name:    inflect.Name(name),
 		Attributes: []attribute{
 			{Name: inflect.Name("created_at"), OriginalType: "time.Time", GoType: "time.Time"},

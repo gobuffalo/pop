@@ -31,12 +31,12 @@ func newAttribute(base string, model *model) attribute {
 	nullable := nrx.MatchString(col[1])
 	if !model.HasNulls && nullable {
 		model.HasNulls = true
-		model.Imports = append(model.Imports, "github.com/markbates/pop/nulls")
+		model.Imports = append(model.Imports, "github.com/gobuffalo/pop/nulls")
 	}
 
 	if !model.HasSlices && strings.HasPrefix(col[1], "slices.") {
 		model.HasSlices = true
-		model.Imports = append(model.Imports, "github.com/markbates/pop/slices")
+		model.Imports = append(model.Imports, "github.com/gobuffalo/pop/slices")
 	}
 
 	if !model.HasUUID && col[1] == "uuid" {
