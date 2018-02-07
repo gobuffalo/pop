@@ -34,6 +34,6 @@ create_table("callbacks_users", func(t) {
 
 create_table("books", func(t) {
   t.Column("title", "string", {})
-  t.Column("user_id", "uuid", {})
+  t.Column("user_id", "int", {"null": true})
   t.Column("isbn", "string", {"size": 50})
 })

@@ -1,11 +1,14 @@
 package pop
 
 import (
+	"database/sql"
 	"fmt"
 	"reflect"
 	"regexp"
 	"strconv"
 
+	"github.com/markbates/pop/associations"
+	"github.com/pkg/errors"
 	"github.com/satori/go.uuid"
 )
 
@@ -35,6 +38,7 @@ func (q *Query) Find(model interface{}, id interface{}) error {
 			return q.Where(idq, t).First(model)
 		}
 	}
+
 	return q.Where(idq, id).First(model)
 }
 
@@ -49,7 +53,7 @@ func (c *Connection) First(model interface{}) error {
 //
 //	q.Where("name = ?", "mark").First(&User{})
 func (q *Query) First(model interface{}) error {
-	return q.Connection.timeFunc("First", func() error {
+	err := q.Connection.timeFunc("First", func() error {
 		q.Limit(1)
 		m := &Model{Value: model}
 		if err := q.Connection.Dialect.SelectOne(q.Connection.Store, m, *q); err != nil {
@@ -57,6 +61,15 @@ func (q *Query) First(model interface{}) error {
 		}
 		return m.afterFind(q.Connection)
 	})
+
+	if err != nil {
+		return err
+	}
+
+	if q.eager {
+		return q.eagerAssociations(model)
+	}
+	return nil
 }
 
 // Last record of the model in the database that matches the query.
@@ -70,7 +83,7 @@ func (c *Connection) Last(model interface{}) error {
 //
 //	q.Where("name = ?", "mark").Last(&User{})
 func (q *Query) Last(model interface{}) error {
-	return q.Connection.timeFunc("Last", func() error {
+	err := q.Connection.timeFunc("Last", func() error {
 		q.Limit(1)
 		q.Order("id desc")
 		m := &Model{Value: model}
@@ -79,6 +92,16 @@ func (q *Query) Last(model interface{}) error {
 		}
 		return m.afterFind(q.Connection)
 	})
+
+	if err != nil {
+		return err
+	}
+
+	if q.eager {
+		return q.eagerAssociations(model)
+	}
+
+	return nil
 }
 
 // All retrieves all of the records in the database that match the query.
@@ -92,7 +115,7 @@ func (c *Connection) All(models interface{}) error {
 //
 //	q.Where("name = ?", "mark").All(&[]User{})
 func (q *Query) All(models interface{}) error {
-	return q.Connection.timeFunc("All", func() error {
+	err := q.Connection.timeFunc("All", func() error {
 		m := &Model{Value: models}
 		err := q.Connection.Dialect.SelectMany(q.Connection.Store, m, *q)
 		if err == nil && q.Paginator != nil {
@@ -112,6 +135,89 @@ func (q *Query) All(models interface{}) error {
 		}
 		return m.afterFind(q.Connection)
 	})
+
+	if err != nil {
+		return err
+	}
+
+	if q.eager {
+		return q.eagerAssociations(models)
+	}
+
+	return nil
+}
+
+// Load loads all association or the fields specified in params for
+// an already loaded model.
+//
+// tx.First(&u)
+// tx.Load(&u)
+func (c *Connection) Load(model interface{}, fields ...string) error {
+	q := Q(c)
+	q.eagerFields = fields
+	return q.eagerAssociations(model)
+}
+
+func (q *Query) eagerAssociations(model interface{}) error {
+	var err error
+
+	// eagerAssociations for a slice or array model passed as a param.
+	v := reflect.ValueOf(model)
+	if reflect.Indirect(v).Kind() == reflect.Slice ||
+		reflect.Indirect(v).Kind() == reflect.Array {
+		v = v.Elem()
+		for i := 0; i < v.Len(); i++ {
+			err = q.eagerAssociations(v.Index(i).Addr().Interface())
+			if err != nil {
+				return err
+			}
+		}
+		return err
+	}
+
+	assos, err := associations.AssociationsForStruct(model, q.eagerFields...)
+
+	if err != nil {
+		return err
+	}
+
+	for _, association := range assos {
+		if association == associations.SkippedAssociation {
+			continue
+		}
+
+		query := Q(q.Connection)
+		whereCondition, args := association.Constraint()
+		query = query.Where(whereCondition, args...)
+
+		// validates if association is Sortable
+		sortable := (*associations.AssociationSortable)(nil)
+		t := reflect.TypeOf(association)
+		if t.Implements(reflect.TypeOf(sortable).Elem()) {
+			m := reflect.ValueOf(association).MethodByName("OrderBy")
+			out := m.Call([]reflect.Value{})
+			orderClause := out[0].String()
+			if orderClause != "" {
+				query = query.Order(orderClause)
+			}
+		}
+
+		sqlSentence, args := query.ToSQL(&Model{Value: association.Interface()})
+		query = query.RawQuery(sqlSentence, args...)
+
+		if association.Kind() == reflect.Slice || association.Kind() == reflect.Array {
+			err = query.All(association.Interface())
+		}
+
+		if association.Kind() == reflect.Struct {
+			err = query.First(association.Interface())
+		}
+
+		if err != nil && errors.Cause(err) != sql.ErrNoRows {
+			return err
+		}
+	}
+	return nil
 }
 
 // Exists returns true/false if a record exists in the database that matches

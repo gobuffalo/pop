@@ -225,13 +225,13 @@ $ soda migrate down
 ```
 
 #### Find
-```
+```go
 user := models.User{}
 err := tx.Find(&user, id)
 ```
 
 #### Query
-```
+```go
 tx := models.DB
 query := tx.Where("id = 1").Where("name = 'Mark'")
 users := []models.User{}
@@ -242,7 +242,7 @@ err = tx.Where("id in (?)", 1, 2, 3).All(&users)
 
 ##### Join Query
 
-```
+```go
 // page: page number
 // perpage: limit
 roles := []models.UserRole{}
@@ -256,6 +256,67 @@ sql, args := query.ToSQL(&pop.Model{Value: models.UserRole{}}, "user_roles.*",
   "roles.name as role_name", "u.first_name", "u.last_name")
 //log.Printf("sql: %s, args: %v", sql, args)
 err := models.DB.RawQuery(sql, args...).All(&roles)
+```
+
+#### Eager Loading
+**pop** allows you to perform an eager loading for associations defined in a model. By using `pop.Connection.Eager()` function plus some fields tags predefined in your model you can extract associated data from a model.
+
+```go
+type User struct {
+  ID           uuid.UUID
+  Email        string
+  Password     string
+  Books        Books     `has_many:"books" order_by:"title asc"`
+  FavoriteSong Song      `has_one:"song" fk_id:"u_id"`
+  Houses       Addresses `many_to_many:"users_addresses"`
+}
+```
+
+```go
+type Book struct {
+  ID      uuid.UUID
+  Title   string
+  Isbn    string
+  User    User        `belongs_to:"user"`
+  UserID  uuid.UUID
+}
+```
+
+```go
+type Song struct {
+  ID      uuid.UUID
+  Title   string
+  UserID  uuid.UUID   `db:"u_id"`
+}
+```
+
+```go
+type Address struct {
+  ID           uuid.UUID
+  Street       string
+  HouseNumber  int
+}
+
+type Addresses []Address
+```
+
+  **has_many**: will load all records from the `books` table that have a column named `user_id` or the column specified with **fk_id** that matches the `User.ID` value.    
+  
+  **belongs_to**: will load a record from `users` table that have a column named `id` that matches with `Book.UserID` value.
+  
+  **has_one**: will load a record from the `songs` table that have a column named `user_id` or the column specified with **fk_id** that matches the `User.ID` value.    
+  
+  **many_to_many**: will load all records from the `addresses` table through the table `users_addresses`. Table `users_addresses` MUST define `address_id`  and `user_id` columns to match `User.ID` and `Address.ID` values. You can also define a **fk_id** tag that will be used in the target association i.e `addresses` table.    
+  
+  **fk_id**: defines the column name in the target association that matches model `ID`. In the example above `Song` has a column named `u_id` that represents `id` of `users` table. When loading `FavoriteSong`, `u_id` will be used instead of `user_id`.  
+  
+  **order_by**: used in `has_many` and `many_to_many` to indicate the order for the association when loading. The format to use is  `order_by:"<column_name> <asc | desc>"` 
+
+
+```go
+u := Users{}
+err := tx.Eager().Where("name = 'Mark'").All(&u)  // preload all associations for user with name 'Mark', i.e Books, Houses and FavoriteSong
+err  = tx.Eager("Books").Where("name = 'Mark'").All(&u) // preload only Books association for user with name 'Mark'.
 ```
 
 #### Callbacks

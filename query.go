@@ -7,6 +7,8 @@ import "fmt"
 type Query struct {
 	RawSQL                  *clause
 	limitResults            int
+	eager                   bool
+	eagerFields             []string
 	whereClauses            clauses
 	orderClauses            clauses
 	fromClauses             fromClauses
@@ -58,6 +60,28 @@ func (c *Connection) RawQuery(stmt string, args ...interface{}) *Query {
 //	q.RawQuery("select * from foo where id = ?", 1)
 func (q *Query) RawQuery(stmt string, args ...interface{}) *Query {
 	q.RawSQL = &clause{stmt, args}
+	return q
+}
+
+// Eager will enable load associations of the model.
+// by defaults loads all the associations on the model,
+// but can take a variadic list of associations to load.
+//
+// 	c.Eager().Find(model, 1) // will load all associations for model.
+// 	c.Eager("Books").Find(model, 1) // will load only Book association for model.
+func (c *Connection) Eager(fields ...string) *Query {
+	return Q(c).Eager(fields...)
+}
+
+// Eager will enable load associations of the model.
+// by defaults loads all the associations on the model,
+// but can take a variadic list of associations to load.
+//
+// 	q.Eager().Find(model, 1) // will load all associations for model.
+// 	q.Eager("Books").Find(model, 1) // will load only Book association for model.
+func (q *Query) Eager(fields ...string) *Query {
+	q.eager = true
+	q.eagerFields = append(q.eagerFields, fields...)
 	return q
 }
 

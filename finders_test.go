@@ -25,6 +25,171 @@ func Test_Find(t *testing.T) {
 	})
 }
 
+func Test_Find_Eager_Has_Many(t *testing.T) {
+	transaction(func(tx *pop.Connection) {
+		a := require.New(t)
+
+		user := User{Name: nulls.NewString("Mark")}
+		err := tx.Create(&user)
+		a.NoError(err)
+
+		book := Book{Title: "Pop Book", Isbn: "PB1", UserID: nulls.NewInt(user.ID)}
+		err = tx.Create(&book)
+		a.NoError(err)
+
+		u := User{}
+		err = tx.Eager("Books").Find(&u, user.ID)
+		a.NoError(err)
+
+		a.NotEqual(u.ID, 0)
+		a.Equal(u.Name.String, "Mark")
+		books := u.Books
+		a.NotEqual(len(books), 0)
+		a.Equal(books[0].Title, book.Title)
+	})
+}
+
+func Test_Find_Eager_Has_Many_Order_By(t *testing.T) {
+	transaction(func(tx *pop.Connection) {
+		a := require.New(t)
+
+		user := User{Name: nulls.NewString("Mark")}
+		err := tx.Create(&user)
+		a.NoError(err)
+
+		book1 := Book{Title: "Pop Book", Isbn: "PB1", UserID: nulls.NewInt(user.ID)}
+		err = tx.Create(&book1)
+		a.NoError(err)
+
+		book2 := Book{Title: "New Pop Book", Isbn: "PB2", UserID: nulls.NewInt(user.ID)}
+		err = tx.Create(&book2)
+		a.NoError(err)
+
+		u := User{}
+		err = tx.Eager().Find(&u, user.ID)
+		a.NoError(err)
+
+		a.Equal(len(u.Books), 2)
+		a.Equal(book2.Title, u.Books[0].Title)
+	})
+}
+
+func Test_Find_Eager_Belongs_To(t *testing.T) {
+	transaction(func(tx *pop.Connection) {
+		a := require.New(t)
+
+		user := User{Name: nulls.NewString("Mark")}
+		err := tx.Create(&user)
+		a.NoError(err)
+
+		book := Book{Title: "Pop Book", Isbn: "PB1", UserID: nulls.NewInt(user.ID)}
+		err = tx.Create(&book)
+		a.NoError(err)
+
+		b := Book{}
+		err = tx.Eager().Find(&b, book.ID)
+		a.NoError(err)
+
+		a.NotEqual(b.ID, 0)
+		a.NotEqual(b.User.ID, 0)
+		a.Equal(b.User.ID, user.ID)
+	})
+}
+
+func Test_Find_Eager_Belongs_To_Nulls(t *testing.T) {
+	transaction(func(tx *pop.Connection) {
+		a := require.New(t)
+
+		user := User{Name: nulls.NewString("Mark")}
+		err := tx.Create(&user)
+		a.NoError(err)
+
+		book := Book{Title: "Pop Book", Isbn: "PB1"}
+		err = tx.Create(&book)
+		a.NoError(err)
+
+		b := Book{}
+		err = tx.Eager().Find(&b, book.ID)
+		a.NoError(err)
+	})
+}
+
+func Test_Find_Eager_Has_One(t *testing.T) {
+	transaction(func(tx *pop.Connection) {
+		a := require.New(t)
+
+		user := User{Name: nulls.NewString("Mark")}
+		err := tx.Create(&user)
+		a.NoError(err)
+
+		coolSong := Song{Title: "Hook - Blues Traveler", UserID: user.ID}
+		err = tx.Create(&coolSong)
+		a.NoError(err)
+
+		u := User{}
+		err = tx.Eager().Find(&u, user.ID)
+		a.NoError(err)
+
+		a.NotEqual(u.ID, 0)
+		a.Equal(u.Name.String, "Mark")
+		a.Equal(u.FavoriteSong.ID, coolSong.ID)
+	})
+}
+
+func Test_Find_Eager_Many_To_Many(t *testing.T) {
+	transaction(func(tx *pop.Connection) {
+		a := require.New(t)
+
+		user := User{Name: nulls.NewString("Mark")}
+		err := tx.Create(&user)
+		a.NoError(err)
+
+		address := Address{Street: "Pop Avenue", HouseNumber: 1}
+		err = tx.Create(&address)
+		a.NoError(err)
+
+		ownerProperty := UsersAddress{UserID: user.ID, AddressID: address.ID}
+		err = tx.Create(&ownerProperty)
+		a.NoError(err)
+
+		u := User{}
+		err = tx.Eager("Houses").Find(&u, user.ID)
+		a.NoError(err)
+
+		a.NotEqual(u.ID, 0)
+		a.Equal(u.Name.String, "Mark")
+
+		a.Equal(len(u.Houses), 1)
+		a.Equal(u.Houses[0].Street, address.Street)
+	})
+}
+
+func Test_Load_Associations_Loaded_Model(t *testing.T) {
+	transaction(func(tx *pop.Connection) {
+		a := require.New(t)
+
+		user := User{Name: nulls.NewString("Mark")}
+		err := tx.Create(&user)
+		a.NoError(err)
+
+		book := Book{Title: "Pop Book", Isbn: "PB1", UserID: nulls.NewInt(user.ID)}
+		err = tx.Create(&book)
+		a.NoError(err)
+
+		u := User{}
+		err = tx.Find(&u, user.ID)
+
+		a.NoError(err)
+		a.Zero(len(u.Books))
+
+		err = tx.Load(&u)
+
+		a.NoError(err)
+		a.Equal(len(u.Books), 1)
+		a.Equal(u.Books[0].Title, book.Title)
+	})
+}
+
 func Test_First(t *testing.T) {
 	transaction(func(tx *pop.Connection) {
 		a := require.New(t)
@@ -84,6 +249,69 @@ func Test_All(t *testing.T) {
 		err = tx.Where("name = 'Mark'").All(&u)
 		a.NoError(err)
 		a.Equal(len(u), 1)
+	})
+}
+
+func Test_All_Eager(t *testing.T) {
+	transaction(func(tx *pop.Connection) {
+		a := require.New(t)
+
+		for _, name := range []string{"Mark", "Joe", "Jane"} {
+			user := User{Name: nulls.NewString(name)}
+			err := tx.Create(&user)
+			a.NoError(err)
+
+			if name == "Mark" {
+				book := Book{Title: "Pop Book", Isbn: "PB1", UserID: nulls.NewInt(user.ID)}
+				err = tx.Create(&book)
+				a.NoError(err)
+			}
+		}
+
+		u := Users{}
+		err := tx.Eager(" Books ", " ").Where("name = 'Mark'").All(&u)
+		a.NoError(err)
+		a.Equal(len(u), 1)
+		a.Equal(len(u[0].Books), 1)
+	})
+}
+
+func Test_All_Eager_Field_Not_Found_Error(t *testing.T) {
+	transaction(func(tx *pop.Connection) {
+		a := require.New(t)
+
+		user := User{Name: nulls.NewString("Mark")}
+		err := tx.Create(&user)
+		a.NoError(err)
+
+		u := Users{}
+		err = tx.Eager("FieldNotFound").Where("name = 'Mark'").All(&u)
+		a.Error(err)
+		a.Equal("field FieldNotFound does not exist in model User", err.Error())
+	})
+}
+
+func Test_All_Eager_Allow_Chain_Call(t *testing.T) {
+	transaction(func(tx *pop.Connection) {
+		a := require.New(t)
+
+		user := User{Name: nulls.NewString("Mark")}
+		err := tx.Create(&user)
+		a.NoError(err)
+
+		coolSong := Song{Title: "Hook - Blues Traveler", UserID: user.ID}
+		err = tx.Create(&coolSong)
+		a.NoError(err)
+
+		book := Book{Title: "Pop Book", Isbn: "PB1", UserID: nulls.NewInt(user.ID)}
+		err = tx.Create(&book)
+		a.NoError(err)
+
+		u := Users{}
+		err = tx.Eager("Books").Eager("FavoriteSong").Where("name = 'Mark'").All(&u)
+		a.Equal(len(u), 1)
+		a.Equal(len(u[0].Books), 1)
+		a.Equal(u[0].FavoriteSong.Title, coolSong.Title)
 	})
 }
 

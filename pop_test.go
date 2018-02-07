@@ -72,19 +72,53 @@ func ts(s string) string {
 }
 
 type User struct {
-	ID        int           `db:"id"`
-	Email     string        `db:"email"`
-	Name      nulls.String  `db:"name"`
-	Alive     nulls.Bool    `db:"alive"`
-	CreatedAt time.Time     `db:"created_at"`
-	UpdatedAt time.Time     `db:"updated_at"`
-	BirthDate nulls.Time    `db:"birth_date"`
-	Bio       nulls.String  `db:"bio"`
-	Price     nulls.Float64 `db:"price"`
-	FullName  nulls.String  `db:"full_name" select:"name as full_name"`
+	ID           int           `db:"id"`
+	Email        string        `db:"email"`
+	Name         nulls.String  `db:"name"`
+	Alive        nulls.Bool    `db:"alive"`
+	CreatedAt    time.Time     `db:"created_at"`
+	UpdatedAt    time.Time     `db:"updated_at"`
+	BirthDate    nulls.Time    `db:"birth_date"`
+	Bio          nulls.String  `db:"bio"`
+	Price        nulls.Float64 `db:"price"`
+	FullName     nulls.String  `db:"full_name" select:"name as full_name"`
+	Books        Books         `has_many:"books" order_by:"title asc"`
+	FavoriteSong Song          `has_one:"song" fk_id:"u_id"`
+	Houses       Addresses     `many_to_many:"users_addresses"`
 }
 
 type Users []User
+
+type Book struct {
+	ID          int       `db:"id"`
+	Title       string    `db:"title"`
+	Isbn        string    `db:"isbn"`
+	UserID      nulls.Int `db:"user_id"`
+	User        User      `belongs_to:"user"`
+	Description string    `db:"description"`
+	CreatedAt   time.Time `db:"created_at"`
+	UpdatedAt   time.Time `db:"updated_at"`
+}
+
+type Books []Book
+
+type Address struct {
+	ID          int       `db:"id"`
+	Street      string    `db:"street"`
+	HouseNumber int       `db:"house_number"`
+	CreatedAt   time.Time `db:"created_at"`
+	UpdatedAt   time.Time `db:"updated_at"`
+}
+
+type Addresses []Address
+
+type UsersAddress struct {
+	ID        int       `db:"id"`
+	UserID    int       `db:"user_id"`
+	AddressID int       `db:"address_id"`
+	CreatedAt time.Time `db:"created_at"`
+	UpdatedAt time.Time `db:"updated_at"`
+}
 
 type Friend struct {
 	ID        int       `db:"id"`
@@ -103,6 +137,7 @@ type Enemy struct {
 type Song struct {
 	ID        uuid.UUID `db:"id"`
 	Title     string    `db:"title"`
+	UserID    int       `db:"u_id"`
 	CreatedAt time.Time `json:"created_at" db:"created_at"`
 	UpdatedAt time.Time `json:"updated_at" db:"updated_at"`
 }
