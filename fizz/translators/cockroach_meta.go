@@ -3,8 +3,8 @@ package translators
 import (
 	"fmt"
 
+	"github.com/gobuffalo/pop/fizz"
 	"github.com/jmoiron/sqlx"
-	"github.com/markbates/pop/fizz"
 )
 
 type cockroachIndexListInfo struct {

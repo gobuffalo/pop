@@ -14,10 +14,10 @@ import (
 	// Load PostgreSQL Go driver
 	_ "github.com/lib/pq"
 
+	"github.com/gobuffalo/pop/columns"
+	"github.com/gobuffalo/pop/fizz"
+	"github.com/gobuffalo/pop/fizz/translators"
 	"github.com/markbates/going/defaults"
-	"github.com/markbates/pop/columns"
-	"github.com/markbates/pop/fizz"
-	"github.com/markbates/pop/fizz/translators"
 	"github.com/pkg/errors"
 )
 

@@ -5,8 +5,8 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/gobuffalo/pop"
 	"github.com/markbates/going/defaults"
-	"github.com/markbates/pop"
 	"github.com/spf13/cobra"
 )
 
