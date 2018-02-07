@@ -248,10 +248,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-<<<<<<< HEAD
   inputs-digest = "0d893b41e607327e297328dd94a72645ece167e49815919e0aa6357b2a9446a6"
-=======
-  inputs-digest = "0d22d851290d042f23b882bab67dbd15c5272550e45e5fbbbb11491fc89e2654"
->>>>>>> removed the direct dependency on satori/go.uuid
   solver-name = "gps-cdcl"
   solver-version = 1
