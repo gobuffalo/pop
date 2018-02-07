@@ -8,9 +8,9 @@ import (
 	"sync"
 	"time"
 
+	"github.com/gobuffalo/uuid"
 	"github.com/markbates/inflect"
 	"github.com/pkg/errors"
-	"github.com/satori/go.uuid"
 )
 
 var tableMap = map[string]string{}

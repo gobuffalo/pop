@@ -9,11 +9,11 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gobuffalo/pop"
 	"github.com/gobuffalo/pop/nulls"
+	"github.com/gobuffalo/uuid"
 	_ "github.com/lib/pq"
 	"github.com/markbates/validate"
 	"github.com/markbates/validate/validators"
 	_ "github.com/mattn/go-sqlite3"
-	"github.com/satori/go.uuid"
 	"github.com/stretchr/testify/suite"
 )
 

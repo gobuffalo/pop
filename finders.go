@@ -8,8 +8,8 @@ import (
 	"strconv"
 
 	"github.com/gobuffalo/pop/associations"
+	"github.com/gobuffalo/uuid"
 	"github.com/pkg/errors"
-	"github.com/satori/go.uuid"
 )
 
 var rLimitOffset = regexp.MustCompile("(?i)(limit [0-9]+ offset [0-9]+)$")
