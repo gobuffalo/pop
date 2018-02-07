@@ -76,7 +76,7 @@ func (m *model) addID() {
 
 	if !m.HasUUID {
 		m.HasUUID = true
-		m.Imports = append(m.Imports, "github.com/satori/go.uuid")
+		m.Imports = append(m.Imports, "github.com/gobuffalo/uuid")
 	}
 
 	id := inflect.Name("id")
