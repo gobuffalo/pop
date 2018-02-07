@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/gobuffalo/uuid"
 	"github.com/pkg/errors"
-	"github.com/satori/go.uuid"
 )
 
 // For reading in arrays from postgres

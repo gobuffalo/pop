@@ -46,8 +46,14 @@
 [[projects]]
   name = "github.com/gobuffalo/packr"
   packages = ["."]
-  revision = "7458c919b2ddc10bfb5588b6645b7aefd1c60418"
-  version = "v1.10.0"
+  revision = "64c3dd439b5efc5cd9fb69a8fb209a03cd7c5b86"
+  version = "v1.10.3"
+
+[[projects]]
+  name = "github.com/gobuffalo/uuid"
+  packages = ["."]
+  revision = "3a9fb6c5c481d4886f1e9323c61ad743fb955860"
+  version = "v2.0.0"
 
 [[projects]]
   name = "github.com/inconshreveable/mousetrap"
@@ -62,7 +68,7 @@
     ".",
     "reflectx"
   ]
-  revision = "de8647470aafe4854c976707c431dbe1eb2822c6"
+  revision = "05cef0741ade10ca668982355b3f3f0bcf0ff0a8"
 
 [[projects]]
   name = "github.com/joho/godotenv"
@@ -77,7 +83,7 @@
     ".",
     "oid"
   ]
-  revision = "83612a56d3dd153a94a629cd64925371c9adad78"
+  revision = "88edab0803230a3898347e77b474f8c1820a1f20"
 
 [[projects]]
   branch = "master"
@@ -143,7 +149,7 @@
     "parser",
     "vm"
   ]
-  revision = "aab2324d113e3e1292ccdfa9c41e7e8ed4ac8160"
+  revision = "fc8950f78385d9fcba96a965883a1da55c32876d"
 
 [[projects]]
   name = "github.com/mattn/go-colorable"
@@ -160,8 +166,8 @@
 [[projects]]
   name = "github.com/mattn/go-sqlite3"
   packages = ["."]
-  revision = "ed69081a91fd053f17672236b0dd52ba7485e1a3"
-  version = "v1.4.0"
+  revision = "6c771bb9887719704b210e87e934f08be014bdb1"
+  version = "v1.6.0"
 
 [[projects]]
   branch = "master"
@@ -184,7 +190,8 @@
 [[projects]]
   name = "github.com/satori/go.uuid"
   packages = ["."]
-  revision = "36e9d2ebbde5e3f13ab2e25625fd453271d6522e"
+  revision = "f58768cc1a7a7e77a3bd49e98cdd21419399b6a3"
+  version = "v1.2.0"
 
 [[projects]]
   branch = "master"
@@ -211,14 +218,14 @@
     "require",
     "suite"
   ]
-  revision = "b91bfb9ebec76498946beb6af7c0230c7cc7ba6c"
-  version = "v1.2.0"
+  revision = "12b6f73e6084dad08a7c6e575284b177ecafbc71"
+  version = "v1.2.1"
 
 [[projects]]
   branch = "master"
   name = "golang.org/x/net"
   packages = ["context"]
-  revision = "434ec0c7fe3742c984919a691b2018a6e9694425"
+  revision = "2fb46b16b8dda405028c50f7c7f0f9dd1fa6bfb1"
 
 [[projects]]
   branch = "master"
@@ -230,17 +237,21 @@
   branch = "master"
   name = "golang.org/x/sys"
   packages = ["unix"]
-  revision = "1792d66dc88e503d3cb2400578221cdf1f7fe26f"
+  revision = "37707fdb30a5b38865cfb95e5aab41707daec7fd"
 
 [[projects]]
   branch = "v2"
   name = "gopkg.in/yaml.v2"
   packages = ["."]
-  revision = "1244d3ce02e3e1c16820ada0bae506b6c479f106"
+  revision = "d670f9405373e636a5a2765eea47fac0c9bc91a4"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
+<<<<<<< HEAD
   inputs-digest = "0d893b41e607327e297328dd94a72645ece167e49815919e0aa6357b2a9446a6"
+=======
+  inputs-digest = "0d22d851290d042f23b882bab67dbd15c5272550e45e5fbbbb11491fc89e2654"
+>>>>>>> removed the direct dependency on satori/go.uuid
   solver-name = "gps-cdcl"
   solver-version = 1
