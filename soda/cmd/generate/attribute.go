@@ -41,7 +41,7 @@ func newAttribute(base string, model *model) attribute {
 
 	if !model.HasUUID && col[1] == "uuid" {
 		model.HasUUID = true
-		model.Imports = append(model.Imports, "github.com/satori/go.uuid")
+		model.Imports = append(model.Imports, "github.com/gobuffalo/uuid")
 	}
 
 	a := attribute{
