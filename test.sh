@@ -20,18 +20,15 @@ function test {
   echo "!!! Testing $1"
   export SODA_DIALECT=$1
   echo ./tsoda -v
-  ! ./tsoda drop -e $SODA_DIALECT -c ./database.yml
-  ! ./tsoda create -e $SODA_DIALECT -c ./database.yml
-  ./tsoda migrate -e $SODA_DIALECT -c ./database.yml
-  ./tsoda migrate down -e $SODA_DIALECT -c ./database.yml
-  ./tsoda migrate down -e $SODA_DIALECT -c ./database.yml
+  ./tsoda drop -e $SODA_DIALECT -c ./database.yml
+  ./tsoda create -e $SODA_DIALECT -c ./database.yml
   ./tsoda migrate -e $SODA_DIALECT -c ./database.yml
   go test $(go list ./... | grep -v /vendor/)
 }
 
+test "postgres"
 test "cockroach"
 test "sqlite"
-test "postgres"
 test "mysql"
 
 docker-compose down
