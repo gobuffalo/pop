@@ -2,6 +2,12 @@
 
 
 [[projects]]
+  branch = "master"
+  name = "github.com/cockroachdb/cockroach-go"
+  packages = ["crdb"]
+  revision = "0d8b4682f140f0fe486ef7e3d2f70665f3066906"
+
+[[projects]]
   name = "github.com/davecgh/go-spew"
   packages = ["spew"]
   revision = "346938d642f2ec3594ed81d874461961cd0faa76"
@@ -93,7 +99,7 @@
   branch = "master"
   name = "github.com/markbates/inflect"
   packages = ["."]
-  revision = "a12c3aec81a6a938bf584a4bac567afed9256586"
+  revision = "1290f21759a90e7c4bd277347c8631ed8d4b9ee0"
 
 [[projects]]
   branch = "master"
@@ -235,6 +241,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "3d1ffac3adeb9084a7027b21116afa6d130b18afd2b5a176bf432307db8cb8cc"
+  inputs-digest = "0d893b41e607327e297328dd94a72645ece167e49815919e0aa6357b2a9446a6"
   solver-name = "gps-cdcl"
   solver-version = 1
