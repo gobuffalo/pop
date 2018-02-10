@@ -10,9 +10,9 @@ import (
 	"github.com/gobuffalo/pop"
 	"github.com/gobuffalo/pop/nulls"
 	"github.com/gobuffalo/uuid"
+	"github.com/gobuffalo/validate"
+	"github.com/gobuffalo/validate/validators"
 	_ "github.com/lib/pq"
-	"github.com/markbates/validate"
-	"github.com/markbates/validate/validators"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/stretchr/testify/suite"
 )
@@ -53,9 +53,6 @@ func init() {
 	if err != nil {
 		log.Panic(err)
 	}
-
-	pop.MapTableName("Friend", "good_friends")
-	pop.MapTableName("Friends", "good_friends")
 }
 
 func transaction(fn func(tx *pop.Connection)) {
@@ -126,6 +123,10 @@ type Friend struct {
 	LastName  string    `db:"last_name"`
 	CreatedAt time.Time `db:"created_at"`
 	UpdatedAt time.Time `db:"updated_at"`
+}
+
+func (Friend) TableName() string {
+	return "good_friends"
 }
 
 type Friends []Friend
