@@ -2,9 +2,7 @@ package pop
 
 import (
 	"fmt"
-	"log"
 	"reflect"
-	"runtime"
 	"sync"
 	"time"
 
@@ -15,21 +13,6 @@ import (
 
 var tableMap = map[string]string{}
 var tableMapMu = sync.RWMutex{}
-
-// MapTableName is deprecated. Please implement the `TableNameAble`
-// interface instead.
-func MapTableName(name string, tableName string) {
-	warningMsg := "MapTableName is deprecated, and will be removed in a later version of Pop. Use the pop.TableNameAble interface instead."
-	_, file, no, ok := runtime.Caller(1)
-	if ok {
-		warningMsg = fmt.Sprintf("%s Called from %s:%d", warningMsg, file, no)
-	}
-
-	log.Println(warningMsg)
-	defer tableMapMu.Unlock()
-	tableMapMu.Lock()
-	tableMap[name] = tableName
-}
 
 // Value is the contents of a `Model`.
 type Value interface{}

@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	"github.com/gobuffalo/pop/columns"
-	uuid "github.com/gobuffalo/uuid"
-	"github.com/markbates/validate"
+	"github.com/gobuffalo/uuid"
+	"github.com/gobuffalo/validate"
 )
 
 // Reload fetch fresh data for a given model, using its ID
