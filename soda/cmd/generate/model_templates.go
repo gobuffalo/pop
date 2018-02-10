@@ -7,7 +7,7 @@ import (
 	"{{$i}}"
 	{{ end -}}
 	{{ if .model.ValidatableAttributes -}}
-	"github.com/markbates/validate/validators"
+	"github.com/gobuffalo/validate/validators"
 	{{ end -}}
 )
 
