@@ -1,4 +1,4 @@
-// +build !nosqlite,!appengine,!appenginevm
+// +build sqlite,!appengine,!appenginevm
 
 package pop
 
