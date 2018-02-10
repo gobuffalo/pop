@@ -1,7 +1,7 @@
 package pop
 
 import (
-	"github.com/markbates/validate"
+	"github.com/gobuffalo/validate"
 	"github.com/pkg/errors"
 )
 
