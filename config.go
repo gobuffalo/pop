@@ -2,7 +2,6 @@ package pop
 
 import (
 	"bytes"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
@@ -39,9 +38,7 @@ func LoadConfigFile() error {
 		return errors.WithStack(err)
 	}
 	Connections = map[string]*Connection{}
-	if Debug {
-		fmt.Printf("[POP]: Loading config file from %s\n", path)
-	}
+	Log("Loading config file from %s\n", path)
 	f, err := os.Open(path)
 	if err != nil {
 		return errors.WithStack(err)
@@ -67,7 +64,7 @@ func findConfigPath() (string, error) {
 			return path, err
 		}
 	}
-	return "", errors.New("[POP]: Tried to load configuration file, but couldn't find it")
+	return "", errors.New("tried to load pop configuration file, but couldn't find it")
 }
 
 // LoadFrom reads a configuration from the reader and sets up the connections
