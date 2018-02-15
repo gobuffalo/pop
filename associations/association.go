@@ -4,6 +4,7 @@ import (
 	"reflect"
 
 	"github.com/markbates/pop/columns"
+	"github.com/markbates/pop/nulls"
 )
 
 // Association represents a definition of a model association
@@ -13,6 +14,7 @@ type Association interface {
 	Kind() reflect.Kind
 	Interface() interface{}
 	Constraint() (string, []interface{})
+	SetValue(interface{}) error
 }
 
 // AssociationSortable a type to be sortable.
@@ -42,22 +44,12 @@ type associationParams struct {
 // see the builder defined in ./has_many_association.go as a guide of how to use it.
 type associationBuilder func(associationParams) (Association, error)
 
-// nullable means this type is a nullable association field.
-type nullable interface {
-	Interface() interface{}
-}
-
 // fieldIsNil validates if a field has a nil reference. Also
 // it validates if a field implements nullable interface and
 // it has a nil value.
 func fieldIsNil(f reflect.Value) bool {
-	null := (*nullable)(nil)
-	t := reflect.TypeOf(f.Interface())
-	if t.Implements(reflect.TypeOf(null).Elem()) {
-		m := reflect.ValueOf(f.Interface()).MethodByName("Interface")
-		out := m.Call([]reflect.Value{})
-		idValue := out[0].Interface()
-		return idValue == nil
+	if n := nulls.New(f.Interface()); n != nil {
+		return n.Interface() == nil
 	}
 	return f.Interface() == nil
 }

@@ -62,3 +62,7 @@ func (h *hasOneAssociation) Constraint() (string, []interface{}) {
 
 	return condition, []interface{}{h.ownerID}
 }
+
+func (h *hasOneAssociation) SetValue(i interface{}) error {
+	return nil
+}

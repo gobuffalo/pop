@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"reflect"
 
+	"github.com/markbates/pop/nulls"
+
 	"github.com/markbates/inflect"
 )
 
@@ -70,4 +72,28 @@ func (a *hasManyAssociation) Constraint() (string, []interface{}) {
 
 func (a *hasManyAssociation) OrderBy() string {
 	return a.orderBy
+}
+
+// SetValue for has many association loop over every item in the
+// value associated and set his foreign key reference with the
+// val passed as parameter.
+func (a *hasManyAssociation) SetValue(val interface{}) error {
+	v := a.value
+	if v.Kind() == reflect.Ptr {
+		v = v.Elem()
+	}
+
+	for i := 0; i < v.Len(); i++ {
+		fval := v.Index(i).FieldByName(a.ownerName + "ID")
+		if fval.CanSet() {
+			if n := nulls.New(fval.Interface()); n != nil {
+				fval.Set(reflect.ValueOf(n.Parse(val)))
+			} else {
+				fval.Set(reflect.ValueOf(val))
+			}
+		} else {
+			return fmt.Errorf("could not set '%s' in '%s'", val, fval)
+		}
+	}
+	return nil
 }

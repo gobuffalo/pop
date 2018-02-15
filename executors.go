@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"reflect"
 
+	"github.com/markbates/pop/associations"
+
 	"github.com/markbates/pop/columns"
 	"github.com/markbates/validate"
 	uuid "github.com/satori/go.uuid"
@@ -171,6 +173,31 @@ func (c *Connection) Create(model interface{}, excludeColumns ...string) error {
 		return err
 	}
 
+	err := c.createOne(model, excludeColumns...)
+	if err != nil {
+		return err
+	}
+
+	if c.eager {
+		c.eager = false
+		asos, err := associations.AssociationsForStruct(model, c.eagerFields...)
+		if err != nil {
+			return err
+		}
+
+		for _, a := range asos {
+			value := reflect.Indirect(reflect.ValueOf(model)).FieldByName("ID")
+			a.SetValue(value.Interface())
+			err = c.Create(a.Interface())
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func (c *Connection) createOne(model interface{}, excludeColumns ...string) error {
 	return c.timeFunc("Create", func() error {
 		var err error
 		sm := &Model{Value: model}

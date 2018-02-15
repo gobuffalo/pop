@@ -355,6 +355,35 @@ func Test_Create_With_Slice(t *testing.T) {
 	})
 }
 
+func Test_Eager_Create(t *testing.T) {
+	transaction(func(tx *pop.Connection) {
+		a := require.New(t)
+
+		count, _ := tx.Count(&User{})
+		user := User{
+			Name:  nulls.NewString("Mark 'Awesome' Bates"),
+			Books: Books{{Title: "Pop Book", Description: "Pop Book", Isbn: "PB1"}},
+		}
+
+		err := tx.Eager().Create(&user)
+		a.NoError(err)
+		a.NotEqual(user.ID, 0)
+
+		ctx, _ := tx.Count(&User{})
+		a.Equal(count+1, ctx)
+
+		ctx, _ = tx.Count(&Book{})
+		a.Equal(count+1, ctx)
+
+		u := User{}
+		q := tx.Eager().Where("name = ?", "Mark 'Awesome' Bates")
+		err = q.First(&u)
+		a.NoError(err)
+		a.Equal(user.Name.String, "Mark 'Awesome' Bates")
+		a.Equal(user.Books[0].Title, "Pop Book")
+	})
+}
+
 func Test_Create_UUID(t *testing.T) {
 	transaction(func(tx *pop.Connection) {
 		a := require.New(t)

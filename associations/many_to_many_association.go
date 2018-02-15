@@ -77,3 +77,7 @@ func (m *manyToManyAssociation) Constraint() (string, []interface{}) {
 func (m *manyToManyAssociation) OrderBy() string {
 	return m.orderBy
 }
+
+func (m *manyToManyAssociation) SetValue(i interface{}) error {
+	return nil
+}

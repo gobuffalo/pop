@@ -63,3 +63,7 @@ func (b *belongsToAssociation) Interface() interface{} {
 func (b *belongsToAssociation) Constraint() (string, []interface{}) {
 	return "id = ?", []interface{}{b.ownerID.Interface()}
 }
+
+func (b *belongsToAssociation) SetValue(i interface{}) error {
+	return nil
+}
