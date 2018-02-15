@@ -2,6 +2,7 @@ package pop
 
 import (
 	"fmt"
+	"reflect"
 
 	"github.com/markbates/pop/columns"
 	"github.com/markbates/validate"
@@ -10,6 +11,22 @@ import (
 
 // Reload fetch fresh data for a given model, using its ID
 func (c *Connection) Reload(model interface{}) error {
+	v := reflect.Indirect(reflect.ValueOf(model))
+	if v.Kind() == reflect.Slice || v.Kind() == reflect.Array {
+		var err error
+		for i := 0; i < v.Len(); i++ {
+			val := v.Index(i)
+			if val.Kind() != reflect.Ptr {
+				val = val.Addr()
+			}
+			err = c.Reload(val.Interface())
+			if err != nil {
+				return err
+			}
+		}
+		return err
+	}
+
 	sm := Model{Value: model}
 	return c.Find(model, sm.ID())
 }
@@ -42,6 +59,25 @@ func (q *Query) ExecWithCount() (int, error) {
 // ValidateAndSave applies validation rules on the given entry, then save it
 // if the validation succeed, excluding the given columns.
 func (c *Connection) ValidateAndSave(model interface{}, excludeColumns ...string) (*validate.Errors, error) {
+	v := reflect.Indirect(reflect.ValueOf(model))
+	if v.Kind() == reflect.Slice || v.Kind() == reflect.Array {
+		var err error
+		for i := 0; i < v.Len(); i++ {
+			val := v.Index(i)
+			if val.Kind() != reflect.Ptr {
+				val = val.Addr()
+			}
+			verrs, err := c.ValidateAndSave(val.Interface(), excludeColumns...)
+			if err != nil {
+				return verrs, err
+			}
+			if verrs.HasAny() {
+				return verrs, nil
+			}
+		}
+		return validate.NewErrors(), err
+	}
+
 	sm := &Model{Value: model}
 	verrs, err := sm.validateSave(c)
 	if err != nil {
@@ -58,6 +94,22 @@ var emptyUUID = uuid.Nil.String()
 // Save wraps the Create and Update methods. It executes a Create if no ID is provided with the entry;
 // or issues an Update otherwise.
 func (c *Connection) Save(model interface{}, excludeColumns ...string) error {
+	v := reflect.Indirect(reflect.ValueOf(model))
+	if v.Kind() == reflect.Slice || v.Kind() == reflect.Array {
+		var err error
+		for i := 0; i < v.Len(); i++ {
+			val := v.Index(i)
+			if val.Kind() != reflect.Ptr {
+				val = val.Addr()
+			}
+			err = c.Save(val.Interface(), excludeColumns...)
+			if err != nil {
+				return err
+			}
+		}
+		return err
+	}
+
 	sm := &Model{Value: model}
 	id := sm.ID()
 
@@ -70,6 +122,25 @@ func (c *Connection) Save(model interface{}, excludeColumns ...string) error {
 // ValidateAndCreate applies validation rules on the given entry, then creates it
 // if the validation succeed, excluding the given columns.
 func (c *Connection) ValidateAndCreate(model interface{}, excludeColumns ...string) (*validate.Errors, error) {
+	v := reflect.Indirect(reflect.ValueOf(model))
+	if v.Kind() == reflect.Slice || v.Kind() == reflect.Array {
+		var err error
+		for i := 0; i < v.Len(); i++ {
+			val := v.Index(i)
+			if val.Kind() != reflect.Ptr {
+				val = val.Addr()
+			}
+			verrs, err := c.ValidateAndCreate(val.Interface(), excludeColumns...)
+			if err != nil {
+				return verrs, err
+			}
+			if verrs.HasAny() {
+				return verrs, nil
+			}
+		}
+		return validate.NewErrors(), err
+	}
+
 	sm := &Model{Value: model}
 	verrs, err := sm.validateCreate(c)
 	if err != nil {
@@ -84,6 +155,22 @@ func (c *Connection) ValidateAndCreate(model interface{}, excludeColumns ...stri
 // Create add a new given entry to the database, excluding the given columns.
 // It updates `created_at` and `updated_at` columns automatically.
 func (c *Connection) Create(model interface{}, excludeColumns ...string) error {
+	v := reflect.Indirect(reflect.ValueOf(model))
+	if v.Kind() == reflect.Slice || v.Kind() == reflect.Array {
+		var err error
+		for i := 0; i < v.Len(); i++ {
+			val := v.Index(i)
+			if val.Kind() != reflect.Ptr {
+				val = val.Addr()
+			}
+			err = c.Create(val.Interface(), excludeColumns...)
+			if err != nil {
+				return err
+			}
+		}
+		return err
+	}
+
 	return c.timeFunc("Create", func() error {
 		var err error
 		sm := &Model{Value: model}
@@ -117,6 +204,25 @@ func (c *Connection) Create(model interface{}, excludeColumns ...string) error {
 // ValidateAndUpdate applies validation rules on the given entry, then update it
 // if the validation succeed, excluding the given columns.
 func (c *Connection) ValidateAndUpdate(model interface{}, excludeColumns ...string) (*validate.Errors, error) {
+	v := reflect.Indirect(reflect.ValueOf(model))
+	if v.Kind() == reflect.Slice || v.Kind() == reflect.Array {
+		var err error
+		for i := 0; i < v.Len(); i++ {
+			val := v.Index(i)
+			if val.Kind() != reflect.Ptr {
+				val = val.Addr()
+			}
+			verrs, err := c.ValidateAndUpdate(val.Interface(), excludeColumns...)
+			if err != nil {
+				return verrs, err
+			}
+			if verrs.HasAny() {
+				return verrs, nil
+			}
+		}
+		return validate.NewErrors(), err
+	}
+
 	sm := &Model{Value: model}
 	verrs, err := sm.validateUpdate(c)
 	if err != nil {
@@ -131,6 +237,22 @@ func (c *Connection) ValidateAndUpdate(model interface{}, excludeColumns ...stri
 // Update writes changes from an entry to the database, excluding the given columns.
 // It updates the `updated_at` column automatically.
 func (c *Connection) Update(model interface{}, excludeColumns ...string) error {
+	v := reflect.Indirect(reflect.ValueOf(model))
+	if v.Kind() == reflect.Slice || v.Kind() == reflect.Array {
+		var err error
+		for i := 0; i < v.Len(); i++ {
+			val := v.Index(i)
+			if val.Kind() != reflect.Ptr {
+				val = val.Addr()
+			}
+			err = c.Update(val.Interface(), excludeColumns...)
+			if err != nil {
+				return err
+			}
+		}
+		return err
+	}
+
 	return c.timeFunc("Update", func() error {
 		var err error
 		sm := &Model{Value: model}
@@ -161,6 +283,22 @@ func (c *Connection) Update(model interface{}, excludeColumns ...string) error {
 
 // Destroy deletes a given entry from the database
 func (c *Connection) Destroy(model interface{}) error {
+	v := reflect.Indirect(reflect.ValueOf(model))
+	if v.Kind() == reflect.Slice || v.Kind() == reflect.Array {
+		var err error
+		for i := 0; i < v.Len(); i++ {
+			val := v.Index(i)
+			if val.Kind() != reflect.Ptr {
+				val = val.Addr()
+			}
+			err = c.Destroy(val.Interface())
+			if err != nil {
+				return err
+			}
+		}
+		return err
+	}
+
 	return c.timeFunc("Destroy", func() error {
 		var err error
 		sm := &Model{Value: model}
