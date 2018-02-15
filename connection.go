@@ -16,11 +16,13 @@ var Connections = map[string]*Connection{}
 // Connection represents all of the necessary details for
 // talking with a datastore
 type Connection struct {
-	ID      string
-	Store   store
-	Dialect dialect
-	Elapsed int64
-	TX      *Tx
+	ID          string
+	Store       store
+	Dialect     dialect
+	Elapsed     int64
+	TX          *Tx
+	eager       bool
+	eagerFields []string
 }
 
 func (c *Connection) String() string {
