@@ -5,6 +5,7 @@ import (
 	"reflect"
 
 	"github.com/markbates/inflect"
+	"github.com/markbates/pop/nulls"
 )
 
 type hasOneAssociation struct {
@@ -64,5 +65,15 @@ func (h *hasOneAssociation) Constraint() (string, []interface{}) {
 }
 
 func (h *hasOneAssociation) SetValue(i interface{}) error {
+	fval := h.ownedModel.FieldByName(h.ownerName + "ID")
+	if fval.CanSet() {
+		if n := nulls.New(fval.Interface()); n != nil {
+			fval.Set(reflect.ValueOf(n.Parse(i)))
+		} else {
+			fval.Set(reflect.ValueOf(i))
+		}
+	} else {
+		return fmt.Errorf("could not set '%s' to '%s'", i, fval)
+	}
 	return nil
 }

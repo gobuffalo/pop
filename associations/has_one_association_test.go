@@ -5,24 +5,26 @@ import (
 	"testing"
 
 	"github.com/markbates/pop/associations"
+	"github.com/markbates/pop/nulls"
 	uuid "github.com/satori/go.uuid"
 	"github.com/stretchr/testify/require"
 )
 
-type fooHasOne struct {
+type FooHasOne struct {
 	ID        uuid.UUID `db:"id"`
 	BarHasOne barHasOne `has_one:"barHasOne"`
 }
 
 type barHasOne struct {
-	FooHasOneID uuid.UUID `db:"foo_has_one_id"`
+	Title       string     `db:"title"`
+	FooHasOneID nulls.UUID `db:"foo_has_one_id"`
 }
 
 func Test_Has_One_Association(t *testing.T) {
 	a := require.New(t)
 
 	id, _ := uuid.NewV1()
-	foo := fooHasOne{ID: id}
+	foo := FooHasOne{ID: id}
 
 	as, err := associations.AssociationsForStruct(&foo)
 
@@ -33,4 +35,16 @@ func Test_Has_One_Association(t *testing.T) {
 	where, args := as[0].Constraint()
 	a.Equal("foo_has_one_id = ?", where)
 	a.Equal(id, args[0].(uuid.UUID))
+}
+
+func Test_Has_One_SetValue(t *testing.T) {
+	a := require.New(t)
+	id, _ := uuid.NewV1()
+	foo := FooHasOne{ID: id, BarHasOne: barHasOne{Title: "bar"}}
+
+	as, _ := associations.AssociationsForStruct(&foo)
+	a.Equal(len(as), 1)
+
+	as[0].SetValue(foo.ID)
+	a.Equal(foo.ID, foo.BarHasOne.FooHasOneID.Interface().(uuid.UUID))
 }

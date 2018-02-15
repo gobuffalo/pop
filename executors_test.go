@@ -355,14 +355,18 @@ func Test_Create_With_Slice(t *testing.T) {
 	})
 }
 
+// TODO: Ignore those zero value association so they can not be created in database.
+// TODO: many_to_many associations.(NI)
+// TODO: belongs_to associations. (NI)
 func Test_Eager_Create(t *testing.T) {
 	transaction(func(tx *pop.Connection) {
 		a := require.New(t)
 
 		count, _ := tx.Count(&User{})
 		user := User{
-			Name:  nulls.NewString("Mark 'Awesome' Bates"),
-			Books: Books{{Title: "Pop Book", Description: "Pop Book", Isbn: "PB1"}},
+			Name:         nulls.NewString("Mark 'Awesome' Bates"),
+			Books:        Books{{Title: "Pop Book", Description: "Pop Book", Isbn: "PB1"}},
+			FavoriteSong: Song{Title: "Hook - Blues Traveler"},
 		}
 
 		err := tx.Eager().Create(&user)
@@ -375,12 +379,16 @@ func Test_Eager_Create(t *testing.T) {
 		ctx, _ = tx.Count(&Book{})
 		a.Equal(count+1, ctx)
 
+		ctx, _ = tx.Count(&Song{})
+		a.Equal(count+1, ctx)
+
 		u := User{}
 		q := tx.Eager().Where("name = ?", "Mark 'Awesome' Bates")
 		err = q.First(&u)
 		a.NoError(err)
-		a.Equal(user.Name.String, "Mark 'Awesome' Bates")
-		a.Equal(user.Books[0].Title, "Pop Book")
+		a.Equal(u.Name.String, "Mark 'Awesome' Bates")
+		a.Equal(u.Books[0].Title, "Pop Book")
+		a.Equal(u.FavoriteSong.Title, "Hook - Blues Traveler")
 	})
 }
 
