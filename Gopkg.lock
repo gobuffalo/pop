@@ -5,7 +5,7 @@
   branch = "master"
   name = "github.com/cockroachdb/cockroach-go"
   packages = ["crdb"]
-  revision = "0d8b4682f140f0fe486ef7e3d2f70665f3066906"
+  revision = "59c0560478b705bf9bd12f9252224a0fad7c87df"
 
 [[projects]]
   name = "github.com/davecgh/go-spew"
@@ -22,8 +22,8 @@
 [[projects]]
   name = "github.com/fatih/color"
   packages = ["."]
-  revision = "570b54cabe6b8eb0bc2dfce68d964677d63b5260"
-  version = "v1.5.0"
+  revision = "507f6050b8568533fb3f5504de8e5205fa62a114"
+  version = "v1.6.0"
 
 [[projects]]
   name = "github.com/go-sql-driver/mysql"
@@ -53,6 +53,15 @@
   name = "github.com/gobuffalo/uuid"
   packages = ["."]
   revision = "3a9fb6c5c481d4886f1e9323c61ad743fb955860"
+  version = "v2.0.0"
+
+[[projects]]
+  name = "github.com/gobuffalo/validate"
+  packages = [
+    ".",
+    "validators"
+  ]
+  revision = "42d8db6e06e617cdedcc7a849d6690a2cb5a8d28"
   version = "v2.0.0"
 
 [[projects]]
@@ -105,16 +114,7 @@
   branch = "master"
   name = "github.com/markbates/inflect"
   packages = ["."]
-  revision = "1290f21759a90e7c4bd277347c8631ed8d4b9ee0"
-
-[[projects]]
-  branch = "master"
-  name = "github.com/markbates/validate"
-  packages = [
-    ".",
-    "validators"
-  ]
-  revision = "cd8cc34c703420d6b084fbbfd5085e8e71c5b830"
+  revision = "fec282d55240317f603bca7e2e4d81865cc84f4e"
 
 [[projects]]
   branch = "master"
@@ -149,7 +149,7 @@
     "parser",
     "vm"
   ]
-  revision = "fc8950f78385d9fcba96a965883a1da55c32876d"
+  revision = "d5441ca3f0c7e071a9ede864f9db2cc652690f42"
 
 [[projects]]
   name = "github.com/mattn/go-colorable"
@@ -188,12 +188,6 @@
   version = "v1.0.0"
 
 [[projects]]
-  name = "github.com/satori/go.uuid"
-  packages = ["."]
-  revision = "f58768cc1a7a7e77a3bd49e98cdd21419399b6a3"
-  version = "v1.2.0"
-
-[[projects]]
   branch = "master"
   name = "github.com/serenize/snaker"
   packages = ["."]
@@ -225,7 +219,7 @@
   branch = "master"
   name = "golang.org/x/net"
   packages = ["context"]
-  revision = "2fb46b16b8dda405028c50f7c7f0f9dd1fa6bfb1"
+  revision = "f5dfe339be1d06f81b22525fe34671ee7d2c8904"
 
 [[projects]]
   branch = "master"
@@ -248,10 +242,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-<<<<<<< HEAD
-  inputs-digest = "0d893b41e607327e297328dd94a72645ece167e49815919e0aa6357b2a9446a6"
-=======
-  inputs-digest = "0d22d851290d042f23b882bab67dbd15c5272550e45e5fbbbb11491fc89e2654"
->>>>>>> removed the direct dependency on satori/go.uuid
+  inputs-digest = "32290b8e6ba52818a481f1631d4f2c29dc8f789c3ba6ddfeaa5ba399717825b5"
   solver-name = "gps-cdcl"
   solver-version = 1
