@@ -199,7 +199,7 @@ func (p *cockroach) LoadSchema(r io.Reader) error {
 		secure = "--insecure"
 	}
 
-	cmd := exec.Command("cockroach", "sql", secure, fmt.Sprintf("--database=%s", p.Details().Database), "--user=maxroach")
+	cmd := exec.Command("cockroach", "sql", secure, fmt.Sprintf("--database=%s --user=%s", p.Details().Database, p.Details().User))
 	in, err := cmd.StdinPipe()
 	if err != nil {
 		return err
