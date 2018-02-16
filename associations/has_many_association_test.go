@@ -46,6 +46,6 @@ func Test_Has_Many_SetValue(t *testing.T) {
 	as, _ := associations.AssociationsForStruct(&foo)
 
 	a.Equal(len(as), 1)
-	as[0].SetValue(foo.ID)
+	as[0].SetValue([]interface{}{foo.ID})
 	a.Equal(foo.ID, (*foo.BarHasManies)[0].FooHasManyID.Interface().(int))
 }

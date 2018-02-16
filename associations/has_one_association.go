@@ -15,6 +15,7 @@ type hasOneAssociation struct {
 	ownerName  string
 	owner      interface{}
 	fkID       string
+	skipped    bool
 }
 
 func init() {
@@ -23,9 +24,10 @@ func init() {
 
 func hasOneAssociationBuilder(p associationParams) (Association, error) {
 	// Validates if ownerIDField is nil, this association will be skipped.
+	var skipped bool
 	ownerID := p.modelValue.FieldByName("ID")
 	if fieldIsNil(ownerID) {
-		return SkippedAssociation, nil
+		skipped = true
 	}
 
 	fval := p.modelValue.FieldByName(p.field.Name)
@@ -36,6 +38,7 @@ func hasOneAssociationBuilder(p associationParams) (Association, error) {
 		ownerID:    ownerID.Interface(),
 		ownerName:  p.modelType.Name(),
 		fkID:       p.popTags.Find("fk_id").Value,
+		skipped:    skipped,
 	}, nil
 }
 
@@ -52,6 +55,16 @@ func (h *hasOneAssociation) Interface() interface{} {
 	return h.ownedModel.Addr().Interface()
 }
 
+// if it is skipped if the only dependency is present:
+// owner ID.
+func (h *hasOneAssociation) Dependencies() []interface{} {
+	ownerID := reflect.Indirect(reflect.ValueOf(h.owner)).FieldByName("ID").Interface()
+	if h.skipped || isZero(ownerID) {
+		return []interface{}{h.owner}
+	}
+	return []interface{}{}
+}
+
 // Constraint returns the content for a where clause, and the args
 // needed to execute it.
 func (h *hasOneAssociation) Constraint() (string, []interface{}) {
@@ -64,16 +77,27 @@ func (h *hasOneAssociation) Constraint() (string, []interface{}) {
 	return condition, []interface{}{h.ownerID}
 }
 
-func (h *hasOneAssociation) SetValue(i interface{}) error {
+func (h *hasOneAssociation) SetValue(i []interface{}) error {
+	var ownerID interface{}
+	if h.skipped {
+		ownerID = reflect.Indirect(reflect.ValueOf(i[0])).FieldByName("ID").Interface()
+	} else {
+		ownerID = reflect.Indirect(reflect.ValueOf(h.owner)).FieldByName("ID").Interface()
+	}
+
 	fval := h.ownedModel.FieldByName(h.ownerName + "ID")
 	if fval.CanSet() {
 		if n := nulls.New(fval.Interface()); n != nil {
-			fval.Set(reflect.ValueOf(n.Parse(i)))
+			fval.Set(reflect.ValueOf(n.Parse(ownerID)))
 		} else {
-			fval.Set(reflect.ValueOf(i))
+			fval.Set(reflect.ValueOf(ownerID))
 		}
 	} else {
-		return fmt.Errorf("could not set '%s' to '%s'", i, fval)
+		return fmt.Errorf("could not set '%s' to '%s'", ownerID, fval)
 	}
 	return nil
+}
+
+func (h *hasOneAssociation) Skipped() bool {
+	return h.skipped
 }

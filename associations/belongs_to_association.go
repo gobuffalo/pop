@@ -5,6 +5,7 @@ import (
 	"reflect"
 
 	"github.com/markbates/inflect"
+	"github.com/markbates/pop/nulls"
 )
 
 // belongsToAssociation is the implementation for the belongs_to
@@ -14,6 +15,7 @@ type belongsToAssociation struct {
 	ownerType  reflect.Type
 	ownerID    reflect.Value
 	owner      interface{}
+	skipped    bool
 }
 
 func init() {
@@ -29,9 +31,10 @@ func belongsToAssociationBuilder(p associationParams) (Association, error) {
 	}
 
 	// Validates if ownerIDField is nil, this association will be skipped.
+	var skipped bool
 	f := p.modelValue.FieldByName(ownerIDField)
 	if fieldIsNil(f) {
-		return SkippedAssociation, nil
+		skipped = true
 	}
 
 	return &belongsToAssociation{
@@ -39,6 +42,7 @@ func belongsToAssociationBuilder(p associationParams) (Association, error) {
 		ownerType:  fval.Type(),
 		ownerID:    f,
 		owner:      p.model,
+		skipped:    skipped,
 	}, nil
 }
 
@@ -50,6 +54,10 @@ func (b *belongsToAssociation) Kind() reflect.Kind {
 }
 
 func (b *belongsToAssociation) Interface() interface{} {
+	if b.skipped {
+		return b.owner
+	}
+
 	if b.ownerModel.Kind() == reflect.Ptr {
 		val := reflect.New(b.ownerType.Elem())
 		b.ownerModel.Set(val)
@@ -64,6 +72,32 @@ func (b *belongsToAssociation) Constraint() (string, []interface{}) {
 	return "id = ?", []interface{}{b.ownerID.Interface()}
 }
 
-func (b *belongsToAssociation) SetValue(i interface{}) error {
+func (b *belongsToAssociation) Dependencies() []interface{} {
+	if b.skipped {
+		if b.ownerModel.Kind() == reflect.Ptr {
+			return []interface{}{b.ownerModel.Interface()}
+		}
+		return []interface{}{b.ownerModel.Addr().Interface()}
+	}
+	return []interface{}{}
+}
+
+func (b *belongsToAssociation) SetValue(i []interface{}) error {
+	ownerID := reflect.Indirect(reflect.ValueOf(i[0])).FieldByName("ID").Interface()
+
+	if b.ownerID.CanSet() {
+		if n := nulls.New(b.ownerID.Interface()); n != nil {
+			b.ownerID.Set(reflect.ValueOf(n.Parse(ownerID)))
+		} else {
+			b.ownerID.Set(reflect.ValueOf(ownerID))
+		}
+	} else {
+		return fmt.Errorf("could not set '%s' to '%s'", ownerID, b.ownerID)
+	}
+
 	return nil
+}
+
+func (b *belongsToAssociation) Skipped() bool {
+	return b.skipped
 }

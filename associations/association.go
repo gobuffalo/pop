@@ -14,7 +14,9 @@ type Association interface {
 	Kind() reflect.Kind
 	Interface() interface{}
 	Constraint() (string, []interface{})
-	SetValue(interface{}) error
+	Dependencies() []interface{}
+	SetValue([]interface{}) error
+	Skipped() bool
 }
 
 // AssociationSortable a type to be sortable.
@@ -25,10 +27,6 @@ type AssociationSortable interface {
 
 // Associations a group of model associations.
 type Associations []Association
-
-// SkippedAssociation an empty association used to indicate
-// an association should not be queried.
-var SkippedAssociation = (Association)(nil)
 
 // associationParams a wrapper for associations definition
 // and creation.
@@ -52,4 +50,9 @@ func fieldIsNil(f reflect.Value) bool {
 		return n.Interface() == nil
 	}
 	return f.Interface() == nil
+}
+
+func isZero(i interface{}) bool {
+	v := reflect.ValueOf(i)
+	return v.Interface() == reflect.Zero(v.Type()).Interface()
 }

@@ -17,8 +17,10 @@ type hasManyAssociation struct {
 	value     reflect.Value
 	ownerName string
 	ownerID   interface{}
+	owner     interface{}
 	fkID      string
 	orderBy   string
+	skipped   bool
 }
 
 func init() {
@@ -27,12 +29,14 @@ func init() {
 
 func hasManyAssociationBuilder(p associationParams) (Association, error) {
 	// Validates if ownerID is nil, this association will be skipped.
+	var skipped bool
 	ownerID := p.modelValue.FieldByName("ID")
 	if fieldIsNil(ownerID) {
-		return SkippedAssociation, nil
+		skipped = true
 	}
 
 	return &hasManyAssociation{
+		owner:     p.model,
 		tableName: p.popTags.Find("has_many").Value,
 		field:     p.field,
 		value:     p.modelValue.FieldByName(p.field.Name),
@@ -40,6 +44,7 @@ func hasManyAssociationBuilder(p associationParams) (Association, error) {
 		ownerID:   ownerID.Interface(),
 		fkID:      p.popTags.Find("fk_id").Value,
 		orderBy:   p.popTags.Find("order_by").Value,
+		skipped:   skipped,
 	}, nil
 }
 
@@ -74,10 +79,27 @@ func (a *hasManyAssociation) OrderBy() string {
 	return a.orderBy
 }
 
+// if it is skipped if the only dependency is present:
+// owner ID.
+func (a *hasManyAssociation) Dependencies() []interface{} {
+	ownerID := reflect.Indirect(reflect.ValueOf(a.owner)).FieldByName("ID").Interface()
+	if a.skipped || isZero(ownerID) {
+		return []interface{}{a.owner}
+	}
+	return []interface{}{}
+}
+
 // SetValue for has many association loop over every item in the
 // value associated and set his foreign key reference with the
 // val passed as parameter.
-func (a *hasManyAssociation) SetValue(val interface{}) error {
+func (a *hasManyAssociation) SetValue(val []interface{}) error {
+	var ownerID interface{}
+	if a.skipped {
+		ownerID = reflect.Indirect(reflect.ValueOf(val[0])).FieldByName("ID").Interface()
+	} else {
+		ownerID = reflect.Indirect(reflect.ValueOf(a.owner)).FieldByName("ID").Interface()
+	}
+
 	v := a.value
 	if v.Kind() == reflect.Ptr {
 		v = v.Elem()
@@ -87,13 +109,17 @@ func (a *hasManyAssociation) SetValue(val interface{}) error {
 		fval := v.Index(i).FieldByName(a.ownerName + "ID")
 		if fval.CanSet() {
 			if n := nulls.New(fval.Interface()); n != nil {
-				fval.Set(reflect.ValueOf(n.Parse(val)))
+				fval.Set(reflect.ValueOf(n.Parse(ownerID)))
 			} else {
-				fval.Set(reflect.ValueOf(val))
+				fval.Set(reflect.ValueOf(ownerID))
 			}
 		} else {
-			return fmt.Errorf("could not set '%s' in '%s'", val, fval)
+			return fmt.Errorf("could not set '%s' in '%s'", ownerID, fval)
 		}
 	}
 	return nil
+}
+
+func (a *hasManyAssociation) Skipped() bool {
+	return a.skipped
 }

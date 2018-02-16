@@ -173,25 +173,31 @@ func (c *Connection) Create(model interface{}, excludeColumns ...string) error {
 		return err
 	}
 
-	err := c.createOne(model, excludeColumns...)
+	if !c.eager {
+		return c.createOne(model, excludeColumns...)
+	}
+
+	asos, err := associations.AssociationsForStruct(model, c.eagerFields...)
 	if err != nil {
 		return err
 	}
 
-	if c.eager {
-		c.eager = false
-		asos, err := associations.AssociationsForStruct(model, c.eagerFields...)
-		if err != nil {
-			return err
-		}
-
-		for _, a := range asos {
-			value := reflect.Indirect(reflect.ValueOf(model)).FieldByName("ID")
-			a.SetValue(value.Interface())
-			err = c.Create(a.Interface())
+	c.eager = false
+	for _, a := range asos {
+		// Create all dependencies first.
+		dependencies := a.Dependencies()
+		for _, d := range dependencies {
+			err = c.Create(d)
 			if err != nil {
 				return err
 			}
+		}
+
+		// set values based on dependencies.
+		a.SetValue(dependencies)
+		err = c.Create(a.Interface())
+		if err != nil {
+			return err
 		}
 	}
 	return nil

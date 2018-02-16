@@ -33,6 +33,8 @@ func (nulls *Nulls) Parse(value interface{}) interface{} {
 	switch reflect.TypeOf(nulls.Value).String() {
 	case "nulls.Int":
 		return NewInt(value.(int))
+	case "nulls.Int64":
+		return NewInt64(value.(int64))
 	case "nulls.UUID":
 		return NewUUID(value.(uuid.UUID))
 	default:

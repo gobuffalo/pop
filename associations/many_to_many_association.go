@@ -15,14 +15,16 @@ type manyToManyAssociation struct {
 	owner               interface{}
 	fkID                string
 	orderBy             string
+	skipped             bool
 }
 
 func init() {
 	associationBuilders["many_to_many"] = func(p associationParams) (Association, error) {
 		// Validates if model.ID is nil, this association will be skipped.
+		var skipped bool
 		model := p.modelValue
 		if fieldIsNil(model.FieldByName("ID")) {
-			return SkippedAssociation, nil
+			skipped = true
 		}
 
 		return &manyToManyAssociation{
@@ -33,6 +35,7 @@ func init() {
 			manyToManyTableName: p.popTags.Find("many_to_many").Value,
 			fkID:                p.popTags.Find("fk_id").Value,
 			orderBy:             p.popTags.Find("order_by").Value,
+			skipped:             skipped,
 		}, nil
 	}
 }
@@ -78,6 +81,14 @@ func (m *manyToManyAssociation) OrderBy() string {
 	return m.orderBy
 }
 
-func (m *manyToManyAssociation) SetValue(i interface{}) error {
+func (m *manyToManyAssociation) Dependencies() []interface{} {
 	return nil
+}
+
+func (m *manyToManyAssociation) SetValue(i []interface{}) error {
+	return nil
+}
+
+func (m *manyToManyAssociation) Skipped() bool {
+	return m.skipped
 }
