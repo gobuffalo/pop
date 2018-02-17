@@ -7,6 +7,42 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func Test_Attribute_String(t *testing.T) {
+	r := require.New(t)
+
+	cases := []struct {
+		exp  string
+		name string
+	}{
+		{
+			name: "user_id",
+			exp:  "\tUserId string `json:\"user_id\" db:\"user_id\"`",
+		},
+		{
+			name: "UserID",
+			exp:  "\tUserID string `json:\"user_id\" db:\"user_id\"`",
+		},
+		{
+			name: "userid",
+			exp:  "\tUserid string `json:\"userid\" db:\"userid\"`",
+		},
+		{
+			name: "userId",
+			exp:  "\tUserId string `json:\"user_id\" db:\"user_id\"`",
+		},
+		{
+			name: "user-id",
+			exp:  "\tUserId string `json:\"user_id\" db:\"user_id\"`",
+		},
+	}
+
+	for _, c := range cases {
+		model := newModel("car")
+		a := newAttribute(c.name, &model)
+		r.Equal(c.exp, a.String())
+	}
+}
+
 func Test_newAttribute(t *testing.T) {
 	r := require.New(t)
 	cases := []struct {
@@ -50,7 +86,7 @@ func Test_newAttribute(t *testing.T) {
 	}
 
 	for index, tcase := range cases {
-		t.Run(fmt.Sprintf("%v", index), func(tt *testing.T) {
+		t.Run(fmt.Sprint(index), func(tt *testing.T) {
 			model := newModel("car")
 			a := newAttribute(tcase.AttributeInput, &model)
 
