@@ -3,6 +3,7 @@ package associations
 import (
 	"fmt"
 	"reflect"
+	"time"
 
 	"github.com/markbates/inflect"
 )
@@ -82,11 +83,52 @@ func (m *manyToManyAssociation) OrderBy() string {
 }
 
 func (m *manyToManyAssociation) Dependencies() []interface{} {
-	return nil
+	dependencies := []interface{}{}
+	if m.fieldValue.Kind() == reflect.Ptr {
+		dependencies = append(dependencies, m.fieldValue.Interface())
+	} else {
+		dependencies = append(dependencies, m.fieldValue.Addr().Interface())
+	}
+
+	modelID := reflect.Indirect(reflect.ValueOf(m.owner)).FieldByName("ID")
+	if fieldIsNil(modelID) || isZero(modelID.Interface()) {
+		dependencies = append(dependencies, m.owner)
+	}
+	return dependencies
 }
 
 func (m *manyToManyAssociation) SetValue(i []interface{}) error {
 	return nil
+}
+
+func (m *manyToManyAssociation) Statements() []AssociationStatement {
+	statements := []AssociationStatement{}
+
+	modelColumnID := fmt.Sprintf("%s%s", inflect.Underscore(m.model.Type().Name()), "_id")
+	var columnFieldID string
+	i := reflect.Indirect(m.fieldValue)
+	if i.Kind() == reflect.Slice || i.Kind() == reflect.Array {
+		t := i.Type().Elem()
+		columnFieldID = fmt.Sprintf("%s%s", inflect.Underscore(t.Name()), "_id")
+	} else {
+		columnFieldID = fmt.Sprintf("%s%s", inflect.Underscore(i.Type().Name()), "_id")
+	}
+
+	for i := 0; i < m.fieldValue.Len(); i++ {
+		v := m.fieldValue.Index(i)
+		manyIDValue := v.FieldByName("ID").Interface()
+		modelIDValue := m.model.FieldByName("ID").Interface()
+		stm := "INSERT INTO %s (%s,%s,%s,%s) VALUES($1,$2,$3,$4)"
+
+		associationStm := AssociationStatement{
+			Statement: fmt.Sprintf(stm, m.manyToManyTableName, modelColumnID, columnFieldID, "created_at", "updated_at"),
+			Args:      []interface{}{modelIDValue, manyIDValue, time.Now(), time.Now()},
+		}
+
+		statements = append(statements, associationStm)
+	}
+
+	return statements
 }
 
 func (m *manyToManyAssociation) Skipped() bool {

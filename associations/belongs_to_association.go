@@ -91,11 +91,9 @@ func (b *belongsToAssociation) SetValue(i []interface{}) error {
 		} else {
 			b.ownerID.Set(reflect.ValueOf(ownerID))
 		}
-	} else {
-		return fmt.Errorf("could not set '%s' to '%s'", ownerID, b.ownerID)
+		return nil
 	}
-
-	return nil
+	return fmt.Errorf("could not set '%s' to '%s'", ownerID, b.ownerID)
 }
 
 func (b *belongsToAssociation) Skipped() bool {

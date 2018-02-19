@@ -92,10 +92,10 @@ func (h *hasOneAssociation) SetValue(i []interface{}) error {
 		} else {
 			fval.Set(reflect.ValueOf(ownerID))
 		}
-	} else {
-		return fmt.Errorf("could not set '%s' to '%s'", ownerID, fval)
+		return nil
 	}
-	return nil
+
+	return fmt.Errorf("could not set '%s' to '%s'", ownerID, fval)
 }
 
 func (h *hasOneAssociation) Skipped() bool {

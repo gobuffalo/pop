@@ -25,6 +25,19 @@ type AssociationSortable interface {
 	Association
 }
 
+// AssociationCreatableStatement a association that stablish
+// some statements on create.
+type AssociationCreatableStatement interface {
+	Statements() []AssociationStatement
+}
+
+// AssociationStatement a type that represents a statement to be
+// executed.
+type AssociationStatement struct {
+	Statement string
+	Args      []interface{}
+}
+
 // Associations a group of model associations.
 type Associations []Association
 

@@ -195,6 +195,18 @@ func (c *Connection) Create(model interface{}, excludeColumns ...string) error {
 
 		// set values based on dependencies.
 		a.SetValue(dependencies)
+
+		if acs, ok := a.(associations.AssociationCreatableStatement); ok {
+			stms := acs.Statements()
+			for _, stm := range stms {
+				_, err = c.TX.Exec(stm.Statement, stm.Args...)
+				if err != nil {
+					return err
+				}
+			}
+			continue
+		}
+
 		err = c.Create(a.Interface())
 		if err != nil {
 			return err

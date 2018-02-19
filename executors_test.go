@@ -356,7 +356,6 @@ func Test_Create_With_Slice(t *testing.T) {
 }
 
 // TODO: Ignore those zero value association so they can not be created in database.
-// TODO: many_to_many associations.(NI)
 func Test_Eager_Create_Has_Many(t *testing.T) {
 	transaction(func(tx *pop.Connection) {
 		a := require.New(t)
@@ -365,6 +364,9 @@ func Test_Eager_Create_Has_Many(t *testing.T) {
 			Name:         nulls.NewString("Mark 'Awesome' Bates"),
 			Books:        Books{{Title: "Pop Book", Description: "Pop Book", Isbn: "PB1"}},
 			FavoriteSong: Song{Title: "Hook - Blues Traveler"},
+			Houses: Addresses{
+				Address{HouseNumber: 86, Street: "Modelo"},
+			},
 		}
 
 		err := tx.Eager().Create(&user)
@@ -380,6 +382,9 @@ func Test_Eager_Create_Has_Many(t *testing.T) {
 		ctx, _ = tx.Count(&Song{})
 		a.Equal(count+1, ctx)
 
+		ctx, _ = tx.Count(&Address{})
+		a.Equal(count+1, ctx)
+
 		u := User{}
 		q := tx.Eager().Where("name = ?", "Mark 'Awesome' Bates")
 		err = q.First(&u)
@@ -387,6 +392,7 @@ func Test_Eager_Create_Has_Many(t *testing.T) {
 		a.Equal(u.Name.String, "Mark 'Awesome' Bates")
 		a.Equal(u.Books[0].Title, "Pop Book")
 		a.Equal(u.FavoriteSong.Title, "Hook - Blues Traveler")
+		a.Equal(u.Houses[0].Street, "Modelo")
 	})
 }
 
