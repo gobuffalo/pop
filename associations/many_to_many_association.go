@@ -118,7 +118,7 @@ func (m *manyToManyAssociation) Statements() []AssociationStatement {
 		v := m.fieldValue.Index(i)
 		manyIDValue := v.FieldByName("ID").Interface()
 		modelIDValue := m.model.FieldByName("ID").Interface()
-		stm := "INSERT INTO %s (%s,%s,%s,%s) VALUES($1,$2,$3,$4)"
+		stm := "INSERT INTO %s (%s,%s,%s,%s) VALUES(?,?,?,?)"
 
 		associationStm := AssociationStatement{
 			Statement: fmt.Sprintf(stm, m.manyToManyTableName, modelColumnID, columnFieldID, "created_at", "updated_at"),

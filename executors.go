@@ -199,7 +199,7 @@ func (c *Connection) Create(model interface{}, excludeColumns ...string) error {
 		if acs, ok := a.(associations.AssociationCreatableStatement); ok {
 			stms := acs.Statements()
 			for _, stm := range stms {
-				_, err = c.TX.Exec(stm.Statement, stm.Args...)
+				_, err = c.TX.Exec(c.Dialect.TranslateSQL(stm.Statement), stm.Args...)
 				if err != nil {
 					return err
 				}
