@@ -20,7 +20,7 @@ type hasManyAssociation struct {
 	owner     interface{}
 	fkID      string
 	orderBy   string
-	skipped   bool
+	*associationSkipable
 }
 
 func init() {
@@ -44,7 +44,9 @@ func hasManyAssociationBuilder(p associationParams) (Association, error) {
 		ownerID:   ownerID.Interface(),
 		fkID:      p.popTags.Find("fk_id").Value,
 		orderBy:   p.popTags.Find("order_by").Value,
-		skipped:   skipped,
+		associationSkipable: &associationSkipable{
+			skipped: skipped,
+		},
 	}, nil
 }
 
@@ -118,8 +120,4 @@ func (a *hasManyAssociation) SetValue(val []interface{}) error {
 		}
 	}
 	return nil
-}
-
-func (a *hasManyAssociation) Skipped() bool {
-	return a.skipped
 }

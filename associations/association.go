@@ -19,6 +19,16 @@ type Association interface {
 	Skipped() bool
 }
 
+// associationSkipable is a helper struct that helps
+// to include skippable behavior in associations.
+type associationSkipable struct {
+	skipped bool
+}
+
+func (a *associationSkipable) Skipped() bool {
+	return a.skipped
+}
+
 // AssociationSortable a type to be sortable.
 type AssociationSortable interface {
 	OrderBy() string

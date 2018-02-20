@@ -15,7 +15,7 @@ type hasOneAssociation struct {
 	ownerName  string
 	owner      interface{}
 	fkID       string
-	skipped    bool
+	*associationSkipable
 }
 
 func init() {
@@ -38,7 +38,9 @@ func hasOneAssociationBuilder(p associationParams) (Association, error) {
 		ownerID:    ownerID.Interface(),
 		ownerName:  p.modelType.Name(),
 		fkID:       p.popTags.Find("fk_id").Value,
-		skipped:    skipped,
+		associationSkipable: &associationSkipable{
+			skipped: skipped,
+		},
 	}, nil
 }
 

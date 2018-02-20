@@ -15,7 +15,7 @@ type belongsToAssociation struct {
 	ownerType  reflect.Type
 	ownerID    reflect.Value
 	owner      interface{}
-	skipped    bool
+	*associationSkipable
 }
 
 func init() {
@@ -42,7 +42,9 @@ func belongsToAssociationBuilder(p associationParams) (Association, error) {
 		ownerType:  fval.Type(),
 		ownerID:    f,
 		owner:      p.model,
-		skipped:    skipped,
+		associationSkipable: &associationSkipable{
+			skipped: skipped,
+		},
 	}, nil
 }
 
@@ -94,8 +96,4 @@ func (b *belongsToAssociation) SetValue(i []interface{}) error {
 		return nil
 	}
 	return fmt.Errorf("could not set '%s' to '%s'", ownerID, b.ownerID)
-}
-
-func (b *belongsToAssociation) Skipped() bool {
-	return b.skipped
 }

@@ -16,7 +16,7 @@ type manyToManyAssociation struct {
 	owner               interface{}
 	fkID                string
 	orderBy             string
-	skipped             bool
+	*associationSkipable
 }
 
 func init() {
@@ -36,7 +36,9 @@ func init() {
 			manyToManyTableName: p.popTags.Find("many_to_many").Value,
 			fkID:                p.popTags.Find("fk_id").Value,
 			orderBy:             p.popTags.Find("order_by").Value,
-			skipped:             skipped,
+			associationSkipable: &associationSkipable{
+				skipped: skipped,
+			},
 		}, nil
 	}
 }
@@ -129,8 +131,4 @@ func (m *manyToManyAssociation) Statements() []AssociationStatement {
 	}
 
 	return statements
-}
-
-func (m *manyToManyAssociation) Skipped() bool {
-	return m.skipped
 }
