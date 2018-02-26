@@ -1,7 +1,7 @@
 project_name: pop
 release:
   github:
-    owner: markbates
+    owner: gobuffalo
     name: pop
   name_template: '{{.Tag}}'
 brew:
