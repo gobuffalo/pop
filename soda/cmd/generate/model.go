@@ -179,7 +179,7 @@ func (m model) Fizz() string {
 func newModel(name string) model {
 	m := model{
 		Package: "models",
-		Imports: []string{"time", "github.com/gobuffalo/pop", "github.com/markbates/validate"},
+		Imports: []string{"time", "github.com/gobuffalo/pop", "github.com/gobuffalo/validate"},
 		Name:    inflect.Name(name),
 		Attributes: []attribute{
 			{Name: inflect.Name("created_at"), OriginalType: "time.Time", GoType: "time.Time"},
