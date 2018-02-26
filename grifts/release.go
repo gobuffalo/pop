@@ -102,7 +102,7 @@ func findVersion() (string, error) {
 	}
 
 	//var Version = "v0.4.0"
-	re := regexp.MustCompile(`const Version = "v(.+)"`)
+	re := regexp.MustCompile(`const Version = "(v.+)"`)
 	matches := re.FindStringSubmatch(string(vfile))
 	if len(matches) < 2 {
 		return "", errors.New("failed to find the version!")
