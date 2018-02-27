@@ -21,7 +21,6 @@ var FizzCmd = &cobra.Command{
 			return pop.MigrationCreate(migrationPath, args[0], "fizz", nil, nil)
 		}
 
-		structTag = "json" //Of no use here, but required to be "json" or "xml" by func newModel()
 		m, err := newModelFromArgs(args)
 
 		if err != nil {

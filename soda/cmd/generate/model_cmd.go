@@ -10,7 +10,7 @@ import (
 )
 
 var skipMigration bool
-var structTag string
+var structTag = "json"
 var migrationPath string
 
 var nrx = regexp.MustCompile(`^nulls\.(.+)`)
