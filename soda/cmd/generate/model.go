@@ -15,10 +15,8 @@ import (
 
 	"github.com/gobuffalo/makr"
 	"github.com/pkg/errors"
-	"github.com/spf13/pflag"
 
 	"github.com/gobuffalo/pop"
-	"github.com/markbates/going/defaults"
 	"github.com/markbates/inflect"
 )
 
@@ -94,28 +92,6 @@ func (m model) testPkgName() string {
 	return pkg
 }
 
-func (m *model) addAttribute(a attribute) {
-	if a.Name == "id" {
-		// No need to create a default ID
-		m.HasID = true
-		// Ensure ID is the first attribute
-		m.Attributes = append([]attribute{a}, m.Attributes...)
-	} else {
-		m.Attributes = append(m.Attributes, a)
-	}
-
-	if a.Nullable {
-		return
-	}
-
-	if a.IsValidable() {
-		if a.GoType == "time.Time" {
-			a.GoType = "Time"
-		}
-		m.ValidatableAttributes = append(m.ValidatableAttributes, a)
-	}
-}
-
 func (m *model) addID() {
 	if m.HasID {
 		return
@@ -147,8 +123,7 @@ func (m model) generateModelFile() error {
 	return nil
 }
 
-func (m model) generateFizz(cflag *pflag.Flag) error {
-	migrationPath := defaults.String(cflag.Value.String(), "./migrations")
+func (m model) generateFizz(migrationPath string) error {
 	err := pop.MigrationCreate(migrationPath, fmt.Sprintf("create_%s", m.Name.Table()), "fizz", []byte(m.Fizz()), []byte(fmt.Sprintf("drop_table(\"%s\")", m.Name.Table())))
 	if err != nil {
 		return err
@@ -175,11 +150,24 @@ func (m model) Fizz() string {
 	s = append(s, "})")
 	return strings.Join(s, "\n")
 }
+func newModel(name string) (model, error) {
+	var (
+		encodingImport string
+		m              model
+	)
 
-func newModel(name string) model {
-	m := model{
+	switch structTag {
+	case "json":
+		encodingImport = "encoding/json"
+	case "xml":
+		encodingImport = "encoding/xml"
+	default:
+		return m, errors.New("Invalid struct tags (use xml or json)")
+	}
+
+	m = model{
 		Package: "models",
-		Imports: []string{"time", "github.com/gobuffalo/pop", "github.com/gobuffalo/validate"},
+		Imports: []string{"time", "github.com/gobuffalo/pop", "github.com/gobuffalo/validate", encodingImport},
 		Name:    inflect.Name(name),
 		Attributes: []attribute{
 			{Name: inflect.Name("created_at"), OriginalType: "time.Time", GoType: "time.Time"},
@@ -187,7 +175,30 @@ func newModel(name string) model {
 		},
 		ValidatableAttributes: []attribute{},
 	}
-	return m
+	return m, nil
+}
+
+func newModelFromArgs(args []string) (model, error) {
+	var m model
+
+	if len(args) == 0 {
+		return m, errors.New("You must supply a name for your model")
+	}
+
+	m, err := newModel(args[0])
+
+	if err != nil {
+		return m, err
+	}
+
+	for _, def := range args[1:] {
+		newAttribute(def, &m)
+	}
+
+	// Add a default UUID, if no custom ID is provided
+	m.addID()
+
+	return m, nil
 }
 
 func fizzColType(s string) string {

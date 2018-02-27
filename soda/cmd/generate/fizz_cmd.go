@@ -4,7 +4,6 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/gobuffalo/pop"
-	"github.com/markbates/going/defaults"
 	"github.com/spf13/cobra"
 )
 
@@ -17,8 +16,18 @@ var FizzCmd = &cobra.Command{
 		if len(args) == 0 {
 			return errors.New("You must supply a name for your migration")
 		}
-		cflag := cmd.Flag("path")
-		migrationPath := defaults.String(cflag.Value.String(), "./migrations")
-		return pop.MigrationCreate(migrationPath, args[0], "fizz", nil, nil)
+		//Just the migration name
+		if len(args) == 1 {
+			return pop.MigrationCreate(migrationPath, args[0], "fizz", nil, nil)
+		}
+
+		structTag = "json" //Of no use here, but required to be "json" or "xml" by func newModel()
+		m, err := newModelFromArgs(args)
+
+		if err != nil {
+			return err
+		}
+
+		return m.generateFizz(migrationPath)
 	},
 }

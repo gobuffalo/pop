@@ -51,6 +51,26 @@ func newAttribute(base string, model *model) attribute {
 		Nullable:     nullable,
 	}
 
+	if a.Name == "id" {
+		// No need to create a default ID
+		model.HasID = true
+		// Ensure ID is the first attribute
+		model.Attributes = append([]attribute{a}, model.Attributes...)
+	} else {
+		model.Attributes = append(model.Attributes, a)
+	}
+
+	if nullable {
+		return a
+	}
+
+	if a.IsValidable() {
+		if a.GoType == "time.Time" {
+			a.GoType = "Time"
+		}
+		model.ValidatableAttributes = append(model.ValidatableAttributes, a)
+	}
+
 	return a
 }
 

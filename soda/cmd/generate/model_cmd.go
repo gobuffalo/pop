@@ -11,12 +11,14 @@ import (
 
 var skipMigration bool
 var structTag string
+var migrationPath string
 
 var nrx = regexp.MustCompile(`^nulls\.(.+)`)
 
 func init() {
 	ModelCmd.Flags().StringVarP(&structTag, "struct-tag", "", "json", "sets the struct tags for model (xml or json)")
 	ModelCmd.Flags().BoolVarP(&skipMigration, "skip-migration", "s", false, "Skip creating a new fizz migration for this model.")
+	ModelCmd.Flags().StringVarP(&migrationPath, "path", "p", "./migrations", "location of migrations folder")
 
 	inflect.AddAcronym("ID")
 	inflect.AddAcronym("UUID")
@@ -32,26 +34,16 @@ var ModelCmd = &cobra.Command{
 			return errors.New("You must supply a name for your model")
 		}
 
-		model := newModel(args[0])
+		model, err := newModelFromArgs(args)
 
-		switch structTag {
-		case "json":
-			model.Imports = append(model.Imports, "encoding/json")
-		case "xml":
-			model.Imports = append(model.Imports, "encoding/xml")
-		default:
-			return errors.New("Invalid struct tags (use xml or json)")
-		}
-
-		for _, def := range args[1:] {
-			a := newAttribute(def, &model)
-			model.addAttribute(a)
+		if err != nil {
+			return err
 		}
 
 		// Add a default UUID, if no custom ID is provided
 		model.addID()
 
-		err := model.generateModelFile()
+		err = model.generateModelFile()
 		if err != nil {
 			return err
 		}
@@ -60,7 +52,7 @@ var ModelCmd = &cobra.Command{
 			return nil
 		}
 
-		err = model.generateFizz(cmd.Flag("path"))
+		err = model.generateFizz(migrationPath)
 		if err != nil {
 			return err
 		}
