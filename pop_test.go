@@ -12,6 +12,7 @@ import (
 	"github.com/gobuffalo/uuid"
 	"github.com/gobuffalo/validate"
 	"github.com/gobuffalo/validate/validators"
+	"github.com/kr/pretty"
 	_ "github.com/lib/pq"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/stretchr/testify/suite"
@@ -49,6 +50,7 @@ func init() {
 	dialect := os.Getenv("SODA_DIALECT")
 
 	var err error
+	pretty.Println("### pop.Connections ->", pop.Connections)
 	PDB, err = pop.Connect(dialect)
 	if err != nil {
 		log.Panic(err)
