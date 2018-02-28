@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"text/template"
 
+	"github.com/gobuffalo/envy"
 	"github.com/pkg/errors"
 
 	"github.com/markbates/going/defaults"
@@ -69,6 +70,7 @@ func findConfigPath() (string, error) {
 
 // LoadFrom reads a configuration from the reader and sets up the connections
 func LoadFrom(r io.Reader) error {
+	envy.Load()
 	tmpl := template.New("test")
 	tmpl.Funcs(map[string]interface{}{
 		"envOr": func(s1, s2 string) string {
