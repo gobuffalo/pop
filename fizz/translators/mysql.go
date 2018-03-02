@@ -79,13 +79,13 @@ func (p *MySQL) AddColumn(t fizz.Table) (string, error) {
 		return "", errors.New("Not enough columns supplied!")
 	}
 
-	if val, ok := t.Options["before"]; ok {
+	if val, ok := t.Columns[0].Options["before"]; ok {
 		c := t.Columns[0]
 		s := fmt.Sprintf("ALTER TABLE %s ADD COLUMN %s BEFORE %s;", t.Name, p.buildColumn(c), val)
 		return s, nil
 	}
 
-	if val, ok := t.Options["after"]; ok {
+	if val, ok := t.Columns[0].Options["after"]; ok {
 		c := t.Columns[0]
 		s := fmt.Sprintf("ALTER TABLE %s ADD COLUMN %s AFTER %s;", t.Name, p.buildColumn(c), val)
 		return s, nil
