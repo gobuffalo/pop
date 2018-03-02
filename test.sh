@@ -26,6 +26,7 @@ function test {
   go test $(go list ./... | grep -v /vendor/)
 }
 
+test "sqlite"
 test "postgres"
 test "cockroach"
 test "mysql"
