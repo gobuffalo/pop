@@ -43,7 +43,6 @@ Any other type passed it will be be passed straight through to the underlying da
 * `null` - By default columns are not allowed to be `null`.
 * `default` - The default value you want for this column. By default this is `null`.
 * `default_raw` - The default value defined as a database function.
-* `before` - Add a column before another column in the table. *Mysql Only*
 * `after` - Add a column after another column in the table. *Mysql Only*
 
 ## Drop a Table
