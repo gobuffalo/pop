@@ -3,8 +3,8 @@ package associations
 import (
 	"reflect"
 
-	"github.com/markbates/pop/columns"
-	"github.com/markbates/pop/nulls"
+	"github.com/gobuffalo/pop/columns"
+	"github.com/gobuffalo/pop/nulls"
 )
 
 // Association represents a definition of a model association
@@ -14,6 +14,7 @@ type Association interface {
 	Kind() reflect.Kind
 	Interface() interface{}
 	Constraint() (string, []interface{})
+	InnerAssociations() InnerAssociations
 	Dependencies() []interface{}
 	SetValue([]interface{}) error
 	Skipped() bool
@@ -28,6 +29,27 @@ type associationSkipable struct {
 func (a *associationSkipable) Skipped() bool {
 	return a.skipped
 }
+
+// associationComposite adds the ability for a Association to
+// have nested associations.
+type associationComposite struct {
+	innerAssociations InnerAssociations
+}
+
+func (a *associationComposite) InnerAssociations() InnerAssociations {
+	return a.innerAssociations
+}
+
+// InnerAssociation is a struct that represents a deep level
+// association. per example Song.Composer, Composer is an inner
+// association for Song.
+type InnerAssociation struct {
+	Name   string
+	Fields string
+}
+
+// InnerAssociations is a group of InnerAssociation.
+type InnerAssociations []InnerAssociation
 
 // AssociationSortable a type to be sortable.
 type AssociationSortable interface {
@@ -54,11 +76,12 @@ type Associations []Association
 // associationParams a wrapper for associations definition
 // and creation.
 type associationParams struct {
-	field      reflect.StructField // an association field defined in model.
-	modelType  reflect.Type        // the model type where this field is defined.
-	modelValue reflect.Value       // the model value where this field is defined.
-	popTags    columns.Tags        // the tags defined in this association field.
-	model      interface{}         // the model, owner of the association.
+	field             reflect.StructField // an association field defined in model.
+	modelType         reflect.Type        // the model type where this field is defined.
+	modelValue        reflect.Value       // the model value where this field is defined.
+	popTags           columns.Tags        // the tags defined in this association field.
+	model             interface{}         // the model, owner of the association.
+	innerAssociations InnerAssociations   // the data for the deep level associations.
 }
 
 // associationBuilder is a type representing an association builder implementation.

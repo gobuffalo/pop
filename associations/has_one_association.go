@@ -16,6 +16,7 @@ type hasOneAssociation struct {
 	owner      interface{}
 	fkID       string
 	*associationSkipable
+	*associationComposite
 }
 
 func init() {
@@ -41,6 +42,7 @@ func hasOneAssociationBuilder(p associationParams) (Association, error) {
 		associationSkipable: &associationSkipable{
 			skipped: skipped,
 		},
+		associationComposite: &associationComposite{innerAssociations: p.innerAssociations},
 	}, nil
 }
 

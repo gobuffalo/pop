@@ -17,6 +17,7 @@ type manyToManyAssociation struct {
 	fkID                string
 	orderBy             string
 	*associationSkipable
+	*associationComposite
 }
 
 func init() {
@@ -39,6 +40,7 @@ func init() {
 			associationSkipable: &associationSkipable{
 				skipped: skipped,
 			},
+			associationComposite: &associationComposite{innerAssociations: p.innerAssociations},
 		}, nil
 	}
 }

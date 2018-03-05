@@ -16,6 +16,7 @@ type belongsToAssociation struct {
 	ownerID    reflect.Value
 	owner      interface{}
 	*associationSkipable
+	*associationComposite
 }
 
 func init() {
@@ -45,6 +46,7 @@ func belongsToAssociationBuilder(p associationParams) (Association, error) {
 		associationSkipable: &associationSkipable{
 			skipped: skipped,
 		},
+		associationComposite: &associationComposite{innerAssociations: p.innerAssociations},
 	}, nil
 }
 

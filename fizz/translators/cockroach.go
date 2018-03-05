@@ -6,7 +6,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/markbates/pop/fizz"
+	"github.com/gobuffalo/pop/fizz"
 )
 
 type Cockroach struct {

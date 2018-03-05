@@ -7,7 +7,7 @@ import (
 	"{{$i}}"
 	{{ end -}}
 	{{ if .model.ValidatableAttributes -}}
-	"github.com/markbates/validate/validators"
+	"github.com/gobuffalo/validate/validators"
 	{{ end -}}
 )
 
@@ -59,7 +59,7 @@ func ({{.char}} *{{.model_name}}) ValidateUpdate(tx *pop.Connection) (*validate.
 }
 `
 
-const modelTestTemplate = `package {{.package_name}}_test
+const modelTestTemplate = `package {{.test_package_name}}
 
 import "testing"
 

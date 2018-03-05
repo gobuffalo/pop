@@ -5,8 +5,8 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/markbates/pop"
-	"github.com/markbates/pop/nulls"
+	"github.com/gobuffalo/pop"
+	"github.com/gobuffalo/pop/nulls"
 )
 
 func Benchmark_Create_Pop(b *testing.B) {

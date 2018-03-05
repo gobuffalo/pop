@@ -21,6 +21,7 @@ type hasManyAssociation struct {
 	fkID      string
 	orderBy   string
 	*associationSkipable
+	*associationComposite
 }
 
 func init() {
@@ -47,6 +48,7 @@ func hasManyAssociationBuilder(p associationParams) (Association, error) {
 		associationSkipable: &associationSkipable{
 			skipped: skipped,
 		},
+		associationComposite: &associationComposite{innerAssociations: p.innerAssociations},
 	}, nil
 }
 

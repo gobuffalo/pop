@@ -7,13 +7,14 @@ import (
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/gobuffalo/pop"
+	"github.com/gobuffalo/pop/nulls"
+	"github.com/gobuffalo/uuid"
+	"github.com/gobuffalo/validate"
+	"github.com/gobuffalo/validate/validators"
+	"github.com/kr/pretty"
 	_ "github.com/lib/pq"
-	"github.com/markbates/pop"
-	"github.com/markbates/pop/nulls"
-	"github.com/markbates/validate"
-	"github.com/markbates/validate/validators"
 	_ "github.com/mattn/go-sqlite3"
-	"github.com/satori/go.uuid"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -49,13 +50,11 @@ func init() {
 	dialect := os.Getenv("SODA_DIALECT")
 
 	var err error
+	pretty.Println("### pop.Connections ->", pop.Connections)
 	PDB, err = pop.Connect(dialect)
 	if err != nil {
 		log.Panic(err)
 	}
-
-	pop.MapTableName("Friend", "good_friends")
-	pop.MapTableName("Friends", "good_friends")
 }
 
 func transaction(fn func(tx *pop.Connection)) {
@@ -96,11 +95,23 @@ type Book struct {
 	UserID      nulls.Int `db:"user_id"`
 	User        User      `belongs_to:"user"`
 	Description string    `db:"description"`
+	Writers     Writers   `has_many:"writers"`
 	CreatedAt   time.Time `db:"created_at"`
 	UpdatedAt   time.Time `db:"updated_at"`
 }
 
 type Books []Book
+
+type Writer struct {
+	ID        int       `db:"id"`
+	Name      string    `db:"name"`
+	BookID    int       `db:"book_id"`
+	Book      Book      `belongs_to:"book"`
+	CreatedAt time.Time `db:"created_at"`
+	UpdatedAt time.Time `db:"updated_at"`
+}
+
+type Writers []Writer
 
 type Address struct {
 	ID          int       `db:"id"`
@@ -128,6 +139,10 @@ type Friend struct {
 	UpdatedAt time.Time `db:"updated_at"`
 }
 
+func (Friend) TableName() string {
+	return "good_friends"
+}
+
 type Friends []Friend
 
 type Enemy struct {
@@ -135,11 +150,20 @@ type Enemy struct {
 }
 
 type Song struct {
-	ID        uuid.UUID `db:"id"`
-	Title     string    `db:"title"`
-	UserID    int       `db:"u_id"`
-	CreatedAt time.Time `json:"created_at" db:"created_at"`
-	UpdatedAt time.Time `json:"updated_at" db:"updated_at"`
+	ID         uuid.UUID `db:"id"`
+	Title      string    `db:"title"`
+	UserID     int       `db:"u_id"`
+	CreatedAt  time.Time `json:"created_at" db:"created_at"`
+	UpdatedAt  time.Time `json:"updated_at" db:"updated_at"`
+	ComposerID int       `json:"composer_id" db:"composer_id"`
+	ComposedBy Composer  `belongs_to:"composer"`
+}
+
+type Composer struct {
+	ID        int       `db:"id"`
+	Name      string    `db:"name"`
+	CreatedAt time.Time `db:"created_at"`
+	UpdatedAt time.Time `db:"updated_at"`
 }
 
 type ValidatableCar struct {

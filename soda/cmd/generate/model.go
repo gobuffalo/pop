@@ -2,6 +2,13 @@ package generate
 
 import (
 	"fmt"
+	"go/ast"
+	"go/importer"
+	"go/parser"
+	"go/token"
+	"go/types"
+	"io"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -10,9 +17,9 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
 
+	"github.com/gobuffalo/pop"
 	"github.com/markbates/going/defaults"
 	"github.com/markbates/inflect"
-	"github.com/markbates/pop"
 )
 
 type model struct {
@@ -36,6 +43,9 @@ func (m model) Generate() error {
 	ctx["plural_model_name"] = m.Name.ModelPlural()
 	ctx["model_name"] = m.Name.Model()
 	ctx["package_name"] = m.Package
+
+	ctx["test_package_name"] = m.testPkgName()
+
 	ctx["char"] = strings.ToLower(string([]byte(m.Name)[0]))
 	ctx["encoding_type"] = structTag
 	ctx["encoding_type_char"] = strings.ToLower(string([]byte(structTag)[0]))
@@ -45,6 +55,43 @@ func (m model) Generate() error {
 	tfname := filepath.Join(m.Package, m.Name.File()+"_test.go")
 	g.Add(makr.NewFile(tfname, modelTestTemplate))
 	return g.Run(".", ctx)
+}
+
+func (m model) testPkgName() string {
+	pkg := m.Package
+
+	path, _ := os.Getwd()
+	path = filepath.Join("models")
+
+	if _, err := os.Stat(path); err != nil {
+		return pkg
+	}
+	filepath.Walk(path, func(p string, info os.FileInfo, err error) error {
+		if strings.HasSuffix(p, "_test.go") {
+			fset := token.NewFileSet()
+
+			b, err := ioutil.ReadFile(p)
+			if err != nil {
+				return errors.WithStack(err)
+			}
+			f, err := parser.ParseFile(fset, p, string(b), 0)
+			if err != nil {
+				return errors.WithStack(err)
+			}
+
+			conf := types.Config{Importer: importer.Default()}
+			p, err := conf.Check("cmd/hello", fset, []*ast.File{f}, nil)
+			if err != nil {
+				return errors.WithStack(err)
+			}
+			pkg = p.Name()
+
+			return io.EOF
+		}
+		return nil
+	})
+
+	return pkg
 }
 
 func (m *model) addAttribute(a attribute) {
@@ -76,7 +123,7 @@ func (m *model) addID() {
 
 	if !m.HasUUID {
 		m.HasUUID = true
-		m.Imports = append(m.Imports, "github.com/satori/go.uuid")
+		m.Imports = append(m.Imports, "github.com/gobuffalo/uuid")
 	}
 
 	id := inflect.Name("id")
@@ -132,7 +179,7 @@ func (m model) Fizz() string {
 func newModel(name string) model {
 	m := model{
 		Package: "models",
-		Imports: []string{"time", "github.com/markbates/pop", "github.com/markbates/validate"},
+		Imports: []string{"time", "github.com/gobuffalo/pop", "github.com/gobuffalo/validate"},
 		Name:    inflect.Name(name),
 		Attributes: []attribute{
 			{Name: inflect.Name("created_at"), OriginalType: "time.Time", GoType: "time.Time"},

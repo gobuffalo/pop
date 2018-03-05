@@ -1,8 +1,10 @@
-// +build nosqlite appengine appenginevm
+// +build !sqlite
 
 package pop
 
-import "errors"
+import (
+	"errors"
+)
 
 func newSQLite(deets *ConnectionDetails) (dialect, error) {
 	return nil, errors.New("sqlite3 was not compiled into the binary")

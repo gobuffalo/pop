@@ -6,9 +6,9 @@ import (
 
 	"github.com/markbates/pop/associations"
 
-	"github.com/markbates/pop/columns"
-	"github.com/markbates/validate"
-	uuid "github.com/satori/go.uuid"
+	"github.com/gobuffalo/pop/columns"
+	"github.com/gobuffalo/uuid"
+	"github.com/gobuffalo/validate"
 )
 
 // Reload fetch fresh data for a given model, using its ID

@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/markbates/pop/columns"
-	"github.com/markbates/pop/fizz"
+	"github.com/gobuffalo/pop/columns"
+	"github.com/gobuffalo/pop/fizz"
+	"github.com/gobuffalo/uuid"
 	"github.com/pkg/errors"
-	uuid "github.com/satori/go.uuid"
 )
 
 func init() {

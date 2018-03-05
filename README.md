@@ -1,4 +1,4 @@
-# POP [![GoDoc](https://godoc.org/github.com/markbates/pop?status.svg)](https://godoc.org/github.com/markbates/pop) [![Build Status](https://travis-ci.org/markbates/pop.svg)](https://travis-ci.org/markbates/pop)
+# POP [![GoDoc](https://godoc.org/github.com/gobuffalo/pop?status.svg)](https://godoc.org/github.com/gobuffalo/pop) [![Build Status](https://travis-ci.org/gobuffalo/pop.svg)](https://travis-ci.org/gobuffalo/pop)
 
 ## A Tasty Treat For All Your Database Needs
 
@@ -91,8 +91,8 @@ Pop features CLI support via the `soda` command for the following operations:
 ### Installing CLI Support
 
 ```bash
-$ go get github.com/markbates/pop/...
-$ go install github.com/markbates/pop/soda
+$ go get github.com/gobuffalo/pop/...
+$ go install github.com/gobuffalo/pop/soda
 ```
 
 ### Creating Databases
@@ -258,7 +258,7 @@ sql, args := query.ToSQL(&pop.Model{Value: models.UserRole{}}, "user_roles.*",
 err := models.DB.RawQuery(sql, args...).All(&roles)
 ```
 
-#### Eager Loading
+### Eager Loading
 **pop** allows you to perform an eager loading for associations defined in a model. By using `pop.Connection.Eager()` function plus some fields tags predefined in your model you can extract associated data from a model.
 
 ```go
@@ -279,6 +279,16 @@ type Book struct {
   Isbn    string
   User    User        `belongs_to:"user"`
   UserID  uuid.UUID
+  Writers Writers     `has_many:"writers"`
+}
+```
+
+```go
+type Writer struct {
+   ID     uuid.UUID   `db:"id"`
+   Name   string      `db:"name"``
+   BookID uuid.UUID   `db:"book_id"`
+   Book   Book        `belongs_to:"book"`
 }
 ```
 
@@ -300,23 +310,38 @@ type Address struct {
 type Addresses []Address
 ```
 
-  **has_many**: will load all records from the `books` table that have a column named `user_id` or the column specified with **fk_id** that matches the `User.ID` value.    
-  
+  **has_many**: will load all records from the `books` table that have a column named `user_id` or the column specified with **fk_id** that matches the `User.ID` value.
+
   **belongs_to**: will load a record from `users` table that have a column named `id` that matches with `Book.UserID` value.
-  
-  **has_one**: will load a record from the `songs` table that have a column named `user_id` or the column specified with **fk_id** that matches the `User.ID` value.    
-  
-  **many_to_many**: will load all records from the `addresses` table through the table `users_addresses`. Table `users_addresses` MUST define `address_id`  and `user_id` columns to match `User.ID` and `Address.ID` values. You can also define a **fk_id** tag that will be used in the target association i.e `addresses` table.    
-  
-  **fk_id**: defines the column name in the target association that matches model `ID`. In the example above `Song` has a column named `u_id` that represents `id` of `users` table. When loading `FavoriteSong`, `u_id` will be used instead of `user_id`.  
-  
-  **order_by**: used in `has_many` and `many_to_many` to indicate the order for the association when loading. The format to use is  `order_by:"<column_name> <asc | desc>"` 
+
+  **has_one**: will load a record from the `songs` table that have a column named `user_id` or the column specified with **fk_id** that matches the `User.ID` value.
+
+  **many_to_many**: will load all records from the `addresses` table through the table `users_addresses`. Table `users_addresses` MUST define `address_id`  and `user_id` columns to match `User.ID` and `Address.ID` values. You can also define a **fk_id** tag that will be used in the target association i.e `addresses` table.
+
+  **fk_id**: defines the column name in the target association that matches model `ID`. In the example above `Song` has a column named `u_id` that represents `id` of `users` table. When loading `FavoriteSong`, `u_id` will be used instead of `user_id`.
+
+  **order_by**: used in `has_many` and `many_to_many` to indicate the order for the association when loading. The format to use is  `order_by:"<column_name> <asc | desc>"`
 
 
 ```go
 u := Users{}
 err := tx.Eager().Where("name = 'Mark'").All(&u)  // preload all associations for user with name 'Mark', i.e Books, Houses and FavoriteSong
 err  = tx.Eager("Books").Where("name = 'Mark'").All(&u) // preload only Books association for user with name 'Mark'.
+```
+
+#### Eager Loading Nested Associations
+ pop allows you to eager loading nested associations by using `.` character to concatenate them. Take a look at the example bellow.
+```go
+tx.Eager("Books.User").First(&u)  // will load all Books for u and for every Book will load the user which will be the same as u.
+``` 
+```go
+ tx.Eager("Books.Writers").First(&u)  // will load all Books for u and for every Book will load all Writers.
+```
+```go
+tx.Eager("Books.Writers.Book").First(&u)  // will load all Books for u and for every Book will load all Writers and for every writer will load the Book association.
+```
+```go
+tx.Eager("Books.Writers").Eager("FavoriteSong").First(&u)  // will load all Books for u and for every Book will load all Writers. And Also it will load the favorite song for user.
 ```
 
 #### Callbacks
@@ -338,7 +363,7 @@ func (u *User) BeforeSave(tx *pop.Connection) error {
 	}
 
 	u.Password = string(hash)
-	
+
 	return nil
 }
 ```

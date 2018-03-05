@@ -1,4 +1,4 @@
-// +build !nosqlite,!appengine,!appenginevm
+// +build sqlite
 
 package pop
 
@@ -12,14 +12,18 @@ import (
 	"sync"
 	"time"
 
+	"github.com/gobuffalo/pop/columns"
+	"github.com/gobuffalo/pop/fizz"
+	"github.com/gobuffalo/pop/fizz/translators"
 	"github.com/markbates/going/defaults"
-	"github.com/markbates/pop/columns"
-	"github.com/markbates/pop/fizz"
-	"github.com/markbates/pop/fizz/translators"
 	// Load SQLite3 CGo driver
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/pkg/errors"
 )
+
+func init() {
+	AvailableDialects = append(AvailableDialects, "sqlite3")
+}
 
 var _ dialect = &sqlite{}
 
