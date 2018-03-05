@@ -23,7 +23,7 @@ before_script:
     - ./tsoda migrate -e "postgres"
     - ./tsoda migrate -e "sqlite"
 
-script: go test ./... -v
+script: go test -tags sqlite ./... -v
 
 global_env:
   - MYSQL_USER="travis"
