@@ -258,7 +258,7 @@ sql, args := query.ToSQL(&pop.Model{Value: models.UserRole{}}, "user_roles.*",
 err := models.DB.RawQuery(sql, args...).All(&roles)
 ```
 
-#### Eager Loading
+### Eager Loading
 **pop** allows you to perform an eager loading for associations defined in a model. By using `pop.Connection.Eager()` function plus some fields tags predefined in your model you can extract associated data from a model.
 
 ```go
@@ -279,6 +279,16 @@ type Book struct {
   Isbn    string
   User    User        `belongs_to:"user"`
   UserID  uuid.UUID
+  Writers Writers     `has_many:"writers"`
+}
+```
+
+```go
+type Writer struct {
+   ID     uuid.UUID   `db:"id"`
+   Name   string      `db:"name"``
+   BookID uuid.UUID   `db:"book_id"`
+   Book   Book        `belongs_to:"book"`
 }
 ```
 
@@ -317,6 +327,21 @@ type Addresses []Address
 u := Users{}
 err := tx.Eager().Where("name = 'Mark'").All(&u)  // preload all associations for user with name 'Mark', i.e Books, Houses and FavoriteSong
 err  = tx.Eager("Books").Where("name = 'Mark'").All(&u) // preload only Books association for user with name 'Mark'.
+```
+
+#### Eager Loading Nested Associations
+ pop allows you to eager loading nested associations by using `.` character to concatenate them. Take a look at the example bellow.
+```go
+tx.Eager("Books.User").First(&u)  // will load all Books for u and for every Book will load the user which will be the same as u.
+``` 
+```go
+ tx.Eager("Books.Writers").First(&u)  // will load all Books for u and for every Book will load all Writers.
+```
+```go
+tx.Eager("Books.Writers.Book").First(&u)  // will load all Books for u and for every Book will load all Writers and for every writer will load the Book association.
+```
+```go
+tx.Eager("Books.Writers").Eager("FavoriteSong").First(&u)  // will load all Books for u and for every Book will load all Writers. And Also it will load the favorite song for user.
 ```
 
 #### Callbacks
