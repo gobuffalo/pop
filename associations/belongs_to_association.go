@@ -14,6 +14,7 @@ type belongsToAssociation struct {
 	ownerType  reflect.Type
 	ownerID    reflect.Value
 	owner      interface{}
+	*associationComposite
 }
 
 func init() {
@@ -35,10 +36,11 @@ func belongsToAssociationBuilder(p associationParams) (Association, error) {
 	}
 
 	return &belongsToAssociation{
-		ownerModel: fval,
-		ownerType:  fval.Type(),
-		ownerID:    f,
-		owner:      p.model,
+		ownerModel:           fval,
+		ownerType:            fval.Type(),
+		ownerID:              f,
+		owner:                p.model,
+		associationComposite: &associationComposite{innerAssociations: p.innerAssociations},
 	}, nil
 }
 

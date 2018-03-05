@@ -95,11 +95,23 @@ type Book struct {
 	UserID      nulls.Int `db:"user_id"`
 	User        User      `belongs_to:"user"`
 	Description string    `db:"description"`
+	Writers     Writers   `has_many:"writers"`
 	CreatedAt   time.Time `db:"created_at"`
 	UpdatedAt   time.Time `db:"updated_at"`
 }
 
 type Books []Book
+
+type Writer struct {
+	ID        int       `db:"id"`
+	Name      string    `db:"name"`
+	BookID    int       `db:"book_id"`
+	Book      Book      `belongs_to:"book"`
+	CreatedAt time.Time `db:"created_at"`
+	UpdatedAt time.Time `db:"updated_at"`
+}
+
+type Writers []Writer
 
 type Address struct {
 	ID          int       `db:"id"`
@@ -138,11 +150,20 @@ type Enemy struct {
 }
 
 type Song struct {
-	ID        uuid.UUID `db:"id"`
-	Title     string    `db:"title"`
-	UserID    int       `db:"u_id"`
-	CreatedAt time.Time `json:"created_at" db:"created_at"`
-	UpdatedAt time.Time `json:"updated_at" db:"updated_at"`
+	ID         uuid.UUID `db:"id"`
+	Title      string    `db:"title"`
+	UserID     int       `db:"u_id"`
+	CreatedAt  time.Time `json:"created_at" db:"created_at"`
+	UpdatedAt  time.Time `json:"updated_at" db:"updated_at"`
+	ComposerID int       `json:"composer_id" db:"composer_id"`
+	ComposedBy Composer  `belongs_to:"composer"`
+}
+
+type Composer struct {
+	ID        int       `db:"id"`
+	Name      string    `db:"name"`
+	CreatedAt time.Time `db:"created_at"`
+	UpdatedAt time.Time `db:"updated_at"`
 }
 
 type ValidatableCar struct {

@@ -2,6 +2,16 @@ create_table("songs", func(t) {
   t.Column("id", "uuid", {"primary":true})
   t.Column("u_id", "int", {"null":true})
   t.Column("title", "string", {})
+  t.Column("composer_id", "int", {"null":true})
+})
+
+create_table("composers", func(t) {
+  t.Column("name", "string", {})
+})
+
+create_table("writers", func(t) {
+  t.Column("name", "string", {})
+  t.Column("book_id", "int", {})
 })
 
 create_table("addresses", func(t) {
