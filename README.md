@@ -230,7 +230,7 @@ user := models.User{}
 err := tx.Find(&user, id)
 ```
 
-#### Query
+#### Query All
 ```go
 tx := models.DB
 query := tx.Where("id = 1").Where("name = 'Mark'")
@@ -256,6 +256,80 @@ sql, args := query.ToSQL(&pop.Model{Value: models.UserRole{}}, "user_roles.*",
   "roles.name as role_name", "u.first_name", "u.last_name")
 //log.Printf("sql: %s, args: %v", sql, args)
 err := models.DB.RawQuery(sql, args...).All(&roles)
+```
+
+#### Create
+```go
+// Create one record.
+user := models.User{}
+user.Name = "Mark"
+err := tx.Create(&user)
+
+// Create many records.
+users := models.Users{
+  {Name:"Mark"},
+  {Name: "Larry"},
+}
+
+err := tx.Create(&users)
+```
+
+#### Save
+```go
+// Save one record.
+user := models.User{}
+user.Name = "Mark"
+err := tx.Save(&user)
+
+// Save many records.
+users := models.Users{
+  {Name:"Mark"},
+  {Name: "Larry"},
+}
+
+err := tx.Save(&users)
+```
+
+#### Update
+```go
+// Update one record.
+user := models.User{}
+user.Name = "Mark"
+err := tx.Create(&user)
+
+user.Name = "Mark Bates"
+err = tx.Update(&user)
+
+// Update many records.
+users := models.Users{
+  {Name:"Mark"},
+  {Name: "Larry"},
+}
+
+err := tx.Create(&users)
+
+users[0].Name = "Mark Bates"
+users[1].Name = "Larry Morales"
+err := tx.Update(&users)
+```
+
+#### Destroy
+```go
+// Destroy one record.
+user := models.User{}
+user.Name = "Mark"
+err := tx.Create(&user)
+
+err = tx.Destroy(&user)
+
+// Destroy many records.
+users := models.Users{
+  {Name:"Mark"},
+  {Name: "Larry"},
+}
+err := tx.Create(&users)
+
+err = tx.Destroy(&users)
 ```
 
 ### Eager Loading
@@ -342,6 +416,22 @@ tx.Eager("Books.Writers.Book").First(&u)  // will load all Books for u and for e
 ```
 ```go
 tx.Eager("Books.Writers").Eager("FavoriteSong").First(&u)  // will load all Books for u and for every Book will load all Writers. And Also it will load the favorite song for user.
+```
+
+#### Eager Creation
+pop allows you to eager create models and their associations in just one simple statement, you don't need to create every association separately anymore.
+
+```go
+user := User{
+  Name: "Mark Bates",
+  Books: Books{{Title: "Pop Book", Description: "Pop Book", Isbn: "PB1"}},
+  FavoriteSong: Song{Title: "Don't know the title"},
+  Houses: Addresses{
+    Address{HouseNumber: 1, Street: "Golang"},
+  },
+}
+
+err := tx.Eager().Create(&user)
 ```
 
 #### Callbacks
