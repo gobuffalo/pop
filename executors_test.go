@@ -329,3 +329,30 @@ func Test_Destroy_UUID(t *testing.T) {
 		r.Equal(count, ctx)
 	})
 }
+
+func Test_TruncateAll(t *testing.T) {
+	count := int(0)
+	transaction(func(tx *pop.Connection) {
+		a := require.New(t)
+
+		var err error
+		count, err = tx.Count("users")
+		user := User{Name: nulls.NewString("Mark")}
+		err = tx.Create(&user)
+		a.NoError(err)
+		a.NotEqual(user.ID, 0)
+
+		ctx, err := tx.Count("users")
+		a.Equal(count+1, ctx)
+	})
+
+	transaction(func(tx *pop.Connection) {
+		a := require.New(t)
+
+		err := tx.TruncateAll()
+		a.NoError(err)
+
+		ctx, _ := tx.Count("users")
+		a.Equal(count, ctx)
+	})
+}

@@ -136,6 +136,87 @@ func Test_Find_Eager_Has_One(t *testing.T) {
 	})
 }
 
+func Test_Find_Eager_Has_One_With_Inner_Associations_Struct(t *testing.T) {
+	transaction(func(tx *pop.Connection) {
+		a := require.New(t)
+
+		user := User{Name: nulls.NewString("Mark")}
+		err := tx.Create(&user)
+		a.NoError(err)
+
+		composer := Composer{Name: "Blues Traveler"}
+		err = tx.Create(&composer)
+		a.NoError(err)
+
+		coolSong := Song{Title: "Hook", UserID: user.ID, ComposerID: composer.ID}
+		err = tx.Create(&coolSong)
+		a.NoError(err)
+
+		u := User{}
+		err = tx.Eager("FavoriteSong.ComposedBy").Find(&u, user.ID)
+		a.NoError(err)
+
+		a.NotEqual(u.ID, 0)
+		a.Equal(u.Name.String, "Mark")
+		a.Equal(u.FavoriteSong.ID, coolSong.ID)
+		a.Equal(u.FavoriteSong.ComposedBy.Name, composer.Name)
+	})
+}
+
+func Test_Find_Eager_Has_One_With_Inner_Associations_Slice(t *testing.T) {
+	transaction(func(tx *pop.Connection) {
+		a := require.New(t)
+
+		user := User{Name: nulls.NewString("Mark")}
+		err := tx.Create(&user)
+		a.NoError(err)
+
+		book := Book{Title: "Pop Book", Isbn: "PB1", UserID: nulls.NewInt(user.ID)}
+		err = tx.Create(&book)
+		a.NoError(err)
+
+		writer := Writer{Name: "Mark Bates", BookID: book.ID}
+		err = tx.Create(&writer)
+		a.NoError(err)
+
+		u := User{}
+		err = tx.Eager("Books.Writers").Find(&u, user.ID)
+		a.NoError(err)
+
+		a.NotEqual(u.ID, 0)
+		a.Equal(u.Name.String, "Mark")
+		a.Equal(len(u.Books), 1)
+		a.Equal(len(u.Books[0].Writers), 1)
+
+		a.Equal(u.Books[0].Title, book.Title)
+		a.Equal(u.Books[0].Writers[0].Name, writer.Name)
+		a.Zero(u.Books[0].Writers[0].Book.ID)
+	})
+}
+
+func Test_Eager_Bad_Format(t *testing.T) {
+	transaction(func(tx *pop.Connection) {
+		a := require.New(t)
+
+		user := User{Name: nulls.NewString("Mark")}
+		err := tx.Create(&user)
+		a.NoError(err)
+
+		u := User{}
+		err = tx.Eager("Books.").First(&u)
+		a.Error(err)
+
+		err = tx.Eager("Books.*").First(&u)
+		a.Error(err)
+
+		err = tx.Eager(".*").First(&u)
+		a.Error(err)
+
+		err = tx.Eager(".").First(&u)
+		a.Error(err)
+	})
+}
+
 func Test_Find_Eager_Many_To_Many(t *testing.T) {
 	transaction(func(tx *pop.Connection) {
 		a := require.New(t)

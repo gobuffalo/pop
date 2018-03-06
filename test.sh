@@ -23,13 +23,13 @@ function test {
   ./tsoda drop -e $SODA_DIALECT -c ./database.yml
   ./tsoda create -e $SODA_DIALECT -c ./database.yml
   ./tsoda migrate -e $SODA_DIALECT -c ./database.yml
-  go test $(go list ./... | grep -v /vendor/)
+  go test -tags sqlite $verbose $(go list ./... | grep -v /vendor/)
 }
 
-test "sqlite"
 test "postgres"
 test "cockroach"
 test "mysql"
+test "sqlite"
 
 docker-compose down
 

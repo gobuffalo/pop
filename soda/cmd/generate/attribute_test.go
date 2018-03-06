@@ -16,7 +16,7 @@ func Test_Attribute_String(t *testing.T) {
 	}{
 		{
 			name: "user_id",
-			exp:  "\tUserId string `json:\"user_id\" db:\"user_id\"`",
+			exp:  "\tUserID string `json:\"user_id\" db:\"user_id\"`",
 		},
 		{
 			name: "UserID",
@@ -28,11 +28,11 @@ func Test_Attribute_String(t *testing.T) {
 		},
 		{
 			name: "userId",
-			exp:  "\tUserId string `json:\"user_id\" db:\"user_id\"`",
+			exp:  "\tUserID string `json:\"user_id\" db:\"user_id\"`",
 		},
 		{
 			name: "user-id",
-			exp:  "\tUserId string `json:\"user_id\" db:\"user_id\"`",
+			exp:  "\tUserID string `json:\"user_id\" db:\"user_id\"`",
 		},
 	}
 

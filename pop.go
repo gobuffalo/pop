@@ -8,6 +8,8 @@ import (
 	"github.com/fatih/color"
 )
 
+var AvailableDialects = []string{"postgres", "mysql", "cockroach"}
+
 // Debug mode, to toggle verbose log traces
 var Debug = false
 

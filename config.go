@@ -11,7 +11,6 @@ import (
 	"github.com/gobuffalo/envy"
 	"github.com/pkg/errors"
 
-	"github.com/markbates/going/defaults"
 	"gopkg.in/yaml.v2"
 )
 
@@ -74,10 +73,10 @@ func LoadFrom(r io.Reader) error {
 	tmpl := template.New("test")
 	tmpl.Funcs(map[string]interface{}{
 		"envOr": func(s1, s2 string) string {
-			return defaults.String(os.Getenv(s1), s2)
+			return envy.Get(s1, s2)
 		},
 		"env": func(s1 string) string {
-			return os.Getenv(s1)
+			return envy.Get(s1, "")
 		},
 	})
 	b, err := ioutil.ReadAll(r)
