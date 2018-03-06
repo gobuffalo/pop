@@ -21,21 +21,20 @@ func (f fooBelongsTo) TableName() string {
 }
 
 type barBelongsTo struct {
-	FooBelongsToID uuid.UUID    `db:"foo_id"`
-	Foo            fooBelongsTo `belongs_to:"foo"`
-	NestedBar      nestedBar    `has_one:"nestedBar"`
+	FooID uuid.UUID    `db:"foo_id"`
+	Foo   fooBelongsTo `belongs_to:"foo"`
 }
 
 type nestedBar struct {
-	ID             uuid.UUID `db:"id"`
-	fooBelongsToID uuid.UUID `db:"foo_belongs_to_id"`
+	ID    uuid.UUID `db:"id"`
+	FooID uuid.UUID `db:"foo_id"`
 }
 
 func Test_Belongs_To_Association(t *testing.T) {
 	a := require.New(t)
 
 	id, _ := uuid.NewV1()
-	bar := barBelongsTo{FooBelongsToID: id}
+	bar := barBelongsTo{FooID: id}
 
 	as, err := associations.AssociationsForStruct(&bar, "Foo.NestedBars")
 	a.NoError(err)
