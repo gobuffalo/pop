@@ -1,6 +1,8 @@
 package pop
 
 import (
+	"reflect"
+
 	"github.com/gobuffalo/pop/associations"
 	"github.com/gobuffalo/validate"
 )
@@ -21,7 +23,12 @@ func (c *Connection) eagerCreate(model interface{}, excludeColumns ...string) er
 		// Create all dependencies first.
 		dependencies := asoCreatable.CreatableDependencies()
 		for _, d := range dependencies {
-			err = c.Create(d)
+			if reflect.TypeOf(d) == reflect.TypeOf(model) {
+				err = c.Create(d, excludeColumns...)
+			} else {
+				err = c.Create(d)
+			}
+
 			if err != nil {
 				return err
 			}
@@ -40,7 +47,13 @@ func (c *Connection) eagerCreate(model interface{}, excludeColumns ...string) er
 			continue
 		}
 
-		err = c.Create(a.Interface())
+		i := a.Interface()
+		if reflect.TypeOf(i) == reflect.TypeOf(model) {
+			err = c.Create(i, excludeColumns...)
+		} else {
+			err = c.Create(i)
+		}
+
 		if err != nil {
 			return err
 		}
