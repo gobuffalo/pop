@@ -153,7 +153,7 @@ type Song struct {
 	UserID       int       `db:"u_id"`
 	CreatedAt    time.Time `json:"created_at" db:"created_at"`
 	UpdatedAt    time.Time `json:"updated_at" db:"updated_at"`
-	ComposedByID int       `json:"composer_id" db:"composer_id"`
+	ComposedByID int       `json:"composed_by_id" db:"composed_by_id"`
 	ComposedBy   Composer  `belongs_to:"composer"`
 }
 
