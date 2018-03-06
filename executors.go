@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/markbates/pop/associations"
-
 	"github.com/gobuffalo/pop/columns"
 	"github.com/gobuffalo/uuid"
 	"github.com/gobuffalo/validate"
@@ -143,6 +141,10 @@ func (c *Connection) ValidateAndCreate(model interface{}, excludeColumns ...stri
 		return validate.NewErrors(), err
 	}
 
+	if c.eager {
+		return c.eagerValidateAndCreate(model, excludeColumns...)
+	}
+
 	sm := &Model{Value: model}
 	verrs, err := sm.validateCreate(c)
 	if err != nil {
@@ -173,49 +175,10 @@ func (c *Connection) Create(model interface{}, excludeColumns ...string) error {
 		return err
 	}
 
-	if !c.eager {
-		return c.createOne(model, excludeColumns...)
+	if c.eager {
+		return c.eagerCreate(model, excludeColumns...)
 	}
 
-	asos, err := associations.AssociationsForStruct(model, c.eagerFields...)
-	if err != nil {
-		return err
-	}
-
-	c.eager = false
-	for _, a := range asos {
-		// Create all dependencies first.
-		dependencies := a.Dependencies()
-		for _, d := range dependencies {
-			err = c.Create(d)
-			if err != nil {
-				return err
-			}
-		}
-
-		// set values based on dependencies.
-		a.SetValue(dependencies)
-
-		if acs, ok := a.(associations.AssociationCreatableStatement); ok {
-			stms := acs.Statements()
-			for _, stm := range stms {
-				_, err = c.TX.Exec(c.Dialect.TranslateSQL(stm.Statement), stm.Args...)
-				if err != nil {
-					return err
-				}
-			}
-			continue
-		}
-
-		err = c.Create(a.Interface())
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func (c *Connection) createOne(model interface{}, excludeColumns ...string) error {
 	return c.timeFunc("Create", func() error {
 		var err error
 		sm := &Model{Value: model}

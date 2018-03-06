@@ -43,8 +43,11 @@ func Test_Has_Many_SetValue(t *testing.T) {
 	foo := FooHasMany{ID: 1, BarHasManies: &barHasManies{{Title: "bar"}}}
 
 	as, _ := associations.AssociationsForStruct(&foo)
-
 	a.Equal(len(as), 1)
-	as[0].SetValue([]interface{}{foo.ID})
+
+	ca, ok := as[0].(associations.AssociationCreatable)
+	a.True(ok)
+
+	ca.Initialize()
 	a.Equal(foo.ID, (*foo.BarHasManies)[0].FooHasManyID.Interface().(int))
 }

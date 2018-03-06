@@ -86,7 +86,7 @@ func (m *manyToManyAssociation) OrderBy() string {
 	return m.orderBy
 }
 
-func (m *manyToManyAssociation) Dependencies() []interface{} {
+func (m *manyToManyAssociation) CreatableDependencies() []interface{} {
 	dependencies := []interface{}{}
 	if m.fieldValue.Kind() == reflect.Ptr {
 		dependencies = append(dependencies, m.fieldValue.Interface())
@@ -101,7 +101,7 @@ func (m *manyToManyAssociation) Dependencies() []interface{} {
 	return dependencies
 }
 
-func (m *manyToManyAssociation) SetValue(i []interface{}) error {
+func (m *manyToManyAssociation) Initialize() error {
 	return nil
 }
 

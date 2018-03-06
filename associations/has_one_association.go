@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"reflect"
 
+	"github.com/gobuffalo/pop/nulls"
 	"github.com/markbates/inflect"
-	"github.com/markbates/pop/nulls"
 )
 
 type hasOneAssociation struct {
@@ -61,7 +61,7 @@ func (h *hasOneAssociation) Interface() interface{} {
 
 // if it is skipped if the only dependency is present:
 // owner ID.
-func (h *hasOneAssociation) Dependencies() []interface{} {
+func (h *hasOneAssociation) CreatableDependencies() []interface{} {
 	ownerID := reflect.Indirect(reflect.ValueOf(h.owner)).FieldByName("ID").Interface()
 	if h.skipped || isZero(ownerID) {
 		return []interface{}{h.owner}
@@ -81,13 +81,8 @@ func (h *hasOneAssociation) Constraint() (string, []interface{}) {
 	return condition, []interface{}{h.ownerID}
 }
 
-func (h *hasOneAssociation) SetValue(i []interface{}) error {
-	var ownerID interface{}
-	if h.skipped {
-		ownerID = reflect.Indirect(reflect.ValueOf(i[0])).FieldByName("ID").Interface()
-	} else {
-		ownerID = reflect.Indirect(reflect.ValueOf(h.owner)).FieldByName("ID").Interface()
-	}
+func (h *hasOneAssociation) Initialize() error {
+	ownerID := reflect.Indirect(reflect.ValueOf(h.owner)).FieldByName("ID").Interface()
 
 	fval := h.ownedModel.FieldByName(h.ownerName + "ID")
 	if fval.CanSet() {
@@ -100,8 +95,4 @@ func (h *hasOneAssociation) SetValue(i []interface{}) error {
 	}
 
 	return fmt.Errorf("could not set '%s' to '%s'", ownerID, fval)
-}
-
-func (h *hasOneAssociation) Skipped() bool {
-	return h.skipped
 }

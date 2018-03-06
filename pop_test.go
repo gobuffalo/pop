@@ -98,6 +98,15 @@ type Book struct {
 	UpdatedAt   time.Time `db:"updated_at"`
 }
 
+func (b *Book) ValidateCreate(tx *pop.Connection) (*validate.Errors, error) {
+	verrs := validate.NewErrors()
+	if b.Description == "" {
+		verrs.Add("Description", "*mandatory")
+	}
+
+	return verrs, nil
+}
+
 type Books []Book
 
 type Writer struct {

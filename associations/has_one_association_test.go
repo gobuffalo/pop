@@ -45,6 +45,9 @@ func Test_Has_One_SetValue(t *testing.T) {
 	as, _ := associations.AssociationsForStruct(&foo)
 	a.Equal(len(as), 1)
 
-	as[0].SetValue([]interface{}{foo.ID})
+	ca, ok := as[0].(associations.AssociationCreatable)
+	a.True(ok)
+
+	ca.Initialize()
 	a.Equal(foo.ID, foo.BarHasOne.FooHasOneID.Interface().(uuid.UUID))
 }

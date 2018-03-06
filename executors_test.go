@@ -355,7 +355,6 @@ func Test_Create_With_Slice(t *testing.T) {
 	})
 }
 
-// TODO: Ignore those zero value association so they can not be created in database.
 func Test_Eager_Create_Has_Many(t *testing.T) {
 	transaction(func(tx *pop.Connection) {
 		a := require.New(t)
@@ -393,6 +392,24 @@ func Test_Eager_Create_Has_Many(t *testing.T) {
 		a.Equal(u.Books[0].Title, "Pop Book")
 		a.Equal(u.FavoriteSong.Title, "Hook - Blues Traveler")
 		a.Equal(u.Houses[0].Street, "Modelo")
+	})
+}
+
+func Test_Eager_Validate_And_Create_Has_Many(t *testing.T) {
+	a := require.New(t)
+	transaction(func(tx *pop.Connection) {
+		user := User{
+			Name:         nulls.NewString("Mark 'Awesome' Bates"),
+			Books:        Books{{Title: "Pop Book", Isbn: "PB1"}},
+			FavoriteSong: Song{Title: "Hook - Blues Traveler"},
+			Houses: Addresses{
+				Address{HouseNumber: 86, Street: "Modelo"},
+			},
+		}
+
+		verrs, err := tx.Eager().ValidateAndCreate(&user)
+		a.NoError(err)
+		a.Equal(1, verrs.Count()) // Missing Books.Description.
 	})
 }
 

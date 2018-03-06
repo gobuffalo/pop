@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"reflect"
 
+	"github.com/gobuffalo/pop/nulls"
 	"github.com/markbates/inflect"
-	"github.com/markbates/pop/nulls"
 )
 
 // belongsToAssociation is the implementation for the belongs_to
@@ -14,7 +14,7 @@ type belongsToAssociation struct {
 	ownerModel reflect.Value
 	ownerType  reflect.Type
 	ownerID    reflect.Value
-	owner      interface{}
+	ownedModel interface{}
 	*associationSkipable
 	*associationComposite
 }
@@ -42,7 +42,7 @@ func belongsToAssociationBuilder(p associationParams) (Association, error) {
 		ownerModel: fval,
 		ownerType:  fval.Type(),
 		ownerID:    f,
-		owner:      p.model,
+		ownedModel: p.model,
 		associationSkipable: &associationSkipable{
 			skipped: skipped,
 		},
@@ -59,7 +59,7 @@ func (b *belongsToAssociation) Kind() reflect.Kind {
 
 func (b *belongsToAssociation) Interface() interface{} {
 	if b.skipped {
-		return b.owner
+		return b.ownedModel
 	}
 
 	if b.ownerModel.Kind() == reflect.Ptr {
@@ -76,7 +76,7 @@ func (b *belongsToAssociation) Constraint() (string, []interface{}) {
 	return "id = ?", []interface{}{b.ownerID.Interface()}
 }
 
-func (b *belongsToAssociation) Dependencies() []interface{} {
+func (b *belongsToAssociation) CreatableDependencies() []interface{} {
 	if b.skipped {
 		if b.ownerModel.Kind() == reflect.Ptr {
 			return []interface{}{b.ownerModel.Interface()}
@@ -86,8 +86,8 @@ func (b *belongsToAssociation) Dependencies() []interface{} {
 	return []interface{}{}
 }
 
-func (b *belongsToAssociation) SetValue(i []interface{}) error {
-	ownerID := reflect.Indirect(reflect.ValueOf(i[0])).FieldByName("ID").Interface()
+func (b *belongsToAssociation) Initialize() error {
+	ownerID := reflect.Indirect(reflect.ValueOf(b.ownerModel.Interface())).FieldByName("ID").Interface()
 
 	if b.ownerID.CanSet() {
 		if n := nulls.New(b.ownerID.Interface()); n != nil {

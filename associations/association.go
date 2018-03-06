@@ -15,8 +15,6 @@ type Association interface {
 	Interface() interface{}
 	Constraint() (string, []interface{})
 	InnerAssociations() InnerAssociations
-	Dependencies() []interface{}
-	SetValue([]interface{}) error
 	Skipped() bool
 }
 
@@ -57,10 +55,27 @@ type AssociationSortable interface {
 	Association
 }
 
-// AssociationCreatableStatement a association that stablish
-// some statements on create.
+// AssociationCreatable is an association that
+// can be created by executors.
+type AssociationCreatable interface {
+	// CreatableDependencies returns all dependencies for
+	// this associations that needs to be created before.
+	// A common example is a belongs to association type, where
+	// the owner ID needs to be defined before it can be created.
+	CreatableDependencies() []interface{}
+
+	// Initialize is called before this association can be created
+	// by an executor. Just as a way to setups fields or validates
+	// any.
+	Initialize() error
+	Association
+}
+
+// AssociationCreatableStatement a association that defines
+// create statements on database.
 type AssociationCreatableStatement interface {
 	Statements() []AssociationStatement
+	Association
 }
 
 // AssociationStatement a type that represents a statement to be
