@@ -181,6 +181,15 @@ func (p *MySQLSuite) Test_MySQL_AddColumnAfter() {
 	r.Equal(ddl, res)
 }
 
+func (p *MySQLSuite) Test_MySQL_AddColumnFirst() {
+	r := p.Require()
+	ddl := `ALTER TABLE users ADD COLUMN mycolumn VARCHAR (50) NOT NULL DEFAULT 'foo' FIRST;`
+
+	res, _ := fizz.AString(`add_column("users", "mycolumn", "string", {"default": "foo", "size": 50, "first":true})`, myt)
+
+	r.Equal(ddl, res)
+}
+
 func (p *MySQLSuite) Test_MySQL_DropColumn() {
 	r := p.Require()
 	ddl := `ALTER TABLE users DROP COLUMN mycolumn;`
