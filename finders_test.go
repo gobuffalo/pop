@@ -148,7 +148,7 @@ func Test_Find_Eager_Has_One_With_Inner_Associations_Struct(t *testing.T) {
 		err = tx.Create(&composer)
 		a.NoError(err)
 
-		coolSong := Song{Title: "Hook", UserID: user.ID, ComposerID: composer.ID}
+		coolSong := Song{Title: "Hook", UserID: user.ID, ComposedByID: composer.ID}
 		err = tx.Create(&coolSong)
 		a.NoError(err)
 
