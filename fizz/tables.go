@@ -50,7 +50,7 @@ func (t *Table) ForeignKey(column string, refs interface{}, options Options) {
 func (t *Table) Timestamp(name string) {
 	c := Column{
 		Name:    name,
-		ColType: "timestamp",
+		ColType: defaultTimestampType,
 		Options: Options{},
 	}
 
