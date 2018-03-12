@@ -14,8 +14,10 @@ var UUID_ID_COL = Column{
 	Options: Options{},
 }
 
-var CREATED_COL = Column{Name: "created_at", ColType: "timestamp", Options: Options{}}
-var UPDATED_COL = Column{Name: "updated_at", ColType: "timestamp", Options: Options{}}
+const defaultTimestampType = "timestamp with time zone"
+
+var CREATED_COL = Column{Name: "created_at", ColType: defaultTimestampType, Options: Options{}}
+var UPDATED_COL = Column{Name: "updated_at", ColType: defaultTimestampType, Options: Options{}}
 
 type Column struct {
 	Name    string
