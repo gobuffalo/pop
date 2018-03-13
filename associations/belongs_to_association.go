@@ -5,7 +5,6 @@ import (
 	"reflect"
 
 	"github.com/gobuffalo/pop/nulls"
-	"github.com/markbates/inflect"
 )
 
 // belongsToAssociation is the implementation for the belongs_to
@@ -25,7 +24,7 @@ func init() {
 
 func belongsToAssociationBuilder(p associationParams) (Association, error) {
 	fval := p.modelValue.FieldByName(p.field.Name)
-	ownerIDField := fmt.Sprintf("%s%s", inflect.Capitalize(fval.Type().Name()), "ID")
+	ownerIDField := fmt.Sprintf("%s%s", p.field.Name, "ID")
 
 	if _, found := p.modelType.FieldByName(ownerIDField); !found {
 		return nil, fmt.Errorf("there is no '%s' defined in model '%s'", ownerIDField, p.modelType.Name())
