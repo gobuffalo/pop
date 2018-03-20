@@ -210,6 +210,8 @@ func (p *Postgres) colType(c fizz.Column) string {
 		return "UUID"
 	case "time", "datetime":
 		return "timestamp"
+	case "blob":
+		return "bytea"
 	default:
 		return c.ColType
 	}
