@@ -63,6 +63,7 @@ func (p *SQLiteSuite) Test_SQLite_CreateTable() {
 "email" TEXT NOT NULL,
 "permissions" text,
 "age" integer DEFAULT '40',
+"raw" BLOB,
 "created_at" DATETIME NOT NULL,
 "updated_at" DATETIME NOT NULL
 );`
@@ -74,6 +75,7 @@ func (p *SQLiteSuite) Test_SQLite_CreateTable() {
 		t.Column("email", "string", {"size":20})
 		t.Column("permissions", "text", {"null": true})
 		t.Column("age", "integer", {"null": true, "default": 40})
+		t.Column("raw", "blob", {})
 	})
 	`, sqt)
 	r.Equal(ddl, res)

@@ -48,6 +48,7 @@ last_name VARCHAR (255) NOT NULL,
 email VARCHAR (20) NOT NULL,
 permissions text,
 age integer DEFAULT 40,
+raw BLOB,
 created_at DATETIME NOT NULL,
 updated_at DATETIME NOT NULL
 ) ENGINE=InnoDB;`
@@ -59,6 +60,7 @@ updated_at DATETIME NOT NULL
 		t.Column("email", "string", {"size":20})
 		t.Column("permissions", "text", {"null": true})
 		t.Column("age", "integer", {"null": true, "default": 40})
+		t.Column("raw", "blob", {})
 	})
 	`, myt)
 	r.Equal(ddl, res)

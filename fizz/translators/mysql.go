@@ -223,6 +223,8 @@ func (p *MySQL) colType(c fizz.Column) string {
 		return "char(36)"
 	case "timestamp", "time", "datetime":
 		return "DATETIME"
+	case "blob":
+		return "BLOB"
 	default:
 		return c.ColType
 	}
