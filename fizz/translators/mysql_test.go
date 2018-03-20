@@ -48,7 +48,7 @@ last_name VARCHAR (255) NOT NULL,
 email VARCHAR (20) NOT NULL,
 permissions text,
 age integer DEFAULT 40,
-raw BLOB,
+raw BLOB NOT NULL,
 created_at DATETIME NOT NULL,
 updated_at DATETIME NOT NULL
 ) ENGINE=InnoDB;`

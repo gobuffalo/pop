@@ -17,7 +17,7 @@ func (p *PostgreSQLSuite) Test_Postgres_CreateTable() {
 "email" VARCHAR (20) NOT NULL,
 "permissions" jsonb,
 "age" integer DEFAULT '40',
-"raw" bytea,
+"raw" bytea NOT NULL,
 "company_id" UUID NOT NULL DEFAULT uuid_generate_v1(),
 "created_at" timestamp NOT NULL,
 "updated_at" timestamp NOT NULL

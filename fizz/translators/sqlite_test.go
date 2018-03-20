@@ -63,7 +63,7 @@ func (p *SQLiteSuite) Test_SQLite_CreateTable() {
 "email" TEXT NOT NULL,
 "permissions" text,
 "age" integer DEFAULT '40',
-"raw" BLOB,
+"raw" BLOB NOT NULL,
 "created_at" DATETIME NOT NULL,
 "updated_at" DATETIME NOT NULL
 );`
