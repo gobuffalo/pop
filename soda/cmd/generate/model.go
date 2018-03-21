@@ -210,6 +210,8 @@ func fizzColType(s string) string {
 		return "jsonb"
 	case "float32", "float64", "float":
 		return "decimal"
+	case "blob", "[]byte":
+		return "blob"
 	default:
 		if nrx.MatchString(s) {
 			return fizzColType(strings.Replace(s, "nulls.", "", -1))

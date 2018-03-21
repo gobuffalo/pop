@@ -145,7 +145,7 @@ The `soda` command will generate Go models and, optionally, the associated migra
 $ soda generate model user name:text email:text
 ```
 
-Running this command with generate the following files:
+Running this command will generate the following files:
 
 ```text
 models/user.go
@@ -157,6 +157,7 @@ migrations/20170115024143_create_users.down.fizz
 The `models/user.go` file contains a structure named `User` with fields `ID`, `CreatedAt`, `UpdatedAt`, `Name`, and `Email`. The first three correspond to the columns commonly found in ActiveRecord models as mentioned before, and the last two correspond to the additional fields specified on the command line. The known types are:
 
 * `text` (`string` in Go)
+* `blob` (`[]byte` in Go)
 * `time` or `timestamp` (`time.Time`)
 * `nulls.Text` (`nulls.String`) which corresponds to a nullifyable string, which can be distinguished from an empty string
 * `uuid` (`uuid.UUID`)
@@ -184,7 +185,7 @@ The `soda` command will generate SQL migrations (both the up and down) files for
 $ soda generate fizz name_of_migration
 ```
 
-Running this command with generate the following files:
+Running this command will generate the following files:
 
 ```text
 ./migrations/20160815134952_name_of_migration.up.fizz
@@ -199,7 +200,7 @@ If you want to generate old fashion `.sql` files you can use the `-t` flag for t
 $ soda generate sql name_of_migration
 ```
 
-Running this command with generate the following files:
+Running this command will generate the following files:
 
 ```text
 ./migrations/20160815134952_name_of_migration.up.sql
