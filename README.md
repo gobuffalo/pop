@@ -104,6 +104,8 @@ $ go get -u -v -tags sqlite github.com/gobuffalo/pop/...
 $ go install github.com/gobuffalo/pop/soda
 ```
 
+If you're not building your code with `buffalo build`, you'll also have to pass `-tags sqlite` to `go build` when building your program.
+
 ### Creating Databases
 
 Assuming you defined a configuration file like that described in the above section you can automatically create those databases using the `soda` command:
