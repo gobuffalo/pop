@@ -90,10 +90,21 @@ Pop features CLI support via the `soda` command for the following operations:
 
 ### Installing CLI Support
 
+**Without** sqlite 3 support:
+
 ```bash
 $ go get github.com/gobuffalo/pop/...
 $ go install github.com/gobuffalo/pop/soda
 ```
+
+**with** sqlite 3 support:
+
+```bash
+$ go get -u -v -tags sqlite github.com/gobuffalo/pop/...
+$ go install github.com/gobuffalo/pop/soda
+```
+
+If you're not building your code with `buffalo build`, you'll also have to pass `-tags sqlite` to `go build` when building your program.
 
 ### Creating Databases
 
