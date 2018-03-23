@@ -143,6 +143,21 @@ func (Friend) TableName() string {
 
 type Friends []Friend
 
+type Family struct {
+	ID        int       `db:"id"`
+	FirstName string    `db:"first_name"`
+	LastName  string    `db:"last_name"`
+	CreatedAt time.Time `db:"created_at"`
+	UpdatedAt time.Time `db:"updated_at"`
+}
+
+func (Family) TableName() string {
+	// schema.table_name
+	return "family.members"
+}
+
+type Families []Family
+
 type Enemy struct {
 	A string
 }
