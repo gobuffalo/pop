@@ -48,6 +48,7 @@ last_name VARCHAR (255) NOT NULL,
 email VARCHAR (20) NOT NULL,
 permissions text,
 age integer DEFAULT 40,
+raw BLOB NOT NULL,
 created_at DATETIME NOT NULL,
 updated_at DATETIME NOT NULL
 ) ENGINE=InnoDB;`
@@ -59,6 +60,7 @@ updated_at DATETIME NOT NULL
 		t.Column("email", "string", {"size":20})
 		t.Column("permissions", "text", {"null": true})
 		t.Column("age", "integer", {"null": true, "default": 40})
+		t.Column("raw", "blob", {})
 	})
 	`, myt)
 	r.Equal(ddl, res)
@@ -168,6 +170,24 @@ func (p *MySQLSuite) Test_MySQL_AddColumn() {
 	ddl := `ALTER TABLE users ADD COLUMN mycolumn VARCHAR (50) NOT NULL DEFAULT 'foo';`
 
 	res, _ := fizz.AString(`add_column("users", "mycolumn", "string", {"default": "foo", "size": 50})`, myt)
+
+	r.Equal(ddl, res)
+}
+
+func (p *MySQLSuite) Test_MySQL_AddColumnAfter() {
+	r := p.Require()
+	ddl := `ALTER TABLE users ADD COLUMN mycolumn VARCHAR (50) NOT NULL DEFAULT 'foo' AFTER created_at;`
+
+	res, _ := fizz.AString(`add_column("users", "mycolumn", "string", {"default": "foo", "size": 50, "after":"created_at"})`, myt)
+
+	r.Equal(ddl, res)
+}
+
+func (p *MySQLSuite) Test_MySQL_AddColumnFirst() {
+	r := p.Require()
+	ddl := `ALTER TABLE users ADD COLUMN mycolumn VARCHAR (50) NOT NULL DEFAULT 'foo' FIRST;`
+
+	res, _ := fizz.AString(`add_column("users", "mycolumn", "string", {"default": "foo", "size": 50, "first":true})`, myt)
 
 	r.Equal(ddl, res)
 }

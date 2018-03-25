@@ -83,10 +83,18 @@ func Test_newAttribute(t *testing.T) {
 			ResultType:     "slices.Float",
 			ModelHasSlices: true,
 		},
+		{
+			AttributeInput: "raw:blob",
+			ResultType:     "[]byte",
+		},
+		{
+			AttributeInput: "raw:[]byte",
+			ResultType:     "[]byte",
+		},
 	}
 
 	for index, tcase := range cases {
-		t.Run(fmt.Sprint(index), func(tt *testing.T) {
+		t.Run(fmt.Sprintf("%d-%s", index, tcase.AttributeInput), func(tt *testing.T) {
 			model := newModel("car")
 			a := newAttribute(tcase.AttributeInput, &model)
 
