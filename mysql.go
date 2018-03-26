@@ -9,10 +9,10 @@ import (
 
 	// Load MySQL Go driver
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/gobuffalo/pop/columns"
+	"github.com/gobuffalo/pop/fizz"
+	"github.com/gobuffalo/pop/fizz/translators"
 	"github.com/jmoiron/sqlx"
-	"github.com/markbates/pop/columns"
-	"github.com/markbates/pop/fizz"
-	"github.com/markbates/pop/fizz/translators"
 	"github.com/pkg/errors"
 )
 
@@ -37,6 +37,11 @@ func (m *mysql) URL() string {
 
 func (m *mysql) urlWithoutDb() string {
 	c := m.ConnectionDetails
+	if m.ConnectionDetails.URL != "" {
+		// respect user's own URL definition (with options).
+		url := strings.TrimPrefix(m.ConnectionDetails.URL, "mysql://")
+		return strings.Replace(url, "/"+c.Database+"?", "/?", 1)
+	}
 	s := "%s:%s@(%s:%s)/?parseTime=true&multiStatements=true&readTimeout=1s"
 	return fmt.Sprintf(s, c.User, c.Password, c.Host, c.Port)
 }

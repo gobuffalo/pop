@@ -15,10 +15,10 @@ import (
 	_ "github.com/cockroachdb/cockroach-go/crdb"
 	_ "github.com/lib/pq"
 
+	"github.com/gobuffalo/pop/columns"
+	"github.com/gobuffalo/pop/fizz"
+	"github.com/gobuffalo/pop/fizz/translators"
 	"github.com/markbates/going/defaults"
-	"github.com/markbates/pop/columns"
-	"github.com/markbates/pop/fizz"
-	"github.com/markbates/pop/fizz/translators"
 	"github.com/pkg/errors"
 )
 
@@ -199,7 +199,7 @@ func (p *cockroach) LoadSchema(r io.Reader) error {
 		secure = "--insecure"
 	}
 
-	cmd := exec.Command("cockroach", "sql", secure, fmt.Sprintf("--database=%s", p.Details().Database), "--user=maxroach")
+	cmd := exec.Command("cockroach", "sql", secure, fmt.Sprintf("--database=%s", p.Details().Database), fmt.Sprintf("--user=%s", p.Details().User))
 	in, err := cmd.StdinPipe()
 	if err != nil {
 		return err
@@ -230,11 +230,11 @@ func (p *cockroach) LoadSchema(r io.Reader) error {
 
 func (p *cockroach) TruncateAll(tx *Connection) error {
 	type table struct {
-		TableName string `sql:"table_name"`
+		TableName string `db:"table_name"`
 	}
 
 	tables := []table{}
-	if err := tx.RawQuery("select table_name from information_schema.tables;").All(&tables); err != nil {
+	if err := tx.RawQuery("select table_name from information_schema.tables where table_schema = ?;", tx.Dialect.Details().Database).All(&tables); err != nil {
 		return err
 	}
 

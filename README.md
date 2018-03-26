@@ -1,4 +1,4 @@
-# POP [![GoDoc](https://godoc.org/github.com/markbates/pop?status.svg)](https://godoc.org/github.com/markbates/pop) [![Build Status](https://travis-ci.org/markbates/pop.svg)](https://travis-ci.org/markbates/pop)
+# POP [![GoDoc](https://godoc.org/github.com/gobuffalo/pop?status.svg)](https://godoc.org/github.com/gobuffalo/pop) [![Build Status](https://travis-ci.org/gobuffalo/pop.svg)](https://travis-ci.org/gobuffalo/pop)
 
 ## A Tasty Treat For All Your Database Needs
 
@@ -90,10 +90,21 @@ Pop features CLI support via the `soda` command for the following operations:
 
 ### Installing CLI Support
 
+**Without** sqlite 3 support:
+
 ```bash
-$ go get github.com/markbates/pop/...
-$ go install github.com/markbates/pop/soda
+$ go get github.com/gobuffalo/pop/...
+$ go install github.com/gobuffalo/pop/soda
 ```
+
+**with** sqlite 3 support:
+
+```bash
+$ go get -u -v -tags sqlite github.com/gobuffalo/pop/...
+$ go install github.com/gobuffalo/pop/soda
+```
+
+If you're not building your code with `buffalo build`, you'll also have to pass `-tags sqlite` to `go build` when building your program.
 
 ### Creating Databases
 
@@ -145,7 +156,7 @@ The `soda` command will generate Go models and, optionally, the associated migra
 $ soda generate model user name:text email:text
 ```
 
-Running this command with generate the following files:
+Running this command will generate the following files:
 
 ```text
 models/user.go
@@ -157,6 +168,7 @@ migrations/20170115024143_create_users.down.fizz
 The `models/user.go` file contains a structure named `User` with fields `ID`, `CreatedAt`, `UpdatedAt`, `Name`, and `Email`. The first three correspond to the columns commonly found in ActiveRecord models as mentioned before, and the last two correspond to the additional fields specified on the command line. The known types are:
 
 * `text` (`string` in Go)
+* `blob` (`[]byte` in Go)
 * `time` or `timestamp` (`time.Time`)
 * `nulls.Text` (`nulls.String`) which corresponds to a nullifyable string, which can be distinguished from an empty string
 * `uuid` (`uuid.UUID`)
@@ -184,7 +196,7 @@ The `soda` command will generate SQL migrations (both the up and down) files for
 $ soda generate fizz name_of_migration
 ```
 
-Running this command with generate the following files:
+Running this command will generate the following files:
 
 ```text
 ./migrations/20160815134952_name_of_migration.up.fizz
@@ -199,7 +211,7 @@ If you want to generate old fashion `.sql` files you can use the `-t` flag for t
 $ soda generate sql name_of_migration
 ```
 
-Running this command with generate the following files:
+Running this command will generate the following files:
 
 ```text
 ./migrations/20160815134952_name_of_migration.up.sql
@@ -225,13 +237,13 @@ $ soda migrate down
 ```
 
 #### Find
-```
+```go
 user := models.User{}
 err := tx.Find(&user, id)
 ```
 
 #### Query
-```
+```go
 tx := models.DB
 query := tx.Where("id = 1").Where("name = 'Mark'")
 users := []models.User{}
@@ -242,7 +254,7 @@ err = tx.Where("id in (?)", 1, 2, 3).All(&users)
 
 ##### Join Query
 
-```
+```go
 // page: page number
 // perpage: limit
 roles := []models.UserRole{}
@@ -256,6 +268,92 @@ sql, args := query.ToSQL(&pop.Model{Value: models.UserRole{}}, "user_roles.*",
   "roles.name as role_name", "u.first_name", "u.last_name")
 //log.Printf("sql: %s, args: %v", sql, args)
 err := models.DB.RawQuery(sql, args...).All(&roles)
+```
+
+### Eager Loading
+**pop** allows you to perform an eager loading for associations defined in a model. By using `pop.Connection.Eager()` function plus some fields tags predefined in your model you can extract associated data from a model.
+
+```go
+type User struct {
+  ID           uuid.UUID
+  Email        string
+  Password     string
+  Books        Books     `has_many:"books" order_by:"title asc"`
+  FavoriteSong Song      `has_one:"song" fk_id:"u_id"`
+  Houses       Addresses `many_to_many:"users_addresses"`
+}
+```
+
+```go
+type Book struct {
+  ID      uuid.UUID
+  Title   string
+  Isbn    string
+  User    User        `belongs_to:"user"`
+  UserID  uuid.UUID
+  Writers Writers     `has_many:"writers"`
+}
+```
+
+```go
+type Writer struct {
+   ID     uuid.UUID   `db:"id"`
+   Name   string      `db:"name"``
+   BookID uuid.UUID   `db:"book_id"`
+   Book   Book        `belongs_to:"book"`
+}
+```
+
+```go
+type Song struct {
+  ID      uuid.UUID
+  Title   string
+  UserID  uuid.UUID   `db:"u_id"`
+}
+```
+
+```go
+type Address struct {
+  ID           uuid.UUID
+  Street       string
+  HouseNumber  int
+}
+
+type Addresses []Address
+```
+
+  **has_many**: will load all records from the `books` table that have a column named `user_id` or the column specified with **fk_id** that matches the `User.ID` value.
+
+  **belongs_to**: will load a record from `users` table that have a column named `id` that matches with `Book.UserID` value.
+
+  **has_one**: will load a record from the `songs` table that have a column named `user_id` or the column specified with **fk_id** that matches the `User.ID` value.
+
+  **many_to_many**: will load all records from the `addresses` table through the table `users_addresses`. Table `users_addresses` MUST define `address_id`  and `user_id` columns to match `User.ID` and `Address.ID` values. You can also define a **fk_id** tag that will be used in the target association i.e `addresses` table.
+
+  **fk_id**: defines the column name in the target association that matches model `ID`. In the example above `Song` has a column named `u_id` that represents `id` of `users` table. When loading `FavoriteSong`, `u_id` will be used instead of `user_id`.
+
+  **order_by**: used in `has_many` and `many_to_many` to indicate the order for the association when loading. The format to use is  `order_by:"<column_name> <asc | desc>"`
+
+
+```go
+u := Users{}
+err := tx.Eager().Where("name = 'Mark'").All(&u)  // preload all associations for user with name 'Mark', i.e Books, Houses and FavoriteSong
+err  = tx.Eager("Books").Where("name = 'Mark'").All(&u) // preload only Books association for user with name 'Mark'.
+```
+
+#### Eager Loading Nested Associations
+ pop allows you to eager loading nested associations by using `.` character to concatenate them. Take a look at the example bellow.
+```go
+tx.Eager("Books.User").First(&u)  // will load all Books for u and for every Book will load the user which will be the same as u.
+``` 
+```go
+ tx.Eager("Books.Writers").First(&u)  // will load all Books for u and for every Book will load all Writers.
+```
+```go
+tx.Eager("Books.Writers.Book").First(&u)  // will load all Books for u and for every Book will load all Writers and for every writer will load the Book association.
+```
+```go
+tx.Eager("Books.Writers").Eager("FavoriteSong").First(&u)  // will load all Books for u and for every Book will load all Writers. And Also it will load the favorite song for user.
 ```
 
 #### Callbacks
@@ -277,7 +375,7 @@ func (u *User) BeforeSave(tx *pop.Connection) error {
 	}
 
 	u.Password = string(hash)
-	
+
 	return nil
 }
 ```

@@ -6,7 +6,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/markbates/pop/fizz"
+	"github.com/gobuffalo/pop/fizz"
 )
 
 type Postgres struct {
@@ -25,8 +25,10 @@ func (p *Postgres) CreateTable(t fizz.Table) (string, error) {
 			switch c.ColType {
 			case "string", "uuid":
 				s = fmt.Sprintf("\"%s\" %s PRIMARY KEY", c.Name, p.colType(c))
-			case "integer":
+			case "integer", "INT", "int":
 				s = fmt.Sprintf("\"%s\" SERIAL PRIMARY KEY", c.Name)
+			case "bigint", "BIGINT":
+				s = fmt.Sprintf("\"%s\" BIGSERIAL PRIMARY KEY", c.Name)
 			default:
 				return "", errors.Errorf("can not use %s as a primary key", c.ColType)
 			}
@@ -35,6 +37,11 @@ func (p *Postgres) CreateTable(t fizz.Table) (string, error) {
 		}
 		cols = append(cols, s)
 	}
+
+	for _, fk := range t.ForeignKeys {
+		cols = append(cols, p.buildForeignKey(t, fk, true))
+	}
+
 	s = fmt.Sprintf("CREATE TABLE \"%s\" (\n%s\n);", t.Name, strings.Join(cols, ",\n"))
 	sql = append(sql, s)
 
@@ -129,6 +136,30 @@ func (p *Postgres) RenameIndex(t fizz.Table) (string, error) {
 	return fmt.Sprintf("ALTER INDEX \"%s\" RENAME TO \"%s\";", oi.Name, ni.Name), nil
 }
 
+func (p *Postgres) AddForeignKey(t fizz.Table) (string, error) {
+	if len(t.ForeignKeys) == 0 {
+		return "", errors.New("Not enough foreign keys supplied!")
+	}
+
+	return p.buildForeignKey(t, t.ForeignKeys[0], false), nil
+}
+
+func (p *Postgres) DropForeignKey(t fizz.Table) (string, error) {
+	if len(t.ForeignKeys) == 0 {
+		return "", errors.New("Not enough foreign keys supplied!")
+	}
+
+	fk := t.ForeignKeys[0]
+
+	var ifExists string
+	if v, ok := fk.Options["if_exists"]; ok && v.(bool) {
+		ifExists = "IF EXISTS"
+	}
+
+	s := fmt.Sprintf("ALTER TABLE %s DROP CONSTRAINT %s %s;", t.Name, ifExists, fk.Name)
+	return s, nil
+}
+
 func (p *Postgres) buildAddColumn(c fizz.Column) string {
 	s := fmt.Sprintf("\"%s\" %s", c.Name, p.colType(c))
 
@@ -179,7 +210,28 @@ func (p *Postgres) colType(c fizz.Column) string {
 		return "UUID"
 	case "time", "datetime":
 		return "timestamp"
+	case "blob":
+		return "bytea"
 	default:
 		return c.ColType
 	}
+}
+
+func (p *Postgres) buildForeignKey(t fizz.Table, fk fizz.ForeignKey, onCreate bool) string {
+	refs := fmt.Sprintf("%s (%s)", fk.References.Table, strings.Join(fk.References.Columns, ", "))
+	s := fmt.Sprintf("FOREIGN KEY (%s) REFERENCES %s", fk.Column, refs)
+
+	if onUpdate, ok := fk.Options["on_update"]; ok {
+		s += fmt.Sprintf(" ON UPDATE %s", onUpdate)
+	}
+
+	if onDelete, ok := fk.Options["on_delete"]; ok {
+		s += fmt.Sprintf(" ON DELETE %s", onDelete)
+	}
+
+	if !onCreate {
+		s = fmt.Sprintf("ALTER TABLE %s ADD CONSTRAINT %s %s;", t.Name, fk.Name, s)
+	}
+
+	return s
 }

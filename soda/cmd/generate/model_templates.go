@@ -7,7 +7,7 @@ import (
 	"{{$i}}"
 	{{ end -}}
 	{{ if .model.ValidatableAttributes -}}
-	"github.com/markbates/validate/validators"
+	"github.com/gobuffalo/validate/validators"
 	{{ end -}}
 )
 
@@ -38,7 +38,7 @@ func ({{.char}} *{{.model_name}}) Validate(tx *pop.Connection) (*validate.Errors
 	{{ if .model.ValidatableAttributes -}}
 	return validate.Validate(
 		{{ range $a := .model.ValidatableAttributes -}}
-		&validators.{{capitalize $a.GoType}}IsPresent{Field: {{$.char}}.{{$a.Names.Proper}}, Name: "{{$a.Names.Proper}}"},
+		&validators.{{capitalize $a.GoType}}IsPresent{Field: {{$.char}}.{{$a.Name.Camel}}, Name: "{{$a.Name.Camel}}"},
 		{{end -}}
 	), nil
 	{{ else -}}
@@ -59,7 +59,7 @@ func ({{.char}} *{{.model_name}}) ValidateUpdate(tx *pop.Connection) (*validate.
 }
 `
 
-const modelTestTemplate = `package {{.package_name}}_test
+const modelTestTemplate = `package {{.test_package_name}}
 
 import "testing"
 

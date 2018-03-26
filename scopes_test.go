@@ -3,7 +3,7 @@ package pop_test
 import (
 	"testing"
 
-	"github.com/markbates/pop"
+	"github.com/gobuffalo/pop"
 	"github.com/stretchr/testify/require"
 )
 

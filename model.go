@@ -2,34 +2,17 @@ package pop
 
 import (
 	"fmt"
-	"log"
 	"reflect"
-	"runtime"
 	"sync"
 	"time"
 
+	"github.com/gobuffalo/uuid"
 	"github.com/markbates/inflect"
 	"github.com/pkg/errors"
-	"github.com/satori/go.uuid"
 )
 
 var tableMap = map[string]string{}
 var tableMapMu = sync.RWMutex{}
-
-// MapTableName is deprecated. Please implement the `TableNameAble`
-// interface instead.
-func MapTableName(name string, tableName string) {
-	warningMsg := "MapTableName is deprecated, and will be removed in a later version of Pop. Use the pop.TableNameAble interface instead."
-	_, file, no, ok := runtime.Caller(1)
-	if ok {
-		warningMsg = fmt.Sprintf("%s Called from %s:%d", warningMsg, file, no)
-	}
-
-	log.Println(warningMsg)
-	defer tableMapMu.Unlock()
-	tableMapMu.Lock()
-	tableMap[name] = tableName
-}
 
 // Value is the contents of a `Model`.
 type Value interface{}
@@ -109,6 +92,18 @@ func (m *Model) typeName(t reflect.Type) string {
 		if el.Kind() == reflect.Ptr {
 			el = el.Elem()
 		}
+
+		// validates if the elem of slice or array implements TableNameAble interface.
+		tableNameAble := (*TableNameAble)(nil)
+		if el.Implements(reflect.TypeOf(tableNameAble).Elem()) {
+			v := reflect.New(el)
+			out := v.MethodByName("TableName").Call([]reflect.Value{})
+			name := out[0].String()
+			if tableMap[el.Name()] == "" {
+				tableMap[el.Name()] = name
+			}
+		}
+
 		return el.Name()
 	default:
 		return t.Name()

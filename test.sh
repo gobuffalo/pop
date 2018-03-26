@@ -14,25 +14,22 @@ fi
 docker-compose up -d
 sleep 4 # Ensure mysql is online
 
-go build -v -o tsoda ./soda
+go build -v -tags sqlite -o tsoda ./soda
 
 function test {
   echo "!!! Testing $1"
   export SODA_DIALECT=$1
   echo ./tsoda -v
-  ! ./tsoda drop -e $SODA_DIALECT -c ./database.yml
-  ! ./tsoda create -e $SODA_DIALECT -c ./database.yml
+  ./tsoda drop -e $SODA_DIALECT -c ./database.yml
+  ./tsoda create -e $SODA_DIALECT -c ./database.yml
   ./tsoda migrate -e $SODA_DIALECT -c ./database.yml
-  ./tsoda migrate down -e $SODA_DIALECT -c ./database.yml
-  ./tsoda migrate down -e $SODA_DIALECT -c ./database.yml
-  ./tsoda migrate -e $SODA_DIALECT -c ./database.yml
-  go test $(go list ./... | grep -v /vendor/)
+  go test -tags sqlite $verbose $(go list ./... | grep -v /vendor/)
 }
 
-test "cockroach"
-test "sqlite"
 test "postgres"
+test "cockroach"
 test "mysql"
+test "sqlite"
 
 docker-compose down
 

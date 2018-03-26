@@ -4,10 +4,9 @@ import (
 	"os"
 	"strings"
 
+	"github.com/mattn/anko/core"
 	"github.com/mattn/anko/vm"
 	"github.com/pkg/errors"
-
-	core "github.com/mattn/anko/builtins"
 )
 
 type BubbleType int
@@ -46,6 +45,10 @@ func (b *Bubbler) Bubble(s string) (string, error) {
 	env.Define("add_index", f.AddIndex())
 	env.Define("drop_index", f.DropIndex())
 	env.Define("rename_index", f.RenameIndex())
+
+	// foreign keys
+	env.Define("add_foreign_key", f.AddForeignKey())
+	env.Define("drop_foreign_key", f.DropForeignKey())
 
 	// tables:
 	env.Define("create_table", f.CreateTable())

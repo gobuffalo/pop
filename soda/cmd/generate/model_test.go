@@ -1,67 +1,96 @@
 package generate
 
 import (
+	"fmt"
+	"log"
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 )
 
-func Test_newName(t *testing.T) {
+func Test_addAttribute(t *testing.T) {
 	r := require.New(t)
-	n := newName("carrot")
-	r.Equal(n.File, "carrot")
-	r.Equal(n.Proper, "Carrot")
-	r.Equal(n.Table, "carrots")
-	r.Equal(n.Plural, "Carrots")
-	r.Equal(n.Char, "c")
+
+	cases := []struct {
+		AttrInput string
+		HasID     bool
+		HasNulls  bool
+		Validable bool
+	}{
+		{AttrInput: "plate", HasID: false, Validable: true},
+		{AttrInput: "id", HasID: true, Validable: true},
+		{AttrInput: "id:int", HasID: true, Validable: true},
+		{AttrInput: "optional:nulls.String", HasNulls: true},
+	}
+
+	for index, tcase := range cases {
+		t.Run(fmt.Sprintf("%v", index), func(t *testing.T) {
+			m := newModel("car")
+			a := newAttribute(tcase.AttrInput, &m)
+			m.addAttribute(a)
+
+			r.Equal(m.HasID, tcase.HasID)
+			r.Equal(m.HasNulls, tcase.HasNulls)
+
+			if !tcase.Validable {
+				log.Println(m.ValidatableAttributes)
+				r.Equal(len(m.ValidatableAttributes), 0)
+				return
+			}
+
+			r.Equal(m.ValidatableAttributes[0].Name, a.Name)
+		})
+
+	}
+
 }
 
-func Test_newName_Plural(t *testing.T) {
+func Test_model_addID(t *testing.T) {
 	r := require.New(t)
-	n := newName("carrots")
-	r.Equal(n.File, "carrot")
-	r.Equal("Carrots", n.Proper)
-	r.Equal(n.Table, "carrots")
-	r.Equal(n.Plural, "Carrots")
-	r.Equal(n.Char, "c")
+
+	m := newModel("car")
+	m.addID()
+
+	r.Equal(m.HasID, true)
+	r.Equal(m.HasUUID, true)
+	r.Equal(string(m.Attributes[0].Name), "id")
+	r.Equal(string(m.Attributes[0].GoType), "uuid.UUID")
+
+	m = newModel("car")
+	m.addAttribute(newAttribute("id:int", &m))
+	m.addID()
+
+	r.Equal(m.HasID, true)
+	r.Equal(m.HasUUID, false)
+	r.Equal(string(m.Attributes[0].Name), "id")
+	r.Equal(string(m.Attributes[0].GoType), "int")
 }
 
-func Test_newName_multipleCamelCase(t *testing.T) {
+func Test_testPkgName(t *testing.T) {
 	r := require.New(t)
-	n := newName("carrotCake")
-	r.Equal(n.File, "carrot_cake")
-	r.Equal(n.Proper, "CarrotCake")
-	r.Equal(n.Table, "carrot_cakes")
-	r.Equal(n.Plural, "CarrotCakes")
-	r.Equal(n.Char, "c")
-}
+	m := newModel("car")
 
-func Test_newName_multipleCamelCase_Plural(t *testing.T) {
-	r := require.New(t)
-	n := newName("carrotCakes")
-	r.Equal(n.File, "carrot_cake")
-	r.Equal(n.Proper, "CarrotCakes")
-	r.Equal(n.Table, "carrot_cakes")
-	r.Equal(n.Plural, "CarrotCakes")
-	r.Equal(n.Char, "c")
-}
+	r.Equal("models", m.testPkgName())
 
-func Test_newName_multipleSnake(t *testing.T) {
-	r := require.New(t)
-	n := newName("carrot_cake")
-	r.Equal(n.File, "carrot_cake")
-	r.Equal(n.Proper, "CarrotCake")
-	r.Equal(n.Table, "carrot_cakes")
-	r.Equal(n.Plural, "CarrotCakes")
-	r.Equal(n.Char, "c")
-}
+	os.Mkdir("./models", 0755)
+	defer os.RemoveAll("./models")
 
-func Test_newName_multipleSnake_Plural(t *testing.T) {
-	r := require.New(t)
-	n := newName("carrot_cakes")
-	r.Equal(n.File, "carrot_cake")
-	r.Equal(n.Proper, "CarrotCakes")
-	r.Equal(n.Table, "carrot_cakes")
-	r.Equal(n.Plural, "CarrotCakes")
-	r.Equal(n.Char, "c")
+	r.Equal("models", m.testPkgName())
+
+	f, err := os.Create(filepath.Join("models", "foo_test.go"))
+	r.NoError(err)
+	_, err = f.Write([]byte("// some comment\npackage models"))
+	f.Close()
+
+	r.Equal("models", m.testPkgName())
+
+	r.NoError(os.Remove(f.Name()))
+	f, err = os.Create(filepath.Join("models", "foo_test.go"))
+	r.NoError(err)
+	_, err = f.Write([]byte("// some comment\npackage models_test"))
+	f.Close()
+
+	r.Equal("models_test", m.testPkgName())
 }

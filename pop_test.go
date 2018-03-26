@@ -7,13 +7,13 @@ import (
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/gobuffalo/pop"
+	"github.com/gobuffalo/pop/nulls"
+	"github.com/gobuffalo/uuid"
+	"github.com/gobuffalo/validate"
+	"github.com/gobuffalo/validate/validators"
 	_ "github.com/lib/pq"
-	"github.com/markbates/pop"
-	"github.com/markbates/pop/nulls"
-	"github.com/markbates/validate"
-	"github.com/markbates/validate/validators"
 	_ "github.com/mattn/go-sqlite3"
-	"github.com/satori/go.uuid"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -53,9 +53,6 @@ func init() {
 	if err != nil {
 		log.Panic(err)
 	}
-
-	pop.MapTableName("Friend", "good_friends")
-	pop.MapTableName("Friends", "good_friends")
 }
 
 func transaction(fn func(tx *pop.Connection)) {
@@ -72,19 +69,65 @@ func ts(s string) string {
 }
 
 type User struct {
-	ID        int           `db:"id"`
-	Email     string        `db:"email"`
-	Name      nulls.String  `db:"name"`
-	Alive     nulls.Bool    `db:"alive"`
-	CreatedAt time.Time     `db:"created_at"`
-	UpdatedAt time.Time     `db:"updated_at"`
-	BirthDate nulls.Time    `db:"birth_date"`
-	Bio       nulls.String  `db:"bio"`
-	Price     nulls.Float64 `db:"price"`
-	FullName  nulls.String  `db:"full_name" select:"name as full_name"`
+	ID           int           `db:"id"`
+	Email        string        `db:"email"`
+	Name         nulls.String  `db:"name"`
+	Alive        nulls.Bool    `db:"alive"`
+	CreatedAt    time.Time     `db:"created_at"`
+	UpdatedAt    time.Time     `db:"updated_at"`
+	BirthDate    nulls.Time    `db:"birth_date"`
+	Bio          nulls.String  `db:"bio"`
+	Price        nulls.Float64 `db:"price"`
+	FullName     nulls.String  `db:"full_name" select:"name as full_name"`
+	Books        Books         `has_many:"books" order_by:"title asc"`
+	FavoriteSong Song          `has_one:"song" fk_id:"u_id"`
+	Houses       Addresses     `many_to_many:"users_addresses"`
 }
 
 type Users []User
+
+type Book struct {
+	ID          int       `db:"id"`
+	Title       string    `db:"title"`
+	Isbn        string    `db:"isbn"`
+	UserID      nulls.Int `db:"user_id"`
+	User        User      `belongs_to:"user"`
+	Description string    `db:"description"`
+	Writers     Writers   `has_many:"writers"`
+	CreatedAt   time.Time `db:"created_at"`
+	UpdatedAt   time.Time `db:"updated_at"`
+}
+
+type Books []Book
+
+type Writer struct {
+	ID        int       `db:"id"`
+	Name      string    `db:"name"`
+	BookID    int       `db:"book_id"`
+	Book      Book      `belongs_to:"book"`
+	CreatedAt time.Time `db:"created_at"`
+	UpdatedAt time.Time `db:"updated_at"`
+}
+
+type Writers []Writer
+
+type Address struct {
+	ID          int       `db:"id"`
+	Street      string    `db:"street"`
+	HouseNumber int       `db:"house_number"`
+	CreatedAt   time.Time `db:"created_at"`
+	UpdatedAt   time.Time `db:"updated_at"`
+}
+
+type Addresses []Address
+
+type UsersAddress struct {
+	ID        int       `db:"id"`
+	UserID    int       `db:"user_id"`
+	AddressID int       `db:"address_id"`
+	CreatedAt time.Time `db:"created_at"`
+	UpdatedAt time.Time `db:"updated_at"`
+}
 
 type Friend struct {
 	ID        int       `db:"id"`
@@ -94,6 +137,10 @@ type Friend struct {
 	UpdatedAt time.Time `db:"updated_at"`
 }
 
+func (Friend) TableName() string {
+	return "good_friends"
+}
+
 type Friends []Friend
 
 type Enemy struct {
@@ -101,10 +148,20 @@ type Enemy struct {
 }
 
 type Song struct {
-	ID        uuid.UUID `db:"id"`
-	Title     string    `db:"title"`
-	CreatedAt time.Time `json:"created_at" db:"created_at"`
-	UpdatedAt time.Time `json:"updated_at" db:"updated_at"`
+	ID           uuid.UUID `db:"id"`
+	Title        string    `db:"title"`
+	UserID       int       `db:"u_id"`
+	CreatedAt    time.Time `json:"created_at" db:"created_at"`
+	UpdatedAt    time.Time `json:"updated_at" db:"updated_at"`
+	ComposedByID int       `json:"composed_by_id" db:"composed_by_id"`
+	ComposedBy   Composer  `belongs_to:"composer"`
+}
+
+type Composer struct {
+	ID        int       `db:"id"`
+	Name      string    `db:"name"`
+	CreatedAt time.Time `db:"created_at"`
+	UpdatedAt time.Time `db:"updated_at"`
 }
 
 type ValidatableCar struct {

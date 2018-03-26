@@ -1,7 +1,7 @@
 project_name: pop
 release:
   github:
-    owner: markbates
+    owner: gobuffalo
     name: pop
   name_template: '{{.Tag}}'
 brew:
@@ -21,7 +21,6 @@ builds:
       - "6"
     main: ./soda/main.go
     binary: soda-no-sqlite
-    flags: -tags nosqlite
   -
     goos:
       - darwin
@@ -31,6 +30,7 @@ builds:
       - "6"
     main: ./soda/main.go
     binary: soda-with-sqlite
+    flags: -tags sqlite
 archive:
   name_template: '{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}{{ if .Arm
     }}v{{ .Arm }}{{ end }}'

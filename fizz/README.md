@@ -14,6 +14,13 @@ create_table("users", func(t) {
   t.Column("bio", "text", {"null": true})
   t.Column("joined_at", "timestamp", {})
 })
+
+create_table("todos", func(t) {
+  t.Column("user_id", "integer", {})
+  t.Column("title", "string", {"size": 100})
+  t.Column("details", "text", {"null": true})
+  t.ForeignKey("user_id", {"users": ["id"]}, {"on_delete": "cascade"})
+})
 ```
 
 The `create_table` function will also generate an `id` column of type `integer` that will auto-increment. It will also generate two `timestamp` columns; `created_at` and `updated_at`.
@@ -36,6 +43,8 @@ Any other type passed it will be be passed straight through to the underlying da
 * `null` - By default columns are not allowed to be `null`.
 * `default` - The default value you want for this column. By default this is `null`.
 * `default_raw` - The default value defined as a database function.
+* `after` - (MySQL Only) Add a column after another column in the table. `example: {"after":"created_at"}`
+* `first` - (MySQL Only) Add a column to the first position in the table. `example: {"first": true}`
 
 ## Drop a Table
 
@@ -118,6 +127,36 @@ rename_index("table_name", "old_index_name", "new_index_name")
 ``` javascript
 drop_index("table_name", "index_name")
 ```
+
+## Add a Foreign Key
+
+```javascript
+add_foreign_key("table_name", "field", {"ref_table_name": ["ref_column"]}, {
+    "name": "optional_fk_name",
+    "on_delete": "action",
+    "on_update": "action",
+})
+
+```
+
+#### Supported Options
+
+* `name` - This defaults to `table_name_ref_table_name_ref_column_name_fk`
+* `on_delete` - `CASCADE`, `SET NULL`, ...
+* `on_update`
+
+**Note:** `on_update` and `on_delete` are not supported on cockroachDB yet.
+
+## Drop a Foreign Key
+
+```javascript
+drop_foreign_key("table_name", "fk_name", {"if_exists": true})
+```
+
+#### Supported Options
+
+* `if_exists` - Adds `IF EXISTS` condition
+
 
 ## Raw SQL
 

@@ -1,8 +1,8 @@
 package translators_test
 
 import (
-	"github.com/markbates/pop/fizz"
-	"github.com/markbates/pop/fizz/translators"
+	"github.com/gobuffalo/pop/fizz"
+	"github.com/gobuffalo/pop/fizz/translators"
 )
 
 var _ fizz.Translator = (*translators.Cockroach)(nil)
@@ -23,6 +23,8 @@ func (p *CockroachSuite) crdbt() *translators.Cockroach {
 	ta = &fizz.Table{Name: "table"}
 	ta.Indexes = []fizz.Index{fizz.Index{Name: "old_ix"}}
 	schema["table"] = ta
+	ta = &fizz.Table{Name: "profiles"}
+	schema["profiles"] = ta
 
 	ret.Schema.ReplaceSchema(schema)
 	return ret
@@ -37,6 +39,7 @@ func (p *CockroachSuite) Test_Cockroach_CreateTable() {
 "email" VARCHAR (20) NOT NULL,
 "permissions" jsonb,
 "age" integer DEFAULT '40',
+"raw" BYTES NOT NULL,
 "company_id" UUID NOT NULL DEFAULT uuid_generate_v1(),
 "created_at" timestamp NOT NULL,
 "updated_at" timestamp NOT NULL
@@ -49,6 +52,7 @@ func (p *CockroachSuite) Test_Cockroach_CreateTable() {
 		t.Column("email", "string", {"size":20})
 		t.Column("permissions", "jsonb", {"null": true})
 		t.Column("age", "integer", {"null": true, "default": 40})
+		t.Column("raw", "blob", {})
 		t.Column("company_id", "uuid", {"default_raw": "uuid_generate_v1()"})
 	})
 	`, p.crdbt())
@@ -76,6 +80,40 @@ func (p *CockroachSuite) Test_Cockroach_CreateTable_UUID() {
 		t.Column("permissions", "jsonb", {"null": true})
 		t.Column("age", "integer", {"null": true, "default": 40})
 		t.Column("uuid", "uuid", {"primary": true})
+	})
+	`, p.crdbt())
+	r.Equal(ddl, res)
+}
+
+func (p *CockroachSuite) Test_Cockroach_CreateTables_WithForeignKeys() {
+	r := p.Require()
+	ddl := `CREATE TABLE "users" (
+"id" SERIAL PRIMARY KEY,
+"email" VARCHAR (20) NOT NULL,
+"created_at" timestamp NOT NULL,
+"updated_at" timestamp NOT NULL
+);COMMIT TRANSACTION;BEGIN TRANSACTION;
+CREATE TABLE "profiles" (
+"id" SERIAL PRIMARY KEY,
+"user_id" INT NOT NULL,
+"first_name" VARCHAR (255) NOT NULL,
+"last_name" VARCHAR (255) NOT NULL,
+"created_at" timestamp NOT NULL,
+"updated_at" timestamp NOT NULL,
+CONSTRAINT profiles_users_id_fk FOREIGN KEY (user_id) REFERENCES users (id)
+);COMMIT TRANSACTION;BEGIN TRANSACTION;`
+
+	res, _ := fizz.AString(`
+	create_table("users", func(t) {
+		t.Column("id", "INT", {"primary": true})
+		t.Column("email", "string", {"size":20})
+	})
+	create_table("profiles", func(t) {
+		t.Column("id", "INT", {"primary": true})
+		t.Column("user_id", "INT", {})
+		t.Column("first_name", "string", {})
+		t.Column("last_name", "string", {})
+		t.ForeignKey("user_id", {"users": ["id"]}, {})
 	})
 	`, p.crdbt())
 	r.Equal(ddl, res)
@@ -200,4 +238,22 @@ func (p *CockroachSuite) buildSchema() translators.Schema {
 	ta.Indexes = append(ta.Indexes, fizz.Index{Name: "testIndex"})
 	schema["testTable"] = ta
 	return translators.CreateSchema("name", "url", schema)
+}
+
+func (p *CockroachSuite) Test_Cockroach_AddForeignKey() {
+	r := p.Require()
+
+	ddl := `ALTER TABLE profiles ADD CONSTRAINT profiles_users_id_fk FOREIGN KEY (user_id) REFERENCES users (id);COMMIT TRANSACTION;BEGIN TRANSACTION;`
+
+	res, _ := fizz.AString(`add_foreign_key("profiles", "user_id", {"users": ["id"]}, {})`, p.crdbt())
+	r.Equal(ddl, res)
+}
+
+func (p *CockroachSuite) Test_Cockroach_DropForeignKey() {
+	r := p.Require()
+
+	ddl := `ALTER TABLE profiles DROP CONSTRAINT  profiles_users_id_fk;COMMIT TRANSACTION;BEGIN TRANSACTION;`
+
+	res, _ := fizz.AString(`drop_foreign_key("profiles", "profiles_users_id_fk", {})`, p.crdbt())
+	r.Equal(ddl, res)
 }

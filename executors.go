@@ -3,9 +3,9 @@ package pop
 import (
 	"fmt"
 
-	"github.com/markbates/pop/columns"
-	"github.com/markbates/validate"
-	uuid "github.com/satori/go.uuid"
+	"github.com/gobuffalo/pop/columns"
+	"github.com/gobuffalo/uuid"
+	"github.com/gobuffalo/validate"
 )
 
 // Reload fetch fresh data for a given model, using its ID

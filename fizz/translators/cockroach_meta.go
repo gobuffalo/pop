@@ -3,8 +3,8 @@ package translators
 import (
 	"fmt"
 
+	"github.com/gobuffalo/pop/fizz"
 	"github.com/jmoiron/sqlx"
-	"github.com/markbates/pop/fizz"
 )
 
 type cockroachIndexListInfo struct {
@@ -36,7 +36,7 @@ func (t cockroachTableInfo) ToColumn() fizz.Column {
 		c.Options["null"] = true
 	}
 	if t.Default != nil {
-		c.Options["default_raw"] = fmt.Sprint("%s", t.Default) //strings.TrimSuffix(strings.TrimPrefix(fmt.Sprintf("%s", t.Default), "'"), "'")
+		c.Options["default_raw"] = fmt.Sprint(t.Default) //strings.TrimSuffix(strings.TrimPrefix(fmt.Sprintf("%s", t.Default), "'"), "'")
 	}
 	return c
 }

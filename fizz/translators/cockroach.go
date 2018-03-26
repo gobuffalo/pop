@@ -6,7 +6,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/markbates/pop/fizz"
+	"github.com/gobuffalo/pop/fizz"
 )
 
 type Cockroach struct {
@@ -35,7 +35,7 @@ func (p *Cockroach) CreateTable(t fizz.Table) (string, error) {
 			switch c.ColType {
 			case "string", "uuid":
 				s = fmt.Sprintf("\"%s\" %s PRIMARY KEY", c.Name, p.colType(c))
-			case "integer":
+			case "integer", "int", "INT":
 				s = fmt.Sprintf("\"%s\" SERIAL PRIMARY KEY", c.Name)
 			default:
 				return "", errors.Errorf("can not use %s as a primary key", c.ColType)
@@ -45,6 +45,11 @@ func (p *Cockroach) CreateTable(t fizz.Table) (string, error) {
 		}
 		cols = append(cols, s)
 	}
+
+	for _, fk := range t.ForeignKeys {
+		cols = append(cols, p.buildForeignKey(t, fk, true))
+	}
+
 	s = fmt.Sprintf("CREATE TABLE \"%s\" (\n%s\n);COMMIT TRANSACTION;BEGIN TRANSACTION;", t.Name, strings.Join(cols, ",\n"))
 	sql = append(sql, s)
 
@@ -243,6 +248,48 @@ func (p *Cockroach) RenameIndex(t fizz.Table) (string, error) {
 	return fmt.Sprintf("ALTER INDEX \"%s\"@\"%s\" RENAME TO \"%s\";COMMIT TRANSACTION;BEGIN TRANSACTION;", t.Name, oi.Name, ni.Name), nil
 }
 
+func (p *Cockroach) AddForeignKey(t fizz.Table) (string, error) {
+	if len(t.ForeignKeys) == 0 {
+		return "", errors.New("Not enough foreign keys supplied!")
+	}
+
+	tableInfo, err := p.Schema.TableInfo(t.Name)
+	if err != nil {
+		return "", err
+	}
+	tableInfo.ForeignKeys = append(tableInfo.ForeignKeys, t.ForeignKeys[0])
+
+	return p.buildForeignKey(t, t.ForeignKeys[0], false), nil
+}
+
+func (p *Cockroach) DropForeignKey(t fizz.Table) (string, error) {
+	if len(t.ForeignKeys) == 0 {
+		return "", errors.New("Not enough foreign keys supplied!")
+	}
+
+	fk := t.ForeignKeys[0]
+
+	tableInfo, err := p.Schema.TableInfo(t.Name)
+	if err != nil {
+		return "", err
+	}
+	newFKs := []fizz.ForeignKey{}
+	for _, key := range tableInfo.ForeignKeys {
+		if key.Name != fk.Name {
+			newFKs = append(newFKs, key)
+		}
+	}
+	tableInfo.ForeignKeys = newFKs
+
+	var ifExists string
+	if v, ok := fk.Options["if_exists"]; ok && v.(bool) {
+		ifExists = "IF EXISTS"
+	}
+
+	s := fmt.Sprintf("ALTER TABLE %s DROP CONSTRAINT %s %s;COMMIT TRANSACTION;BEGIN TRANSACTION;", t.Name, ifExists, fk.Name)
+	return s, nil
+}
+
 func (p *Cockroach) buildAddColumn(c fizz.Column) string {
 	s := fmt.Sprintf("\"%s\" %s", c.Name, p.colType(c))
 
@@ -328,7 +375,20 @@ func (p *Cockroach) colType(c fizz.Column) string {
 		return "UUID"
 	case "time", "datetime":
 		return "timestamp"
+	case "blob":
+		return "BYTES"
 	default:
 		return c.ColType
 	}
+}
+
+func (p *Cockroach) buildForeignKey(t fizz.Table, fk fizz.ForeignKey, onCreate bool) string {
+	refs := fmt.Sprintf("%s (%s)", fk.References.Table, strings.Join(fk.References.Columns, ", "))
+	s := fmt.Sprintf("CONSTRAINT %s FOREIGN KEY (%s) REFERENCES %s", fk.Name, fk.Column, refs)
+
+	if !onCreate {
+		s = fmt.Sprintf("ALTER TABLE %s ADD %s;COMMIT TRANSACTION;BEGIN TRANSACTION;", t.Name, s)
+	}
+
+	return s
 }

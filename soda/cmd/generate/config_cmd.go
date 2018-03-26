@@ -1,22 +1,25 @@
 package generate
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/gobuffalo/makr"
+	"github.com/gobuffalo/pop"
 	"github.com/markbates/going/defaults"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
 func init() {
-	ConfigCmd.Flags().StringVarP(&dialect, "type", "t", "postgres", "What type of database do you want to use? (postgres, mysql, sqlite3, cockroach)")
+	ConfigCmd.Flags().StringVarP(&dialect, "type", "t", "postgres", fmt.Sprintf("What type of database do you want to use? (%s)", strings.Join(pop.AvailableDialects, ", ")))
 }
 
 var dialect string
 
+//ConfigCmd is the command to generate pop config files
 var ConfigCmd = &cobra.Command{
 	Use:   "config",
 	Short: "Generates a database.yml file for your project.",
@@ -35,6 +38,7 @@ var ConfigCmd = &cobra.Command{
 	},
 }
 
+//GenerateConfig generates pop configuration files
 func GenerateConfig(cfgFile string, data map[string]interface{}) error {
 	pwd, _ := os.Getwd()
 	if data["appPath"] == nil {
