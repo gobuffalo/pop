@@ -5,6 +5,7 @@ import (
 	"reflect"
 	"time"
 
+	"github.com/gobuffalo/uuid"
 	"github.com/markbates/inflect"
 )
 
@@ -127,6 +128,15 @@ func (m *manyToManyAssociation) Statements() []AssociationStatement {
 		associationStm := AssociationStatement{
 			Statement: fmt.Sprintf(stm, m.manyToManyTableName, modelColumnID, columnFieldID, "created_at", "updated_at"),
 			Args:      []interface{}{modelIDValue, manyIDValue, time.Now(), time.Now()},
+		}
+
+		if m.model.FieldByName("ID").Type().Name() == "UUID" {
+			stm = "INSERT INTO %s (%s,%s,%s,%s,%s) VALUES(?,?,?,?,?)"
+			id, _ := uuid.NewV4()
+			associationStm = AssociationStatement{
+				Statement: fmt.Sprintf(stm, m.manyToManyTableName, "id", modelColumnID, columnFieldID, "created_at", "updated_at"),
+				Args:      []interface{}{id, modelIDValue, manyIDValue, time.Now(), time.Now()},
+			}
 		}
 
 		statements = append(statements, associationStm)
