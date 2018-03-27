@@ -52,6 +52,8 @@ func (m Migrator) Up() error {
 			if exists {
 				continue
 			}
+
+			fmt.Printf("> %s", mi.Name)
 			err = c.Transaction(func(tx *Connection) error {
 				err := mi.Run(tx)
 				if err != nil {
@@ -63,7 +65,7 @@ func (m Migrator) Up() error {
 			if err != nil {
 				return errors.WithStack(err)
 			}
-			fmt.Printf("> %s\n", mi.Name)
+			fmt.Printf(".\n")
 		}
 		return nil
 	})
@@ -74,38 +76,40 @@ func (m Migrator) Up() error {
 func (m Migrator) Down(step int) error {
 	c := m.Connection
 	return m.exec(func() error {
-		count, err := c.Count("schema_migration")
+		_, err := c.Count("schema_migration")
 		if err != nil {
 			return errors.Wrap(err, "migration down: unable count existing migration")
 		}
 		mfs := m.Migrations["down"]
 		sort.Sort(sort.Reverse(mfs))
-		// skip all runned migration
-		if len(mfs) > count {
-			mfs = mfs[len(mfs)-count:]
-		}
 		// run only required steps
-		if step > 0 && len(mfs) >= step {
-			mfs = mfs[:step]
-		}
+		stepBacked := 0
+		//fmt.Println("migration files: %+v", mfs)
 		for _, mi := range mfs {
 			exists, err := c.Where("version = ?", mi.Version).Exists("schema_migration")
 			if err != nil || !exists {
-				return errors.Wrapf(err, "problem checking for migration version %s", mi.Version)
-			}
-			err = c.Transaction(func(tx *Connection) error {
-				err := mi.Run(tx)
+				fmt.Printf("Skip missing: %+v\n", mi.Name)
+				//return errors.Wrapf(err, "problem checking for migration version %s", mi.Version)
+			} else {
+				fmt.Printf("< %s", mi.Name)
+				err = c.Transaction(func(tx *Connection) error {
+					err := mi.Run(tx)
+					if err != nil {
+						return err
+					}
+					err = tx.RawQuery("delete from schema_migration where version = ?", mi.Version).Exec()
+					return errors.Wrapf(err, "problem deleting migration version %s", mi.Version)
+				})
 				if err != nil {
 					return err
 				}
-				err = tx.RawQuery("delete from schema_migration where version = ?", mi.Version).Exec()
-				return errors.Wrapf(err, "problem deleting migration version %s", mi.Version)
-			})
-			if err != nil {
-				return err
-			}
 
-			fmt.Printf("< %s\n", mi.Name)
+				fmt.Printf(".\n")
+				stepBacked += 1
+				if step == 0 || step >= stepBacked {
+					break //done
+				}
+			} //found reversal
 		}
 		return nil
 	})
