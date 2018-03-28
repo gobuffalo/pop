@@ -6,7 +6,6 @@ import (
 	"github.com/gobuffalo/pop"
 	"github.com/gobuffalo/pop/nulls"
 	"github.com/gobuffalo/uuid"
-	"github.com/markbates/assoc/models"
 	"github.com/stretchr/testify/require"
 )
 
@@ -440,8 +439,8 @@ func Test_Eager_Create_Belongs_To(t *testing.T) {
 func Test_Eager_Creation_Without_Associations(t *testing.T) {
 	transaction(func(tx *pop.Connection) {
 		a := require.New(t)
-		code := models.CourseCode{
-			Course: models.Course{},
+		code := CourseCode{
+			Course: Course{},
 		}
 
 		err := tx.Eager().Create(&code)
