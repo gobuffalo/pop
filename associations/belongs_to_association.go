@@ -33,7 +33,7 @@ func belongsToAssociationBuilder(p associationParams) (Association, error) {
 	// Validates if ownerIDField is nil, this association will be skipped.
 	var skipped bool
 	f := p.modelValue.FieldByName(ownerIDField)
-	if fieldIsNil(f) {
+	if fieldIsNil(f) || isZero(f.Interface()) {
 		skipped = true
 	}
 

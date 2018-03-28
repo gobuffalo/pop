@@ -14,6 +14,11 @@ func (c *Connection) eagerCreate(model interface{}, excludeColumns ...string) er
 	}
 
 	c.eager = false
+
+	if len(asos) == 0 {
+		return c.Create(model, excludeColumns...)
+	}
+
 	for _, a := range asos {
 		asoCreatable, ok := a.(associations.AssociationCreatable)
 		if !ok {
@@ -71,6 +76,11 @@ func (c *Connection) eagerValidateAndCreate(model interface{}, excludeColumns ..
 	}
 
 	c.eager = false
+
+	if len(asos) == 0 {
+		return c.ValidateAndCreate(model, excludeColumns...)
+	}
+
 	for _, a := range asos {
 		asoCreatable, ok := a.(associations.AssociationCreatable)
 		if !ok {

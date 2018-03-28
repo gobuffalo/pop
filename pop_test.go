@@ -188,6 +188,21 @@ type Composer struct {
 	UpdatedAt time.Time `db:"updated_at"`
 }
 
+type Course struct {
+	ID        uuid.UUID `json:"id" db:"id"`
+	CreatedAt time.Time `json:"created_at" db:"created_at"`
+	UpdatedAt time.Time `json:"updated_at" db:"updated_at"`
+}
+
+type CourseCode struct {
+	ID        uuid.UUID `json:"id" db:"id"`
+	CreatedAt time.Time `json:"created_at" db:"created_at"`
+	UpdatedAt time.Time `json:"updated_at" db:"updated_at"`
+	CourseID  uuid.UUID `json:"course_id" db:"course_id"`
+	Course    Course    `json:"-" db:"-"`
+	// Course Course `belongs_to:"course"`
+}
+
 type ValidatableCar struct {
 	ID        int64     `db:"id"`
 	Name      string    `db:"name"`
