@@ -242,6 +242,13 @@ user := models.User{}
 err := tx.Find(&user, id)
 ```
 
+#### Last
+```go
+// Last() orders by created_at
+user := models.User{}
+err := tx.Last(&user)
+```
+
 #### Query
 ```go
 tx := models.DB
