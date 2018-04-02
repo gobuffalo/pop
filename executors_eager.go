@@ -53,6 +53,10 @@ func (c *Connection) eagerCreate(model interface{}, excludeColumns ...string) er
 		}
 
 		i := a.Interface()
+		if i == nil {
+			continue
+		}
+
 		if reflect.TypeOf(i) == reflect.TypeOf(model) {
 			err = c.Create(i, excludeColumns...)
 		} else {

@@ -10,10 +10,11 @@ import (
 // belongsToAssociation is the implementation for the belongs_to
 // association type in a model.
 type belongsToAssociation struct {
-	ownerModel reflect.Value
-	ownerType  reflect.Type
-	ownerID    reflect.Value
-	ownedModel interface{}
+	ownerModel             reflect.Value
+	ownerEligibleForCreate bool
+	ownerType              reflect.Type
+	ownerID                reflect.Value
+	ownedModel             interface{}
 	*associationSkipable
 	*associationComposite
 }
@@ -57,8 +58,12 @@ func (b *belongsToAssociation) Kind() reflect.Kind {
 }
 
 func (b *belongsToAssociation) Interface() interface{} {
-	if b.skipped {
-		return b.ownedModel
+	if b.ownerEligibleForCreate {
+		v := reflect.Indirect(reflect.ValueOf(b.ownedModel))
+		if isZero(v.FieldByName("ID").Interface()) {
+			return b.ownedModel
+		}
+		return nil
 	}
 
 	if b.ownerModel.Kind() == reflect.Ptr {
@@ -76,6 +81,7 @@ func (b *belongsToAssociation) Constraint() (string, []interface{}) {
 }
 
 func (b *belongsToAssociation) CreatableDependencies() []interface{} {
+	b.ownerEligibleForCreate = true
 	if b.skipped {
 		if b.ownerModel.Kind() == reflect.Ptr {
 			return []interface{}{b.ownerModel.Interface()}
@@ -86,8 +92,11 @@ func (b *belongsToAssociation) CreatableDependencies() []interface{} {
 }
 
 func (b *belongsToAssociation) Initialize() error {
-	ownerID := reflect.Indirect(reflect.ValueOf(b.ownerModel.Interface())).FieldByName("ID").Interface()
+	if !b.skipped {
+		return nil
+	}
 
+	ownerID := reflect.Indirect(reflect.ValueOf(b.ownerModel.Interface())).FieldByName("ID").Interface()
 	if b.ownerID.CanSet() {
 		if n := nulls.New(b.ownerID.Interface()); n != nil {
 			b.ownerID.Set(reflect.ValueOf(n.Parse(ownerID)))
