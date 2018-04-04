@@ -1,6 +1,8 @@
 package pop
 
 import (
+	"reflect"
+
 	"github.com/gobuffalo/validate"
 	"github.com/pkg/errors"
 )
@@ -30,6 +32,21 @@ type validateCreateable interface {
 }
 
 func (m *Model) validateCreate(c *Connection) (*validate.Errors, error) {
+	v := reflect.Indirect(reflect.ValueOf(m.Value))
+	if v.Kind() == reflect.Slice || v.Kind() == reflect.Array {
+		var err error
+		for i := 0; i < v.Len(); i++ {
+			val := v.Index(i)
+			newModel := &Model{Value: val.Addr().Interface()}
+			verrs, err := newModel.validateCreate(c)
+
+			if err != nil || verrs.HasAny() {
+				return verrs, err
+			}
+		}
+		return validate.NewErrors(), err
+	}
+
 	verrs, err := m.validate(c)
 	if err != nil {
 		return verrs, errors.WithStack(err)
@@ -52,6 +69,21 @@ type validateSaveable interface {
 }
 
 func (m *Model) validateSave(c *Connection) (*validate.Errors, error) {
+	v := reflect.Indirect(reflect.ValueOf(m.Value))
+	if v.Kind() == reflect.Slice || v.Kind() == reflect.Array {
+		var err error
+		for i := 0; i < v.Len(); i++ {
+			val := v.Index(i)
+			newModel := &Model{Value: val.Addr().Interface()}
+			verrs, err := newModel.validateSave(c)
+
+			if err != nil || verrs.HasAny() {
+				return verrs, err
+			}
+		}
+		return validate.NewErrors(), err
+	}
+
 	verrs, err := m.validate(c)
 	if err != nil {
 		return verrs, errors.WithStack(err)
@@ -74,6 +106,21 @@ type validateUpdateable interface {
 }
 
 func (m *Model) validateUpdate(c *Connection) (*validate.Errors, error) {
+	v := reflect.Indirect(reflect.ValueOf(m.Value))
+	if v.Kind() == reflect.Slice || v.Kind() == reflect.Array {
+		var err error
+		for i := 0; i < v.Len(); i++ {
+			val := v.Index(i)
+			newModel := &Model{Value: val.Addr().Interface()}
+			verrs, err := newModel.validateUpdate(c)
+
+			if err != nil || verrs.HasAny() {
+				return verrs, err
+			}
+		}
+		return validate.NewErrors(), err
+	}
+
 	verrs, err := m.validate(c)
 	if err != nil {
 		return verrs, errors.WithStack(err)

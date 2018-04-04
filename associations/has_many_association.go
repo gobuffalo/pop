@@ -5,7 +5,6 @@ import (
 	"reflect"
 
 	"github.com/gobuffalo/pop/nulls"
-
 	"github.com/markbates/inflect"
 )
 
@@ -83,20 +82,14 @@ func (a *hasManyAssociation) OrderBy() string {
 	return a.orderBy
 }
 
-// if it is skipped if the only dependency is present:
-// owner ID.
-func (a *hasManyAssociation) CreatableDependencies() []interface{} {
-	ownerID := reflect.Indirect(reflect.ValueOf(a.owner)).FieldByName("ID").Interface()
-	if a.skipped || isZero(ownerID) {
-		return []interface{}{a.owner}
+func (a *hasManyAssociation) AfterInterface() interface{} {
+	if a.value.Kind() == reflect.Ptr {
+		return a.value.Interface()
 	}
-	return []interface{}{}
+	return a.value.Addr().Interface()
 }
 
-// SetValue for has many association loop over every item in the
-// value associated and set his foreign key reference with the
-// val passed as parameter.
-func (a *hasManyAssociation) Initialize() error {
+func (a *hasManyAssociation) AfterSetup() error {
 	ownerID := reflect.Indirect(reflect.ValueOf(a.owner)).FieldByName("ID").Interface()
 
 	v := a.value

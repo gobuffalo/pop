@@ -1,8 +1,6 @@
 package pop
 
 import (
-	"reflect"
-
 	"github.com/gobuffalo/pop/associations"
 	"github.com/gobuffalo/validate"
 )
@@ -19,52 +17,55 @@ func (c *Connection) eagerCreate(model interface{}, excludeColumns ...string) er
 		return c.Create(model, excludeColumns...)
 	}
 
-	for _, a := range asos {
-		asoCreatable, ok := a.(associations.AssociationCreatable)
-		if !ok {
-			continue
-		}
-
-		// Create all dependencies first.
-		dependencies := asoCreatable.CreatableDependencies()
-		for _, d := range dependencies {
-			if reflect.TypeOf(d) == reflect.TypeOf(model) {
-				err = c.Create(d, excludeColumns...)
-			} else {
-				err = c.Create(d)
-			}
-
-			if err != nil {
-				return err
-			}
-		}
-
-		asoCreatable.Initialize()
-
-		if acs, ok := a.(associations.AssociationCreatableStatement); ok {
-			stms := acs.Statements()
-			for _, stm := range stms {
-				_, err = c.TX.Exec(c.Dialect.TranslateSQL(stm.Statement), stm.Args...)
-				if err != nil {
-					return err
-				}
-			}
-			continue
-		}
-
-		i := a.Interface()
+	before := asos.AssociationsBeforeCreatable()
+	for index := range before {
+		i := before[index].BeforeInterface()
 		if i == nil {
 			continue
 		}
 
-		if reflect.TypeOf(i) == reflect.TypeOf(model) {
-			err = c.Create(i, excludeColumns...)
-		} else {
-			err = c.Create(i)
-		}
-
+		err = c.Create(i)
 		if err != nil {
 			return err
+		}
+
+		err = before[index].BeforeSetup()
+		if err != nil {
+			return err
+		}
+	}
+
+	err = c.Create(model, excludeColumns...)
+	if err != nil {
+		return err
+	}
+
+	after := asos.AssociationsAfterCreatable()
+	for index := range after {
+		err = after[index].AfterSetup()
+		if err != nil {
+			return err
+		}
+
+		i := after[index].AfterInterface()
+		if i == nil {
+			continue
+		}
+
+		err = c.Create(i)
+		if err != nil {
+			return err
+		}
+	}
+
+	stms := asos.AssociationsCreatableStatement()
+	for index := range stms {
+		statements := stms[index].Statements()
+		for _, stm := range statements {
+			_, err = c.TX.Exec(c.Dialect.TranslateSQL(stm.Statement), stm.Args...)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
@@ -79,32 +80,38 @@ func (c *Connection) eagerValidateAndCreate(model interface{}, excludeColumns ..
 		return verrs, err
 	}
 
-	c.eager = false
-
 	if len(asos) == 0 {
+		c.eager = false
 		return c.ValidateAndCreate(model, excludeColumns...)
 	}
 
-	for _, a := range asos {
-		asoCreatable, ok := a.(associations.AssociationCreatable)
-		if !ok {
+	before := asos.AssociationsBeforeCreatable()
+	for index := range before {
+		i := before[index].BeforeInterface()
+		if i == nil {
 			continue
 		}
 
-		// Validate and create all dependencies first.
-		dependencies := asoCreatable.CreatableDependencies()
-		for _, d := range dependencies {
-			verrs, err = c.ValidateAndCreate(d)
-			if err != nil || verrs.HasAny() {
-				return verrs, err
-			}
-		}
-
-		verrs, err = c.ValidateAndCreate(a.Interface())
+		sm := &Model{Value: i}
+		verrs, err := sm.validateCreate(c)
 		if err != nil || verrs.HasAny() {
 			return verrs, err
 		}
 	}
 
-	return verrs, err
+	after := asos.AssociationsAfterCreatable()
+	for index := range after {
+		i := after[index].AfterInterface()
+		if i == nil {
+			continue
+		}
+
+		sm := &Model{Value: i}
+		verrs, err := sm.validateCreate(c)
+		if err != nil || verrs.HasAny() {
+			return verrs, err
+		}
+	}
+
+	return verrs, c.eagerCreate(model, excludeColumns...)
 }

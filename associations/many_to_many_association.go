@@ -87,22 +87,14 @@ func (m *manyToManyAssociation) OrderBy() string {
 	return m.orderBy
 }
 
-func (m *manyToManyAssociation) CreatableDependencies() []interface{} {
-	dependencies := []interface{}{}
+func (m *manyToManyAssociation) BeforeInterface() interface{} {
 	if m.fieldValue.Kind() == reflect.Ptr {
-		dependencies = append(dependencies, m.fieldValue.Interface())
-	} else {
-		dependencies = append(dependencies, m.fieldValue.Addr().Interface())
+		return m.fieldValue.Interface()
 	}
-
-	modelID := reflect.Indirect(reflect.ValueOf(m.owner)).FieldByName("ID")
-	if fieldIsNil(modelID) || isZero(modelID.Interface()) {
-		dependencies = append(dependencies, m.owner)
-	}
-	return dependencies
+	return m.fieldValue.Addr().Interface()
 }
 
-func (m *manyToManyAssociation) Initialize() error {
+func (m *manyToManyAssociation) BeforeSetup() error {
 	return nil
 }
 

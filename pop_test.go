@@ -98,13 +98,12 @@ type Book struct {
 	UpdatedAt   time.Time `db:"updated_at"`
 }
 
-func (b *Book) ValidateCreate(tx *pop.Connection) (*validate.Errors, error) {
-	verrs := validate.NewErrors()
-	if b.Description == "" {
-		verrs.Add("Description", "*mandatory")
-	}
-
-	return verrs, nil
+// Validate gets run every time you call a "pop.Validate*" (pop.ValidateAndSave, pop.ValidateAndCreate, pop.ValidateAndUpdate) method.
+// This method is not required and may be deleted.
+func (b *Book) Validate(tx *pop.Connection) (*validate.Errors, error) {
+	return validate.Validate(
+		&validators.StringIsPresent{Field: b.Description, Name: "Description"},
+	), nil
 }
 
 type Books []Book

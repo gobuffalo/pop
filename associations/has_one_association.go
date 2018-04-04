@@ -59,16 +59,6 @@ func (h *hasOneAssociation) Interface() interface{} {
 	return h.ownedModel.Addr().Interface()
 }
 
-// if it is skipped if the only dependency is present:
-// owner ID.
-func (h *hasOneAssociation) CreatableDependencies() []interface{} {
-	ownerID := reflect.Indirect(reflect.ValueOf(h.owner)).FieldByName("ID").Interface()
-	if h.skipped || isZero(ownerID) {
-		return []interface{}{h.owner}
-	}
-	return []interface{}{}
-}
-
 // Constraint returns the content for a where clause, and the args
 // needed to execute it.
 func (h *hasOneAssociation) Constraint() (string, []interface{}) {
@@ -81,7 +71,14 @@ func (h *hasOneAssociation) Constraint() (string, []interface{}) {
 	return condition, []interface{}{h.ownerID}
 }
 
-func (h *hasOneAssociation) Initialize() error {
+func (h *hasOneAssociation) AfterInterface() interface{} {
+	if h.ownedModel.Kind() == reflect.Ptr {
+		return h.ownedModel.Interface()
+	}
+	return h.ownedModel.Addr().Interface()
+}
+
+func (h *hasOneAssociation) AfterSetup() error {
 	ownerID := reflect.Indirect(reflect.ValueOf(h.owner)).FieldByName("ID").Interface()
 
 	fval := h.ownedModel.FieldByName(h.ownerName + "ID")

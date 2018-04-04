@@ -409,6 +409,8 @@ func Test_Eager_Validate_And_Create_Has_Many(t *testing.T) {
 
 		verrs, err := tx.Eager().ValidateAndCreate(&user)
 		a.NoError(err)
+		ctx, _ := tx.Count(&User{})
+		a.Zero(ctx)
 		a.Equal(1, verrs.Count()) // Missing Books.Description.
 	})
 }

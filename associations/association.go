@@ -55,19 +55,15 @@ type AssociationSortable interface {
 	Association
 }
 
-// AssociationCreatable is an association that
-// can be created by executors.
-type AssociationCreatable interface {
-	// CreatableDependencies returns all dependencies for
-	// this associations that needs to be created before.
-	// A common example is a belongs to association type, where
-	// the owner ID needs to be defined before it can be created.
-	CreatableDependencies() []interface{}
+type AssociationBeforeCreatable interface {
+	BeforeInterface() interface{}
+	BeforeSetup() error
+	Association
+}
 
-	// Initialize is called before this association can be created
-	// by an executor. Just as a way to setups fields or validates
-	// any.
-	Initialize() error
+type AssociationAfterCreatable interface {
+	AfterInterface() interface{}
+	AfterSetup() error
 	Association
 }
 
@@ -87,6 +83,42 @@ type AssociationStatement struct {
 
 // Associations a group of model associations.
 type Associations []Association
+
+// AssociationsBeforeCreatable returns all associations that implement AssociationBeforeCreatable
+// interface. Belongs To association is an example of this implementation.
+func (a Associations) AssociationsBeforeCreatable() []AssociationBeforeCreatable {
+	before := []AssociationBeforeCreatable{}
+	for i := range a {
+		if _, ok := a[i].(AssociationBeforeCreatable); ok {
+			before = append(before, a[i].(AssociationBeforeCreatable))
+		}
+	}
+	return before
+}
+
+// AssociationsAfterCreatable returns all associations that implement AssociationAfterCreatable
+// interface. Has Many and Has One associations are example of this implementation.
+func (a Associations) AssociationsAfterCreatable() []AssociationAfterCreatable {
+	after := []AssociationAfterCreatable{}
+	for i := range a {
+		if _, ok := a[i].(AssociationAfterCreatable); ok {
+			after = append(after, a[i].(AssociationAfterCreatable))
+		}
+	}
+	return after
+}
+
+// AssociationsCreatableStatement returns all associations that implement AssociationCreatableStament
+// interface. Many To Many association is an example of this implementation.
+func (a Associations) AssociationsCreatableStatement() []AssociationCreatableStatement {
+	stm := []AssociationCreatableStatement{}
+	for i := range a {
+		if _, ok := a[i].(AssociationCreatableStatement); ok {
+			stm = append(stm, a[i].(AssociationCreatableStatement))
+		}
+	}
+	return stm
+}
 
 // associationParams a wrapper for associations definition
 // and creation.

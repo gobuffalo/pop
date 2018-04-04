@@ -80,22 +80,18 @@ func (b *belongsToAssociation) Constraint() (string, []interface{}) {
 	return "id = ?", []interface{}{b.ownerID.Interface()}
 }
 
-func (b *belongsToAssociation) CreatableDependencies() []interface{} {
-	b.ownerEligibleForCreate = true
-	if b.skipped {
-		if b.ownerModel.Kind() == reflect.Ptr {
-			return []interface{}{b.ownerModel.Interface()}
-		}
-		return []interface{}{b.ownerModel.Addr().Interface()}
-	}
-	return []interface{}{}
-}
-
-func (b *belongsToAssociation) Initialize() error {
+func (b *belongsToAssociation) BeforeInterface() interface{} {
 	if !b.skipped {
 		return nil
 	}
 
+	if b.ownerModel.Kind() == reflect.Ptr {
+		return b.ownerModel.Interface()
+	}
+	return b.ownerModel.Addr().Interface()
+}
+
+func (b *belongsToAssociation) BeforeSetup() error {
 	ownerID := reflect.Indirect(reflect.ValueOf(b.ownerModel.Interface())).FieldByName("ID").Interface()
 	if b.ownerID.CanSet() {
 		if n := nulls.New(b.ownerID.Interface()); n != nil {
