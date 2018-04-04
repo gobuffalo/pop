@@ -91,8 +91,10 @@ func (c *Connection) Open() error {
 	if c.Store != nil {
 		return nil
 	}
-	db, err := sqlx.Open(c.Dialect.Details().Dialect, c.Dialect.URL())
-	db.SetMaxOpenConns(c.Dialect.Details().Pool)
+	details := c.Dialect.Details()
+	db, err := sqlx.Open(details.Dialect, c.Dialect.URL())
+	db.SetMaxOpenConns(details.Pool)
+	db.SetMaxIdleConns(details.IdlePool)
 	if err == nil {
 		c.Store = &dB{db}
 	}
