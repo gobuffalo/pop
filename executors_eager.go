@@ -62,7 +62,14 @@ func (c *Connection) eagerCreate(model interface{}, excludeColumns ...string) er
 	for index := range stms {
 		statements := stms[index].Statements()
 		for _, stm := range statements {
-			_, err = c.TX.Exec(c.Dialect.TranslateSQL(stm.Statement), stm.Args...)
+			if c.TX != nil {
+				_, err := c.TX.Exec(c.Dialect.TranslateSQL(stm.Statement), stm.Args...)
+				if err != nil {
+					return err
+				}
+				continue
+			}
+			_, err = c.Store.Exec(c.Dialect.TranslateSQL(stm.Statement), stm.Args...)
 			if err != nil {
 				return err
 			}
