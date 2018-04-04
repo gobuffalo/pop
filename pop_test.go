@@ -84,6 +84,14 @@ type User struct {
 	Houses       Addresses     `many_to_many:"users_addresses"`
 }
 
+// Validate gets run every time you call a "pop.Validate*" (pop.ValidateAndSave, pop.ValidateAndCreate, pop.ValidateAndUpdate) method.
+// This method is not required and may be deleted.
+func (u *User) Validate(tx *pop.Connection) (*validate.Errors, error) {
+	return validate.Validate(
+		&validators.StringIsPresent{Field: u.Name.Interface().(string), Name: "Name"},
+	), nil
+}
+
 type Users []User
 
 type Book struct {

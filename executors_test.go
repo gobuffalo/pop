@@ -415,6 +415,26 @@ func Test_Eager_Validate_And_Create_Has_Many(t *testing.T) {
 	})
 }
 
+func Test_Eager_Validate_And_Create_Parental(t *testing.T) {
+	a := require.New(t)
+	transaction(func(tx *pop.Connection) {
+		user := User{
+			Name:         nulls.NewString(""),
+			Books:        Books{{Title: "Pop Book", Isbn: "PB1", Description: "Awesome Book!"}},
+			FavoriteSong: Song{Title: "Hook - Blues Traveler"},
+			Houses: Addresses{
+				Address{HouseNumber: 86, Street: "Modelo"},
+			},
+		}
+
+		verrs, err := tx.Eager().ValidateAndCreate(&user)
+		a.NoError(err)
+		ctx, _ := tx.Count(&User{})
+		a.Zero(ctx)
+		a.Equal(1, verrs.Count()) // Missing Books.Description.
+	})
+}
+
 func Test_Eager_Create_Belongs_To(t *testing.T) {
 	transaction(func(tx *pop.Connection) {
 		a := require.New(t)

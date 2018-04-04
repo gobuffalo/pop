@@ -113,5 +113,11 @@ func (c *Connection) eagerValidateAndCreate(model interface{}, excludeColumns ..
 		}
 	}
 
+	sm := &Model{Value: model}
+	verrs, err = sm.validateCreate(c)
+	if err != nil || verrs.HasAny() {
+		return verrs, err
+	}
+
 	return verrs, c.eagerCreate(model, excludeColumns...)
 }
