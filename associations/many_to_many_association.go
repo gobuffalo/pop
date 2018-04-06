@@ -51,11 +51,19 @@ func (m *manyToManyAssociation) Kind() reflect.Kind {
 }
 
 func (m *manyToManyAssociation) Interface() interface{} {
+	val := reflect.New(m.fieldType.Elem())
 	if m.fieldValue.Kind() == reflect.Ptr {
-		val := reflect.New(m.fieldType.Elem())
 		m.fieldValue.Set(val)
 		return m.fieldValue.Interface()
 	}
+
+	// This piece of code clears a slice in case it is filled with elements.
+	if m.fieldValue.Kind() == reflect.Slice || m.fieldValue.Kind() == reflect.Array {
+		valPointer := m.fieldValue.Addr()
+		valPointer.Elem().Set(reflect.MakeSlice(valPointer.Type().Elem(), 0, valPointer.Elem().Cap()))
+		return valPointer.Interface()
+	}
+
 	return m.fieldValue.Addr().Interface()
 }
 

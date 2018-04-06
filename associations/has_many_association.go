@@ -64,6 +64,14 @@ func (a *hasManyAssociation) Interface() interface{} {
 		a.value.Set(val)
 		return a.value.Interface()
 	}
+
+	// This piece of code clears a slice in case it is filled with elements.
+	if a.value.Kind() == reflect.Slice || a.value.Kind() == reflect.Array {
+		valPointer := a.value.Addr()
+		valPointer.Elem().Set(reflect.MakeSlice(valPointer.Type().Elem(), 0, valPointer.Elem().Cap()))
+		return valPointer.Interface()
+	}
+
 	return a.value.Addr().Interface()
 }
 
