@@ -15,6 +15,8 @@ type validateable interface {
 	Validate(*Connection) (*validate.Errors, error)
 }
 
+type modelIterableValidator func(*Model) (*validate.Errors, error)
+
 func (m *Model) validate(c *Connection) (*validate.Errors, error) {
 	if x, ok := m.Value.(beforeValidatable); ok {
 		if err := x.BeforeValidations(c); err != nil {
@@ -32,36 +34,23 @@ type validateCreateable interface {
 }
 
 func (m *Model) validateCreate(c *Connection) (*validate.Errors, error) {
-	v := reflect.Indirect(reflect.ValueOf(m.Value))
-	if v.Kind() == reflect.Slice || v.Kind() == reflect.Array {
-		var err error
-		for i := 0; i < v.Len(); i++ {
-			val := v.Index(i)
-			newModel := &Model{Value: val.Addr().Interface()}
-			verrs, err := newModel.validateCreate(c)
-
-			if err != nil || verrs.HasAny() {
-				return verrs, err
-			}
-		}
-		return validate.NewErrors(), err
-	}
-
-	verrs, err := m.validate(c)
-	if err != nil {
-		return verrs, errors.WithStack(err)
-	}
-	if x, ok := m.Value.(validateCreateable); ok {
-		vs, err := x.ValidateCreate(c)
-		if vs != nil {
-			verrs.Append(vs)
-		}
+	return m.iterateAndValidate(func(model *Model) (*validate.Errors, error) {
+		verrs, err := model.validate(c)
 		if err != nil {
 			return verrs, errors.WithStack(err)
 		}
-	}
+		if x, ok := model.Value.(validateCreateable); ok {
+			vs, err := x.ValidateCreate(c)
+			if vs != nil {
+				verrs.Append(vs)
+			}
+			if err != nil {
+				return verrs, errors.WithStack(err)
+			}
+		}
 
-	return verrs, err
+		return verrs, err
+	})
 }
 
 type validateSaveable interface {
@@ -69,36 +58,23 @@ type validateSaveable interface {
 }
 
 func (m *Model) validateSave(c *Connection) (*validate.Errors, error) {
-	v := reflect.Indirect(reflect.ValueOf(m.Value))
-	if v.Kind() == reflect.Slice || v.Kind() == reflect.Array {
-		var err error
-		for i := 0; i < v.Len(); i++ {
-			val := v.Index(i)
-			newModel := &Model{Value: val.Addr().Interface()}
-			verrs, err := newModel.validateSave(c)
-
-			if err != nil || verrs.HasAny() {
-				return verrs, err
-			}
-		}
-		return validate.NewErrors(), err
-	}
-
-	verrs, err := m.validate(c)
-	if err != nil {
-		return verrs, errors.WithStack(err)
-	}
-	if x, ok := m.Value.(validateSaveable); ok {
-		vs, err := x.ValidateSave(c)
-		if vs != nil {
-			verrs.Append(vs)
-		}
+	return m.iterateAndValidate(func(model *Model) (*validate.Errors, error) {
+		verrs, err := model.validate(c)
 		if err != nil {
 			return verrs, errors.WithStack(err)
 		}
-	}
+		if x, ok := model.Value.(validateSaveable); ok {
+			vs, err := x.ValidateSave(c)
+			if vs != nil {
+				verrs.Append(vs)
+			}
+			if err != nil {
+				return verrs, errors.WithStack(err)
+			}
+		}
 
-	return verrs, err
+		return verrs, err
+	})
 }
 
 type validateUpdateable interface {
@@ -106,34 +82,39 @@ type validateUpdateable interface {
 }
 
 func (m *Model) validateUpdate(c *Connection) (*validate.Errors, error) {
+	return m.iterateAndValidate(func(model *Model) (*validate.Errors, error) {
+		verrs, err := model.validate(c)
+		if err != nil {
+			return verrs, errors.WithStack(err)
+		}
+		if x, ok := model.Value.(validateUpdateable); ok {
+			vs, err := x.ValidateUpdate(c)
+			if vs != nil {
+				verrs.Append(vs)
+			}
+			if err != nil {
+				return verrs, errors.WithStack(err)
+			}
+		}
+
+		return verrs, err
+	})
+}
+
+func (m *Model) iterateAndValidate(fn modelIterableValidator) (*validate.Errors, error) {
 	v := reflect.Indirect(reflect.ValueOf(m.Value))
 	if v.Kind() == reflect.Slice || v.Kind() == reflect.Array {
-		var err error
 		for i := 0; i < v.Len(); i++ {
 			val := v.Index(i)
 			newModel := &Model{Value: val.Addr().Interface()}
-			verrs, err := newModel.validateUpdate(c)
+			verrs, err := fn(newModel)
 
 			if err != nil || verrs.HasAny() {
 				return verrs, err
 			}
 		}
-		return validate.NewErrors(), err
+		return validate.NewErrors(), nil
 	}
 
-	verrs, err := m.validate(c)
-	if err != nil {
-		return verrs, errors.WithStack(err)
-	}
-	if x, ok := m.Value.(validateUpdateable); ok {
-		vs, err := x.ValidateUpdate(c)
-		if vs != nil {
-			verrs.Append(vs)
-		}
-		if err != nil {
-			return verrs, errors.WithStack(err)
-		}
-	}
-
-	return verrs, err
+	return fn(m)
 }

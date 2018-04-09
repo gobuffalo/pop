@@ -88,7 +88,7 @@ type User struct {
 // This method is not required and may be deleted.
 func (u *User) Validate(tx *pop.Connection) (*validate.Errors, error) {
 	return validate.Validate(
-		&validators.StringIsPresent{Field: u.Name.Interface().(string), Name: "Name"},
+		&validators.StringIsPresent{Field: u.Name.String, Name: "Name"},
 	), nil
 }
 
