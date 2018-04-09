@@ -10,11 +10,10 @@ import (
 // belongsToAssociation is the implementation for the belongs_to
 // association type in a model.
 type belongsToAssociation struct {
-	ownerModel             reflect.Value
-	ownerEligibleForCreate bool
-	ownerType              reflect.Type
-	ownerID                reflect.Value
-	ownedModel             interface{}
+	ownerModel reflect.Value
+	ownerType  reflect.Type
+	ownerID    reflect.Value
+	ownedModel interface{}
 	*associationSkipable
 	*associationComposite
 }
@@ -58,14 +57,6 @@ func (b *belongsToAssociation) Kind() reflect.Kind {
 }
 
 func (b *belongsToAssociation) Interface() interface{} {
-	if b.ownerEligibleForCreate {
-		v := reflect.Indirect(reflect.ValueOf(b.ownedModel))
-		if isZero(v.FieldByName("ID").Interface()) {
-			return b.ownedModel
-		}
-		return nil
-	}
-
 	if b.ownerModel.Kind() == reflect.Ptr {
 		val := reflect.New(b.ownerType.Elem())
 		b.ownerModel.Set(val)
