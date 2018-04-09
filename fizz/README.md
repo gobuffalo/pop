@@ -23,9 +23,18 @@ create_table("todos", func(t) {
 })
 ```
 
-The `create_table` function will also generate an `id` column of type `integer` that will auto-increment. It will also generate two `timestamp` columns; `created_at` and `updated_at`.
+The `create_table` function will generate an `id` column of type `integer` that will auto-increment. This can be changed to use the [`UUID`](https://github.com/gobuffalo/uuid) type:
 
-Columns all have the same syntax. First is the name of the column. Second is the type of the field. Third is any options you want to set on that column.
+```javascript
+create_table("users", func(t) {
+  t.Column("id", "uuid", {})
+  // ...
+})
+```
+
+It will also generate two `timestamp` columns; `created_at` and `updated_at`.
+
+The `t.Columns` method takes the following arguments: name of the column, the type of the field, and finally the last argument is any options you want to set on that column.
 
 #### <a name="column-info"></a> "Common" Types:
 
@@ -34,8 +43,11 @@ Columns all have the same syntax. First is the name of the column. Second is the
 * `timestamp`, `time`, `datetime`
 * `integer`
 * `bool`
+* `uuid`
 
-Any other type passed it will be be passed straight through to the underlying database. For example for PostgreSQL you could pass `jsonb`and it will be supported, however, SQLite will yell very loudly at you if you do the same thing!
+Any other type passed it will be be passed straight through to the underlying database.
+
+For example for PostgreSQL you could pass `jsonb`and it will be supported, however, SQLite will yell very loudly at you if you do the same thing!
 
 #### Supported Options:
 
@@ -145,7 +157,7 @@ add_foreign_key("table_name", "field", {"ref_table_name": ["ref_column"]}, {
 * `on_delete` - `CASCADE`, `SET NULL`, ...
 * `on_update`
 
-**Note:** `on_update` and `on_delete` are not supported on cockroachDB yet.
+**Note:** `on_update` and `on_delete` are not supported on CockroachDB yet.
 
 ## Drop a Foreign Key
 
