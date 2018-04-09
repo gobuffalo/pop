@@ -2,7 +2,6 @@ package nulls
 
 import (
 	"database/sql/driver"
-	"reflect"
 
 	"github.com/gobuffalo/uuid"
 )
@@ -30,12 +29,12 @@ func (nulls *Nulls) Interface() interface{} {
 // nullable type. value is one of the inner value hold
 // by a nullable type. i.e int, string, uuid.UUID etc.
 func (nulls *Nulls) Parse(value interface{}) interface{} {
-	switch reflect.TypeOf(nulls.Value).String() {
-	case "nulls.Int":
+	switch nulls.Value.(type) {
+	case Int:
 		return NewInt(value.(int))
-	case "nulls.Int64":
+	case Int64:
 		return NewInt64(value.(int64))
-	case "nulls.UUID":
+	case UUID:
 		return NewUUID(value.(uuid.UUID))
 	default:
 		return value

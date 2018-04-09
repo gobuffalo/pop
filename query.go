@@ -82,8 +82,6 @@ func (c *Connection) Eager(fields ...string) *Connection {
 // 	q.Where("id in (?)", 1, 2, 3)
 func (c *Connection) Where(stmt string, args ...interface{}) *Query {
 	q := Q(c)
-	q.eager = c.eager
-	q.eagerFields = c.eagerFields
 	return q.Where(stmt, args...)
 }
 
@@ -134,8 +132,10 @@ func (q *Query) Limit(limit int) *Query {
 // Q will create a new "empty" query from the current connection.
 func Q(c *Connection) *Query {
 	return &Query{
-		RawSQL:     &clause{},
-		Connection: c,
+		RawSQL:      &clause{},
+		Connection:  c,
+		eager:       c.eager,
+		eagerFields: c.eagerFields,
 	}
 }
 

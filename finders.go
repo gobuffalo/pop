@@ -20,8 +20,6 @@ var rLimit = regexp.MustCompile("(?i)(limit [0-9]+)$")
 //	c.Find(&User{}, 1)
 func (c *Connection) Find(model interface{}, id interface{}) error {
 	q := Q(c)
-	q.eager = c.eager
-	q.eagerFields = c.eagerFields
 	return q.Find(model, id)
 }
 
@@ -50,8 +48,6 @@ func (q *Query) Find(model interface{}, id interface{}) error {
 //	c.First(&User{})
 func (c *Connection) First(model interface{}) error {
 	q := Q(c)
-	q.eager = c.eager
-	q.eagerFields = c.eagerFields
 	return q.First(model)
 }
 
@@ -83,8 +79,6 @@ func (q *Query) First(model interface{}) error {
 //	c.Last(&User{})
 func (c *Connection) Last(model interface{}) error {
 	q := Q(c)
-	q.eager = c.eager
-	q.eagerFields = c.eagerFields
 	return q.Last(model)
 }
 
@@ -118,8 +112,6 @@ func (q *Query) Last(model interface{}) error {
 //	c.All(&[]User{})
 func (c *Connection) All(models interface{}) error {
 	q := Q(c)
-	q.eager = c.eager
-	q.eagerFields = c.eagerFields
 	return q.All(models)
 }
 
@@ -199,6 +191,8 @@ func (q *Query) eagerAssociations(model interface{}) error {
 		}
 
 		query := Q(q.Connection)
+		query.eager = false
+
 		whereCondition, args := association.Constraint()
 		query = query.Where(whereCondition, args...)
 
