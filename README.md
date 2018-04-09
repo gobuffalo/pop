@@ -84,9 +84,15 @@ Now that you have your connection to the database you can start executing querie
 
 Pop features CLI support via the `soda` command for the following operations:
 
-* creating databases
-* dropping databases
-* migrating databases
+```bash
+Available Commands:
+  create      Creates databases for you
+  drop        Drops databases for you
+  generate
+  help        Help about any command
+  migrate     Runs migrations against your database.
+  schema      Tools for working with your database schema
+```
 
 ### Installing CLI Support
 
@@ -97,7 +103,7 @@ $ go get github.com/gobuffalo/pop/...
 $ go install github.com/gobuffalo/pop/soda
 ```
 
-**with** sqlite 3 support:
+**With** sqlite 3 support:
 
 ```bash
 $ go get -u -v -tags sqlite github.com/gobuffalo/pop/...
@@ -345,7 +351,7 @@ err  = tx.Eager("Books").Where("name = 'Mark'").All(&u) // preload only Books as
  pop allows you to eager loading nested associations by using `.` character to concatenate them. Take a look at the example bellow.
 ```go
 tx.Eager("Books.User").First(&u)  // will load all Books for u and for every Book will load the user which will be the same as u.
-``` 
+```
 ```go
  tx.Eager("Books.Writers").First(&u)  // will load all Books for u and for every Book will load all Writers.
 ```
