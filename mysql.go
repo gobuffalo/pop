@@ -22,6 +22,10 @@ type mysql struct {
 	ConnectionDetails *ConnectionDetails
 }
 
+func (m *mysql) Name() string {
+	return "mysql"
+}
+
 func (m *mysql) Details() *ConnectionDetails {
 	return m.ConnectionDetails
 }

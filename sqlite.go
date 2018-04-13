@@ -33,6 +33,10 @@ type sqlite struct {
 	ConnectionDetails *ConnectionDetails
 }
 
+func (m *sqlite) Name() string {
+	return "sqlite3"
+}
+
 func (m *sqlite) Details() *ConnectionDetails {
 	return m.ConnectionDetails
 }
