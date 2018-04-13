@@ -30,6 +30,10 @@ type cockroach struct {
 	ConnectionDetails *ConnectionDetails
 }
 
+func (p *cockroach) Name() string {
+	return "cockroach"
+}
+
 func (p *cockroach) Details() *ConnectionDetails {
 	return p.ConnectionDetails
 }
