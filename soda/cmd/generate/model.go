@@ -167,7 +167,7 @@ func (m model) generateSQL(pathFlag, envFlag *pflag.Flag) error {
 		return err
 	}
 
-	err = pop.MigrationCreate(migrationPath, fmt.Sprintf("create_%s", m.Name.Table()), "sql", []byte(m.GenerateSQLFromFizz(m.Fizz(), db)), []byte(m.GenerateSQLFromFizz(m.UnFizz(), db)))
+	err = pop.MigrationCreate(migrationPath, fmt.Sprintf("create_%s.%s", m.Name.Table(), db.Dialect.Name()), "sql", []byte(m.GenerateSQLFromFizz(m.Fizz(), db)), []byte(m.GenerateSQLFromFizz(m.UnFizz(), db)))
 	if err != nil {
 		return err
 	}
