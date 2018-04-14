@@ -12,7 +12,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-var mrx = regexp.MustCompile("(\\d+)_(.+)\\.(up|down)\\.(sql|fizz)")
+var mrx = regexp.MustCompile(`(\d+)_([^\.]+)(\.[a-z]+)?\.(up|down)\.(sql|fizz)`)
 
 // NewMigrator returns a new "blank" migrator. It is recommended
 // to use something like MigrationBox or FileMigrator. A "blank"
@@ -46,6 +46,10 @@ func (m Migrator) Up() error {
 		mfs := m.Migrations["up"]
 		sort.Sort(mfs)
 		for _, mi := range mfs {
+			if mi.DBType != "all" && mi.DBType != c.Dialect.Name() {
+				// Skip migration for non-matching dialect
+				continue
+			}
 			exists, err := c.Where("version = ?", mi.Version).Exists(mtn)
 			if err != nil {
 				return errors.Wrapf(err, "problem checking for migration version %s", mi.Version)
