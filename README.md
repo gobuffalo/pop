@@ -182,7 +182,20 @@ The `models/user.go` file contains a structure named `User` with fields `ID`, `C
 
 The `models/user_test.go` contains tests for the User model and they must be implemented by you.
 
-The other two files correspond to the migrations as explained below.
+The other two files correspond to the migrations as explained below. By default, it generates `.fizz` files but you can also generate `.sql` files by adding the flag `--migration-type sql` to the command. Be aware, that you will need to specify the appropriate environment, because `.sql` files are for specific databases.
+
+```bash
+$ soda generate model user name:text email:text --migration-type sql -e development
+```
+
+If `development`is associated with a `postgresql`configuration, running this command will generate the following files:
+
+```text
+models/user.go
+models/user_test.go
+migrations/20170115024143_create_users.postgres.up.sql
+migrations/20170115024143_create_users.postgres.down.sql
+```
 
 ### Migrations
 
