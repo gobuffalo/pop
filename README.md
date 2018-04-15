@@ -193,8 +193,8 @@ If `development`is associated with a `postgresql`configuration, running this com
 ```text
 models/user.go
 models/user_test.go
-migrations/20170115024143_create_users.postgresql.up.sql
-migrations/20170115024143_create_users.postgresql.down.sql
+migrations/20170115024143_create_users.postgres.up.sql
+migrations/20170115024143_create_users.postgres.down.sql
 ```
 
 ### Migrations
