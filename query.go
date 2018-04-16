@@ -69,20 +69,10 @@ func (q *Query) RawQuery(stmt string, args ...interface{}) *Query {
 //
 // 	c.Eager().Find(model, 1) // will load all associations for model.
 // 	c.Eager("Books").Find(model, 1) // will load only Book association for model.
-func (c *Connection) Eager(fields ...string) *Query {
-	return Q(c).Eager(fields...)
-}
-
-// Eager will enable load associations of the model.
-// by defaults loads all the associations on the model,
-// but can take a variadic list of associations to load.
-//
-// 	q.Eager().Find(model, 1) // will load all associations for model.
-// 	q.Eager("Books").Find(model, 1) // will load only Book association for model.
-func (q *Query) Eager(fields ...string) *Query {
-	q.eager = true
-	q.eagerFields = append(q.eagerFields, fields...)
-	return q
+func (c *Connection) Eager(fields ...string) *Connection {
+	c.eager = true
+	c.eagerFields = append(c.eagerFields, fields...)
+	return c
 }
 
 // Where will append a where clause to the query. You may use `?` in place of
@@ -91,7 +81,8 @@ func (q *Query) Eager(fields ...string) *Query {
 // 	c.Where("id = ?", 1)
 // 	q.Where("id in (?)", 1, 2, 3)
 func (c *Connection) Where(stmt string, args ...interface{}) *Query {
-	return Q(c).Where(stmt, args...)
+	q := Q(c)
+	return q.Where(stmt, args...)
 }
 
 // Where will append a where clause to the query. You may use `?` in place of
@@ -141,8 +132,10 @@ func (q *Query) Limit(limit int) *Query {
 // Q will create a new "empty" query from the current connection.
 func Q(c *Connection) *Query {
 	return &Query{
-		RawSQL:     &clause{},
-		Connection: c,
+		RawSQL:      &clause{},
+		Connection:  c,
+		eager:       c.eager,
+		eagerFields: c.eagerFields,
 	}
 }
 
