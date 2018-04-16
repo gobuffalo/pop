@@ -142,3 +142,8 @@ func (cd *ConnectionDetails) RetryLimit() int {
 	}
 	return i
 }
+
+// MigrationTableName returns the name of the table to track migrations
+func (cd *ConnectionDetails) MigrationTableName() string {
+	return defaults.String(cd.Options["migration_table_name"], "schema_migration")
+}

@@ -39,6 +39,11 @@ func (c *Connection) MigrationURL() string {
 	return c.Dialect.MigrationURL()
 }
 
+// MigrationTableName returns the name of the table to track migrations
+func (c *Connection) MigrationTableName() string {
+	return c.Dialect.Details().MigrationTableName()
+}
+
 // NewConnection creates a new connection, and sets it's `Dialect`
 // appropriately based on the `ConnectionDetails` passed into it.
 func NewConnection(deets *ConnectionDetails) (*Connection, error) {

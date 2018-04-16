@@ -247,12 +247,22 @@ The `soda` command will run the migrations using the following command:
 $ soda migrate up
 ```
 
-Migrations will be run in sequential order. The previously run migrations will be kept track of in a table named `schema_migrations` in the database.
+Migrations will be run in sequential order. 
 
 Migrations can also be run in reverse to rollback the schema.
 
 ```bash
 $ soda migrate down
+```
+
+The previously run migrations will be kept track of in a table named `schema_migration` in the database. The table name can be configured by setting `migration_table_name` of the configuration options. The example below will use `migrations` as the table name.
+
+```yaml
+development:
+  dialect: "postgres"
+  url: "your_db_development"
+  options:
+    migration_table_name: migrations
 ```
 
 #### Find
