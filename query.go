@@ -105,7 +105,6 @@ func (q *Query) Where(stmt string, args ...interface{}) *Query {
 		}
 		qs := fmt.Sprintf("(%s)", strings.Join(inq, ","))
 		stmt = strings.Replace(stmt, "(?)", qs, 1)
-		stmt = strings.Replace(stmt, "(?)", qs, 1)
 	}
 	q.whereClauses = append(q.whereClauses, clause{stmt, args})
 	return q
