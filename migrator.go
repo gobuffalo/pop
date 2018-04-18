@@ -62,7 +62,7 @@ func (m Migrator) Up() error {
 				if err != nil {
 					return err
 				}
-				_, err = tx.Store.Exec(fmt.Sprintf("insert into %s (version) values (?)", mtn), mi.Version)
+				_, err = tx.Store.Exec(fmt.Sprintf("insert into %s (version) values ('%s')", mtn, mi.Version))
 				return errors.Wrapf(err, "problem inserting migration version %s", mi.Version)
 			})
 			if err != nil {
