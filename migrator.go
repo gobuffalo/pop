@@ -62,7 +62,7 @@ func (m Migrator) Up() error {
 				if err != nil {
 					return err
 				}
-				_, err = tx.Store.Exec(fmt.Sprintf("insert into %s (version) values ('%s')", mtn, mi.Version))
+				_, err = tx.Store.Exec(fmt.Sprintf("insert into %s (version) values (?)", mtn), mi.Version)
 				return errors.Wrapf(err, "problem inserting migration version %s", mi.Version)
 			})
 			if err != nil {
@@ -104,7 +104,7 @@ func (m Migrator) Down(step int) error {
 				if err != nil {
 					return err
 				}
-				err = tx.RawQuery("delete from %s where version = ?", mtn, mi.Version).Exec()
+				err = tx.RawQuery(fmt.Sprintf("delete from %s where version = ?", mtn), mi.Version).Exec()
 				return errors.Wrapf(err, "problem deleting migration version %s", mi.Version)
 			})
 			if err != nil {
