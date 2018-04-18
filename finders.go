@@ -19,7 +19,8 @@ var rLimit = regexp.MustCompile("(?i)(limit [0-9]+)$")
 //
 //	c.Find(&User{}, 1)
 func (c *Connection) Find(model interface{}, id interface{}) error {
-	return Q(c).Find(model, id)
+	q := Q(c)
+	return q.Find(model, id)
 }
 
 // Find the first record of the model in the database with a particular id.
@@ -46,7 +47,8 @@ func (q *Query) Find(model interface{}, id interface{}) error {
 //
 //	c.First(&User{})
 func (c *Connection) First(model interface{}) error {
-	return Q(c).First(model)
+	q := Q(c)
+	return q.First(model)
 }
 
 // First record of the model in the database that matches the query.
@@ -76,7 +78,8 @@ func (q *Query) First(model interface{}) error {
 //
 //	c.Last(&User{})
 func (c *Connection) Last(model interface{}) error {
-	return Q(c).Last(model)
+	q := Q(c)
+	return q.Last(model)
 }
 
 // Last record of the model in the database that matches the query.
@@ -108,7 +111,8 @@ func (q *Query) Last(model interface{}) error {
 //
 //	c.All(&[]User{})
 func (c *Connection) All(models interface{}) error {
-	return Q(c).All(models)
+	q := Q(c)
+	return q.All(models)
 }
 
 // All retrieves all of the records in the database that match the query.
@@ -182,11 +186,13 @@ func (q *Query) eagerAssociations(model interface{}) error {
 	}
 
 	for _, association := range assos {
-		if association == associations.SkippedAssociation {
+		if association.Skipped() {
 			continue
 		}
 
 		query := Q(q.Connection)
+		query.eager = false
+
 		whereCondition, args := association.Constraint()
 		query = query.Where(whereCondition, args...)
 

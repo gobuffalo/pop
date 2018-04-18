@@ -2,15 +2,15 @@
 
 ## A Tasty Treat For All Your Database Needs
 
-So what does Pop do exactly? Well, it wraps the absolutely amazing [https://github.com/jmoiron/sqlx](https://github.com/jmoiron/sqlx) library. It cleans up some of the common patterns and workflows usually associated with dealing with databases in Go.
+So what does Pop do exactly? Well, it wraps the absolutely amazing [https://github.com/jmoiron/sqlx](https://github.com/jmoiron/sqlx) library. It cleans up some of the common patterns and work flows usually associated with dealing with databases in Go.
 
 Pop makes it easy to do CRUD operations, run migrations, and build/execute queries. Is Pop an ORM? I'll leave that up to you, the reader, to decide.
 
-Pop, by default, follows conventions that were defined by the ActiveRecord Ruby gem, http://www.rubyonrails.org. What does this mean?
+Pop, by default, follows conventions that were influenced by the (ActiveRecord)[http://www.rubyonrails.org] Ruby gem. What does this mean?
 
 * Tables must have an "id" column and a corresponding "ID" field on the `struct` being used.
-* If there is a timestamp column named "created_at", "CreatedAt" on the `struct`, it will be set with the current time when the record is created.
-* If there is a timestamp column named "updated_at", "UpdatedAt" on the `struct`, it will be set with the current time when the record is updated.
+* If there is a `timestamp` column named `created_at`, and a `CreatedAt time.Time` attribute on the `struct`, it will be set with the current time when the record is created.
+* If there is a `timestamp` column named `updated_at`, and a `UpdatedAt time.Time` attribute on the `struct`, it will be set with the current time when the record is updated.
 * Default database table names are lowercase, plural, and underscored versions of the `struct` name. Examples: User{} is "users", FooBar{} is "foo_bars", etc...
 
 ## Supported Databases
@@ -65,9 +65,9 @@ $ soda g config
 
 The default will generate a `database.yml` file in the current directory for a PostgreSQL database. You can override the type of database using the `-t` flag and passing in any of the supported database types: `postgres`, `cockroach`, `mysql`, or `sqlite3`.
 
-CockroachDB currently works best if you DO NOT use a url and instead define each key item. Because CockroachDB more or less uses the same driver as postgres you have the same configuration options for both. In production you will also want to make sure you are using a [secure cluster](https://www.cockroachlabs.com/docs/stable/manual-deployment.html) and have set all the needed [connection parameters](https://godoc.org/github.com/lib/pq#hdr-Connection_String_Parameters) for said secure connection. If you do not set the sslmode or set it to `disable` this will put dump and load commands into `--insecure` mode.
+CockroachDB currently works best if you DO NOT use a URL and instead define each key item. Because CockroachDB more or less uses the same driver as postgres you have the same configuration options for both. In production you will also want to make sure you are using a [secure cluster](https://www.cockroachlabs.com/docs/stable/manual-deployment.html) and have set all the needed [connection parameters](https://godoc.org/github.com/lib/pq#hdr-Connection_String_Parameters) for said secure connection. If you do not set the sslmode or set it to `disable` this will put dump and load commands into `--insecure` mode.
 
-### In your code
+### In Your Code
 
 Once you have a configuration file defined you can easily connect to one of these connections in your application.
 
@@ -84,9 +84,15 @@ Now that you have your connection to the database you can start executing querie
 
 Pop features CLI support via the `soda` command for the following operations:
 
-* creating databases
-* dropping databases
-* migrating databases
+```bash
+Available Commands:
+  create      Creates databases for you
+  drop        Drops databases for you
+  generate
+  help        Help about any command
+  migrate     Runs migrations against your database.
+  schema      Tools for working with your database schema
+```
 
 ### Installing CLI Support
 
@@ -97,7 +103,7 @@ $ go get github.com/gobuffalo/pop/...
 $ go install github.com/gobuffalo/pop/soda
 ```
 
-**with** sqlite 3 support:
+**With** sqlite 3 support:
 
 ```bash
 $ go get -u -v -tags sqlite github.com/gobuffalo/pop/...
@@ -176,7 +182,20 @@ The `models/user.go` file contains a structure named `User` with fields `ID`, `C
 
 The `models/user_test.go` contains tests for the User model and they must be implemented by you.
 
-The other two files correspond to the migrations as explained below.
+The other two files correspond to the migrations as explained below. By default, it generates `.fizz` files but you can also generate `.sql` files by adding the flag `--migration-type sql` to the command. Be aware, that you will need to specify the appropriate environment, because `.sql` files are for specific databases.
+
+```bash
+$ soda generate model user name:text email:text --migration-type sql -e development
+```
+
+If `development`is associated with a `postgresql`configuration, running this command will generate the following files:
+
+```text
+models/user.go
+models/user_test.go
+migrations/20170115024143_create_users.postgres.up.sql
+migrations/20170115024143_create_users.postgres.down.sql
+```
 
 ### Migrations
 
@@ -228,7 +247,7 @@ The `soda` command will run the migrations using the following command:
 $ soda migrate up
 ```
 
-Migrations will be run in sequential order. The previously run migrations will be kept track of in a table named `schema_migrations` in the database.
+Migrations will be run in sequential order.
 
 Migrations can also be run in reverse to rollback the schema.
 
@@ -236,20 +255,33 @@ Migrations can also be run in reverse to rollback the schema.
 $ soda migrate down
 ```
 
+The previously run migrations will be kept track of in a table named `schema_migration` in the database. The table name can be configured by setting `migration_table_name` of the configuration options. The example below will use `migrations` as the table name.
+
+```yaml
+development:
+  dialect: "postgres"
+  url: "your_db_development"
+  options:
+    migration_table_name: migrations
+```
+
 #### Find
+
 ```go
 user := models.User{}
 err := tx.Find(&user, id)
 ```
 
 #### Last
+
 ```go
 // Last() orders by created_at
 user := models.User{}
 err := tx.Last(&user)
 ```
 
-#### Query
+#### Query All
+
 ```go
 tx := models.DB
 query := tx.Where("id = 1").Where("name = 'Mark'")
@@ -273,12 +305,87 @@ count, _ := query.Count(models.UserRole{})
 count, _ := query.CountByField(models.UserRole{}, "*")
 sql, args := query.ToSQL(&pop.Model{Value: models.UserRole{}}, "user_roles.*",
   "roles.name as role_name", "u.first_name", "u.last_name")
-//log.Printf("sql: %s, args: %v", sql, args)
 err := models.DB.RawQuery(sql, args...).All(&roles)
 ```
 
+#### Create
+
+```go
+// Create one record.
+user := models.User{}
+user.Name = "Mark"
+err := tx.Create(&user)
+
+// Create many records.
+users := models.Users{
+  {Name:"Mark"},
+  {Name: "Larry"},
+}
+
+err := tx.Create(&users)
+```
+
+#### Save
+```go
+// Save one record.
+user := models.User{}
+user.Name = "Mark"
+err := tx.Save(&user)
+
+// Save many records.
+users := models.Users{
+  {Name:"Mark"},
+  {Name: "Larry"},
+}
+
+err := tx.Save(&users)
+```
+
+#### Update
+```go
+// Update one record.
+user := models.User{}
+user.Name = "Mark"
+err := tx.Create(&user)
+
+user.Name = "Mark Bates"
+err = tx.Update(&user)
+
+// Update many records.
+users := models.Users{
+  {Name:"Mark"},
+  {Name: "Larry"},
+}
+
+err := tx.Create(&users)
+
+users[0].Name = "Mark Bates"
+users[1].Name = "Larry Morales"
+err := tx.Update(&users)
+```
+
+#### Destroy
+```go
+// Destroy one record.
+user := models.User{}
+user.Name = "Mark"
+err := tx.Create(&user)
+
+err = tx.Destroy(&user)
+
+// Destroy many records.
+users := models.Users{
+  {Name:"Mark"},
+  {Name: "Larry"},
+}
+err := tx.Create(&users)
+
+err = tx.Destroy(&users)
+```
+
 ### Eager Loading
-**pop** allows you to perform an eager loading for associations defined in a model. By using `pop.Connection.Eager()` function plus some fields tags predefined in your model you can extract associated data from a model.
+
+Pop allows you to perform an eager loading for associations defined in a model. By using `pop.Connection.Eager()` function plus some fields tags predefined in your model you can extract associated data from a model.
 
 ```go
 type User struct {
@@ -305,7 +412,7 @@ type Book struct {
 ```go
 type Writer struct {
    ID     uuid.UUID   `db:"id"`
-   Name   string      `db:"name"``
+   Name   string      `db:"name"`
    BookID uuid.UUID   `db:"book_id"`
    Book   Book        `belongs_to:"book"`
 }
@@ -329,64 +436,123 @@ type Address struct {
 type Addresses []Address
 ```
 
-  **has_many**: will load all records from the `books` table that have a column named `user_id` or the column specified with **fk_id** that matches the `User.ID` value.
+* **has_many**: will load all records from the `books` table that have a column named `user_id` or the column specified with **fk_id** that matches the `User.ID` value.
 
-  **belongs_to**: will load a record from `users` table that have a column named `id` that matches with `Book.UserID` value.
+* **belongs_to**: will load a record from `users` table that have a column named `id` that matches with `Book.UserID` value.
 
-  **has_one**: will load a record from the `songs` table that have a column named `user_id` or the column specified with **fk_id** that matches the `User.ID` value.
+* **has_one**: will load a record from the `songs` table that have a column named `user_id` or the column specified with **fk_id** that matches the `User.ID` value.
 
-  **many_to_many**: will load all records from the `addresses` table through the table `users_addresses`. Table `users_addresses` MUST define `address_id`  and `user_id` columns to match `User.ID` and `Address.ID` values. You can also define a **fk_id** tag that will be used in the target association i.e `addresses` table.
+* **many_to_many**: will load all records from the `addresses` table through the table `users_addresses`. Table `users_addresses` MUST define `address_id`  and `user_id` columns to match `User.ID` and `Address.ID` values. You can also define a **fk_id** tag that will be used in the target association i.e `addresses` table.
 
-  **fk_id**: defines the column name in the target association that matches model `ID`. In the example above `Song` has a column named `u_id` that represents `id` of `users` table. When loading `FavoriteSong`, `u_id` will be used instead of `user_id`.
+* **fk_id**: defines the column name in the target association that matches model `ID`. In the example above `Song` has a column named `u_id` that represents `id` of `users` table. When loading `FavoriteSong`, `u_id` will be used instead of `user_id`.
 
-  **order_by**: used in `has_many` and `many_to_many` to indicate the order for the association when loading. The format to use is  `order_by:"<column_name> <asc | desc>"`
+* **order_by**: used in `has_many` and `many_to_many` to indicate the order for the association when loading. The format to use is  `order_by:"<column_name> <asc | desc>"`
 
 
 ```go
 u := Users{}
-err := tx.Eager().Where("name = 'Mark'").All(&u)  // preload all associations for user with name 'Mark', i.e Books, Houses and FavoriteSong
-err  = tx.Eager("Books").Where("name = 'Mark'").All(&u) // preload only Books association for user with name 'Mark'.
+// preload all associations for user with name 'Mark', i.e Books, Houses and FavoriteSong
+err := tx.Eager().Where("name = 'Mark'").All(&u)
+// preload only Books association for user with name 'Mark'.
+err  = tx.Eager("Books").Where("name = 'Mark'").All(&u)
 ```
 
 #### Eager Loading Nested Associations
- pop allows you to eager loading nested associations by using `.` character to concatenate them. Take a look at the example bellow.
+
+Pop allows you to eager loading nested associations by using `.` character to concatenate them. Take a look at the example bellow.
+
 ```go
-tx.Eager("Books.User").First(&u)  // will load all Books for u and for every Book will load the user which will be the same as u.
-``` 
-```go
- tx.Eager("Books.Writers").First(&u)  // will load all Books for u and for every Book will load all Writers.
-```
-```go
-tx.Eager("Books.Writers.Book").First(&u)  // will load all Books for u and for every Book will load all Writers and for every writer will load the Book association.
-```
-```go
-tx.Eager("Books.Writers").Eager("FavoriteSong").First(&u)  // will load all Books for u and for every Book will load all Writers. And Also it will load the favorite song for user.
+// will load all Books for u and for every Book will load the user which will be the same as u.
+tx.Eager("Books.User").First(&u)
 ```
 
+```go
+// will load all Books for u and for every Book will load all Writers.
+ tx.Eager("Books.Writers").First(&u)
+```
+
+```go
+// will load all Books for u and for every Book will load all Writers and for every writer will load the Book association.
+tx.Eager("Books.Writers.Book").First(&u)
+```
+
+```go
+// will load all Books for u and for every Book will load all Writers. And Also it will load the favorite song for user.
+tx.Eager("Books.Writers").Eager("FavoriteSong").First(&u)
+```
+
+#### Eager Creation
+
+Pop allows you to create models and their associations in one step. You no longer need to create every association separately anymore. Pop will even create join table records for `many_to_many` associations.
+
+Assuming the following pieces of psuedo-code:
+
+
+```go
+user := User{
+  Name: "Mark Bates",
+  Books: Books{{Title: "Pop Book", Description: "Pop Book", Isbn: "PB1"}},
+  FavoriteSong: Song{Title: "Don't know the title"},
+  Houses: Addresses{
+    Address{HouseNumber: 1, Street: "Golang"},
+  },
+}
+```
+
+```go
+err := tx.Eager().Create(&user)
+```
+
+1. It will notice `Books` is a `has_many` association and it will realize that to actually store every book it will need to get the `User ID` first. So, it proceeds to store first `User` data so it can retrieve an **ID** and then use that ID to fill `UserID` field in every `Book` in `Books`. Later it stores all books in database.
+
+2. `FavoriteSong` is a `has_one` association and it uses same logic described in `has_many` association. Since `User` data was previously saved before creating all books, it already knows that `User` got an `ID` so it fills its `UserID` field with that value and `FavoriteSong` is then stored in database.
+
+3. `Houses` in this example is a `many_to_many` relationship and it will have to deal with two tables in this case: `users` and `addresses`. It will need to store all addresses first in `addresses` table before save them in the many to many table. Because `User` was already stored, it already have an `ID`. * This is a special case to deal with, since this behavior is different to all other associations, it is solved by implementing the `AssociationCreatableStatement` interface, all other associations implement by default `AssociationCreatable` interface.
+
+For a `belongs_to` association like shown in the example below, it will need first to create `User` to retrieve **ID** value and then fill its `UserID` field before be saved in database.
+
+```go
+book := Book{
+   Title:      "Pop Book",
+   Description: "Pop Book",
+   Isbn:        "PB1",
+   User: User{
+        Name: nulls.NewString("Larry"),
+   },
+}
+```
+
+```go
+tx.Eager().Create(&book)
+```
+
+All these cases are assuming that none of models and associations has previously been saved in database.
+
 #### Callbacks
-Pop provides a means to execute code before and after database operations.
-This is done by defining specific methods on your models. For
-example, to hash a user password you may want to define the following method:
+
+Pop provides a means to execute code before and after database operations. This is done by defining specific methods on your models. For example, to hash a user password you may want to define the following method:
 
 ```go
 type User struct {
-	ID       uuid.UUID
-	Email    string
-	Password string
+  ID       uuid.UUID
+  Email    string
+  Password string
 }
 
 func (u *User) BeforeSave(tx *pop.Connection) error {
-	hash, err := bcrypt.GenerateFromPassword([]byte(u.Password), bcrypt.DefaultCost)
-	if err != nil {
-		return errors.WithStack(err)
-	}
+  hash, err := bcrypt.GenerateFromPassword([]byte(u.Password), bcrypt.DefaultCost)
+  if err != nil {
+    return errors.WithStack(err)
+  }
 
-	u.Password = string(hash)
+  u.Password = string(hash)
 
-	return nil
+  return nil
 }
 ```
-The available callbacks include:
+
+### Available Callbacks:
+
 * BeforeSave
 * BeforeCreate
 * BeforeUpdate
@@ -397,5 +563,6 @@ The available callbacks include:
 * AfterDestroy
 * AfterFind
 
-#### Further reading
-[The Unofficial pop Book: a gentle introduction to new users.](https://andrew-sledge.gitbooks.io/the-unofficial-pop-book/content/)
+#### Further Reading
+
+[The Unofficial pop Book:](https://andrew-sledge.gitbooks.io/the-unofficial-pop-book/content/) a gentle introduction to new users.

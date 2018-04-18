@@ -24,6 +24,15 @@ create_table("users_addresses", func(t) {
   t.Column("address_id", "int", {})
 })
 
+create_table("courses", func(t) {
+	t.Column("id", "uuid", {"primary": true})
+})
+
+create_table("course_codes", func(t) {
+	t.Column("id", "uuid", {"primary": true})
+	t.Column("course_id", "uuid", {})
+})
+
 {{ if eq .Dialect "postgres" }}
 create_table("cakes", func(t) {
   t.Column("int_slice", "int[]", {"null": true})

@@ -29,6 +29,10 @@ type postgresql struct {
 	ConnectionDetails *ConnectionDetails
 }
 
+func (p *postgresql) Name() string {
+	return "postgresql"
+}
+
 func (p *postgresql) Details() *ConnectionDetails {
 	return p.ConnectionDetails
 }
