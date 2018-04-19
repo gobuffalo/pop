@@ -6,7 +6,6 @@ import (
 	"io"
 	"os"
 	"os/exec"
-	"strconv"
 	"strings"
 	"sync"
 
@@ -153,20 +152,8 @@ func (p *postgresql) TranslateSQL(sql string) string {
 	if csql, ok := p.translateCache[sql]; ok {
 		return csql
 	}
-	curr := 1
-	out := make([]byte, 0, len(sql))
-	for i := 0; i < len(sql); i++ {
-		if sql[i] == '?' {
-			str := "$" + strconv.Itoa(curr)
-			for _, char := range str {
-				out = append(out, byte(char))
-			}
-			curr++
-		} else {
-			out = append(out, sql[i])
-		}
-	}
-	csql := string(out)
+	csql := sqlx.Rebind(sqlx.DOLLAR, sql)
+
 	p.translateCache[sql] = csql
 	return csql
 }

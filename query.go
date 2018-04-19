@@ -1,6 +1,9 @@
 package pop
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 // Query is the main value that is used to build up a query
 // to be executed against the `Connection`.
@@ -94,6 +97,14 @@ func (q *Query) Where(stmt string, args ...interface{}) *Query {
 	if q.RawSQL.Fragment != "" {
 		fmt.Println("Warning: Query is setup to use raw SQL")
 		return q
+	}
+	if inRegex.MatchString(stmt) {
+		var inq []string
+		for i := 0; i < len(args); i++ {
+			inq = append(inq, "?")
+		}
+		qs := fmt.Sprintf("(%s)", strings.Join(inq, ","))
+		stmt = strings.Replace(stmt, "(?)", qs, 1)
 	}
 	q.whereClauses = append(q.whereClauses, clause{stmt, args})
 	return q

@@ -44,6 +44,27 @@ func Test_Where_In(t *testing.T) {
 
 		songs := []Song{}
 		err = tx.Where("id in (?)", u1.ID, u3.ID).All(&songs)
+		r.NoError(err)
+		r.Len(songs, 2)
+	})
+}
+
+func Test_Where_In_Complex(t *testing.T) {
+	r := require.New(t)
+	transaction(func(tx *pop.Connection) {
+		u1 := &Song{Title: "A"}
+		u2 := &Song{Title: "A"}
+		u3 := &Song{Title: "A"}
+		err := tx.Create(u1)
+		r.NoError(err)
+		err = tx.Create(u2)
+		r.NoError(err)
+		err = tx.Create(u3)
+		r.NoError(err)
+
+		songs := []Song{}
+		err = tx.Where("id in (?)", u1.ID, u3.ID).Where("title = ?", "A").All(&songs)
+		r.NoError(err)
 		r.Len(songs, 2)
 	})
 }
