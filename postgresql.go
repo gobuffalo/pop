@@ -10,8 +10,6 @@ import (
 	"sync"
 
 	"github.com/jmoiron/sqlx"
-	// Load PostgreSQL Go driver
-	_ "github.com/lib/pq"
 
 	"github.com/gobuffalo/pop/columns"
 	"github.com/gobuffalo/pop/fizz"

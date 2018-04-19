@@ -10,7 +10,8 @@ import (
 	"sync"
 
 	"github.com/jmoiron/sqlx"
-	// Load CockroachdbQL Go driver
+	// Load CockroachdbQL/postgres Go driver
+	// also loads github.com/lib/pq
 	_ "github.com/cockroachdb/cockroach-go/crdb"
 
 	"github.com/gobuffalo/pop/columns"
