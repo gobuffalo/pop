@@ -12,7 +12,6 @@ import (
 	"github.com/jmoiron/sqlx"
 	// Load CockroachdbQL Go driver
 	_ "github.com/cockroachdb/cockroach-go/crdb"
-	_ "github.com/lib/pq"
 
 	"github.com/gobuffalo/pop/columns"
 	"github.com/gobuffalo/pop/fizz"
