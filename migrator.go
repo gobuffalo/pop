@@ -21,6 +21,7 @@ var mrx = regexp.MustCompile(`(\d+)_([^\.]+)(\.[a-z]+)?\.(up|down)\.(sql|fizz)`)
 func NewMigrator(c *Connection) Migrator {
 	return Migrator{
 		Connection: c,
+		Config:     Config{},
 		Migrations: map[string]Migrations{
 			"up":   Migrations{},
 			"down": Migrations{},
@@ -36,6 +37,12 @@ type Migrator struct {
 	Connection *Connection
 	SchemaPath string
 	Migrations map[string]Migrations
+	Config     Config
+}
+
+// Config configures Migrator.
+type Config struct {
+	Verbose bool
 }
 
 // Up runs pending "up" migrations and applies them to the database.
@@ -68,7 +75,9 @@ func (m Migrator) Up() error {
 			if err != nil {
 				return errors.WithStack(err)
 			}
-			fmt.Printf("> %s\n", mi.Name)
+			if m.Config.Verbose {
+				fmt.Printf("> %s\n", mi.Name)
+			}
 		}
 		return nil
 	})
@@ -111,7 +120,9 @@ func (m Migrator) Down(step int) error {
 				return err
 			}
 
-			fmt.Printf("< %s\n", mi.Name)
+			if m.Config.Verbose {
+				fmt.Printf("< %s\n", mi.Name)
+			}
 		}
 		return nil
 	})
@@ -198,7 +209,7 @@ func (m Migrator) DumpMigrationSchema() error {
 func (m Migrator) exec(fn func() error) error {
 	now := time.Now()
 	defer m.DumpMigrationSchema()
-	defer printTimer(now)
+	defer m.printTimer(now)
 
 	err := m.CreateSchemaMigrations()
 	if err != nil {
@@ -207,7 +218,10 @@ func (m Migrator) exec(fn func() error) error {
 	return fn()
 }
 
-func printTimer(timerStart time.Time) {
+func (m Migrator) printTimer(timerStart time.Time) {
+	if !m.Config.Verbose {
+		return
+	}
 	diff := time.Now().Sub(timerStart).Seconds()
 	if diff > 60 {
 		fmt.Printf("\n%.4f minutes\n", diff/60)
