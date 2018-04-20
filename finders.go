@@ -185,7 +185,7 @@ func (q *Query) eagerAssociations(model interface{}) error {
 	}
 
 	//disable eager mode for current connection.
-	q.eagerDisabled()
+	q.disableEager()
 
 	for _, association := range assos {
 		if association.Skipped() {

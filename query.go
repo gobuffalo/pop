@@ -90,8 +90,8 @@ func (q *Query) Eager(fields ...string) *Query {
 	return q
 }
 
-// eagerDisabled disables eager mode for current query and Connection.
-func (q *Query) eagerDisabled() {
+// disableEager disables eager mode for current query and Connection.
+func (q *Query) disableEager() {
 	q.Connection.eager, q.eager = false, false
 	q.Connection.eagerFields, q.eagerFields = []string{}, []string{}
 }
