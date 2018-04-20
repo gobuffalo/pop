@@ -6,14 +6,11 @@ import (
 	"testing"
 	"time"
 
-	_ "github.com/go-sql-driver/mysql"
 	"github.com/gobuffalo/pop"
 	"github.com/gobuffalo/pop/nulls"
 	"github.com/gobuffalo/uuid"
 	"github.com/gobuffalo/validate"
 	"github.com/gobuffalo/validate/validators"
-	_ "github.com/lib/pq"
-	_ "github.com/mattn/go-sqlite3"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -84,6 +81,14 @@ type User struct {
 	Houses       Addresses     `many_to_many:"users_addresses"`
 }
 
+// Validate gets run every time you call a "pop.Validate*" (pop.ValidateAndSave, pop.ValidateAndCreate, pop.ValidateAndUpdate) method.
+// This method is not required and may be deleted.
+func (u *User) Validate(tx *pop.Connection) (*validate.Errors, error) {
+	return validate.Validate(
+		&validators.StringIsPresent{Field: u.Name.String, Name: "Name"},
+	), nil
+}
+
 type Users []User
 
 type Book struct {
@@ -96,6 +101,14 @@ type Book struct {
 	Writers     Writers   `has_many:"writers"`
 	CreatedAt   time.Time `db:"created_at"`
 	UpdatedAt   time.Time `db:"updated_at"`
+}
+
+// Validate gets run every time you call a "pop.Validate*" (pop.ValidateAndSave, pop.ValidateAndCreate, pop.ValidateAndUpdate) method.
+// This method is not required and may be deleted.
+func (b *Book) Validate(tx *pop.Connection) (*validate.Errors, error) {
+	return validate.Validate(
+		&validators.StringIsPresent{Field: b.Description, Name: "Description"},
+	), nil
 }
 
 type Books []Book
@@ -143,6 +156,21 @@ func (Friend) TableName() string {
 
 type Friends []Friend
 
+type Family struct {
+	ID        int       `db:"id"`
+	FirstName string    `db:"first_name"`
+	LastName  string    `db:"last_name"`
+	CreatedAt time.Time `db:"created_at"`
+	UpdatedAt time.Time `db:"updated_at"`
+}
+
+func (Family) TableName() string {
+	// schema.table_name
+	return "family.members"
+}
+
+type Families []Family
+
 type Enemy struct {
 	A string
 }
@@ -162,6 +190,21 @@ type Composer struct {
 	Name      string    `db:"name"`
 	CreatedAt time.Time `db:"created_at"`
 	UpdatedAt time.Time `db:"updated_at"`
+}
+
+type Course struct {
+	ID        uuid.UUID `json:"id" db:"id"`
+	CreatedAt time.Time `json:"created_at" db:"created_at"`
+	UpdatedAt time.Time `json:"updated_at" db:"updated_at"`
+}
+
+type CourseCode struct {
+	ID        uuid.UUID `json:"id" db:"id"`
+	CreatedAt time.Time `json:"created_at" db:"created_at"`
+	UpdatedAt time.Time `json:"updated_at" db:"updated_at"`
+	CourseID  uuid.UUID `json:"course_id" db:"course_id"`
+	Course    Course    `json:"-" db:"-"`
+	// Course Course `belongs_to:"course"`
 }
 
 type ValidatableCar struct {

@@ -2,6 +2,7 @@ package pop
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
@@ -48,12 +49,22 @@ func (fm *FileMigrator) findMigrations() error {
 				return nil
 			}
 			m := matches[0]
+			var dbType string
+			if m[3] == "" {
+				dbType = "all"
+			} else {
+				dbType = m[3][1:]
+				if !DialectSupported(dbType) {
+					return fmt.Errorf("unsupported dialect %s", dbType)
+				}
+			}
 			mf := Migration{
 				Path:      p,
 				Version:   m[1],
 				Name:      m[2],
-				Direction: m[3],
-				Type:      m[4],
+				DBType:    dbType,
+				Direction: m[4],
+				Type:      m[5],
 				Runner: func(mf Migration, tx *Connection) error {
 					f, err := os.Open(p)
 					if err != nil {

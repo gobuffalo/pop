@@ -44,10 +44,14 @@ func newAttribute(base string, model *model) attribute {
 		model.Imports = append(model.Imports, "github.com/gobuffalo/uuid")
 	}
 
+	got := colType(col[1])
+	if len(col) > 2 {
+		got = col[2]
+	}
 	a := attribute{
 		Name:         inflect.Name(col[0]),
 		OriginalType: col[1],
-		GoType:       colType(col[1]),
+		GoType:       got,
 		Nullable:     nullable,
 	}
 
@@ -74,6 +78,8 @@ func colType(s string) string {
 		return "slices.Float"
 	case "decimal", "float":
 		return "float64"
+	case "[]byte", "blob":
+		return "[]byte"
 	default:
 		return s
 	}
