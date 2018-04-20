@@ -25,7 +25,7 @@ func (f fizzer) add(s string, err error) error {
 }
 
 func (f fizzer) Exec(out io.Writer) interface{} {
-	return func(s string) error {
+	return func(s string) {
 		args := strings.Split(s, " ")
 		cmd := exec.Command(args[0], args[1:]...)
 		cmd.Stdin = os.Stdin
@@ -35,7 +35,6 @@ func (f fizzer) Exec(out io.Writer) interface{} {
 		if err != nil {
 			panic(fmt.Sprintf("error executing command: %s", s))
 		}
-		return nil
 	}
 }
 
