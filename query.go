@@ -78,6 +78,24 @@ func (c *Connection) Eager(fields ...string) *Connection {
 	return c
 }
 
+// Eager will enable load associations of the model.
+// by defaults loads all the associations on the model,
+// but can take a variadic list of associations to load.
+//
+// 	q.Eager().Find(model, 1) // will load all associations for model.
+// 	q.Eager("Books").Find(model, 1) // will load only Book association for model.
+func (q *Query) Eager(fields ...string) *Query {
+	q.eager = true
+	q.eagerFields = append(q.eagerFields, fields...)
+	return q
+}
+
+// eagerDisabled disables eager mode for current query and Connection.
+func (q *Query) eagerDisabled() {
+	q.Connection.eager, q.eager = false, false
+	q.Connection.eagerFields, q.eagerFields = []string{}, []string{}
+}
+
 // Where will append a where clause to the query. You may use `?` in place of
 // arguments.
 //

@@ -180,10 +180,12 @@ func (q *Query) eagerAssociations(model interface{}) error {
 	}
 
 	assos, err := associations.AssociationsForStruct(model, q.eagerFields...)
-
 	if err != nil {
 		return err
 	}
+
+	//disable eager mode for current connection.
+	q.eagerDisabled()
 
 	for _, association := range assos {
 		if association.Skipped() {
@@ -191,7 +193,6 @@ func (q *Query) eagerAssociations(model interface{}) error {
 		}
 
 		query := Q(q.Connection)
-		query.eager = false
 
 		whereCondition, args := association.Constraint()
 		query = query.Where(whereCondition, args...)

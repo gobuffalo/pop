@@ -182,6 +182,12 @@ func (c *Connection) Q() *Query {
 	return Q(c)
 }
 
+// eagerDisabled disables eager mode for current connection.
+func (c *Connection) eagerDisabled() {
+	c.eager = false
+	c.eagerFields = []string{}
+}
+
 // TruncateAll truncates all data from the datasource
 func (c *Connection) TruncateAll() error {
 	return c.Dialect.TruncateAll(c)
