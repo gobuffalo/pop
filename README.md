@@ -112,6 +112,8 @@ $ go install github.com/gobuffalo/pop/soda
 
 If you're not building your code with `buffalo build`, you'll also have to pass `-tags sqlite` to `go build` when building your program.
 
+## Managing Databases
+
 ### Creating Databases
 
 Assuming you defined a configuration file like that described in the above section you can automatically create those databases using the `soda` command:
@@ -144,7 +146,7 @@ $ soda drop -a
 $ soda drop -e development
 ```
 
-### Models
+## Models
 
 The `soda` command supports the generation of models.
 
@@ -154,7 +156,7 @@ A full list of commands available for model generation can be found by asking fo
 $ soda generate help
 ```
 
-#### Generate Models
+### Generating Models
 
 The `soda` command will generate Go models and, optionally, the associated migrations for you.
 
@@ -197,7 +199,7 @@ migrations/20170115024143_create_users.postgres.up.sql
 migrations/20170115024143_create_users.postgres.down.sql
 ```
 
-### Migrations
+## Migrations
 
 The `soda` command supports the creation and running of migrations.
 
@@ -207,7 +209,7 @@ A full list of commands available for migration can be found by asking for help:
 $ soda migrate --help
 ```
 
-#### Create Migrations
+### Generating Migrations
 
 The `soda` command will generate SQL migrations (both the up and down) files for you.
 
@@ -239,7 +241,7 @@ Running this command will generate the following files:
 
 The `soda migrate` command supports both `.fizz` and `.sql` files, so you can mix and match them to suit your needs.
 
-#### Running Migrations
+### Running Migrations
 
 The `soda` command will run the migrations using the following command:
 
@@ -265,14 +267,24 @@ development:
     migration_table_name: migrations
 ```
 
-#### Find
+## Querying
+
+### Find By ID
 
 ```go
-user := models.User{}
-err := tx.Find(&user, id)
+user := User{}
+err := db.Find(&user, id)
 ```
 
-#### Last
+### Find All
+
+```go
+users := []User{}
+err := db.All(&users)
+err = db.Where("id in (?)", 1, 2, 3).All(&users)
+```
+
+#### Find Last
 
 ```go
 // Last() orders by created_at
@@ -280,18 +292,33 @@ user := models.User{}
 err := tx.Last(&user)
 ```
 
-#### Query All
+### Find Where
 
 ```go
-tx := models.DB
-query := tx.Where("id = 1").Where("name = 'Mark'")
 users := []models.User{}
+query := db.Where("id = 1").Where("name = 'Mark'")
 err := query.All(&users)
 
 err = tx.Where("id in (?)", 1, 2, 3).All(&users)
 ```
 
-##### Join Query
+#### Using `in` Queries
+
+```go
+err = db.Where("id in (?)", 1, 2, 3).All(&users)
+err = db.Where("id in (?)", 1, 2, 3).Where("foo = ?", "bar").All(&users)
+```
+
+Unfortunately, for a variety of reasons you can't use an `and` query in the same `Where` call as an `in` query.
+
+```go
+// does not work:
+err = db.Where("id in (?) and foo = ?", 1, 2, 3, "bar").All(&users)
+// works:
+err = db.Where("id in (?)", 1, 2, 3).Where("foo = ?", "bar").All(&users)
+```
+
+### Join Query
 
 ```go
 // page: page number
@@ -308,7 +335,7 @@ sql, args := query.ToSQL(&pop.Model{Value: models.UserRole{}}, "user_roles.*",
 err := models.DB.RawQuery(sql, args...).All(&roles)
 ```
 
-#### Create
+## Creating New Records
 
 ```go
 // Create one record.
@@ -325,7 +352,10 @@ users := models.Users{
 err := tx.Create(&users)
 ```
 
-#### Save
+## Saving Records
+
+The `Save` method will attempt to create the record if the `ID` is empty. If there is an `ID` set it will attempt to update the record with that ID in the database.
+
 ```go
 // Save one record.
 user := models.User{}
@@ -341,7 +371,8 @@ users := models.Users{
 err := tx.Save(&users)
 ```
 
-#### Update
+## Updating Records
+
 ```go
 // Update one record.
 user := models.User{}
@@ -364,7 +395,8 @@ users[1].Name = "Larry Morales"
 err := tx.Update(&users)
 ```
 
-#### Destroy
+## Destroy
+
 ```go
 // Destroy one record.
 user := models.User{}
@@ -383,7 +415,7 @@ err := tx.Create(&users)
 err = tx.Destroy(&users)
 ```
 
-### Eager Loading
+## Eager Loading
 
 Pop allows you to perform an eager loading for associations defined in a model. By using `pop.Connection.Eager()` function plus some fields tags predefined in your model you can extract associated data from a model.
 
@@ -457,7 +489,7 @@ err := tx.Eager().Where("name = 'Mark'").All(&u)
 err  = tx.Eager("Books").Where("name = 'Mark'").All(&u)
 ```
 
-#### Eager Loading Nested Associations
+### Eager Loading Nested Associations
 
 Pop allows you to eager loading nested associations by using `.` character to concatenate them. Take a look at the example bellow.
 
@@ -481,12 +513,11 @@ tx.Eager("Books.Writers.Book").First(&u)
 tx.Eager("Books.Writers").Eager("FavoriteSong").First(&u)
 ```
 
-#### Eager Creation
+### Eager Creation
 
 Pop allows you to create models and their associations in one step. You no longer need to create every association separately anymore. Pop will even create join table records for `many_to_many` associations.
 
-Assuming the following pieces of psuedo-code:
-
+Assuming the following pieces of pseudo-code:
 
 ```go
 user := User{
@@ -528,7 +559,7 @@ tx.Eager().Create(&book)
 
 All these cases are assuming that none of models and associations has previously been saved in database.
 
-#### Callbacks
+## Callbacks
 
 Pop provides a means to execute code before and after database operations. This is done by defining specific methods on your models. For example, to hash a user password you may want to define the following method:
 
@@ -563,6 +594,6 @@ func (u *User) BeforeSave(tx *pop.Connection) error {
 * AfterDestroy
 * AfterFind
 
-#### Further Reading
+## Further Reading
 
 [The Unofficial pop Book:](https://andrew-sledge.gitbooks.io/the-unofficial-pop-book/content/) a gentle introduction to new users.

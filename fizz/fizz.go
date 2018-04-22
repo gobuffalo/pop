@@ -1,6 +1,7 @@
 package fizz
 
 import (
+	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
@@ -24,13 +25,16 @@ func (f fizzer) add(s string, err error) error {
 }
 
 func (f fizzer) Exec(out io.Writer) interface{} {
-	return func(s string) error {
+	return func(s string) {
 		args := strings.Split(s, " ")
 		cmd := exec.Command(args[0], args[1:]...)
 		cmd.Stdin = os.Stdin
 		cmd.Stdout = out
 		cmd.Stderr = os.Stderr
-		return cmd.Run()
+		err := cmd.Run()
+		if err != nil {
+			panic(fmt.Sprintf("error executing command: %s", s))
+		}
 	}
 }
 
