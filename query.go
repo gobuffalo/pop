@@ -73,9 +73,10 @@ func (q *Query) RawQuery(stmt string, args ...interface{}) *Query {
 // 	c.Eager().Find(model, 1) // will load all associations for model.
 // 	c.Eager("Books").Find(model, 1) // will load only Book association for model.
 func (c *Connection) Eager(fields ...string) *Connection {
-	c.eager = true
-	c.eagerFields = append(c.eagerFields, fields...)
-	return c
+	con := c.copy()
+	con.eager = true
+	con.eagerFields = append(c.eagerFields, fields...)
+	return con
 }
 
 // Eager will enable load associations of the model.

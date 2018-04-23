@@ -155,6 +155,15 @@ func (c *Connection) NewTransaction() (*Connection, error) {
 	return cn, nil
 }
 
+func (c *Connection) copy() *Connection {
+	return &Connection{
+		ID:      randx.String(30),
+		Store:   c.TX,
+		Dialect: c.Dialect,
+		TX:      c.TX,
+	}
+}
+
 // Rollback will open a new transaction and automatically rollback that transaction
 // when the inner function returns, regardless. This can be useful for tests, etc...
 func (c *Connection) Rollback(fn func(tx *Connection)) error {
