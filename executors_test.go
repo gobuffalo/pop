@@ -455,6 +455,24 @@ func Test_Eager_Create_Belongs_To(t *testing.T) {
 
 		ctx, _ = tx.Count(&User{})
 		a.Equal(1, ctx)
+
+		car := Taxi{
+			Model: "Fancy car",
+			Driver: User{
+				Name: nulls.NewString("Larry 2"),
+			},
+		}
+
+		err = tx.Eager().Create(&car)
+		a.NoError(err)
+
+		ctx, _ = tx.Count(&Taxi{})
+		a.Equal(1, ctx)
+
+		err = tx.Eager().Find(&car, car.ID)
+		a.NoError(err)
+
+		a.Equal(nulls.NewString("Larry 2"), car.Driver.Name)
 	})
 }
 

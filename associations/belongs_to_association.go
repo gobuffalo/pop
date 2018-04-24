@@ -13,6 +13,7 @@ type belongsToAssociation struct {
 	ownerModel reflect.Value
 	ownerType  reflect.Type
 	ownerID    reflect.Value
+	fkID       string
 	ownedModel interface{}
 	*associationSkipable
 	*associationComposite
@@ -25,6 +26,9 @@ func init() {
 func belongsToAssociationBuilder(p associationParams) (Association, error) {
 	fval := p.modelValue.FieldByName(p.field.Name)
 	ownerIDField := fmt.Sprintf("%s%s", p.field.Name, "ID")
+	if p.popTags.Find("fk_id").Value != "" {
+		ownerIDField = p.popTags.Find("fk_id").Value
+	}
 
 	if _, found := p.modelType.FieldByName(ownerIDField); !found {
 		return nil, fmt.Errorf("there is no '%s' defined in model '%s'", ownerIDField, p.modelType.Name())
@@ -41,6 +45,7 @@ func belongsToAssociationBuilder(p associationParams) (Association, error) {
 		ownerModel: fval,
 		ownerType:  fval.Type(),
 		ownerID:    f,
+		fkID:       ownerIDField,
 		ownedModel: p.model,
 		associationSkipable: &associationSkipable{
 			skipped: skipped,
