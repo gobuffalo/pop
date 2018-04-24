@@ -96,7 +96,7 @@ type Book struct {
 	Title       string    `db:"title"`
 	Isbn        string    `db:"isbn"`
 	UserID      nulls.Int `db:"user_id"`
-	User        User      `belongs_to:"user" autosave:"true"`
+	User        User      `belongs_to:"user"`
 	Description string    `db:"description"`
 	Writers     Writers   `has_many:"writers"`
 	CreatedAt   time.Time `db:"created_at"`
