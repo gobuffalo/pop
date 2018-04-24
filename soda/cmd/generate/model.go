@@ -18,6 +18,7 @@ import (
 	"github.com/spf13/pflag"
 
 	"github.com/gobuffalo/pop"
+	"github.com/gobuffalo/pop/fizz"
 	"github.com/markbates/going/defaults"
 	"github.com/markbates/inflect"
 )
@@ -149,7 +150,7 @@ func (m model) generateModelFile() error {
 
 func (m model) generateFizz(cflag *pflag.Flag) error {
 	migrationPath := defaults.String(cflag.Value.String(), "./migrations")
-	err := pop.MigrationCreate(migrationPath, fmt.Sprintf("create_%s", m.Name.Table()), "fizz", []byte(m.Fizz()), []byte(fmt.Sprintf("drop_table(\"%s\")", m.Name.Table())))
+	err := pop.MigrationCreate(migrationPath, fmt.Sprintf("create_%s", m.Name.Table()), "fizz", []byte(m.Fizz()), []byte(m.UnFizz()))
 	if err != nil {
 		return err
 	}
@@ -157,6 +158,24 @@ func (m model) generateFizz(cflag *pflag.Flag) error {
 	return nil
 }
 
+func (m model) generateSQL(pathFlag, envFlag *pflag.Flag) error {
+	migrationPath := defaults.String(pathFlag.Value.String(), "./migrations")
+
+	env := envFlag.Value.String()
+	db, err := pop.Connect(env)
+	if err != nil {
+		return err
+	}
+
+	err = pop.MigrationCreate(migrationPath, fmt.Sprintf("create_%s.%s", m.Name.Table(), db.Dialect.Name()), "sql", []byte(m.GenerateSQLFromFizz(m.Fizz(), db)), []byte(m.GenerateSQLFromFizz(m.UnFizz(), db)))
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// Fizz generates the create table instructions
 func (m model) Fizz() string {
 	s := []string{fmt.Sprintf("create_table(\"%s\", func(t) {", m.Name.Table())}
 	for _, a := range m.Attributes {
@@ -174,6 +193,20 @@ func (m model) Fizz() string {
 	}
 	s = append(s, "})")
 	return strings.Join(s, "\n")
+}
+
+// UnFizz generates the drop table instructions
+func (m model) UnFizz() string {
+	return fmt.Sprintf("drop_table(\"%s\")", m.Name.Table())
+}
+
+// GenerateSQLFromFizz generates SQL instructions from fizz instructions
+func (m model) GenerateSQLFromFizz(content string, c *pop.Connection) string {
+	content, err := fizz.AString(content, c.Dialect.FizzTranslator())
+	if err != nil {
+		return ""
+	}
+	return content
 }
 
 func newModel(name string) model {

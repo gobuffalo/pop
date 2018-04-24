@@ -17,6 +17,8 @@ var tableMapMu = sync.RWMutex{}
 // Value is the contents of a `Model`.
 type Value interface{}
 
+type modelIterable func(*Model) error
+
 // Model is used throughout Pop to wrap the end user interface
 // that is passed in to many functions.
 type Model struct {
@@ -161,4 +163,22 @@ func (m *Model) whereID() string {
 		value = fmt.Sprintf("%s.id ='%s'", m.TableName(), id)
 	}
 	return value
+}
+
+func (m *Model) iterate(fn modelIterable) error {
+	v := reflect.Indirect(reflect.ValueOf(m.Value))
+	if v.Kind() == reflect.Slice || v.Kind() == reflect.Array {
+		for i := 0; i < v.Len(); i++ {
+			val := v.Index(i)
+			newModel := &Model{Value: val.Addr().Interface()}
+			err := fn(newModel)
+
+			if err != nil {
+				return err
+			}
+		}
+		return nil
+	}
+
+	return fn(m)
 }

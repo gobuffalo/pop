@@ -4,10 +4,12 @@ package pop
 
 import "github.com/gobuffalo/pop/fizz"
 
-var schemaMigrations = fizz.Table{
-	Name: "schema_migration",
-	Columns: []fizz.Column{
-		{Name: "version", ColType: "string"},
-	},
-	Indexes: []fizz.Index{},
+func newSchemaMigrations(name string) fizz.Table {
+	return fizz.Table{
+		Name: name,
+		Columns: []fizz.Column{
+			{Name: "version", ColType: "string"},
+		},
+		Indexes: []fizz.Index{},
+	}
 }
