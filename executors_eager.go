@@ -11,7 +11,7 @@ func (c *Connection) eagerCreate(model interface{}, excludeColumns ...string) er
 		return err
 	}
 
-	c.eager = false
+	c.disableEager()
 
 	if len(asos) == 0 {
 		return c.Create(model, excludeColumns...)
@@ -88,7 +88,7 @@ func (c *Connection) eagerValidateAndCreate(model interface{}, excludeColumns ..
 	}
 
 	if len(asos) == 0 {
-		c.eager = false
+		c.disableEager()
 		return c.ValidateAndCreate(model, excludeColumns...)
 	}
 

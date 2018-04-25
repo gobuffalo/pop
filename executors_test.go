@@ -395,6 +395,31 @@ func Test_Eager_Create_Has_Many(t *testing.T) {
 	})
 }
 
+func Test_Eager_Create_Has_Many_Reset_Eager_Mode_Connection(t *testing.T) {
+	transaction(func(tx *pop.Connection) {
+		a := require.New(t)
+		count, _ := tx.Count(&User{})
+		user1 := User{
+			Name:  nulls.NewString("Mark 'Awesome' Bates"),
+			Books: Books{{Title: "Pop Book", Description: "Pop Book", Isbn: "PB1"}},
+		}
+
+		err := tx.Eager("Books").Create(&user1)
+		a.NoError(err)
+		ctx, _ := tx.Count(&User{})
+		a.Equal(count+1, ctx)
+		ctx, _ = tx.Count(&Book{})
+		a.Equal(count+1, ctx)
+
+		book := Book{Title: "Pop Book", Description: "Pop Book", Isbn: "PB1"}
+
+		err = tx.Eager().Create(&book)
+		a.NoError(err)
+		ctx, _ = tx.Count(&Book{})
+		a.Equal(count+2, ctx)
+	})
+}
+
 func Test_Eager_Validate_And_Create_Has_Many(t *testing.T) {
 	a := require.New(t)
 	transaction(func(tx *pop.Connection) {
