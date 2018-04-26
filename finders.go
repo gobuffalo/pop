@@ -129,21 +129,6 @@ func (q *Query) All(models interface{}) error {
 		if err != nil {
 			return err
 		}
-
-		// if q.Paginator != nil {
-		// 	ct, err := q.Count(models)
-		// 	if err != nil {
-		// 		return err
-		// 	}
-
-		// 	q.Paginator.TotalEntriesSize = ct
-		// 	st := reflect.ValueOf(models).Elem()
-		// 	q.Paginator.CurrentEntriesSize = st.Len()
-		// 	q.Paginator.TotalPages = (q.Paginator.TotalEntriesSize / q.Paginator.PerPage)
-		// 	if q.Paginator.TotalEntriesSize%q.Paginator.PerPage > 0 {
-		// 		q.Paginator.TotalPages = q.Paginator.TotalPages + 1
-		// 	}
-		// }
 		return m.afterFind(q.Connection)
 	})
 
