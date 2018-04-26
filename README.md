@@ -310,6 +310,30 @@ err = db.Where("id in (?) and foo = ?", 1, 2, 3, "bar").All(&users)
 err = db.Where("id in (?)", 1, 2, 3).Where("foo = ?", "bar").All(&users)
 ```
 
+### Select specific columns
+`Select` allows you to load specific columns from a table. Useful when you don't want all columns from a table to be loaded in a query.
+```go
+err = db.Select("name").All(&users)
+// SELECT name FROM users
+
+err = db.Select("max(age)").All(&users)
+// SELECT max(age) FROM users
+
+err = db.Select("age, name").All(&users)
+// SELECT age, name FROM users
+```
+
+### Pluck
+`Pluck` allows you to load all values for a single table's column. You **MUST** specify which `Model` you want your column to be loaded from.
+```go
+var names []string
+err := db.Model(&User{}).Pluck("name", &names)
+// SELECT name FROM users
+
+var email string
+err := db.Model(&User{}).Pluck("email", email)
+//SELECT email FROM users LIMIT 1
+```
 ### Join Query
 
 ```go
