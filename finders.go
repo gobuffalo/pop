@@ -122,21 +122,28 @@ func (q *Query) All(models interface{}) error {
 	err := q.Connection.timeFunc("All", func() error {
 		m := &Model{Value: models}
 		err := q.Connection.Dialect.SelectMany(q.Connection.Store, m, *q)
-		if err == nil && q.Paginator != nil {
-			ct, err := q.Count(models)
-			if err == nil {
-				q.Paginator.TotalEntriesSize = ct
-				st := reflect.ValueOf(models).Elem()
-				q.Paginator.CurrentEntriesSize = st.Len()
-				q.Paginator.TotalPages = (q.Paginator.TotalEntriesSize / q.Paginator.PerPage)
-				if q.Paginator.TotalEntriesSize%q.Paginator.PerPage > 0 {
-					q.Paginator.TotalPages = q.Paginator.TotalPages + 1
-				}
-			}
-		}
 		if err != nil {
 			return err
 		}
+		err = q.paginate(models)
+		if err != nil {
+			return err
+		}
+
+		// if q.Paginator != nil {
+		// 	ct, err := q.Count(models)
+		// 	if err != nil {
+		// 		return err
+		// 	}
+
+		// 	q.Paginator.TotalEntriesSize = ct
+		// 	st := reflect.ValueOf(models).Elem()
+		// 	q.Paginator.CurrentEntriesSize = st.Len()
+		// 	q.Paginator.TotalPages = (q.Paginator.TotalEntriesSize / q.Paginator.PerPage)
+		// 	if q.Paginator.TotalEntriesSize%q.Paginator.PerPage > 0 {
+		// 		q.Paginator.TotalPages = q.Paginator.TotalPages + 1
+		// 	}
+		// }
 		return m.afterFind(q.Connection)
 	})
 
@@ -148,6 +155,26 @@ func (q *Query) All(models interface{}) error {
 		return q.eagerAssociations(models)
 	}
 
+	return nil
+}
+
+func (q *Query) paginate(models interface{}) error {
+	if q.Paginator == nil {
+		return nil
+	}
+
+	ct, err := q.Count(models)
+	if err != nil {
+		return err
+	}
+
+	q.Paginator.TotalEntriesSize = ct
+	st := reflect.ValueOf(models).Elem()
+	q.Paginator.CurrentEntriesSize = st.Len()
+	q.Paginator.TotalPages = (q.Paginator.TotalEntriesSize / q.Paginator.PerPage)
+	if q.Paginator.TotalEntriesSize%q.Paginator.PerPage > 0 {
+		q.Paginator.TotalPages = q.Paginator.TotalPages + 1
+	}
 	return nil
 }
 
@@ -337,19 +364,11 @@ func (q *Query) Pluck(column string, output interface{}) error {
 	return q.Connection.timeFunc("Pluck", func() error {
 		m := &Model{Value: q.model}
 		o := &Model{Value: output}
+
 		err := q.Connection.Dialect.SelectPluck(q.Connection.Store, m, o, *q)
-		if err == nil && q.Paginator != nil {
-			ct, err := q.Count(q.model)
-			if err == nil {
-				q.Paginator.TotalEntriesSize = ct
-				st := reflect.ValueOf(q.model).Elem()
-				q.Paginator.CurrentEntriesSize = st.Len()
-				q.Paginator.TotalPages = (q.Paginator.TotalEntriesSize / q.Paginator.PerPage)
-				if q.Paginator.TotalEntriesSize%q.Paginator.PerPage > 0 {
-					q.Paginator.TotalPages = q.Paginator.TotalPages + 1
-				}
-			}
+		if err != nil {
+			return err
 		}
-		return err
+		return q.paginate(q.model)
 	})
 }

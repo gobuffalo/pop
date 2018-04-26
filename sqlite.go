@@ -81,7 +81,7 @@ func (m *sqlite) SelectMany(s store, models *Model, query Query) error {
 
 func (m *sqlite) SelectPluck(s store, models *Model, output *Model, query Query) error {
 	return m.locker(m.smGil, func() error {
-		return errors.Wrap(genericSelectPluck(s, models, output, query), "sqlite select pluck")
+		return errors.Wrap(genericPluck(s, models, output, query), "sqlite select pluck")
 	})
 }
 
