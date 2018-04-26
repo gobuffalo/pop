@@ -296,3 +296,60 @@ func (q Query) CountByField(model interface{}, field string) (int, error) {
 type rowCount struct {
 	Count int `db:"row_count"`
 }
+
+// Select allows to query only fields passed as parameter.
+// c.Select("field1, field2").All(&model)
+// => SELECT field1, field2 FROM models
+func (c *Connection) Select(fields string) *Query {
+	return c.Q().Select(fields)
+}
+
+// Select allows to query only fields passed as parameter.
+// c.Select("field1, field2").All(&model)
+// => SELECT field1, field2 FROM models
+func (q *Query) Select(fields string) *Query {
+	q.addColumns = append(q.addColumns, fields)
+	return q
+}
+
+// Model allows to specify a model where data will
+// be pull out. Used in association with Pluck method.
+func (c *Connection) Model(m interface{}) *Query {
+	return c.Q().Model(m)
+}
+
+// Model allows to specify a model where data will
+// be pull out. Used in association with Pluck method.
+func (q *Query) Model(m interface{}) *Query {
+	q.model = m
+	return q
+}
+
+// Pluck allows to load a single column from your model. Usage:
+// var names []string
+// q.Model(&User{}).Pluck("name", &names)
+//
+// or for a single column value.
+// var email string
+// q.Model(&User{}).Pluck("email", &email)
+func (q *Query) Pluck(column string, output interface{}) error {
+	q.addColumns = []string{column}
+	return q.Connection.timeFunc("Pluck", func() error {
+		m := &Model{Value: q.model}
+		o := &Model{Value: output}
+		err := q.Connection.Dialect.SelectPluck(q.Connection.Store, m, o, *q)
+		if err == nil && q.Paginator != nil {
+			ct, err := q.Count(q.model)
+			if err == nil {
+				q.Paginator.TotalEntriesSize = ct
+				st := reflect.ValueOf(q.model).Elem()
+				q.Paginator.CurrentEntriesSize = st.Len()
+				q.Paginator.TotalPages = (q.Paginator.TotalEntriesSize / q.Paginator.PerPage)
+				if q.Paginator.TotalEntriesSize%q.Paginator.PerPage > 0 {
+					q.Paginator.TotalPages = q.Paginator.TotalPages + 1
+				}
+			}
+		}
+		return err
+	})
+}

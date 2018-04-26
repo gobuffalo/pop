@@ -80,6 +80,10 @@ func (p *cockroach) SelectMany(s store, models *Model, query Query) error {
 	return genericSelectMany(s, models, query)
 }
 
+func (p *cockroach) SelectPluck(s store, model *Model, output *Model, query Query) error {
+	return genericPluck(s, model, output, query)
+}
+
 func (p *cockroach) CreateDB() error {
 	// createdb -h db -p 5432 -U cockroach enterprise_development
 	deets := p.ConnectionDetails

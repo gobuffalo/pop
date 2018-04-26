@@ -10,6 +10,8 @@ import (
 type Query struct {
 	RawSQL                  *clause
 	limitResults            int
+	model                   interface{}
+	addColumns              []string
 	eager                   bool
 	eagerFields             []string
 	whereClauses            clauses
@@ -179,5 +181,8 @@ func (q Query) ToSQL(model *Model, addColumns ...string) (string, []interface{})
 // ToSQLBuilder returns a new `SQLBuilder` that can be used to generate SQL,
 // get arguments, and more.
 func (q Query) toSQLBuilder(model *Model, addColumns ...string) *sqlBuilder {
+	if len(q.addColumns) != 0 {
+		addColumns = q.addColumns
+	}
 	return newSQLBuilder(q, model, addColumns...)
 }

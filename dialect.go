@@ -26,6 +26,7 @@ type dialect interface {
 	Destroy(store, *Model) error
 	SelectOne(store, *Model, Query) error
 	SelectMany(store, *Model, Query) error
+	SelectPluck(store, *Model, *Model, Query) error
 	CreateDB() error
 	DropDB() error
 	DumpSchema(io.Writer) error
@@ -112,6 +113,23 @@ func genericSelectOne(s store, model *Model, query Query) error {
 	sql, args := query.ToSQL(model)
 	Log(sql, args...)
 	err := s.Get(model.Value, sql, args...)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+	return nil
+}
+
+func genericPluck(s store, model *Model, output *Model, query Query) error {
+	var err error
+	sql, args := query.ToSQL(model)
+	Log(sql, args...)
+
+	if output.isSlice() {
+		err = s.Select(output.Value, sql, args...)
+	} else {
+		err = s.Get(output.Value, sql, args...)
+	}
+
 	if err != nil {
 		return errors.WithStack(err)
 	}

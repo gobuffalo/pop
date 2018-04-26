@@ -165,9 +165,14 @@ func (m *Model) whereID() string {
 	return value
 }
 
-func (m *Model) iterate(fn modelIterable) error {
+func (m *Model) isSlice() bool {
 	v := reflect.Indirect(reflect.ValueOf(m.Value))
-	if v.Kind() == reflect.Slice || v.Kind() == reflect.Array {
+	return v.Kind() == reflect.Slice || v.Kind() == reflect.Array
+}
+
+func (m *Model) iterate(fn modelIterable) error {
+	if m.isSlice() {
+		v := reflect.Indirect(reflect.ValueOf(m.Value))
 		for i := 0; i < v.Len(); i++ {
 			val := v.Index(i)
 			newModel := &Model{Value: val.Addr().Interface()}

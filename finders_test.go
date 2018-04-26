@@ -25,6 +25,53 @@ func Test_Find(t *testing.T) {
 	})
 }
 
+func Test_Select(t *testing.T) {
+	transaction(func(tx *pop.Connection) {
+		a := require.New(t)
+
+		user := User{Name: nulls.NewString("Mark"), Email: "mark@gobuffalo.io"}
+		err := tx.Create(&user)
+		a.NoError(err)
+
+		q := tx.Select("users.name, users.email")
+
+		sm := &pop.Model{Value: &User{}}
+		sql, _ := q.ToSQL(sm)
+		a.Equal(tx.Dialect.TranslateSQL("SELECT users.name, users.email FROM users AS users"), sql)
+
+		u := User{}
+		err = q.Find(&u, user.ID)
+		a.NoError(err)
+
+		a.Equal(u.Email, "mark@gobuffalo.io")
+		a.Equal(u.Name.String, "Mark")
+		a.Zero(u.ID)
+	})
+}
+
+func Test_Pluck(t *testing.T) {
+	transaction(func(tx *pop.Connection) {
+		a := require.New(t)
+
+		user := User{Name: nulls.NewString("Mark"), Email: "mark@gobuffalo.io"}
+		err := tx.Create(&user)
+		a.NoError(err)
+
+		q := tx.Model(&User{})
+
+		var names []string
+		q.Pluck("name", &names)
+
+		a.Equal(1, len(names))
+		a.Equal("Mark", names[0])
+
+		var email string
+		q.Pluck("email", &email)
+
+		a.Equal("mark@gobuffalo.io", email)
+	})
+}
+
 func Test_Find_Eager_Has_Many(t *testing.T) {
 	transaction(func(tx *pop.Connection) {
 		a := require.New(t)
