@@ -33,11 +33,11 @@ func Test_Select(t *testing.T) {
 		err := tx.Create(&user)
 		a.NoError(err)
 
-		q := tx.Select("users.name, users.email")
+		q := tx.Select("name", "email")
 
 		sm := &pop.Model{Value: &User{}}
 		sql, _ := q.ToSQL(sm)
-		a.Equal(tx.Dialect.TranslateSQL("SELECT users.name, users.email FROM users AS users"), sql)
+		a.Equal(tx.Dialect.TranslateSQL("SELECT email, name FROM users AS users"), sql)
 
 		u := User{}
 		err = q.Find(&u, user.ID)

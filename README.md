@@ -331,7 +331,7 @@ err := db.Model(&User{}).Pluck("name", &names)
 // SELECT name FROM users
 
 var email string
-err := db.Model(&User{}).Pluck("email", email)
+err := db.Model(&User{}).Pluck("email", &email)
 //SELECT email FROM users LIMIT 1
 ```
 ### Join Query

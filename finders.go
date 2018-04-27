@@ -310,17 +310,17 @@ type rowCount struct {
 }
 
 // Select allows to query only fields passed as parameter.
-// c.Select("field1, field2").All(&model)
+// c.Select("field1", "field2").All(&model)
 // => SELECT field1, field2 FROM models
-func (c *Connection) Select(fields string) *Query {
-	return c.Q().Select(fields)
+func (c *Connection) Select(fields ...string) *Query {
+	return c.Q().Select(fields...)
 }
 
 // Select allows to query only fields passed as parameter.
-// c.Select("field1, field2").All(&model)
+// c.Select("field1", "field2").All(&model)
 // => SELECT field1, field2 FROM models
-func (q *Query) Select(fields string) *Query {
-	q.addColumns = append(q.addColumns, fields)
+func (q *Query) Select(fields ...string) *Query {
+	q.addColumns = append(q.addColumns, fields...)
 	return q
 }
 
