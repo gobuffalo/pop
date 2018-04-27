@@ -158,7 +158,7 @@ func (c *Connection) NewTransaction() (*Connection, error) {
 func (c *Connection) copy() *Connection {
 	return &Connection{
 		ID:      randx.String(30),
-		Store:   c.TX,
+		Store:   c.Store,
 		Dialect: c.Dialect,
 		TX:      c.TX,
 	}
