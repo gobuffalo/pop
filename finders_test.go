@@ -357,6 +357,27 @@ func Test_All_Eager(t *testing.T) {
 	})
 }
 
+func Test_All_Eager_For_Query(t *testing.T) {
+	transaction(func(tx *pop.Connection) {
+		a := require.New(t)
+
+		user := User{Name: nulls.NewString("Mark")}
+		err := tx.Create(&user)
+		a.NoError(err)
+
+		book := Book{Title: "Pop Book", Isbn: "PB1", UserID: nulls.NewInt(user.ID)}
+		err = tx.Create(&book)
+		a.NoError(err)
+
+		u := Users{}
+		q := tx.Q()
+		err = q.Eager("Books").Where("name = 'Mark'").All(&u)
+		a.NoError(err)
+		a.Equal(len(u), 1)
+		a.Equal(len(u[0].Books), 1)
+	})
+}
+
 func Test_All_Eager_Field_Not_Found_Error(t *testing.T) {
 	transaction(func(tx *pop.Connection) {
 		a := require.New(t)
