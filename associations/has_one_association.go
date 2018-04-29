@@ -75,6 +75,13 @@ func (h *hasOneAssociation) AfterInterface() interface{} {
 	if h.ownedModel.Kind() == reflect.Ptr {
 		return h.ownedModel.Interface()
 	}
+
+	currentVal := h.ownedModel.Interface()
+	zeroVal := reflect.Zero(h.ownedModel.Type()).Interface()
+	if reflect.DeepEqual(zeroVal, currentVal) {
+		return nil
+	}
+
 	return h.ownedModel.Addr().Interface()
 }
 

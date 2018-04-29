@@ -84,6 +84,13 @@ func (b *belongsToAssociation) BeforeInterface() interface{} {
 	if b.ownerModel.Kind() == reflect.Ptr {
 		return b.ownerModel.Interface()
 	}
+
+	currentVal := b.ownerModel.Interface()
+	zeroVal := reflect.Zero(b.ownerModel.Type()).Interface()
+	if reflect.DeepEqual(zeroVal, currentVal) {
+		return nil
+	}
+
 	return b.ownerModel.Addr().Interface()
 }
 
