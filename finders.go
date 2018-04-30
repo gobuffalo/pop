@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"regexp"
 	"strconv"
+	"strings"
 
 	"github.com/gobuffalo/pop/associations"
 	"github.com/gobuffalo/uuid"
@@ -320,7 +321,11 @@ func (c *Connection) Select(fields ...string) *Query {
 // c.Select("field1", "field2").All(&model)
 // => SELECT field1, field2 FROM models
 func (q *Query) Select(fields ...string) *Query {
-	q.addColumns = append(q.addColumns, fields...)
+	for _, f := range fields {
+		if strings.TrimSpace(f) != "" {
+			q.addColumns = append(q.addColumns, f)
+		}
+	}
 	return q
 }
 

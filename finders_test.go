@@ -33,7 +33,7 @@ func Test_Select(t *testing.T) {
 		err := tx.Create(&user)
 		a.NoError(err)
 
-		q := tx.Select("name", "email")
+		q := tx.Select("name", "email", "\n", "\t\n", "")
 
 		sm := &pop.Model{Value: &User{}}
 		sql, _ := q.ToSQL(sm)
