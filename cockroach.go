@@ -233,6 +233,10 @@ func (p *cockroach) TruncateAll(tx *Connection) error {
 		return err
 	}
 
+	if len(tables) == 0 {
+		return nil
+	}
+
 	table_names := make([]string, len(tables))
 	for i, t := range tables {
 		table_names[i] = t.TableName
