@@ -26,6 +26,10 @@ type Importer struct {
 
 // Import loads a CSV file from its name, and insert rows into the datasource
 // using the given connection.
+//
+// Example usage:
+// 	imp := csv.NewImporter(tx)
+// 	err := imp.Import("./csv/files/my_table_data.csv", "my_table")
 func (ci *Importer) Import(f string, model interface{}) error {
 	m := &pop.Model{Value: model}
 	// Load CSV entries
