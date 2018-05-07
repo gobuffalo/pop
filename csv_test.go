@@ -13,7 +13,8 @@ func Test_CSV_Import(t *testing.T) {
 		r := require.New(t)
 
 		composer := &Composer{}
-		r.NoError(csv.Import(PDB, "./csv/files/composers.csv", composer))
+		imp := csv.NewImporter(tx)
+		r.NoError(imp.Import("./csv/files/composers.csv", composer))
 
 		c, err := tx.Count(composer)
 		r.NoError(err)
