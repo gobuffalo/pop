@@ -103,6 +103,15 @@ type Book struct {
 	UpdatedAt   time.Time `db:"updated_at"`
 }
 
+type Taxi struct {
+	ID        int       `db:"id"`
+	Model     string    `db:"model"`
+	UserID    nulls.Int `db:"user_id"`
+	Driver    User      `belongs_to:"user" fk_id:"UserID"`
+	CreatedAt time.Time `db:"created_at"`
+	UpdatedAt time.Time `db:"updated_at"`
+}
+
 // Validate gets run every time you call a "pop.Validate*" (pop.ValidateAndSave, pop.ValidateAndCreate, pop.ValidateAndUpdate) method.
 // This method is not required and may be deleted.
 func (b *Book) Validate(tx *pop.Connection) (*validate.Errors, error) {
