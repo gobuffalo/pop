@@ -323,17 +323,6 @@ err = db.Select("age, name").All(&users)
 // SELECT age, name FROM users
 ```
 
-### Pluck
-`Pluck` allows you to load all values for a single table's column. You **MUST** specify which `Model` you want your column to be loaded from.
-```go
-var names []string
-err := db.Model(&User{}).Pluck("name", &names)
-// SELECT name FROM users
-
-var email string
-err := db.Model(&User{}).Pluck("email", &email)
-//SELECT email FROM users LIMIT 1
-```
 ### Join Query
 
 ```go
