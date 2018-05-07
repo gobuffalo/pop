@@ -74,10 +74,6 @@ func (m *mysql) SelectMany(s store, models *Model, query Query) error {
 	return errors.Wrap(genericSelectMany(s, models, query), "mysql select many")
 }
 
-func (m *mysql) SelectPluck(s store, model *Model, output *Model, query Query) error {
-	return errors.Wrap(genericPluck(s, model, output, query), "mysql select pluck")
-}
-
 // CreateDB creates a new database, from the given connection credentials
 func (m *mysql) CreateDB() error {
 	deets := m.ConnectionDetails

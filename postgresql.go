@@ -77,10 +77,6 @@ func (p *postgresql) SelectMany(s store, models *Model, query Query) error {
 	return genericSelectMany(s, models, query)
 }
 
-func (p *postgresql) SelectPluck(s store, model *Model, output *Model, query Query) error {
-	return genericPluck(s, model, output, query)
-}
-
 func (p *postgresql) CreateDB() error {
 	// createdb -h db -p 5432 -U postgres enterprise_development
 	deets := p.ConnectionDetails

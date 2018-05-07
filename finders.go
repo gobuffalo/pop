@@ -341,24 +341,3 @@ func (q *Query) Model(m interface{}) *Query {
 	q.model = m
 	return q
 }
-
-// Pluck allows to load a single column from your model. Usage:
-// var names []string
-// q.Model(&User{}).Pluck("name", &names)
-//
-// or for a single column value.
-// var email string
-// q.Model(&User{}).Pluck("email", &email)
-func (q *Query) Pluck(column string, output interface{}) error {
-	q.addColumns = []string{column}
-	return q.Connection.timeFunc("Pluck", func() error {
-		m := &Model{Value: q.model}
-		o := &Model{Value: output}
-
-		err := q.Connection.Dialect.SelectPluck(q.Connection.Store, m, o, *q)
-		if err != nil {
-			return err
-		}
-		return q.paginate(q.model)
-	})
-}
