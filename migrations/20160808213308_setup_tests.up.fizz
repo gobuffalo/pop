@@ -37,3 +37,10 @@ create_table("books", func(t) {
   t.Column("user_id", "int", {"null": true})
   t.Column("isbn", "string", {"size": 50})
 })
+
+create_table("taxis", func(t) {
+  t.Column("model", "string", {})
+  t.Column("user_id", "int", {"null": true})
+})
+
+
