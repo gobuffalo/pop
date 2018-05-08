@@ -10,7 +10,6 @@ import (
 type Query struct {
 	RawSQL                  *clause
 	limitResults            int
-	model                   interface{}
 	addColumns              []string
 	eager                   bool
 	eagerFields             []string
