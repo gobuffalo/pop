@@ -14,7 +14,7 @@ func Test_CSV_Import(t *testing.T) {
 
 		composer := &Composer{}
 		imp := csv.NewImporter(tx)
-		r.NoError(imp.Import("./csv/files/composers.csv", composer))
+		r.NoError(imp.FromPath("./csv/files/composers.csv", composer))
 
 		c, err := tx.Count(composer)
 		r.NoError(err)
