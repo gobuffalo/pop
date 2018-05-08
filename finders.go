@@ -88,7 +88,7 @@ func (c *Connection) Last(model interface{}) error {
 func (q *Query) Last(model interface{}) error {
 	err := q.Connection.timeFunc("Last", func() error {
 		q.Limit(1)
-		q.Order("id desc")
+		q.Order("created_at DESC, id DESC")
 		m := &Model{Value: model}
 		if err := q.Connection.Dialect.SelectOne(q.Connection.Store, m, *q); err != nil {
 			return err
