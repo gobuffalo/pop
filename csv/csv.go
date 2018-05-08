@@ -44,7 +44,7 @@ func (ci *Importer) timeFunc(name string, fn func() error) error {
 //
 // Example usage:
 // 	imp := csv.NewImporter(tx)
-//  fd, err := os.Open("./csv/files/my_table_data.csv")
+//  	fd, err := os.Open("./csv/files/my_table_data.csv")
 //	if err != nil {
 //		return err
 //	}
