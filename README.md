@@ -284,6 +284,14 @@ err := db.All(&users)
 err = db.Where("id in (?)", 1, 2, 3).All(&users)
 ```
 
+#### Find Last
+
+```go
+// Last() orders by created_at
+user := models.User{}
+err := tx.Last(&user)
+```
+
 ### Find Where
 
 ```go
