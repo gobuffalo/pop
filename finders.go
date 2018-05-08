@@ -328,16 +328,3 @@ func (q *Query) Select(fields ...string) *Query {
 	}
 	return q
 }
-
-// Model allows to specify a model where data will
-// be pull out. Used in association with Pluck method.
-func (c *Connection) Model(m interface{}) *Query {
-	return c.Q().Model(m)
-}
-
-// Model allows to specify a model where data will
-// be pull out. Used in association with Pluck method.
-func (q *Query) Model(m interface{}) *Query {
-	q.model = m
-	return q
-}
