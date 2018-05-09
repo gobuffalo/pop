@@ -3,6 +3,8 @@ package fizz
 import (
 	"fmt"
 	"strings"
+
+	log "github.com/gobuffalo/pop/log"
 )
 
 // Table represents a table which will be generated with fizz.
@@ -38,7 +40,7 @@ func (t *Table) Column(name string, colType string, options Options) {
 func (t *Table) ForeignKey(column string, refs interface{}, options Options) {
 	r, err := parseForeignKeyRef(refs)
 	if err != nil {
-		fmt.Println(err)
+		log.DefaultLogger.WithField("error", err).Warn("Failed parsing foreign key reference, continuing anyway")
 	}
 	fk := ForeignKey{
 		Column:     column,

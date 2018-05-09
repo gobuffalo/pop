@@ -13,6 +13,7 @@ import (
 	"github.com/gobuffalo/pop/columns"
 	"github.com/gobuffalo/pop/fizz"
 	"github.com/gobuffalo/pop/fizz/translators"
+	"github.com/gobuffalo/pop/log"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 )
@@ -84,14 +85,14 @@ func (m *mysql) CreateDB() error {
 	}
 	defer db.Close()
 	query := fmt.Sprintf("CREATE DATABASE `%s` DEFAULT COLLATE `utf8_general_ci`", deets.Database)
-	Log(query)
+	log.DefaultLogger.WithField("query", query).Debug("Creating record")
 
 	_, err = db.Exec(query)
 	if err != nil {
 		return errors.Wrapf(err, "error creating MySQL database %s", deets.Database)
 	}
 
-	fmt.Printf("created database %s\n", deets.Database)
+	log.DefaultLogger.WithField("database", deets.Database).Info("Created database")
 	return nil
 }
 
@@ -104,14 +105,14 @@ func (m *mysql) DropDB() error {
 	}
 	defer db.Close()
 	query := fmt.Sprintf("DROP DATABASE `%s`", deets.Database)
-	Log(query)
+	log.DefaultLogger.WithField("query", query).Debug("Dropping database")
 
 	_, err = db.Exec(query)
 	if err != nil {
 		return errors.Wrapf(err, "error dropping MySQL database %s", deets.Database)
 	}
 
-	fmt.Printf("dropped database %s\n", deets.Database)
+	log.DefaultLogger.WithField("database", deets.Database).Info("Dropped database")
 	return nil
 }
 
@@ -134,7 +135,7 @@ func (m *mysql) DumpSchema(w io.Writer) error {
 	if deets.Port == "socket" {
 		cmd = exec.Command("mysqldump", "-d", "-S", deets.Host, "-u", deets.User, fmt.Sprintf("--password=%s", deets.Password), deets.Database)
 	}
-	Log(strings.Join(cmd.Args, " "))
+	log.DefaultLogger.WithField("args", cmd.Args).Debug("Dumping schema")
 	cmd.Stdout = w
 	cmd.Stderr = os.Stderr
 
@@ -143,7 +144,7 @@ func (m *mysql) DumpSchema(w io.Writer) error {
 		return err
 	}
 
-	fmt.Printf("dumped schema for %s\n", m.Details().Database)
+	log.DefaultLogger.WithField("database", deets.Database).Info("Dumped schema")
 	return nil
 }
 

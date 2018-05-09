@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/gobuffalo/pop/associations"
+	"github.com/gobuffalo/pop/log"
 	"github.com/gobuffalo/uuid"
 	"github.com/pkg/errors"
 )
@@ -324,7 +325,7 @@ func (q Query) CountByField(model interface{}, field string) (int, error) {
 		}
 
 		countQuery := fmt.Sprintf("SELECT COUNT(%s) AS row_count FROM (%s) a", field, query)
-		Log(countQuery, args...)
+		log.DefaultLogger.WithField("query", query).WithField("args", args).Debug("Counting by field")
 		return q.Connection.Store.Get(res, countQuery, args...)
 	})
 	return res.Count, err

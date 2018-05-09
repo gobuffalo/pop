@@ -4,6 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+
+	"github.com/gobuffalo/pop/log"
 )
 
 type ForeignKeyRef struct {
@@ -22,7 +24,7 @@ func (f fizzer) AddForeignKey() interface{} {
 	return func(table string, column string, refs interface{}, options Options) {
 		r, err := parseForeignKeyRef(refs)
 		if err != nil {
-			fmt.Println(err)
+			log.DefaultLogger.WithField("error", err).Warn("Failed parsing foreign key reference, continuing anyway")
 		}
 		fk := ForeignKey{
 			Column:     column,

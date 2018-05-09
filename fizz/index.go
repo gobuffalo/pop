@@ -3,6 +3,8 @@ package fizz
 import (
 	"fmt"
 	"strings"
+
+	log "github.com/sirupsen/logrus"
 )
 
 // Index represents a SQL table index.
@@ -19,7 +21,7 @@ func (f fizzer) AddIndex() interface{} {
 		i := Index{}
 		switch t := columns.(type) {
 		default:
-			fmt.Printf("unexpected type %T\n", t) // %T prints whatever type t has
+			log.WithField("table", table).WithField("type", fmt.Sprintf("%T", t)).Warn("unexpected type when adding index")
 		case string:
 			i.Columns = []string{t}
 		case []interface{}:
