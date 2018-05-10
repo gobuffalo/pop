@@ -45,9 +45,3 @@ add_column("books", "description", "string", {"default": ""})
 change_column("books", "description", "string", {"default": "test", "size": 100})
 add_index("books","description",{})
 rename_index("books","books_description_idx","books_description_index")
-
-{{ if ne .Dialect "sqlite3" }}
-add_foreign_key("course_codes", "course_id", {"courses": ["id"]}, {
-    "name": "fk_course_codes_course"
-})
-{{ end }}
