@@ -55,20 +55,17 @@ func (ci *Importer) FromReader(fd io.Reader, model interface{}) error {
 	return ci.timeFunc("CSV import", func() error {
 		r := csv.NewReader(fd)
 		r.Comma = ci.Comma
-		records, err := r.ReadAll()
+		h, err := r.Read()
 		if err != nil {
+			if err == io.EOF {
+				// Header not found!
+				return ErrInvalidCSV
+			}
 			return err
 		}
 
-		if len(records) <= 1 {
-			return ErrInvalidCSV
-		}
-
-		// Create the insert query
-
-		// The first row contains the columns
+		// Prepare the query from the header values
 		var qBuffer bytes.Buffer
-		h := records[0]
 		qBuffer.WriteString(fmt.Sprintf("INSERT INTO %s (", m.TableName()))
 		hl := len(h) - 1
 		for i := 0; i < hl; i++ {
@@ -90,15 +87,23 @@ func (ci *Importer) FromReader(fd io.Reader, model interface{}) error {
 		if err != nil {
 			return err
 		}
-		values := records[1:len(records)]
 
-		for _, v := range values {
+		for {
+			// Read next line
+			v, err := r.Read()
+			if err != nil {
+				if err == io.EOF {
+					// No more lines to read
+					break
+				}
+				return err
+			}
 			iv := make([]interface{}, len(v))
 			for i := range v {
 				iv[i] = v[i]
 			}
 			pop.Log(q, iv...)
-			_, err := stmt.Exec(iv...)
+			_, err = stmt.Exec(iv...)
 			if err != nil {
 				return err
 			}
