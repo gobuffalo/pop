@@ -14,7 +14,7 @@ type model struct{
 }
 
 type Checker interface {
-	Check(tag, structName string)[]ValidationError
+	Check(tag string, structName string, fieldsCache map[string]bool)[]ValidationError
 }
 
 type ValidationError struct {
@@ -31,28 +31,24 @@ type Rule struct {
 	expr *regexp.Regexp
 }
 
-var fieldsCache map[string]bool
-
-func (r *Rule) Check(tag, structName string) []ValidationError  {
-	matches := r.expr.FindAllString(tag, -1)
-	errors := []ValidationError{}
+func (r *Rule) Check(tag string, structName string, fieldsCache map[string]bool) []ValidationError  {
+	match := r.expr.FindString(tag)
+	errorss := []ValidationError{}
 	cacheKey :=  strings.Join([]string{structName, tag}, ".")
 
 	if _, exist := fieldsCache[cacheKey]; exist {
 		err := ValidationError{"duplicate entry", tag, structName}
-		return append(errors, err)
+		errorss = append(errorss, err)
 	}
 
 	fieldsCache[cacheKey] = true
 
-	for _, match := range matches {
-		if len(match) > 0 {
-			err := ValidationError{match, tag, structName}
-			errors = append(errors, err)
-		}
+	if len(match) > 0 {
+		err := ValidationError{match, tag, structName}
+		errorss = append(errorss, err)
 	}
 
-	return errors
+	return errorss
 }
 
 func NewModel() model  {
@@ -64,12 +60,12 @@ func NewModel() model  {
 }
 
 func (m *model)Validate() []ValidationError {
-	errors := []ValidationError{}
+	fieldsCache := map[string]bool{}
+	errorss := []ValidationError{}
 	errs := []ValidationError{}
 
-
 	if len(m.tags) == 0 {
-		return errors
+		return errorss
 	}
 
 	rules := createRules()
@@ -77,18 +73,18 @@ func (m *model)Validate() []ValidationError {
 	for structName, fields := range m.tags {
 		for _, field := range fields {
 			for _, ch := range m.rules {
-				errs = ch.Check(field, structName)
-				errors = append(errors, errs...)
+				errs = ch.Check(field, structName, fieldsCache)
+				errorss = append(errorss, errs...)
 			}
 
 			for _, rule := range rules {
-				errs = rule.Check(field, structName)
-				errors = append(errors, errs...)
+				errs = rule.Check(field, structName, fieldsCache)
+				errorss = append(errorss, errs...)
 			}
 		}
 	}
 
-	return errors
+	return errorss
 }
 
 func (m *model)AddRule(ch ...Checker)  {

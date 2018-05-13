@@ -24,7 +24,6 @@ var ModelCmd = &cobra.Command{
 
 			return errors.New(strings.Join(msgs, "\n"))
 		}
-
 		return nil
 	},
 }
