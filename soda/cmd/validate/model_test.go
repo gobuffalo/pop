@@ -10,6 +10,8 @@ import (
 	"strconv"
 )
 
+const cnt  = 0x186A0 //100k
+
 var declrTmp = `package models
 
 import (
@@ -134,8 +136,12 @@ func Test_testValidateDuplicates(t *testing.T) {
 }
 
 func BenchmarkModel_ValidateNoErrors(b *testing.B) {
-	var cnt int = 10000
 
+	//We don't want to add the struct creation time into the benchmark
+	//so we stop the timer
+	b.StopTimer()
+
+	//Let's stress the program and create 100k models
 	for i := 0; i < cnt; i++ {
 		structs := []structTpl{{
 			"Customer" + strconv.Itoa(i),
@@ -146,25 +152,28 @@ func BenchmarkModel_ValidateNoErrors(b *testing.B) {
 		}
 
 		createModel("Customer" + strconv.Itoa(i) + ".go", structs)
-		defer os.RemoveAll("./models")
 	}
 
-
-
-	//We don't want to add the struct creation time into the benchmark
-	//so we reset the timer
-	b.ResetTimer()
 	b.StartTimer()
 
+	//Lets time the meat and potatoes of the benchmark
 	for i := 0; i < b.N; i++ {
 		m := NewModel()
 		m.Validate()
 	}
+
+	//Don't want to time the deletion of the files
+	b.StopTimer()
+	os.RemoveAll("./models")
 }
 
 func BenchmarkModel_ValidateWithErrors(b *testing.B) {
-	var cnt int = 10000
 
+	//We don't want to add the struct creation time into the benchmark
+	//so we stop the timer
+	b.StopTimer()
+
+	//Let's stress the program and create 100k models
 	for i := 0; i < cnt ; i++ {
 		structs := []structTpl{{
 			"Customer" + strconv.Itoa(i),
@@ -175,17 +184,18 @@ func BenchmarkModel_ValidateWithErrors(b *testing.B) {
 		}
 
 		createModel("Customer" + strconv.Itoa(i) + ".go", structs)
-		defer os.RemoveAll("./models")
 	}
 
 
-	//We don't want to add the struct creation time into the benchmark
-	//so we reset the timer
-	b.ResetTimer()
 	b.StartTimer()
 
+	//Lets time the meat and potatoes of the benchmark
 	for i := 0; i < b.N; i++ {
 		m := NewModel()
 		m.Validate()
 	}
+
+	//Don't want to time the deletion of the files
+	b.StopTimer()
+	os.RemoveAll("./models")
 }
