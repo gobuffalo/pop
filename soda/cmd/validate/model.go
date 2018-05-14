@@ -1,26 +1,27 @@
 package validate
 
 import (
-	"regexp"
-	"go/ast"
-	"strings"
 	"fmt"
+	"go/ast"
+	"regexp"
+	"strings"
 )
 
-type model struct{
+type model struct {
 	packages map[string]*ast.Package
-	tags  map[string][]string
-	rules []Checker
+	tags     map[string][]string
+	rules    []Checker
 }
 
 type Checker interface {
-	Check(tag string, structName string, fieldsCache map[string]bool)[]ValidationError
+	Check(tag string, structName string) []ValidationError
 }
 
 type ValidationError struct {
 	invalidSymbols string
-	field string
-	structName string
+	field          string
+	structName     string
+	duplicate      bool
 }
 
 func (e *ValidationError) Error() string {
@@ -72,13 +73,16 @@ func (m *model)Validate() []ValidationError {
 
 	for structName, fields := range m.tags {
 		for _, field := range fields {
+			duplicateErrors := checkForDuplicates(field, structName, fieldsCache)
+			errorss = append(errorss, duplicateErrors...)
+
 			for _, ch := range m.rules {
-				errs = ch.Check(field, structName, fieldsCache)
+				errs = ch.Check(field, structName)
 				errorss = append(errorss, errs...)
 			}
 
 			for _, rule := range rules {
-				errs = rule.Check(field, structName, fieldsCache)
+				errs = rule.Check(field, structName)
 				errorss = append(errorss, errs...)
 			}
 		}
@@ -87,12 +91,15 @@ func (m *model)Validate() []ValidationError {
 	return errorss
 }
 
-func (m *model)AddRule(ch ...Checker)  {
+func (m *model) AddRule(ch ...Checker) {
 	m.rules = append(m.rules, ch...)
 }
 
 func createRules() []Rule {
 	return []Rule{
-		{expr:regexp.MustCompile(`[^a-z0-9_]+`)},
+		//tag cannot contain anything except these symbols
+		{expr: regexp.MustCompile(`[^a-z0-9_,]+`)},
+		//tag cannot end in anything except these symbols
+		{expr: regexp.MustCompile(`[^a-z0-9]$`)},
 	}
 }
