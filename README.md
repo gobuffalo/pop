@@ -107,7 +107,7 @@ $ go install github.com/gobuffalo/pop/soda
 
 ```bash
 $ go get -u -v -tags sqlite github.com/gobuffalo/pop/...
-$ go install github.com/gobuffalo/pop/soda
+$ go install -tags sqlite github.com/gobuffalo/pop/soda
 ```
 
 If you're not building your code with `buffalo build`, you'll also have to pass `-tags sqlite` to `go build` when building your program.
