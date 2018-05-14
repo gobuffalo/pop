@@ -63,6 +63,7 @@ func getTags(tagName string, packages map[string]*ast.Package) map[string][]stri
 							for _, pos := range keys {
 								if  currentPos >= pos {
 									structName = structs[pos]
+									break
 								}
 							}
 						}
