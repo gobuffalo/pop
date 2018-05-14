@@ -40,7 +40,7 @@ type structTpl struct {
 }
 
 
-func createModel(structs []structTpl)  {
+func createModel(fileName string, structs []structTpl)  {
 	os.Mkdir("./models", 0755)
 
 	var tmp string = declrTmp
@@ -60,7 +60,7 @@ func createModel(structs []structTpl)  {
 		}, "")
 	}
 
-	f, _ := os.Create(filepath.Join("models", "customer.go"))
+	f, _ := os.Create(filepath.Join("models", fileName))
 	f.WriteString(tmp)
 	f.Close()
 }
@@ -68,7 +68,7 @@ func createModel(structs []structTpl)  {
 func Test_testValidate(t *testing.T) {
 	r := require.New(t)
 
-	createModel([]structTpl{
+	createModel("customer.go", []structTpl{
 		{
 			"Customer",
 			"created_at",
@@ -113,7 +113,7 @@ func Test_testValidateDuplicates(t *testing.T) {
 		},
 	}
 
-	createModel(structs)
+	createModel("customer.go", structs)
 	defer os.RemoveAll("./models")
 
 	m := NewModel()
@@ -134,47 +134,55 @@ func Test_testValidateDuplicates(t *testing.T) {
 }
 
 func BenchmarkModel_ValidateNoErrors(b *testing.B) {
-	structs := make([]structTpl, b.N)
+	var cnt int = 10000
 
-	for i := 0; i < b.N; i++ {
-		structs[i] = structTpl{
-	"Customer" + strconv.Itoa(i),
-	"created_at" + strconv.Itoa(i),
-	"updated_at" + strconv.Itoa(i),
-	"updated_at" + strconv.Itoa(i),
+	for i := 0; i < cnt; i++ {
+		structs := []structTpl{{
+			"Customer" + strconv.Itoa(i),
+			"created_at" + strconv.Itoa(i),
+			"updated_at" + strconv.Itoa(i),
+			"updated_at" + strconv.Itoa(i),
+			},
 		}
+
+		createModel("Customer" + strconv.Itoa(i) + ".go", structs)
+		defer os.RemoveAll("./models")
 	}
 
-	createModel(structs)
-	defer os.RemoveAll("./models")
+
 
 	//We don't want to add the struct creation time into the benchmark
 	//so we reset the timer
 	b.ResetTimer()
+	b.StartTimer()
 
-	m := NewModel()
-
-	 m.Validate()
+	for i := 0; i < b.N; i++ {
+		m := NewModel()
+		m.Validate()
+	}
 }
 
 func BenchmarkModel_ValidateWithErrors(b *testing.B) {
-	structs := make([]structTpl, b.N)
+	var cnt int = 10000
 
-	for i := 0; i < b.N; i++ {
-		structs[i] = structTpl{
+	for i := 0; i < cnt ; i++ {
+		structs := []structTpl{{
 			"Customer" + strconv.Itoa(i),
-			"created_at" + strconv.Itoa(i),
-			"created_at" + strconv.Itoa(i),
 			"updated_at" + strconv.Itoa(i),
+			"updated_at" + strconv.Itoa(i),
+			"updated_at" + strconv.Itoa(i),
+			},
 		}
+
+		createModel("Customer" + strconv.Itoa(i) + ".go", structs)
+		defer os.RemoveAll("./models")
 	}
 
-	createModel(structs)
-	defer os.RemoveAll("./models")
 
 	//We don't want to add the struct creation time into the benchmark
 	//so we reset the timer
 	b.ResetTimer()
+	b.StartTimer()
 
 	for i := 0; i < b.N; i++ {
 		m := NewModel()

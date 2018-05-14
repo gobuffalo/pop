@@ -32,27 +32,33 @@ type Rule struct {
 	expr *regexp.Regexp
 }
 
-func (r *Rule) Check(tag string, structName string, fieldsCache map[string]bool) []ValidationError  {
+func (r *Rule) Check(tag string, structName string) []ValidationError {
 	match := r.expr.FindString(tag)
 	errorss := []ValidationError{}
-	cacheKey :=  strings.Join([]string{structName, tag}, ".")
-
-	if _, exist := fieldsCache[cacheKey]; exist {
-		err := ValidationError{"duplicate entry", tag, structName}
-		errorss = append(errorss, err)
-	}
-
-	fieldsCache[cacheKey] = true
 
 	if len(match) > 0 {
-		err := ValidationError{match, tag, structName}
+		err := ValidationError{match, tag, structName, false}
 		errorss = append(errorss, err)
 	}
 
 	return errorss
 }
 
-func NewModel() model  {
+func checkForDuplicates(tag string, structName string, fieldsCache map[string]bool) []ValidationError {
+	errorss := []ValidationError{}
+	cacheKey := strings.Join([]string{structName, tag}, ".")
+
+	if _, exist := fieldsCache[cacheKey]; exist {
+		err := ValidationError{"duplicate entry", tag, structName, true}
+		errorss = append(errorss, err)
+	}
+
+	fieldsCache[cacheKey] = true
+
+	return errorss
+}
+
+func NewModel() model {
 	m := model{}
 	m.packages = getPackages("models")
 	m.tags = getTags("db", m.packages)
@@ -60,7 +66,7 @@ func NewModel() model  {
 	return m
 }
 
-func (m *model)Validate() []ValidationError {
+func (m *model) Validate() []ValidationError {
 	fieldsCache := map[string]bool{}
 	errorss := []ValidationError{}
 	errs := []ValidationError{}

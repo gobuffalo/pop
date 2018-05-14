@@ -1,17 +1,17 @@
 package validate
 
 import (
-	"regexp"
-	"sort"
 	"go/ast"
+	"go/parser"
+	"go/token"
 	"os"
 	"path/filepath"
-	"go/token"
-	"go/parser"
+	"regexp"
+	"sort"
 	"strings"
 )
 
-func getPackages(folder string)  map[string]*ast.Package  {
+func getPackages(folder string) map[string]*ast.Package {
 	path, _ := os.Getwd()
 	path = filepath.Join(folder)
 	fset := token.NewFileSet()
@@ -61,7 +61,7 @@ func getTags(tagName string, packages map[string]*ast.Package) map[string][]stri
 
 						if !exist {
 							for _, pos := range keys {
-								if  currentPos >= pos {
+								if currentPos >= pos {
 									structName = structs[pos]
 									break
 								}
@@ -71,7 +71,7 @@ func getTags(tagName string, packages map[string]*ast.Package) map[string][]stri
 						//Extract all db tags from the struct fields
 						for _, field := range x.Fields.List {
 							if field.Tag != nil {
-								if  matches := dbRegex.FindStringSubmatch(field.Tag.Value); len(matches) > 0 && len(matches[1]) > 0 {
+								if matches := dbRegex.FindStringSubmatch(field.Tag.Value); len(matches) > 0 && len(matches[1]) > 0 {
 									res := []string{structName, matches[1]}
 									tag <- res
 								}
@@ -91,17 +91,18 @@ func getTags(tagName string, packages map[string]*ast.Package) map[string][]stri
 	}
 
 	for _, ch := range tagChans {
-	Loop: for   {
-		select {
-		case tag := <-*ch:
-			if tag == nil {
-				close(*ch)
-				break Loop
-			}
+	Loop:
+		for {
+			select {
+			case tag := <-*ch:
+				if tag == nil {
+					close(*ch)
+					break Loop
+				}
 
-			tags[tag[0]] = append(tags[tag[0]], tag[1])
+				tags[tag[0]] = append(tags[tag[0]], tag[1])
+			}
 		}
-	}
 	}
 
 	return tags
