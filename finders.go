@@ -24,7 +24,7 @@ func (c *Connection) Find(model interface{}, id interface{}) error {
 }
 
 func compileIdField(tableName, idField string) string {
-	return fmt.Sprintf("%s.%v = ?", tableName, idField)
+	return fmt.Sprintf("%v.%v = ?", tableName, idField)
 }
 
 // Find the first record of the model in the database with a particular id.
@@ -37,19 +37,19 @@ func (q *Query) Find(model interface{}, id interface{}) error {
 
 	switch t := id.(type) {
 	case uuid.UUID:
-		return q.Where(compileIdField(m.tableName, idField), t.String()).First(model)
+		return q.Where(compileIdField(m.TableName(), idField), t.String()).First(model)
 	case string:
 		id, err = strconv.Atoi(t)
 		if err != nil {
-			return q.Where(compileIdField(m.tableName, idField), t).First(model)
+			return q.Where(compileIdField(m.TableName(), idField), t).First(model)
 		}
 	case map[string]int:
 		for idKey, idValue := range t {
-			return q.Where(compileIdField(m.tableName, idKey), idValue).First(model)
+			return q.Where(compileIdField(m.TableName(), idKey), idValue).First(model)
 		}
 	}
 
-	return q.Where(compileIdField(m.tableName, idField), id).First(model)
+	return q.Where(compileIdField(m.TableName(), idField), id).First(model)
 }
 
 // First record of the model in the database that matches the query.
