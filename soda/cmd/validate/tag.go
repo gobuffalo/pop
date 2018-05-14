@@ -29,7 +29,7 @@ func getPackages(folder string)  map[string]*ast.Package  {
 
 func getTags(tagName string, packages map[string]*ast.Package) map[string][]string {
 
-	var dbRegex = regexp.MustCompile(tagName + `[ ]*:[ ]*"(.+)"`)
+	var dbRegex = regexp.MustCompile(strings.Join([]string{tagName, `[ ]*:[ ]*"(.+)"`}, ""))
 
 	tagChans := []*chan []string{}
 	tags := map[string][]string{}
