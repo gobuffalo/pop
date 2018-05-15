@@ -88,7 +88,7 @@ func Test_testValidate(t *testing.T) {
 	createModel("customer.go", structs)
 	defer os.RemoveAll("./models")
 
-	m := NewValidator("github.com/petar/pop/soda/cmd/validate/models")
+	m := NewValidator("github.com/gobuffalo/pop/soda/cmd/validate/models")
 
 	m.AddDefaultProcessors("db", "newtag")
 
@@ -117,7 +117,7 @@ func Test_testValidateCustomProcessor(t *testing.T) {
 	createModel("customer.go", structs)
 	defer os.RemoveAll("./models")
 
-	m := NewValidator("github.com/petar/pop/soda/cmd/validate/models")
+	m := NewValidator("github.com/gobuffalo/pop/soda/cmd/validate/models")
 
 	m.AddProcessor("db", func(tag *Tag) ([]ValidationError, error) {
 		validationErrors := []ValidationError{}
@@ -170,7 +170,7 @@ func Test_testValidateDuplicates(t *testing.T) {
 	createModel("customer1.go", structs)
 	defer os.RemoveAll("./models")
 
-	m := NewValidator("github.com/petar/pop/soda/cmd/validate/models")
+	m := NewValidator("github.com/gobuffalo/pop/soda/cmd/validate/models")
 	m.AddDefaultProcessors("db")
 
 	errs, err := m.Run("Customer")
@@ -226,7 +226,7 @@ func BenchmarkModel_ValidateNoErrors(b *testing.B) {
 
 	//Lets time the meat and potatoes of the benchmark
 	for i := 0; i < b.N; i++ {
-		m := NewValidator("github.com/petar/pop/soda/cmd/validate/models")
+		m := NewValidator("github.com/gobuffalo/pop/soda/cmd/validate/models")
 		m.AddDefaultProcessors("db")
 		m.Run()
 	}
@@ -260,7 +260,7 @@ func BenchmarkModel_ValidateWithErrors(b *testing.B) {
 
 	//Lets time the meat and potatoes of the benchmark
 	for i := 0; i < b.N; i++ {
-		m := NewValidator("github.com/petar/pop/soda/cmd/validate/models")
+		m := NewValidator("github.com/gobuffalo/pop/soda/cmd/validate/models")
 		m.AddDefaultProcessors("db")
 		m.Run()
 	}
