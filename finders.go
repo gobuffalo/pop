@@ -126,7 +126,7 @@ func (q *Query) All(models interface{}) error {
 		if err != nil {
 			return err
 		}
-		err = q.paginate(models)
+		err = q.paginateModel(models)
 		if err != nil {
 			return err
 		}
@@ -144,7 +144,7 @@ func (q *Query) All(models interface{}) error {
 	return nil
 }
 
-func (q *Query) paginate(models interface{}) error {
+func (q *Query) paginateModel(models interface{}) error {
 	if q.Paginator == nil {
 		return nil
 	}
