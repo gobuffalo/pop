@@ -25,6 +25,7 @@ var LoadCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
+		defer c.Close()
 
 		err = c.Dialect.LoadSchema(f)
 		if err != nil {
