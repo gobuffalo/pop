@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"github.com/petar/pop/soda/cmd/validate"
+	"github.com/petar/gobuffalo/soda/cmd/validate"
 	"github.com/spf13/cobra"
 )
 
