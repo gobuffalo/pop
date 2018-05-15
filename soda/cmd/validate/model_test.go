@@ -96,6 +96,53 @@ func Test_testValidate(t *testing.T) {
 	r.Empty(errs)
 }
 
+func Test_testValidateCustomProcessor(t *testing.T) {
+	r := require.New(t)
+
+	structs := []structTpl{
+		{
+			"Customer",
+			"created_at",
+			"updated_at",
+			"",
+		},
+		{
+			"Customer1",
+			"created_at",
+			"updated_at",
+			"",
+		},
+	}
+
+	createModel("customer.go", structs)
+	defer os.RemoveAll("./models")
+
+	m := NewValidator("github.com/petar/pop/soda/cmd/validate/models")
+
+	m.AddProcessor("db", func(tag *Tag) ([]ValidationError, error) {
+		validationErrors := []ValidationError{}
+		if len(tag.value) > 2 {
+			validationErrors = append(validationErrors, ValidationError{
+				"test",
+				tag.value,
+				tag.structName,
+				false,
+				tag.name,
+			})
+		}
+
+		return validationErrors, nil
+	})
+
+	errs, _ := m.Run()
+
+	r.Equal(2, len(errs))
+	for _, structErrors := range errs {
+		r.Equal(2, len(structErrors))
+		r.Equal("test", structErrors[0].invalidSymbols)
+	}
+}
+
 func Test_testValidateDuplicates(t *testing.T) {
 	r := require.New(t)
 	structs := []structTpl{

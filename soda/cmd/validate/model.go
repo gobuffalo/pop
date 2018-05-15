@@ -29,10 +29,6 @@ func (e *ValidationError) Error() string {
 
 func (m *model) AddDefaultProcessors(tags ...string) {
 
-	if m.processors == nil {
-		m.processors =  map[string][]func(tag *Tag) ([]ValidationError, error){}
-	}
-
 	if len(tags) == 0 {
 		tags = []string{"db"}
 	}
@@ -88,6 +84,7 @@ func (m *model) setPath(path string)  {
 func NewValidator(path string) model {
 	m := model{}
 	m.setPath(path)
+	m.processors =  map[string][]func(tag *Tag) ([]ValidationError, error){}
 
 	return m
 }
