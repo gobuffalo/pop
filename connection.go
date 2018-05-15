@@ -103,7 +103,7 @@ func (c *Connection) Open() error {
 	if err == nil {
 		c.Store = &dB{db}
 	}
-	return errors.Wrap(err, "coudn't connection to database")
+	return errors.Wrap(err, "couldn't connect to database")
 }
 
 // Close destroys an active datasource connection
