@@ -10,7 +10,7 @@ import (
 	"strconv"
 )
 
-const cnt  = 0x186A0 //100k
+const cnt  = 0xC350 //50k
 
 var declrTmp = `package models
 
@@ -42,7 +42,7 @@ type structTpl struct {
 }
 
 
-func createModel(fileName string, structs []structTpl)  {
+func createModel(fileName string, structs []structTpl) {
 	os.Mkdir("./models", 0755)
 
 	var tmp string = declrTmp
@@ -70,7 +70,7 @@ func createModel(fileName string, structs []structTpl)  {
 func Test_testValidate(t *testing.T) {
 	r := require.New(t)
 
-	createModel("customer.go", []structTpl{
+	structs := []structTpl{
 		{
 			"Customer",
 			"created_at",
@@ -83,12 +83,16 @@ func Test_testValidate(t *testing.T) {
 			"updated_at",
 			"",
 		},
-	})
+	}
+
+	createModel("customer.go", structs)
 	defer os.RemoveAll("./models")
 
-	m := NewModel()
+	m := NewValidator("github.com/petar/pop/soda/cmd/validate/models")
 
-	errs := m.Validate()
+	m.AddDefaultProcessors("db", "newtag")
+
+	errs, _ := m.Run()
 	r.Empty(errs)
 }
 
@@ -116,20 +120,37 @@ func Test_testValidateDuplicates(t *testing.T) {
 	}
 
 	createModel("customer.go", structs)
+	createModel("customer1.go", structs)
 	defer os.RemoveAll("./models")
 
-	m := NewModel()
+	m := NewValidator("github.com/petar/pop/soda/cmd/validate/models")
+	m.AddDefaultProcessors("db")
 
-	errs := m.Validate()
+	errs, err := m.Run("Customer")
+
+	if err != nil {
+		panic(err)
+	}
+
+	r.Equal(1, len(m.packages))
+
+	for _, pkg := range m.packages {
+		r.Equal(1, len(pkg.Files))
+		for fileName, _ := range pkg.Files {
+			r.Equal(true, strings.HasSuffix(fileName, "customer.go"))
+		}
+	}
 
 	r.Len(errs, 2)
 
-	for _, ers := range errs {
-		for _, structTp := range structs {
-			if ers.structName == structTp.structName {
-				r.True(ers.duplicate)
-				r.Equal(structTp.duplicateField, ers.field)
-				r.Equal(structTp.structName, ers.structName)
+	for _, tagErrs := range errs {
+		for _, ers := range tagErrs {
+			for _, structTp := range structs {
+				if ers.structName == structTp.structName {
+					r.True(ers.duplicate)
+					r.Equal(structTp.duplicateField, ers.field)
+					r.Equal(structTp.structName, ers.structName)
+				}
 			}
 		}
 	}
@@ -141,7 +162,7 @@ func BenchmarkModel_ValidateNoErrors(b *testing.B) {
 	//so we stop the timer
 	b.StopTimer()
 
-	//Let's stress the program and create 100k models
+	//Let's stress the program and create 50k models
 	for i := 0; i < cnt; i++ {
 		structs := []structTpl{{
 			"Customer" + strconv.Itoa(i),
@@ -158,8 +179,9 @@ func BenchmarkModel_ValidateNoErrors(b *testing.B) {
 
 	//Lets time the meat and potatoes of the benchmark
 	for i := 0; i < b.N; i++ {
-		m := NewModel()
-		m.Validate()
+		m := NewValidator("github.com/petar/pop/soda/cmd/validate/models")
+		m.AddDefaultProcessors("db")
+		m.Run()
 	}
 
 	//Don't want to time the deletion of the files
@@ -173,7 +195,7 @@ func BenchmarkModel_ValidateWithErrors(b *testing.B) {
 	//so we stop the timer
 	b.StopTimer()
 
-	//Let's stress the program and create 100k models
+	//Let's stress the program and create 50k models
 	for i := 0; i < cnt ; i++ {
 		structs := []structTpl{{
 			"Customer" + strconv.Itoa(i),
@@ -191,8 +213,9 @@ func BenchmarkModel_ValidateWithErrors(b *testing.B) {
 
 	//Lets time the meat and potatoes of the benchmark
 	for i := 0; i < b.N; i++ {
-		m := NewModel()
-		m.Validate()
+		m := NewValidator("github.com/petar/pop/soda/cmd/validate/models")
+		m.AddDefaultProcessors("db")
+		m.Run()
 	}
 
 	//Don't want to time the deletion of the files

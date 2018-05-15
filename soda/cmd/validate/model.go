@@ -3,18 +3,16 @@ package validate
 import (
 	"fmt"
 	"go/ast"
-	"regexp"
 	"strings"
+	"regexp"
+	"github.com/pkg/errors"
 )
 
 type model struct {
 	packages map[string]*ast.Package
-	tags     map[string][]string
-	rules    []Checker
-}
-
-type Checker interface {
-	Check(tag string, structName string) []ValidationError
+	tags     map[string][]*Tag
+	processors map[string][]func(tag *Tag) ([]ValidationError, error)
+	path string
 }
 
 type ValidationError struct {
@@ -22,34 +20,59 @@ type ValidationError struct {
 	field          string
 	structName     string
 	duplicate      bool
+	fieldName      string
 }
 
 func (e *ValidationError) Error() string {
-	return fmt.Sprintf("Invalid symbols '%v' contained in %v.%v", e.invalidSymbols, e.structName, e.field)
+	return fmt.Sprintf("Invalid symbols '%v' contained in %v.%v.%v", e.invalidSymbols, e.structName, e.fieldName, e.field)
 }
 
-type Rule struct {
-	expr *regexp.Regexp
-}
+func (m *model) AddDefaultProcessors(tags ...string) {
 
-func (r *Rule) Check(tag string, structName string) []ValidationError {
-	match := r.expr.FindString(tag)
-	errorss := []ValidationError{}
-
-	if len(match) > 0 {
-		err := ValidationError{match, tag, structName, false}
-		errorss = append(errorss, err)
+	if m.processors == nil {
+		m.processors =  map[string][]func(tag *Tag) ([]ValidationError, error){}
 	}
 
-	return errorss
+	if len(tags) == 0 {
+		tags = []string{"db"}
+	}
+
+	for _, tagStr := range tags {
+		m.processors[tagStr] = append(m.processors[tagStr], func(tag *Tag) ([]ValidationError, error) {
+			regexpr := []*regexp.Regexp{
+				//allowed symbols in a tag
+				regexp.MustCompile(`[^a-z0-9_,]+`),
+				//allowed symbols of the end of a tag
+				regexp.MustCompile(`[^a-z0-9]$`),
+			}
+			errorss := []ValidationError{}
+
+			for _, rexpr := range regexpr {
+				match := rexpr.FindString(tagStr)
+
+				if len(match) > 0 {
+					err := ValidationError{
+						match,
+						tag.value,
+						tag.structName,
+						false,
+						tag.getName(),
+					}
+					errorss = append(errorss, err)
+				}
+			}
+
+			return errorss, nil
+		})
+	}
 }
 
-func checkForDuplicates(tag string, structName string, fieldsCache map[string]bool) []ValidationError {
+func checkForDuplicates(t *Tag, fieldsCache map[string]bool) []ValidationError {
 	errorss := []ValidationError{}
-	cacheKey := strings.Join([]string{structName, tag}, ".")
+	cacheKey := strings.Join([]string{t.structName, t.name, t.value}, ".")
 
 	if _, exist := fieldsCache[cacheKey]; exist {
-		err := ValidationError{"duplicate entry", tag, structName, true}
+		err := ValidationError{"duplicate entry", t.getValue(), t.structName, true, t.getName()}
 		errorss = append(errorss, err)
 	}
 
@@ -58,54 +81,68 @@ func checkForDuplicates(tag string, structName string, fieldsCache map[string]bo
 	return errorss
 }
 
-func NewModel() model {
+func (m *model) setPath(path string)  {
+	m.path = path
+}
+
+func NewValidator(path string) model {
 	m := model{}
-	m.packages = getPackages("models")
-	m.tags = getTags("db", m.packages)
+	m.setPath(path)
 
 	return m
 }
 
-func (m *model) Validate() []ValidationError {
+func (m *model) Run(models ...string)  (map[string][]ValidationError, error) {
+
+	m.packages = getPackages(m.path, models...)
+	validationErrors := map[string][]ValidationError{}
+
+	if len(m.processors) == 0 {
+		return validationErrors, errors.New( "There are no processors to run, consider adding the default ones.")
+	}
+
+	tags := []string{}
+
+	for tag, _ := range m.processors {
+		tags = append(tags, tag)
+	}
+
+	m.tags = getTags(tags, m.packages)
+
+	return  m.validate()
+}
+
+func (m *model) validate() (map[string][]ValidationError, error) {
 	fieldsCache := map[string]bool{}
-	errorss := []ValidationError{}
+	errorss := map[string][]ValidationError{}
 	errs := []ValidationError{}
 
 	if len(m.tags) == 0 {
-		return errorss
+		return errorss, errors.New("No tags found")
 	}
 
-	rules := createRules()
-
 	for structName, fields := range m.tags {
-		for _, field := range fields {
-			duplicateErrors := checkForDuplicates(field, structName, fieldsCache)
-			errorss = append(errorss, duplicateErrors...)
+		for _, t := range fields {
+			duplicateErrors := checkForDuplicates(t, fieldsCache)
 
-			for _, ch := range m.rules {
-				errs = ch.Check(field, structName)
-				errorss = append(errorss, errs...)
+			if len(duplicateErrors) > 0 {
+				errorss[structName] = append(errorss[structName], duplicateErrors...)
 			}
 
-			for _, rule := range rules {
-				errs = rule.Check(field, structName)
-				errorss = append(errorss, errs...)
+			for _, processorTag := range m.processors {
+				for _, processor := range processorTag {
+					errs, _ = processor(t)
+					if len(errs) > 0 {
+						errorss[structName] = append(errorss[structName], errs...)
+					}
+				}
 			}
 		}
 	}
 
-	return errorss
+	return errorss, nil
 }
 
-func (m *model) AddRule(ch ...Checker) {
-	m.rules = append(m.rules, ch...)
-}
-
-func createRules() []Rule {
-	return []Rule{
-		//tag cannot contain anything except these symbols
-		{expr: regexp.MustCompile(`[^a-z0-9_,]+`)},
-		//tag cannot end in anything except these symbols
-		{expr: regexp.MustCompile(`[^a-z0-9]$`)},
-	}
+func (m *model) AddProcessor(tag string, processor func(t *Tag) ([]ValidationError, error)) {
+	m.processors[tag] = append(m.processors[tag], processor)
 }

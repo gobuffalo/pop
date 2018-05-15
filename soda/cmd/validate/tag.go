@@ -7,86 +7,90 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
-	"sort"
 	"strings"
+	"github.com/pkg/errors"
 )
 
-func getPackages(folder string) map[string]*ast.Package {
-	path, _ := os.Getwd()
-	path = filepath.Join(folder)
+type Tag struct {
+	name string
+	value string
+	structName string
+}
+
+func (t *Tag) getName() string  {
+	return t.name
+}
+
+func (t *Tag) getValue() string  {
+	return t.value
+}
+
+func (t *Tag) getStructName() string  {
+	return t.structName
+}
+
+func getPackages(folder string, models ...string) map[string]*ast.Package {
+	path := os.Getenv("GOPATH")
+	path = filepath.Join(path, "src")
+
+	path = filepath.Join(path, folder)
+
 	fset := token.NewFileSet()
+	modelMap := make(map[string]bool, len(models))
+
+	for _, model := range models {
+		k := strings.Join([]string{
+			strings.ToLower(model),
+			"go",
+		}, ".")
+
+		modelMap[k] = true
+	}
 
 	pkgs, err := parser.ParseDir(fset, path, func(f os.FileInfo) bool {
-		return !strings.HasSuffix(f.Name(), "_test.go")
+		isNotTest := !strings.HasSuffix(f.Name(), "_test.go")
+
+		if len(modelMap) > 0 {
+			_, exists := modelMap[strings.ToLower(f.Name())]
+			//I want XOR, != is not natural
+			return isNotTest != !exists
+		}
+
+		return isNotTest
 	}, 0)
 
 	if err != nil {
 		panic(err)
 	}
 
+	if len(pkgs) == 0 {
+		panic(errors.New("Could not find models package"))
+	}
+
 	return pkgs
 }
 
-func getTags(tagName string, packages map[string]*ast.Package) map[string][]string {
+func getTags(tagNames []string, packages map[string]*ast.Package) map[string][]*Tag {
 
-	var dbRegex = regexp.MustCompile(strings.Join([]string{tagName, `[ ]*:[ ]*"(.+)"`}, ""))
+	var dbRegex = regexp.MustCompile(
+		strings.Join([]string{
+			"(",
+			strings.Join(tagNames, "|"),
+			")",
+			`[ ]*:[ ]*"([^"]+)"`},
+			"",
+			),
+		)
 
-	tagChans := []*chan []string{}
-	tags := map[string][]string{}
+	tagChans := []*chan *Tag{}
+	tags := map[string][]*Tag{}
 
 	for _, pkg := range packages {
 		for _, file := range pkg.Files {
-			tagChan := make(chan []string)
+			tagChan := make(chan *Tag)
 			tagChans = append(tagChans, &tagChan)
 
-			go func(tag chan []string, file *ast.File, dbRegex *regexp.Regexp) {
-				structs := make(map[int]string)
-				keys := []int{}
-
-				ast.Inspect(file, func(node ast.Node) bool {
-					switch x := node.(type) {
-					case *ast.TypeSpec:
-						pos := int(x.Name.Pos())
-						structs[pos] = x.Name.Name
-						keys = append(keys, pos)
-
-					case *ast.StructType:
-
-						sort.SliceStable(keys, func(i, j int) bool {
-							return keys[i] > keys[j]
-						})
-						//Get the struct name based on the current position
-						currentPos := int(x.Pos())
-						structName, exist := structs[currentPos]
-
-						if !exist {
-							for _, pos := range keys {
-								if currentPos >= pos {
-									structName = structs[pos]
-									break
-								}
-							}
-						}
-
-						//Extract all db tags from the struct fields
-						for _, field := range x.Fields.List {
-							if field.Tag != nil {
-								if matches := dbRegex.FindStringSubmatch(field.Tag.Value); len(matches) > 0 && len(matches[1]) > 0 {
-									res := []string{structName, matches[1]}
-									tag <- res
-								}
-							}
-						}
-					}
-					return true
-				})
-
-				//remove struct names from proccessed file
-				structs = map[int]string{}
-				keys = keys[:0]
-				tag <- nil
-
-			}(tagChan, file, dbRegex)
+			go collecFields(tagChan, file, dbRegex)
 		}
 	}
 
@@ -94,16 +98,50 @@ func getTags(tagName string, packages map[string]*ast.Package) map[string][]stri
 	Loop:
 		for {
 			select {
-			case tag := <-*ch:
+			case tag, _ := <-*ch:
+
 				if tag == nil {
 					close(*ch)
 					break Loop
 				}
 
-				tags[tag[0]] = append(tags[tag[0]], tag[1])
+				tags[tag.structName] = append(tags[tag.structName], tag)
 			}
 		}
 	}
 
 	return tags
+}
+
+func collecFields(tagChan chan *Tag, file *ast.File, dbRegex *regexp.Regexp) {
+	var structName string
+
+	ast.Inspect(file, func(node ast.Node) bool {
+		switch x := node.(type) {
+		case *ast.TypeSpec:
+			//Get the struct name
+			structName = x.Name.Name
+		case *ast.StructType:
+			//Extract all db tags from the struct fields
+			for _, field := range x.Fields.List {
+				if field.Tag != nil {
+					matches := dbRegex.FindAllStringSubmatch(field.Tag.Value, -1);
+					if len(matches) > 0 {
+						for _, matchTags := range matches {
+							tagChan <- &Tag{
+								matchTags[1],
+								matchTags[2],
+								structName,
+							}
+						}
+					}
+				}
+			}
+		}
+		return true
+	})
+
+	//Tell the listener that we are done sending
+	//values to this channel
+	tagChan <- nil
 }
