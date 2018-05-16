@@ -22,6 +22,15 @@ func Test_Find(t *testing.T) {
 
 		a.NotEqual(u.ID, 0)
 		a.Equal(u.Name.String, "Mark")
+
+		idMap := map[string]int{}
+		idMap["id"] = user.ID
+
+		err = tx.Find(&u, idMap)
+		a.NoError(err)
+
+		a.NotEqual(u.ID, 0)
+		a.Equal(u.Name.String, "Mark")
 	})
 }
 

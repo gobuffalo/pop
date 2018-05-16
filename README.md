@@ -275,6 +275,12 @@ development:
 user := User{}
 err := db.Find(&user, id)
 ```
+Specify your own id key
+```go
+idMap := map[string]int{}
+idMap["id"] = user.ID
+err := db.Find(&user, idMap)
+```
 
 ### Find All
 
