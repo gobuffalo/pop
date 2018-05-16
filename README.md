@@ -324,6 +324,19 @@ err = db.Where("id in (?) and foo = ?", 1, 2, 3, "bar").All(&users)
 err = db.Where("id in (?)", 1, 2, 3).Where("foo = ?", "bar").All(&users)
 ```
 
+### Select specific columns
+`Select` allows you to load specific columns from a table. Useful when you don't want all columns from a table to be loaded in a query.
+```go
+err = db.Select("name").All(&users)
+// SELECT name FROM users
+
+err = db.Select("max(age)").All(&users)
+// SELECT max(age) FROM users
+
+err = db.Select("age, name").All(&users)
+// SELECT age, name FROM users
+```
+
 ### Join Query
 
 ```go
