@@ -27,6 +27,17 @@ func newSQLBuilder(q Query, m *Model, addColumns ...string) *sqlBuilder {
 	}
 }
 
+func hasLimitOrOffset(sqlString string) bool {
+	if matched, _ := regexp.MatchString("(?i).* limit [0-9]*$", sqlString); matched {
+		return matched
+	}
+
+	if matched, _ := regexp.MatchString("(?i).* offset [0-9]*$", sqlString); matched {
+		return matched
+	}
+	return false
+}
+
 func (sq *sqlBuilder) String() string {
 	if sq.sql == "" {
 		sq.compile()
@@ -50,7 +61,7 @@ var inRegex = regexp.MustCompile(`(?i)in\s*\(\s*\?\s*\)`)
 func (sq *sqlBuilder) compile() {
 	if sq.sql == "" {
 		if sq.Query.RawSQL.Fragment != "" {
-			if sq.Query.Paginator != nil {
+			if sq.Query.Paginator != nil && !hasLimitOrOffset(sq.Query.RawSQL.Fragment) {
 				sq.sql = sq.buildPaginationClauses(sq.Query.RawSQL.Fragment)
 			} else {
 				sq.sql = sq.Query.RawSQL.Fragment
