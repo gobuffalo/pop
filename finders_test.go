@@ -1,6 +1,7 @@
 package pop_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/gobuffalo/pop"
@@ -535,7 +536,14 @@ func Test_Count_Disregards_Pagination(t *testing.T) {
 
 		q := tx.Paginate(1, 3)
 		q.All(&first_users)
+		a.Equal(len(names), q.Paginator.TotalEntriesSize) //ensure paginator populates count
+		a.Equal(3, len(first_users))
 
+		first_users = Users{}
+		q = tx.RawQuery("select * from users").Paginate(1, 3)
+		q.All(&first_users)
+		a.Equal(1, q.Paginator.Page)
+		a.Equal(3, q.Paginator.PerPage)
 		a.Equal(len(names), q.Paginator.TotalEntriesSize) //ensure paginator populates count
 
 		a.Equal(3, len(first_users))

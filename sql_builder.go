@@ -50,7 +50,11 @@ var inRegex = regexp.MustCompile(`(?i)in\s*\(\s*\?\s*\)`)
 func (sq *sqlBuilder) compile() {
 	if sq.sql == "" {
 		if sq.Query.RawSQL.Fragment != "" {
-			sq.sql = sq.Query.RawSQL.Fragment
+			if sq.Query.Paginator != nil {
+				sq.sql = sq.buildPaginationClauses(sq.Query.RawSQL.Fragment)
+			} else {
+				sq.sql = sq.Query.RawSQL.Fragment
+			}
 		} else {
 			sq.sql = sq.buildSelectSQL()
 		}
