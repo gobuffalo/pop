@@ -8,6 +8,8 @@ import (
 	"github.com/pkg/errors"
 )
 
+const AllTags = "*"
+
 type model struct {
 	packages map[string]*ast.Package
 	tags     map[string][]*Tag
@@ -30,7 +32,7 @@ func (e *ValidationError) Error() string {
 func (m *model) AddDefaultProcessors(tags ...string) {
 
 	if len(tags) == 0 {
-		tags = []string{"db"}
+		tags = []string{AllTags}
 	}
 
 	for _, tagStr := range tags {
@@ -113,6 +115,7 @@ func (m *model) validate() (map[string][]ValidationError, error) {
 	fieldsCache := map[string]bool{}
 	errorss := map[string][]ValidationError{}
 	errs := []ValidationError{}
+	executableProcessors := []func(tag *Tag) ([]ValidationError, error){}
 
 	if len(m.tags) == 0 {
 		return errorss, errors.New("No tags found")
@@ -126,12 +129,22 @@ func (m *model) validate() (map[string][]ValidationError, error) {
 				errorss[structName] = append(errorss[structName], duplicateErrors...)
 			}
 
-			for _, processorTag := range m.processors {
-				for _, processor := range processorTag {
-					errs, _ = processor(t)
-					if len(errs) > 0 {
-						errorss[structName] = append(errorss[structName], errs...)
-					}
+			processors, exists := m.processors[t.getName()]
+
+			if exists {
+				executableProcessors = append(processors)
+			}
+
+			globalProcessors, exists := m.processors[AllTags]
+
+			if exists {
+				executableProcessors = append(executableProcessors, globalProcessors...)
+			}
+
+			for _, processor := range executableProcessors {
+				errs, _ = processor(t)
+				if len(errs) > 0 {
+					errorss[structName] = append(errorss[structName], errs...)
 				}
 			}
 		}

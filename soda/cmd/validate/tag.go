@@ -72,10 +72,19 @@ func getPackages(folder string, models ...string) map[string]*ast.Package {
 
 func getTags(tagNames []string, packages map[string]*ast.Package) map[string][]*Tag {
 
+	concatNames := strings.Join(tagNames, "|")
+
+	for _, name := range tagNames {
+		if name == AllTags {
+			concatNames = "[a-z0-9]"
+			break
+		}
+	}
+
 	var dbRegex = regexp.MustCompile(
 		strings.Join([]string{
 			"(",
-			strings.Join(tagNames, "|"),
+			concatNames,
 			")",
 			`[ ]*:[ ]*"([^"]+)"`},
 			"",
