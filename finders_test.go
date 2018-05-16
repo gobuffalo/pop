@@ -5,6 +5,7 @@ import (
 
 	"github.com/gobuffalo/pop"
 	"github.com/gobuffalo/pop/nulls"
+	"github.com/gobuffalo/uuid"
 	"github.com/stretchr/testify/require"
 )
 
@@ -157,6 +158,17 @@ func Test_Find_Eager_Has_One(t *testing.T) {
 		a.NotEqual(u.ID, 0)
 		a.Equal(u.Name.String, "Mark")
 		a.Equal(u.FavoriteSong.ID, coolSong.ID)
+
+		//eager should work with rawquery
+		uid := u.ID
+		u = User{}
+		err = tx.RawQuery("select * from users where id=?", uid).First(&u)
+		a.NoError(err)
+		a.Equal(u.FavoriteSong.ID, uuid.Nil)
+
+		err = tx.RawQuery("select * from users where id=?", uid).Eager("FavoriteSong").First(&u)
+		a.NoError(err)
+		a.Equal(u.FavoriteSong.ID, coolSong.ID)
 	})
 }
 
@@ -266,6 +278,39 @@ func Test_Find_Eager_Many_To_Many(t *testing.T) {
 
 		a.Equal(len(u.Houses), 1)
 		a.Equal(u.Houses[0].Street, address.Street)
+
+		address2 := Address{Street: "Pop Avenue 2", HouseNumber: 1}
+		err = tx.Create(&address2)
+		a.NoError(err)
+
+		user2 := User{Name: nulls.NewString("Mark 2")}
+		err = tx.Create(&user2)
+		a.NoError(err)
+
+		ownerProperty2 := UsersAddress{UserID: user2.ID, AddressID: address2.ID}
+		err = tx.Create(&ownerProperty2)
+		a.NoError(err)
+
+		//eager should work with rawquery
+		uid := u.ID
+		u = User{}
+		err = tx.RawQuery("select * from users where id=?", uid).Eager("Houses").First(&u)
+		a.Equal(1, len(u.Houses))
+
+		//eager ALL
+		var users []User
+		err = tx.RawQuery("select * from users order by created_at asc").Eager("Houses").All(&users)
+		a.Equal(2, len(users))
+
+		u = users[0]
+		a.Equal(u.Name.String, "Mark")
+		a.Equal(1, len(u.Houses))
+		a.Equal(u.Houses[0].Street, "Pop Avenue")
+
+		u = users[1]
+		a.Equal(u.Name.String, "Mark 2")
+		a.Equal(1, len(u.Houses))
+		a.Equal(u.Houses[0].Street, "Pop Avenue 2")
 	})
 }
 
@@ -490,6 +535,8 @@ func Test_Count_Disregards_Pagination(t *testing.T) {
 
 		q := tx.Paginate(1, 3)
 		q.All(&first_users)
+
+		a.Equal(len(names), q.Paginator.TotalEntriesSize) //ensure paginator populates count
 
 		a.Equal(3, len(first_users))
 		totalFirstPage := q.Paginator.TotalPages
