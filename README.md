@@ -107,7 +107,7 @@ $ go install github.com/gobuffalo/pop/soda
 
 ```bash
 $ go get -u -v -tags sqlite github.com/gobuffalo/pop/...
-$ go install github.com/gobuffalo/pop/soda
+$ go install -tags sqlite github.com/gobuffalo/pop/soda
 ```
 
 If you're not building your code with `buffalo build`, you'll also have to pass `-tags sqlite` to `go build` when building your program.
@@ -284,6 +284,14 @@ err := db.All(&users)
 err = db.Where("id in (?)", 1, 2, 3).All(&users)
 ```
 
+#### Find Last
+
+```go
+// Last() orders by created_at
+user := models.User{}
+err := tx.Last(&user)
+```
+
 ### Find Where
 
 ```go
@@ -308,6 +316,19 @@ Unfortunately, for a variety of reasons you can't use an `and` query in the same
 err = db.Where("id in (?) and foo = ?", 1, 2, 3, "bar").All(&users)
 // works:
 err = db.Where("id in (?)", 1, 2, 3).Where("foo = ?", "bar").All(&users)
+```
+
+### Select specific columns
+`Select` allows you to load specific columns from a table. Useful when you don't want all columns from a table to be loaded in a query.
+```go
+err = db.Select("name").All(&users)
+// SELECT name FROM users
+
+err = db.Select("max(age)").All(&users)
+// SELECT max(age) FROM users
+
+err = db.Select("age, name").All(&users)
+// SELECT age, name FROM users
 ```
 
 ### Join Query
