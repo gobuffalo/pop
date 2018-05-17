@@ -241,10 +241,16 @@ func (q *Query) eagerAssociations(model interface{}) error {
 		innerAssociations := association.InnerAssociations()
 		for _, inner := range innerAssociations {
 			v = reflect.Indirect(reflect.ValueOf(model)).FieldByName(inner.Name)
-			q.eagerFields = []string{inner.Fields}
-			err = q.eagerAssociations(v.Addr().Interface())
-			if err != nil {
-				return err
+			// only get address if not already a pointer
+			if v.Kind() != reflect.Ptr {
+				v = v.Addr()
+			}
+			if !v.IsNil() {
+				q.eagerFields = []string{inner.Fields}
+				err = q.eagerAssociations(v.Interface())
+				if err != nil {
+					return err
+				}
 			}
 		}
 	}
