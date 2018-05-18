@@ -37,7 +37,7 @@ func Test_Attribute_String(t *testing.T) {
 	}
 
 	for _, c := range cases {
-		model := newModel("car")
+		model, _ := newModel("car")
 		a := newAttribute(c.name, &model)
 		r.Equal(c.exp, a.String())
 	}
@@ -87,7 +87,7 @@ func Test_newAttribute(t *testing.T) {
 
 	for index, tcase := range cases {
 		t.Run(fmt.Sprint(index), func(tt *testing.T) {
-			model := newModel("car")
+			model, _ := newModel("car")
 			a := newAttribute(tcase.AttributeInput, &model)
 
 			r.Equal(a.GoType, tcase.ResultType)
