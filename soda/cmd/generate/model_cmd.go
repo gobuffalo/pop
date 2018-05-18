@@ -12,13 +12,17 @@ import (
 var skipMigration bool
 var structTag = "json"
 var migrationPath string
+var migrationType string
+var env string
 
 var nrx = regexp.MustCompile(`^nulls\.(.+)`)
 
 func init() {
 	ModelCmd.Flags().StringVarP(&structTag, "struct-tag", "", "json", "sets the struct tags for model (xml or json)")
+	ModelCmd.Flags().StringVarP(&migrationType, "migration-type", "", "fizz", "sets the type of migration files for model (sql or fizz)")
 	ModelCmd.Flags().BoolVarP(&skipMigration, "skip-migration", "s", false, "Skip creating a new fizz migration for this model.")
 	ModelCmd.Flags().StringVarP(&migrationPath, "path", "p", "./migrations", "location of migrations folder")
+	ModelCmd.Flags().StringVarP(&env, "env", "env", "", "environment")
 
 	inflect.AddAcronym("ID")
 	inflect.AddAcronym("UUID")
@@ -52,11 +56,18 @@ var ModelCmd = &cobra.Command{
 			return nil
 		}
 
-		err = model.generateFizz(migrationPath)
+		switch migrationType {
+		case "sql":
+			err = model.generateSQL(migrationPath, env)
+		default:
+			err = model.generateFizz(migrationPath)
+		}
+
 		if err != nil {
 			return err
 		}
 
-		return nil
+		err = model.generateFizz(migrationPath)
+		return err
 	},
 }

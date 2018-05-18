@@ -25,6 +25,30 @@ func Test_Find(t *testing.T) {
 	})
 }
 
+func Test_Select(t *testing.T) {
+	transaction(func(tx *pop.Connection) {
+		a := require.New(t)
+
+		user := User{Name: nulls.NewString("Mark"), Email: "mark@gobuffalo.io"}
+		err := tx.Create(&user)
+		a.NoError(err)
+
+		q := tx.Select("name", "email", "\n", "\t\n", "")
+
+		sm := &pop.Model{Value: &User{}}
+		sql, _ := q.ToSQL(sm)
+		a.Equal(tx.Dialect.TranslateSQL("SELECT email, name FROM users AS users"), sql)
+
+		u := User{}
+		err = q.Find(&u, user.ID)
+		a.NoError(err)
+
+		a.Equal(u.Email, "mark@gobuffalo.io")
+		a.Equal(u.Name.String, "Mark")
+		a.Zero(u.ID)
+	})
+}
+
 func Test_Find_Eager_Has_Many(t *testing.T) {
 	transaction(func(tx *pop.Connection) {
 		a := require.New(t)
@@ -148,7 +172,7 @@ func Test_Find_Eager_Has_One_With_Inner_Associations_Struct(t *testing.T) {
 		err = tx.Create(&composer)
 		a.NoError(err)
 
-		coolSong := Song{Title: "Hook", UserID: user.ID, ComposerID: composer.ID}
+		coolSong := Song{Title: "Hook", UserID: user.ID, ComposedByID: composer.ID}
 		err = tx.Create(&coolSong)
 		a.NoError(err)
 
@@ -351,6 +375,27 @@ func Test_All_Eager(t *testing.T) {
 
 		u := Users{}
 		err := tx.Eager(" Books ", " ").Where("name = 'Mark'").All(&u)
+		a.NoError(err)
+		a.Equal(len(u), 1)
+		a.Equal(len(u[0].Books), 1)
+	})
+}
+
+func Test_All_Eager_For_Query(t *testing.T) {
+	transaction(func(tx *pop.Connection) {
+		a := require.New(t)
+
+		user := User{Name: nulls.NewString("Mark")}
+		err := tx.Create(&user)
+		a.NoError(err)
+
+		book := Book{Title: "Pop Book", Isbn: "PB1", UserID: nulls.NewInt(user.ID)}
+		err = tx.Create(&book)
+		a.NoError(err)
+
+		u := Users{}
+		q := tx.Q()
+		err = q.Eager("Books").Where("name = 'Mark'").All(&u)
 		a.NoError(err)
 		a.Equal(len(u), 1)
 		a.Equal(len(u[0].Books), 1)

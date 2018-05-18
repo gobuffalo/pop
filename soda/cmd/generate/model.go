@@ -17,6 +17,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/gobuffalo/pop"
+	"github.com/gobuffalo/pop/fizz"
 	"github.com/markbates/inflect"
 )
 
@@ -132,6 +133,21 @@ func (m model) generateFizz(migrationPath string) error {
 	return nil
 }
 
+func (m model) generateSQL(migrationPath, env string) error {
+	db, err := pop.Connect(env)
+	if err != nil {
+		return err
+	}
+
+	err = pop.MigrationCreate(migrationPath, fmt.Sprintf("create_%s.%s", m.Name.Table(), db.Dialect.Name()), "sql", []byte(m.GenerateSQLFromFizz(m.Fizz(), db)), []byte(m.GenerateSQLFromFizz(m.UnFizz(), db)))
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// Fizz generates the create table instructions
 func (m model) Fizz() string {
 	s := []string{fmt.Sprintf("create_table(\"%s\", func(t) {", m.Name.Table())}
 	for _, a := range m.Attributes {
@@ -201,6 +217,20 @@ func newModelFromArgs(args []string) (model, error) {
 	return m, nil
 }
 
+// UnFizz generates the drop table instructions
+func (m model) UnFizz() string {
+	return fmt.Sprintf("drop_table(\"%s\")", m.Name.Table())
+}
+
+// GenerateSQLFromFizz generates SQL instructions from fizz instructions
+func (m model) GenerateSQLFromFizz(content string, c *pop.Connection) string {
+	content, err := fizz.AString(content, c.Dialect.FizzTranslator())
+	if err != nil {
+		return ""
+	}
+	return content
+}
+
 func fizzColType(s string) string {
 	switch strings.ToLower(s) {
 	case "int":
@@ -221,6 +251,8 @@ func fizzColType(s string) string {
 		return "jsonb"
 	case "float32", "float64", "float":
 		return "decimal"
+	case "blob", "[]byte":
+		return "blob"
 	default:
 		if nrx.MatchString(s) {
 			return fizzColType(strings.Replace(s, "nulls.", "", -1))

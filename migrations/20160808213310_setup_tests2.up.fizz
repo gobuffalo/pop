@@ -2,7 +2,7 @@ create_table("songs", func(t) {
   t.Column("id", "uuid", {"primary":true})
   t.Column("u_id", "int", {"null":true})
   t.Column("title", "string", {})
-  t.Column("composer_id", "int", {"null":true})
+  t.Column("composed_by_id", "int", {"null":true})
 })
 
 create_table("composers", func(t) {
@@ -22,6 +22,15 @@ create_table("addresses", func(t) {
 create_table("users_addresses", func(t) {
   t.Column("user_id", "int", {})
   t.Column("address_id", "int", {})
+})
+
+create_table("courses", func(t) {
+	t.Column("id", "uuid", {"primary": true})
+})
+
+create_table("course_codes", func(t) {
+	t.Column("id", "uuid", {"primary": true})
+	t.Column("course_id", "uuid", {})
 })
 
 {{ if eq .Dialect "postgres" }}
