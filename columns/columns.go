@@ -2,11 +2,11 @@ package columns
 
 import (
 	"fmt"
-	"sort"
 	"strings"
 	"sync"
 )
 
+// Columns represent a list of columns, related to a given table.
 type Columns struct {
 	Cols       map[string]*Column
 	lock       *sync.RWMutex
@@ -71,8 +71,7 @@ func (c *Columns) Add(names ...string) []*Column {
 			if len(xs) > 1 {
 				if xs[1] == "r" {
 					col.Writeable = false
-				}
-				if xs[1] == "w" {
+				} else if xs[1] == "w" {
 					col.Readable = false
 				}
 			} else if col.Name == "id" {
@@ -97,6 +96,7 @@ func (c *Columns) Remove(names ...string) {
 	}
 }
 
+// Writeable gets a list of the writeable columns from the column list.
 func (c Columns) Writeable() *WriteableColumns {
 	w := &WriteableColumns{NewColumnsWithAlias(c.TableName, c.TableAlias)}
 	for _, col := range c.Cols {
@@ -107,6 +107,7 @@ func (c Columns) Writeable() *WriteableColumns {
 	return w
 }
 
+// Readable gets a list of the readable columns from the column list.
 func (c Columns) Readable() *ReadableColumns {
 	w := &ReadableColumns{NewColumnsWithAlias(c.TableName, c.TableAlias)}
 	for _, col := range c.Cols {
@@ -122,23 +123,26 @@ func (c Columns) String() string {
 	for _, t := range c.Cols {
 		xs = append(xs, t.Name)
 	}
-	sort.Strings(xs)
 	return strings.Join(xs, ", ")
 }
 
+// SymbolizedString returns a list of tokens (:token) to bind
+// a value to an INSERT query.
 func (c Columns) SymbolizedString() string {
 	xs := []string{}
 	for _, t := range c.Cols {
 		xs = append(xs, ":"+t.Name)
 	}
-	sort.Strings(xs)
 	return strings.Join(xs, ", ")
 }
 
+// NewColumns constructs a list of columns for a given table name.
 func NewColumns(tableName string) Columns {
 	return NewColumnsWithAlias(tableName, "")
 }
 
+// NewColumnsWithAlias constructs a list of columns for a given table
+// name, using a given alias for the table.
 func NewColumnsWithAlias(tableName string, tableAlias string) Columns {
 	return Columns{
 		lock:       &sync.RWMutex{},
