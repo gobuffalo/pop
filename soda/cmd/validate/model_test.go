@@ -32,7 +32,9 @@ type %v struct {
 	"`\n" + `UpdatedAt time.Time ` +
 	"`" +
 	`json:"updated_at" db:"%v"` +
-	"`\n}"
+	"`\n}" +
+	"\n   " +
+	"\n"
 
 type structTpl struct {
 	structName string
@@ -201,6 +203,71 @@ func Test_testValidateDuplicates(t *testing.T) {
 			}
 		}
 	}
+}
+
+func Test_testValidateAllowDuplicates(t *testing.T) {
+	r := require.New(t)
+	structs := []structTpl{
+		{
+			"Customer",
+			"created_at",
+			"created_at",
+			"created_at",
+		},
+		{
+			"Customer1",
+			"created_at",
+			"updated_at",
+			"updated_at",
+		},
+		{
+			"Customer2",
+			"created_at",
+			"created_at",
+			"created_at",
+		},
+	}
+
+	createModel("customer.go", structs)
+	createModel("customer1.go", structs)
+	defer os.RemoveAll("./models")
+
+	m := NewValidator("github.com/gobuffalo/pop/soda/cmd/validate/models")
+	m.SetAllowDuplicates(true)
+	m.AddDefaultProcessors("db")
+
+	errs, err := m.Run("Customer")
+
+	if err != nil {
+		panic(err)
+	}
+
+	r.Len(errs, 0)
+}
+
+func Test_testValidator_ErrorsCount(t *testing.T)  {
+	r := require.New(t)
+
+
+	for i := 0; i < 44 ; i++ {
+		structs := []structTpl{{
+			"Customer" + strconv.Itoa(i),
+			"updated_at" + strconv.Itoa(i),
+			"updated_at" + strconv.Itoa(i),
+			"updated_at" + strconv.Itoa(i),
+		},
+		}
+
+		createModel("Customer" + strconv.Itoa(i) + ".go", structs)
+	}
+
+	m := NewValidator("github.com/gobuffalo/pop/soda/cmd/validate/models")
+	m.AddDefaultProcessors("db")
+	errs, _ := m.Run()
+
+	r.Equal(44, len(errs))
+
+	os.RemoveAll("./models")
 }
 
 func BenchmarkModel_ValidateNoErrors(b *testing.B) {

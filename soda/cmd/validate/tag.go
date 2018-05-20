@@ -9,6 +9,8 @@ import (
 	"regexp"
 	"strings"
 	"github.com/pkg/errors"
+	"github.com/gobuffalo/envy"
+	"sync"
 )
 
 type Tag struct {
@@ -17,23 +19,32 @@ type Tag struct {
 	structName string
 }
 
-func (t *Tag) getName() string  {
+//tag name getter
+func (t *Tag) GetName() string  {
 	return t.name
 }
 
-func (t *Tag) getValue() string  {
+//tag value getter
+func (t *Tag) GetValue() string  {
 	return t.value
 }
 
-func (t *Tag) getStructName() string  {
+//tag struct name getter
+func (t *Tag) GetStructName() string  {
 	return t.structName
 }
 
 func getPackages(folder string, models ...string) map[string]*ast.Package {
-	path := os.Getenv("GOPATH")
-	path = filepath.Join(path, "src")
+	var path string
 
-	path = filepath.Join(path, folder)
+	for _, gopath := range envy.GoPaths() {
+		path = filepath.Join(gopath, "src")
+		path = filepath.Join(path, folder)
+
+		if _, err := os.Stat(path); os.IsExist(err) {
+			break
+		}
+	}
 
 	fset := token.NewFileSet()
 	modelMap := make(map[string]bool, len(models))
@@ -91,66 +102,110 @@ func getTags(tagNames []string, packages map[string]*ast.Package) map[string][]*
 			),
 		)
 
-	tagChans := []*chan *Tag{}
+	tagChans := []<-chan *Tag{}
 	tags := map[string][]*Tag{}
 
 	for _, pkg := range packages {
 		for _, file := range pkg.Files {
-			tagChan := make(chan *Tag)
-			tagChans = append(tagChans, &tagChan)
-
-			go collecFields(tagChan, file, dbRegex)
+			tagChan := collecFields(file, dbRegex)
+			tagChans = append(tagChans, tagChan)
 		}
 	}
 
-	for _, ch := range tagChans {
-	Loop:
-		for {
-			select {
-			case tag, _ := <-*ch:
+	t := multiplex(tagChans...)
 
-				if tag == nil {
-					close(*ch)
+	 Loop: for {
+		select {
+			case tag, ok := <-t:
+				if !ok {
 					break Loop
 				}
 
 				tags[tag.structName] = append(tags[tag.structName], tag)
-			}
 		}
 	}
 
 	return tags
 }
 
-func collecFields(tagChan chan *Tag, file *ast.File, dbRegex *regexp.Regexp) {
-	var structName string
+func multiplex(cs ...<-chan *Tag) <-chan *Tag {
+	var wg sync.WaitGroup
+	out :=  make(chan *Tag)
 
-	ast.Inspect(file, func(node ast.Node) bool {
-		switch x := node.(type) {
-		case *ast.TypeSpec:
-			//Get the struct name
-			structName = x.Name.Name
-		case *ast.StructType:
-			//Extract all db tags from the struct fields
-			for _, field := range x.Fields.List {
-				if field.Tag != nil {
-					matches := dbRegex.FindAllStringSubmatch(field.Tag.Value, -1);
-					if len(matches) > 0 {
-						for _, matchTags := range matches {
-							tagChan <- &Tag{
-								matchTags[1],
-								matchTags[2],
-								structName,
+	output := func(c <- chan *Tag) {
+		defer wg.Done()
+
+		 for {
+			select {
+				case tag := <- c:
+					if tag == nil {
+						return
+					}
+
+					out <- tag
+			}
+		}
+	}
+
+	wg.Add(len(cs))
+
+	for _, c := range cs {
+		go output(c)
+	}
+
+	go func() {
+		wg.Wait()
+		close(out)
+	}()
+
+	return out
+}
+
+func collecFields(file *ast.File, dbRegex *regexp.Regexp) <-chan *Tag {
+
+	tagChan := make(chan *Tag)
+	var structName string
+	var nodesCnt int = 0
+	var curNode int = 1
+
+		go func() {
+			ast.Inspect(file, func(node ast.Node) bool {
+				nodesCnt++
+				return true
+			})
+
+
+			ast.Inspect(file, func(node ast.Node) bool {
+				switch x := node.(type) {
+				case *ast.TypeSpec:
+					//Get the struct name and end pos
+					structName = x.Name.Name
+				case *ast.StructType:
+					//Extract all db tags from the struct fields
+					for _, field := range x.Fields.List {
+						if field.Tag != nil {
+							matches := dbRegex.FindAllStringSubmatch(field.Tag.Value, -1);
+							if len(matches) > 0 {
+								for _, matchTags := range matches {
+									tagChan <- &Tag{
+										matchTags[1],
+										matchTags[2],
+										structName,
+									}
+								}
 							}
 						}
 					}
 				}
-			}
-		}
-		return true
-	})
 
-	//Tell the listener that we are done sending
-	//values to this channel
-	tagChan <- nil
+				if  (curNode == nodesCnt) {
+					tagChan <- nil
+				}
+
+				curNode++
+				return true
+			})
+		}()
+
+	return tagChan
 }
