@@ -6,37 +6,25 @@ import (
 	"strings"
 	"regexp"
 	"github.com/pkg/errors"
+	vv "github.com/gobuffalo/validate"
 )
 
 const AllTags = "*"
 
-var defaultRegexRules = []*regexp.Regexp{
+var defaultRegexRules = map[string]*regexp.Regexp{
 	//allowed symbols in a tag
-	regexp.MustCompile(`[^a-z0-9_,]+`),
+	"Invalid symboles %v in %v.%v": regexp.MustCompile(`[^a-z0-9_,]+`),
 	//allowed symbols of the end of a tag
-	regexp.MustCompile(`[^a-z0-9]$`),
+	"Tag cannot end on %v in  %v.%v" : regexp.MustCompile(`[^a-z0-9]$`),
 }
 
 // Validator holds information about the parsed models
 type Validator struct {
 	packages map[string]*ast.Package
 	tags     map[string][]*Tag
-	processors map[string][]func(tag *Tag) ([]ValidationError, error)
+	processors map[string][]func(tag *Tag, errors *vv.Errors)
 	path string
 	allowDuplicates bool
-}
-
-// ValidationError is an error created by the processors, should one of their validations fail.
-type ValidationError struct {
-	invalidSymbols string
-	field          string
-	structName     string
-	duplicate      bool
-	fieldName      string
-}
-
-func (e *ValidationError) Error() string {
-	return fmt.Sprintf("Invalid symbols '%v' contained in %v.%v.%v", e.invalidSymbols, e.structName, e.fieldName, e.field)
 }
 
 // AddDefaultProcessors provides some basic processors that will validate the given model tags.
@@ -49,42 +37,27 @@ func (v *Validator) AddDefaultProcessors(tags ...string) {
 	}
 
 	for _, tagStr := range tags {
-		v.processors[tagStr] = append(v.processors[tagStr], func(tag *Tag) ([]ValidationError, error) {
-			errorss := []ValidationError{}
-
-			for _, rexpr := range defaultRegexRules {
+		v.processors[tagStr] = append(v.processors[tagStr], func(tag *Tag, errors *vv.Errors) {
+			for msg, rexpr := range defaultRegexRules {
 				match := rexpr.FindString(tagStr)
 
 				if len(match) > 0 {
-					err := ValidationError{
-						match,
-						tag.value,
-						tag.structName,
-						false,
-						tag.GetName(),
-					}
-					errorss = append(errorss, err)
+					errors.Add(tag.GetStructName(), fmt.Sprintf(msg, match, tag.GetStructName(), tag.GetName(), tag.GetValue()))
 				}
 			}
-
-			return errorss, nil
 		})
 	}
 }
 
 // checkForDuplicates validates duplicate tag values
-func checkForDuplicates(t *Tag, fieldsCache map[string]bool) []ValidationError {
-	errorss := []ValidationError{}
+func checkForDuplicates(errors *vv.Errors, t *Tag, fieldsCache map[string]bool) {
 	cacheKey := strings.Join([]string{t.structName, t.name, t.value}, ".")
 
 	if _, exist := fieldsCache[cacheKey]; exist {
-		err := ValidationError{"duplicate entry", t.GetValue(), t.GetStructName(), true, t.GetName()}
-		errorss = append(errorss, err)
+		errors.Add(t.GetStructName(), fmt.Sprintf("Duplicate tag value %v in %v.%v", t.GetValue(), t.GetStructName(), t.GetName()))
 	}
 
 	fieldsCache[cacheKey] = true
-
-	return errorss
 }
 
 func (v *Validator) setPath(path string)  {
@@ -102,7 +75,7 @@ func (v *Validator) SetAllowDuplicates(allowDuplicates bool)  {
 func NewValidator(path string) Validator {
 	m := Validator{}
 	m.setPath(path)
-	m.processors = map[string][]func(tag *Tag) ([]ValidationError, error){}
+	m.processors = map[string][]func(tag *Tag, errors *vv.Errors){}
 	m.allowDuplicates = false
 
 	return m
@@ -110,10 +83,10 @@ func NewValidator(path string) Validator {
 
 // Run  will validate specified tags on all models, if none were passed.
 // It returns validation errors, if any produced by the processor.
-func (v *Validator) Run(models ...string)  (map[string][]ValidationError, error) {
+func (v *Validator) Run(models ...string)  (*vv.Errors, error) {
 
 	v.packages = getPackages(v.path, models...)
-	validationErrors := map[string][]ValidationError{}
+	validationErrors := vv.NewErrors()
 
 	if len(v.processors) == 0 {
 		return validationErrors, errors.New( "There are no processors to run, consider adding the default ones.")
@@ -130,25 +103,26 @@ func (v *Validator) Run(models ...string)  (map[string][]ValidationError, error)
 	return  v.validate()
 }
 
-func (v *Validator) validate() (map[string][]ValidationError, error) {
+func (v *Validator) validate() (*vv.Errors, error) {
 	fieldsCache := map[string]bool{}
-	errorss := map[string][]ValidationError{}
-	errs := []ValidationError{}
-	executableProcessors := []func(tag *Tag) ([]ValidationError, error){}
+	errorss := vv.NewErrors()
+
+	executableProcessors := []func(tag *Tag, errors *vv.Errors) {}
 
 	if len(v.tags) == 0 {
 		return errorss, errors.New("No tags found")
 	}
 
-	for structName, fields := range v.tags {
+	for _, fields := range v.tags {
 		for _, t := range fields {
 
 			if !v.allowDuplicates {
-				duplicateErrors := checkForDuplicates(t, fieldsCache)
-
-				if len(duplicateErrors) > 0 {
-					errorss[structName] = append(errorss[structName], duplicateErrors...)
-				}
+				errorss.Append(
+					vv.Validate(&TagDuplicateValidator{
+					t,
+					fieldsCache,
+					checkForDuplicates,
+				}))
 			}
 
 			processors, exists := v.processors[t.GetName()]
@@ -164,10 +138,12 @@ func (v *Validator) validate() (map[string][]ValidationError, error) {
 			}
 
 			for _, processor := range executableProcessors {
-				errs, _ = processor(t)
-				if len(errs) > 0 {
-					errorss[structName] = append(errorss[structName], errs...)
-				}
+				errorss.Append(
+					vv.Validate(
+						&TagValidator{
+					t,
+					processor,
+				}))
 			}
 		}
 	}
@@ -175,8 +151,9 @@ func (v *Validator) validate() (map[string][]ValidationError, error) {
 	return errorss, nil
 }
 
+
 // AddProcessor adds a processor that will validate the given model tags
 // The tags given for the processors will be the tags parsed by the validator where `*` is a reference to all tags
-func (v *Validator) AddProcessor(tag string, processor func(t *Tag) ([]ValidationError, error)) {
+func (v *Validator) AddProcessor(tag string, processor func(t *Tag, errors *vv.Errors)) {
 	v.processors[tag] = append(v.processors[tag], processor)
 }

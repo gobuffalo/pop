@@ -1,12 +1,11 @@
 package validate
 
 import (
-	"strings"
-
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"path/filepath"
 	"os"
+	"strings"
+	"github.com/pkg/errors"
 )
 
 var modelPath string
@@ -47,12 +46,12 @@ var ModelCmd = &cobra.Command{
 			panic(err)
 		}
 
-		if len(errs) > 0 {
+		if len(errs.Errors) > 0 {
 			msgs := []string{}
 
-			for _, tagErrs := range errs {
-				for _, err := range tagErrs {
-					msgs = append(msgs, err.Error())
+			for _, structErrs := range errs.Errors {
+				for _, err := range structErrs {
+					msgs = append(msgs, err)
 				}
 			}
 

@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"strings"
 	"strconv"
+	vv "github.com/gobuffalo/validate"
 )
 
 const cnt  = 0xC350 //50k
@@ -97,7 +98,7 @@ func Test_testValidate(t *testing.T) {
 	m.AddDefaultProcessors("db", "newtag")
 
 	errs, _ := m.Run()
-	r.Empty(errs)
+	r.Empty(errs.Errors)
 }
 
 func Test_testValidateCustomProcessor(t *testing.T) {
@@ -123,29 +124,15 @@ func Test_testValidateCustomProcessor(t *testing.T) {
 
 	m := NewValidator(modelsPath)
 
-	m.AddProcessor("db", func(tag *Tag) ([]ValidationError, error) {
-		validationErrors := []ValidationError{}
-
+	m.AddProcessor("db", func(tag *Tag, errors *vv.Errors) {
 		if len(tag.value) > 2 {
-			validationErrors = append(validationErrors, ValidationError{
-				"test",
-				tag.value,
-				tag.structName,
-				false,
-				tag.name,
-			})
+			errors.Add(tag.structName, "Duplicate")
 		}
-
-		return validationErrors, nil
 	})
 
 	errs, _ := m.Run()
 
-	r.Equal(2, len(errs))
-	for _, structErrors := range errs {
-		r.Equal(2, len(structErrors))
-		r.Equal("test", structErrors[0].invalidSymbols)
-	}
+	r.Equal(2, len(errs.Errors))
 }
 
 func Test_testValidateDuplicates(t *testing.T) {
@@ -193,19 +180,7 @@ func Test_testValidateDuplicates(t *testing.T) {
 		}
 	}
 
-	r.Len(errs, 2)
-
-	for _, tagErrs := range errs {
-		for _, ers := range tagErrs {
-			for _, structTp := range structs {
-				if ers.structName == structTp.structName {
-					r.True(ers.duplicate)
-					r.Equal(structTp.duplicateField, ers.field)
-					r.Equal(structTp.structName, ers.structName)
-				}
-			}
-		}
-	}
+	r.Len(errs.Errors, 2)
 }
 
 func Test_testValidateAllowDuplicates(t *testing.T) {
@@ -245,7 +220,7 @@ func Test_testValidateAllowDuplicates(t *testing.T) {
 		panic(err)
 	}
 
-	r.Len(errs, 0)
+	r.Len(errs.Errors, 0)
 }
 
 func Test_testValidator_ErrorsCount(t *testing.T)  {
@@ -268,7 +243,7 @@ func Test_testValidator_ErrorsCount(t *testing.T)  {
 	m.AddDefaultProcessors("db")
 	errs, _ := m.Run()
 
-	r.Equal(44, len(errs))
+	r.Len(errs.Errors,44)
 
 	os.RemoveAll("./models")
 }

@@ -11,6 +11,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/gobuffalo/envy"
 	"sync"
+	v "github.com/gobuffalo/validate"
 )
 
 // Tag represents a model struct tag.
@@ -18,6 +19,25 @@ type Tag struct {
 	name string
 	value string
 	structName string
+}
+
+type TagValidator struct {
+	tag *Tag
+	processor func(tag *Tag, errors *v.Errors)
+}
+
+func (t *TagValidator) IsValid(errors *v.Errors) {
+	 t.processor(t.tag, errors)
+}
+
+type TagDuplicateValidator struct {
+	tag *Tag
+	fieldsCache map[string]bool
+	processor func(errors *v.Errors, t *Tag, fieldsCache map[string]bool)
+}
+
+func (t *TagDuplicateValidator) IsValid(errors *v.Errors) {
+	 t.processor(errors, t.tag, t.fieldsCache)
 }
 
 // GetName returns the name of the tag.
