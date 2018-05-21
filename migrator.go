@@ -12,7 +12,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-var mrx = regexp.MustCompile(`(\d+)_([^\.]+)(\.[a-z]+)?\.(up|down)\.(sql|fizz)`)
+var mrx = regexp.MustCompile(`(\d+)_([^\.]+)(\.[a-z0-9]+)?\.(up|down)\.(sql|fizz)`)
 
 // NewMigrator returns a new "blank" migrator. It is recommended
 // to use something like MigrationBox or FileMigrator. A "blank"

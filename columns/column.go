@@ -9,6 +9,7 @@ type Column struct {
 	SelectSQL string
 }
 
+// UpdateString returns the SQL statement to UPDATE the column.
 func (c Column) UpdateString() string {
 	return fmt.Sprintf("%s = :%s", c.Name, c.Name)
 }

@@ -12,6 +12,7 @@ func init() {
 	rand.Seed(time.Now().UnixNano())
 }
 
+// Tx stores a transaction with an ID to keep track.
 type Tx struct {
 	ID int
 	*sqlx.Tx
