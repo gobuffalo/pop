@@ -108,7 +108,7 @@ func getTags(tagNames []string, packages map[string]*ast.Package) map[string][]*
 
 	for _, name := range tagNames {
 		if name == AllTags {
-			concatNames = "[a-z0-9]"
+			concatNames = "[a-z0-9_]+"
 			break
 		}
 	}

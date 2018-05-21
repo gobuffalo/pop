@@ -13,7 +13,7 @@ const AllTags = "*"
 
 var defaultRegexRules = map[string]*regexp.Regexp{
 	//allowed symbols in a tag
-	"Invalid symboles %v in %v.%v": regexp.MustCompile(`[^a-z0-9_,]+`),
+	"Invalid symboles %v in %v.%v": regexp.MustCompile(`[^a-z0-9_, ]+`),
 	//allowed symbols of the end of a tag
 	"Tag cannot end on %v in  %v.%v" : regexp.MustCompile(`[^a-z0-9]$`),
 }
