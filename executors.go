@@ -8,7 +8,7 @@ import (
 	"github.com/gobuffalo/validate"
 )
 
-// Reload fetch fresh data for a given model, using its ID
+// Reload fetch fresh data for a given model, using its ID.
 func (c *Connection) Reload(model interface{}) error {
 	sm := Model{Value: model}
 	return sm.iterate(func(m *Model) error {
@@ -16,7 +16,7 @@ func (c *Connection) Reload(model interface{}) error {
 	})
 }
 
-// Exec runs the given query
+// Exec runs the given query.
 func (q *Query) Exec() error {
 	return q.Connection.timeFunc("Exec", func() error {
 		sql, args := q.ToSQL(nil)
@@ -26,6 +26,8 @@ func (q *Query) Exec() error {
 	})
 }
 
+// ExecWithCount runs the given query, and returns the amount of
+// affected rows.
 func (q *Query) ExecWithCount() (int, error) {
 	count := int64(0)
 	return int(count), q.Connection.timeFunc("Exec", func() error {
