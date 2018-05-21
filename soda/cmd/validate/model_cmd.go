@@ -9,9 +9,13 @@ import (
 )
 
 var modelPath string
+var models *[]string
+var tags *[]string
 
 func init() {
 	ModelCmd.Flags().StringVarP(&modelPath, "model-path", "", "", "sets the path for your models")
+	ModelCmd.Flags().StringArrayVarP(models, "models", "", []string{}, "sets models to be validated")
+	ModelCmd.Flags().StringArrayVarP(tags, "tags", "", []string{}, "sets tags to be validated")
 }
 
 //ModelCmd is the cmd to validate models
@@ -39,8 +43,8 @@ var ModelCmd = &cobra.Command{
 
 
 		v := NewValidator(path)
-		v.AddDefaultProcessors()
-		errs, err := v.Run()
+		v.AddDefaultProcessors(*tags...)
+		errs, err := v.Run(*models...)
 
 		if err != nil {
 			panic(err)
