@@ -327,7 +327,7 @@ err = db.Select("name").All(&users)
 err = db.Select("max(age)").All(&users)
 // SELECT max(age) FROM users
 
-err = db.Select("age, name").All(&users)
+err = db.Select("age", "name").All(&users)
 // SELECT age, name FROM users
 ```
 
