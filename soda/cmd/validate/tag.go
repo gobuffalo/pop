@@ -13,23 +13,24 @@ import (
 	"sync"
 )
 
+// Tag represents a model struct tag.
 type Tag struct {
 	name string
 	value string
 	structName string
 }
 
-//tag name getter
+// GetName returns the name of the tag.
 func (t *Tag) GetName() string  {
 	return t.name
 }
 
-//tag value getter
+// GetValue returns the value of the tag.
 func (t *Tag) GetValue() string  {
 	return t.value
 }
 
-//tag struct name getter
+// GetStructName returns the struct name the tag belongs to.
 func (t *Tag) GetStructName() string  {
 	return t.structName
 }
@@ -130,7 +131,7 @@ func getTags(tagNames []string, packages map[string]*ast.Package) map[string][]*
 
 func multiplex(cs ...<-chan *Tag) <-chan *Tag {
 	var wg sync.WaitGroup
-	out :=  make(chan *Tag)
+	out :=  make(chan *Tag, 50 * len(cs))
 
 	output := func(c <- chan *Tag) {
 		defer wg.Done()
@@ -163,7 +164,7 @@ func multiplex(cs ...<-chan *Tag) <-chan *Tag {
 
 func collecFields(file *ast.File, dbRegex *regexp.Regexp) <-chan *Tag {
 
-	tagChan := make(chan *Tag)
+	tagChan := make(chan *Tag, 50)
 	var structName string
 	var nodesCnt int = 0
 	var curNode int = 1

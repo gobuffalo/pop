@@ -17,9 +17,8 @@ var defaultRegexRules = []*regexp.Regexp{
 	regexp.MustCompile(`[^a-z0-9]$`),
 }
 
-//model is a representation of a parsed pop model
-//from the syntax tree of a particular go source file
-type model struct {
+// Validator holds information about the parsed models
+type Validator struct {
 	packages map[string]*ast.Package
 	tags     map[string][]*Tag
 	processors map[string][]func(tag *Tag) ([]ValidationError, error)
@@ -27,8 +26,7 @@ type model struct {
 	allowDuplicates bool
 }
 
-//ValidationError is an error created
-//by the processors, should one of their validations fail
+// ValidationError is an error created by the processors, should one of their validations fail.
 type ValidationError struct {
 	invalidSymbols string
 	field          string
@@ -41,19 +39,17 @@ func (e *ValidationError) Error() string {
 	return fmt.Sprintf("Invalid symbols '%v' contained in %v.%v.%v", e.invalidSymbols, e.structName, e.fieldName, e.field)
 }
 
-//Here we provide an API with some basic processors
-//that will validate the given model tags
-//The tags given for the processors will be the tags parsed by the validator
-// `*` is a reference to all tags
-//If no tags were specified all tags will be parsed and validated
-func (m *model) AddDefaultProcessors(tags ...string) {
+// AddDefaultProcessors provides some basic processors that will validate the given model tags.
+// The tags given for the processors will be the tags parsed by the validator,`*` is a reference to all tags.
+// If no tags were specified all tags will be parsed and validated.
+func (v *Validator) AddDefaultProcessors(tags ...string) {
 
 	if len(tags) == 0 {
 		tags = []string{AllTags}
 	}
 
 	for _, tagStr := range tags {
-		m.processors[tagStr] = append(m.processors[tagStr], func(tag *Tag) ([]ValidationError, error) {
+		v.processors[tagStr] = append(v.processors[tagStr], func(tag *Tag) ([]ValidationError, error) {
 			errorss := []ValidationError{}
 
 			for _, rexpr := range defaultRegexRules {
@@ -76,8 +72,7 @@ func (m *model) AddDefaultProcessors(tags ...string) {
 	}
 }
 
-//A special case validation
-//check if tags have duplicates
+// checkForDuplicates validates duplicate tag values
 func checkForDuplicates(t *Tag, fieldsCache map[string]bool) []ValidationError {
 	errorss := []ValidationError{}
 	cacheKey := strings.Join([]string{t.structName, t.name, t.value}, ".")
@@ -92,20 +87,20 @@ func checkForDuplicates(t *Tag, fieldsCache map[string]bool) []ValidationError {
 	return errorss
 }
 
-func (m *model) setPath(path string)  {
-	m.path = path
+func (v *Validator) setPath(path string)  {
+	v.path = path
 }
 
-//API to set if duplicates are allowed or not
-//this will determine whether the duplicates check will be run
-func (m *model) SetAllowDuplicates(allowDuplicates bool)  {
-	m.allowDuplicates = allowDuplicates
+// SetAllowDuplicates sets a flag if duplicates are allowed or not.
+// This will determine whether the duplicates check will be run.
+func (v *Validator) SetAllowDuplicates(allowDuplicates bool)  {
+	v.allowDuplicates = allowDuplicates
 }
 
-//Creates a new validator model
-//requires a path to the models folder
-func NewValidator(path string) model {
-	m := model{}
+// NewValidator creates a new validator model.
+// It requires a path to the models folder.
+func NewValidator(path string) Validator {
+	m := Validator{}
 	m.setPath(path)
 	m.processors = map[string][]func(tag *Tag) ([]ValidationError, error){}
 	m.allowDuplicates = false
@@ -113,42 +108,42 @@ func NewValidator(path string) model {
 	return m
 }
 
-//Provides API to run validation specified tags by the user on specific models
-//returns validation errors, if any produced by the processors added by the user
-func (m *model) Run(models ...string)  (map[string][]ValidationError, error) {
+// Run  will validate specified tags on all models, if none were passed.
+// It returns validation errors, if any produced by the processor.
+func (v *Validator) Run(models ...string)  (map[string][]ValidationError, error) {
 
-	m.packages = getPackages(m.path, models...)
+	v.packages = getPackages(v.path, models...)
 	validationErrors := map[string][]ValidationError{}
 
-	if len(m.processors) == 0 {
+	if len(v.processors) == 0 {
 		return validationErrors, errors.New( "There are no processors to run, consider adding the default ones.")
 	}
 
 	tags := []string{}
 
-	for tag, _ := range m.processors {
+	for tag, _ := range v.processors {
 		tags = append(tags, tag)
 	}
 
-	m.tags = getTags(tags, m.packages)
+	v.tags = getTags(tags, v.packages)
 
-	return  m.validate()
+	return  v.validate()
 }
 
-func (m *model) validate() (map[string][]ValidationError, error) {
+func (v *Validator) validate() (map[string][]ValidationError, error) {
 	fieldsCache := map[string]bool{}
 	errorss := map[string][]ValidationError{}
 	errs := []ValidationError{}
 	executableProcessors := []func(tag *Tag) ([]ValidationError, error){}
 
-	if len(m.tags) == 0 {
+	if len(v.tags) == 0 {
 		return errorss, errors.New("No tags found")
 	}
 
-	for structName, fields := range m.tags {
+	for structName, fields := range v.tags {
 		for _, t := range fields {
 
-			if !m.allowDuplicates {
+			if !v.allowDuplicates {
 				duplicateErrors := checkForDuplicates(t, fieldsCache)
 
 				if len(duplicateErrors) > 0 {
@@ -156,13 +151,13 @@ func (m *model) validate() (map[string][]ValidationError, error) {
 				}
 			}
 
-			processors, exists := m.processors[t.GetName()]
+			processors, exists := v.processors[t.GetName()]
 
 			if exists {
 				executableProcessors = append(processors)
 			}
 
-			globalProcessors, exists := m.processors[AllTags]
+			globalProcessors, exists := v.processors[AllTags]
 
 			if exists {
 				executableProcessors = append(executableProcessors, globalProcessors...)
@@ -180,10 +175,8 @@ func (m *model) validate() (map[string][]ValidationError, error) {
 	return errorss, nil
 }
 
-//User defined processor
-//that will validate the given model tags
-//The tags given for the processors will be the tags parsed by the validator
-// `*` is a reference to all tags
-func (m *model) AddProcessor(tag string, processor func(t *Tag) ([]ValidationError, error)) {
-	m.processors[tag] = append(m.processors[tag], processor)
+// AddProcessor adds a processor that will validate the given model tags
+// The tags given for the processors will be the tags parsed by the validator where `*` is a reference to all tags
+func (v *Validator) AddProcessor(tag string, processor func(t *Tag) ([]ValidationError, error)) {
+	v.processors[tag] = append(v.processors[tag], processor)
 }

@@ -12,6 +12,8 @@ import (
 
 const cnt  = 0xC350 //50k
 
+var modelsPath string = "github.com/gobuffalo/pop/soda/cmd/validate/models"
+
 var declrTmp = `package models
 
 import (
@@ -90,7 +92,7 @@ func Test_testValidate(t *testing.T) {
 	createModel("customer.go", structs)
 	defer os.RemoveAll("./models")
 
-	m := NewValidator("github.com/gobuffalo/pop/soda/cmd/validate/models")
+	m := NewValidator(modelsPath)
 
 	m.AddDefaultProcessors("db", "newtag")
 
@@ -119,10 +121,11 @@ func Test_testValidateCustomProcessor(t *testing.T) {
 	createModel("customer.go", structs)
 	defer os.RemoveAll("./models")
 
-	m := NewValidator("github.com/gobuffalo/pop/soda/cmd/validate/models")
+	m := NewValidator(modelsPath)
 
 	m.AddProcessor("db", func(tag *Tag) ([]ValidationError, error) {
 		validationErrors := []ValidationError{}
+
 		if len(tag.value) > 2 {
 			validationErrors = append(validationErrors, ValidationError{
 				"test",
@@ -172,7 +175,7 @@ func Test_testValidateDuplicates(t *testing.T) {
 	createModel("customer1.go", structs)
 	defer os.RemoveAll("./models")
 
-	m := NewValidator("github.com/gobuffalo/pop/soda/cmd/validate/models")
+	m := NewValidator(modelsPath)
 	m.AddDefaultProcessors("db")
 
 	errs, err := m.Run("Customer")
@@ -232,7 +235,7 @@ func Test_testValidateAllowDuplicates(t *testing.T) {
 	createModel("customer1.go", structs)
 	defer os.RemoveAll("./models")
 
-	m := NewValidator("github.com/gobuffalo/pop/soda/cmd/validate/models")
+	m := NewValidator(modelsPath)
 	m.SetAllowDuplicates(true)
 	m.AddDefaultProcessors("db")
 
@@ -261,7 +264,7 @@ func Test_testValidator_ErrorsCount(t *testing.T)  {
 		createModel("Customer" + strconv.Itoa(i) + ".go", structs)
 	}
 
-	m := NewValidator("github.com/gobuffalo/pop/soda/cmd/validate/models")
+	m := NewValidator(modelsPath)
 	m.AddDefaultProcessors("db")
 	errs, _ := m.Run()
 
@@ -291,11 +294,15 @@ func BenchmarkModel_ValidateNoErrors(b *testing.B) {
 
 	b.StartTimer()
 
-	//Lets time the meat and potatoes of the benchmark
-	for i := 0; i < b.N; i++ {
-		m := NewValidator("github.com/gobuffalo/pop/soda/cmd/validate/models")
-		m.AddDefaultProcessors("db")
-		m.Run()
+	for i := 0; i < 5; i++ {
+		//Lets time the meat and potatoes of the benchmark
+		b.Run("subtest", func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				m := NewValidator(modelsPath)
+				m.AddDefaultProcessors("db")
+				m.Run()
+			}
+		})
 	}
 
 	//Don't want to time the deletion of the files
@@ -308,6 +315,7 @@ func BenchmarkModel_ValidateWithErrors(b *testing.B) {
 	//We don't want to add the struct creation time into the benchmark
 	//so we stop the timer
 	b.StopTimer()
+
 
 	//Let's stress the program and create 50k models
 	for i := 0; i < cnt ; i++ {
@@ -325,11 +333,15 @@ func BenchmarkModel_ValidateWithErrors(b *testing.B) {
 
 	b.StartTimer()
 
-	//Lets time the meat and potatoes of the benchmark
-	for i := 0; i < b.N; i++ {
-		m := NewValidator("github.com/gobuffalo/pop/soda/cmd/validate/models")
-		m.AddDefaultProcessors("db")
-		m.Run()
+	for i := 0; i < 5; i++ {
+		//Lets time the meat and potatoes of the benchmark
+		b.Run("subtest", func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				m := NewValidator(modelsPath)
+				m.AddDefaultProcessors("db")
+				m.Run()
+			}
+		})
 	}
 
 	//Don't want to time the deletion of the files
