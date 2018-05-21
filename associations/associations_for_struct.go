@@ -28,7 +28,7 @@ var associationBuilders = map[string]associationBuilder{}
 // not exist for a model.
 func AssociationsForStruct(s interface{}, fields ...string) (Associations, error) {
 	associations := Associations{}
-	innerAssociations := InnerAssociations{}
+	innerAssociationsMap := map[string]InnerAssociations{}
 
 	t, v := getModelDefinition(s)
 	fields = trimFields(fields)
@@ -52,12 +52,17 @@ func AssociationsForStruct(s interface{}, fields ...string) (Associations, error
 		}
 
 		if innerField != "" {
-			innerAssociations = append(innerAssociations, InnerAssociation{fields[i], innerField})
+			innerAssociationsMap[field] = append(innerAssociationsMap[field], InnerAssociation{fields[i], innerField})
 		}
 	}
 
 	for i := 0; i < t.NumField(); i++ {
 		f := t.Field(i)
+
+		innerAssociations := InnerAssociations{}
+		if mapped, ok := innerAssociationsMap[f.Name]; ok {
+			innerAssociations = mapped
+		}
 
 		// ignores those fields not included in fields list.
 		if len(fields) > 0 && fieldIgnoredIn(fields, f.Name) {
