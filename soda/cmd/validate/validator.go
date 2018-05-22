@@ -13,9 +13,9 @@ const AllTags = "*"
 
 var defaultRegexRules = map[string]*regexp.Regexp{
 	//allowed symbols in a tag
-	"Invalid symboles %v in %v.%v": regexp.MustCompile(`[^a-z0-9_, ]+`),
+	"Invalid symboles %v in %v.%v.%v": regexp.MustCompile(`[^a-z0-9_, ]+`),
 	//allowed symbols of the end of a tag
-	"Tag cannot end on %v in  %v.%v" : regexp.MustCompile(`[^a-z0-9]$`),
+	"Tag cannot end on %v in  %v.%v.%v" : regexp.MustCompile(`[^a-z0-9]$`),
 }
 
 // Validator holds information about the parsed models
@@ -39,11 +39,17 @@ func (v *Validator) AddDefaultProcessors(tags ...string) {
 	for _, tagStr := range tags {
 		v.processors[tagStr] = append(v.processors[tagStr], func(tag *Tag, errors *vv.Errors) {
 			for msg, rexpr := range defaultRegexRules {
-				match := rexpr.FindString(tagStr)
+				match := rexpr.FindString(tag.GetValue())
 
 				if len(match) > 0 {
 					errors.Add(tag.GetStructName(), fmt.Sprintf(msg, match, tag.GetStructName(), tag.GetName(), tag.GetValue()))
 				}
+			}
+		})
+
+		v.processors[tagStr] = append(v.processors[tagStr], func(tag *Tag, errors *vv.Errors) {
+			if len(tag.GetValue()) == 0 {
+				errors.Add(tag.GetStructName(), fmt.Sprintf("Tag cannot be empty %v.%v", tag.GetStructName(), tag.GetName()))
 			}
 		})
 	}
@@ -107,14 +113,13 @@ func (v *Validator) validate() (*vv.Errors, error) {
 	fieldsCache := map[string]bool{}
 	errorss := vv.NewErrors()
 
-	executableProcessors := []func(tag *Tag, errors *vv.Errors) {}
-
 	if len(v.tags) == 0 {
 		return errorss, errors.New("No tags found")
 	}
 
 	for _, fields := range v.tags {
 		for _, t := range fields {
+			executableProcessors := []func(tag *Tag, errors *vv.Errors) {}
 
 			if !v.allowDuplicates {
 				errorss.Append(

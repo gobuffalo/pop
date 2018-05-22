@@ -118,7 +118,7 @@ func getTags(tagNames []string, packages map[string]*ast.Package) map[string][]*
 			"(",
 			concatNames,
 			")",
-			`[ ]*:[ ]*"([^"]+)"`},
+			`[ ]*:[ ]*"([^"]*)"`},
 			"",
 			),
 		)
