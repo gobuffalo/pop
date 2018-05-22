@@ -256,8 +256,32 @@ func (q *Query) eagerAssociations(model interface{}) error {
 //
 // 	q.Where("name = ?", "mark").Exists(&User{})
 func (q *Query) Exists(model interface{}) (bool, error) {
-	i, err := q.Count(model)
-	return i != 0, err
+	tmpQuery := Q(q.Connection)
+	q.Clone(tmpQuery) //avoid mendling with original query
+
+	var res bool
+
+	err := tmpQuery.Connection.timeFunc("Exists", func() error {
+		tmpQuery.Paginator = nil
+		tmpQuery.orderClauses = clauses{}
+		tmpQuery.limitResults = 0
+		query, args := tmpQuery.ToSQL(&Model{Value: model})
+
+		// when query contains custom selected fields / executed using RawQuery,
+		// sql may already contains limit and offset
+		if rLimitOffset.MatchString(query) {
+			foundLimit := rLimitOffset.FindString(query)
+			query = query[0 : len(query)-len(foundLimit)]
+		} else if rLimit.MatchString(query) {
+			foundLimit := rLimit.FindString(query)
+			query = query[0 : len(query)-len(foundLimit)]
+		}
+
+		countQuery := fmt.Sprintf("SELECT EXISTS (%s)", query)
+		Log(countQuery, args...)
+		return q.Connection.Store.Get(res, countQuery, args...)
+	})
+	return res, err
 }
 
 // Count the number of records in the database.
@@ -299,7 +323,7 @@ func (q Query) CountByField(model interface{}, field string) (int, error) {
 			query = query[0 : len(query)-len(foundLimit)]
 		}
 
-		countQuery := fmt.Sprintf("select count(%s) as row_count from (%s) a", field, query)
+		countQuery := fmt.Sprintf("SELECT COUNT(%s) AS row_count FROM (%s) a", field, query)
 		Log(countQuery, args...)
 		return q.Connection.Store.Get(res, countQuery, args...)
 	})
