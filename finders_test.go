@@ -559,13 +559,34 @@ func Test_Count_Disregards_Pagination(t *testing.T) {
 		a.Equal(totalFirstPage, totalSecondPage)
 
 		first_users = Users{}
-		q = tx.RawQuery("select * from users limit 2").Paginate(1, 5)
+		q = tx.RawQuery("select * from users limit  2").Paginate(1, 5)
 		err := q.All(&first_users)
 		a.NoError(err)
 		a.Equal(2, len(first_users)) //raw query limit applies
 
 		first_users = Users{}
 		q = tx.RawQuery("select * from users limit 2 offset 1").Paginate(1, 5)
+		err = q.All(&first_users)
+		a.NoError(err)
+		a.Equal(2, len(first_users))
+
+		first_users = Users{}
+		q = tx.RawQuery("select * from users limit 2 offset\t1").Paginate(1, 5)
+		err = q.All(&first_users)
+		a.NoError(err)
+		a.Equal(2, len(first_users))
+
+		first_users = Users{}
+		q = tx.RawQuery(`select * from users limit 2 offset
+			1`).Paginate(1, 5)
+		err = q.All(&first_users)
+		a.NoError(err)
+		a.Equal(2, len(first_users))
+
+		first_users = Users{}
+		q = tx.RawQuery(`select * from users limit 2 offset
+			1	 
+			`).Paginate(1, 5) //ending space and tab
 		err = q.All(&first_users)
 		a.NoError(err)
 		a.Equal(2, len(first_users))
