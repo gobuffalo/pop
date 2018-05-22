@@ -35,6 +35,11 @@ func hasLimitOrOffset(sqlString string) bool {
 	if matched, _ := regexp.MatchString("(?i).* offset [0-9]*$", sqlString); matched {
 		return matched
 	}
+
+	if matched, _ := regexp.MatchString("(?i).* rows only$", sqlString); matched {
+		return matched
+	}
+
 	return false
 }
 

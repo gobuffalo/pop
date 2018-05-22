@@ -557,6 +557,40 @@ func Test_Count_Disregards_Pagination(t *testing.T) {
 		a.NotEqual(0, totalFirstPage)
 		a.NotEqual(0, totalSecondPage)
 		a.Equal(totalFirstPage, totalSecondPage)
+
+		first_users = Users{}
+		q = tx.RawQuery("select * from users limit 2").Paginate(1, 5)
+		err := q.All(&first_users)
+		a.NoError(err)
+		a.Equal(2, len(first_users)) //raw query limit applies
+
+		first_users = Users{}
+		q = tx.RawQuery("select * from users limit 2 offset 1").Paginate(1, 5)
+		err = q.All(&first_users)
+		a.NoError(err)
+		a.Equal(2, len(first_users))
+
+		if tx.Dialect.Name() == "sqlite" {
+			first_users = Users{}
+			q = tx.RawQuery("select * from users limit 2,1").Paginate(1, 5)
+			err = q.All(&first_users)
+			a.NoError(err)
+			a.Equal(2, len(first_users))
+
+			first_users = Users{}
+			q = tx.RawQuery("select * from users limit 2 , 1").Paginate(1, 5)
+			err = q.All(&first_users)
+			a.NoError(err)
+			a.Equal(2, len(first_users))
+		}
+
+		if tx.Dialect.Name() == "postgresql" {
+			first_users = Users{}
+			q = tx.RawQuery("select * from users FETCH FIRST 3 rows only").Paginate(1, 5)
+			err = q.All(&first_users)
+			a.NoError(err)
+			a.Equal(3, len(first_users)) //should fetch only 3
+		}
 	})
 }
 
