@@ -277,9 +277,9 @@ func (q *Query) Exists(model interface{}) (bool, error) {
 			query = query[0 : len(query)-len(foundLimit)]
 		}
 
-		countQuery := fmt.Sprintf("SELECT EXISTS (%s)", query)
-		Log(countQuery, args...)
-		return q.Connection.Store.Get(res, countQuery, args...)
+		existsQuery := fmt.Sprintf("SELECT EXISTS (%s)", query)
+		Log(existsQuery, args...)
+		return q.Connection.Store.Get(&res, existsQuery, args...)
 	})
 	return res, err
 }
