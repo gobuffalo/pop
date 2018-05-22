@@ -35,4 +35,4 @@ test "sqlite"
 docker-compose down
 
 rm tsoda
-find . -name *.sqlite* -delete
+find ./sql_scripts/sqlite -name *.sqlite* -delete
