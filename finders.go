@@ -257,7 +257,7 @@ func (q *Query) eagerAssociations(model interface{}) error {
 // 	q.Where("name = ?", "mark").Exists(&User{})
 func (q *Query) Exists(model interface{}) (bool, error) {
 	tmpQuery := Q(q.Connection)
-	q.Clone(tmpQuery) //avoid mendling with original query
+	q.Clone(tmpQuery) //avoid meddling with original query
 
 	var res bool
 
@@ -303,7 +303,7 @@ func (q Query) Count(model interface{}) (int, error) {
 //	q.Where("sex = ?", "f").Count(&User{}, "name")
 func (q Query) CountByField(model interface{}, field string) (int, error) {
 	tmpQuery := Q(q.Connection)
-	q.Clone(tmpQuery) //avoid mendling with original query
+	q.Clone(tmpQuery) //avoid meddling with original query
 
 	res := &rowCount{}
 
