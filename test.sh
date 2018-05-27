@@ -24,7 +24,6 @@ function test {
   ./tsoda create -e $SODA_DIALECT -c ./database.yml
   ./tsoda migrate -e $SODA_DIALECT -c ./database.yml
   go test -tags sqlite $verbose $(go list ./... | grep -v /vendor/)
-  # go test -tags sqlite $verbose -testify.m specific_test_action $(go list ./... | grep -v /vendor/)
 }
 
 test "postgres"
