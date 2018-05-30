@@ -24,6 +24,8 @@ type Query struct {
 	Connection              *Connection
 }
 
+// Clone will fill targetQ query with the connection used in q, if
+// targetQ is not empty, Clone will override all the fields.
 func (q *Query) Clone(targetQ *Query) {
 	rawSQL := *q.RawSQL
 	targetQ.RawSQL = &rawSQL
