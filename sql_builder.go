@@ -2,6 +2,7 @@ package pop
 
 import (
 	"fmt"
+	"log"
 	"regexp"
 	"strings"
 	"sync"
@@ -70,6 +71,9 @@ func (sq *sqlBuilder) compile() {
 			if sq.Query.Paginator != nil && !hasLimitOrOffset(sq.Query.RawSQL.Fragment) {
 				sq.sql = sq.buildPaginationClauses(sq.Query.RawSQL.Fragment)
 			} else {
+				if sq.Query.Paginator != nil {
+					log.Println("Warning: Query already contains pagination")
+				}
 				sq.sql = sq.Query.RawSQL.Fragment
 			}
 		} else {
