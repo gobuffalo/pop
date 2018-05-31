@@ -28,17 +28,23 @@ func newSQLBuilder(q Query, m *Model, addColumns ...string) *sqlBuilder {
 	}
 }
 
+var (
+	RegexpMatchLimit    = regexp.MustCompile("(?i).*\\s+limit\\s+[0-9]*(\\s?,\\s?[0-9]*)?$")
+	RegexpMatchOffset   = regexp.MustCompile("(?i).*\\s+offset\\s+[0-9]*$")
+	RegexpMatchRowsOnly = regexp.MustCompile("(?i).*\\s+rows only$")
+)
+
 func hasLimitOrOffset(sqlString string) bool {
 	trimmedSQL := strings.TrimSpace(sqlString)
-	if matched, _ := regexp.MatchString("(?i).*\\s+limit\\s+[0-9]*(\\s?,\\s?[0-9]*)?$", trimmedSQL); matched {
+	if matched := RegexpMatchLimit.MatchString(trimmedSQL); matched {
 		return matched
 	}
 
-	if matched, _ := regexp.MatchString("(?i).*\\s+offset\\s+[0-9]*$", trimmedSQL); matched {
+	if matched := RegexpMatchOffset.MatchString(trimmedSQL); matched {
 		return matched
 	}
 
-	if matched, _ := regexp.MatchString("(?i).*\\s+rows only$", trimmedSQL); matched {
+	if matched := RegexpMatchRowsOnly.MatchString(trimmedSQL); matched {
 		return matched
 	}
 
