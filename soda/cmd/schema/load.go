@@ -12,6 +12,7 @@ var loadOptions = struct {
 	input string
 }{}
 
+// LoadCmd loads a schema.sql file into a database.
 var LoadCmd = &cobra.Command{
 	Use:   "load",
 	Short: "Load a schema.sql file into a database",

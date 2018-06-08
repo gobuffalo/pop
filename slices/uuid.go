@@ -12,12 +12,15 @@ import (
 
 // For reading in arrays from postgres
 
+// UUID is a slice of UUIDs.
 type UUID []uuid.UUID
 
 func (s UUID) Interface() interface{} {
 	return []uuid.UUID(s)
 }
 
+// Scan implements the sql.Scanner interface.
+// It allows to read the UUID slice from the database value.
 func (s *UUID) Scan(src interface{}) error {
 	b, ok := src.([]byte)
 	if !ok {
@@ -31,6 +34,8 @@ func (s *UUID) Scan(src interface{}) error {
 	return nil
 }
 
+// Value implements the driver.Valuer interface.
+// It allows to convert the UUID slice to a driver.value.
 func (s UUID) Value() (driver.Value, error) {
 	ss := make([]string, len(s))
 	for i, u := range s {

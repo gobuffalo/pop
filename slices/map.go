@@ -8,26 +8,31 @@ import (
 	"github.com/pkg/errors"
 )
 
+// Map is a map[string]interface.
 type Map map[string]interface{}
 
 func (m Map) Interface() interface{} {
 	return map[string]interface{}(m)
 }
 
-func (s *Map) Scan(src interface{}) error {
+// Scan implements the sql.Scanner interface.
+// It allows to read the map from the database value.
+func (m *Map) Scan(src interface{}) error {
 	b, ok := src.([]byte)
 	if !ok {
 		return errors.New("Scan source was not []byte")
 	}
-	err := json.Unmarshal(b, s)
+	err := json.Unmarshal(b, m)
 	if err != nil {
 		return errors.WithStack(err)
 	}
 	return nil
 }
 
-func (s Map) Value() (driver.Value, error) {
-	b, err := json.Marshal(s)
+// Value implements the driver.Valuer interface.
+// It allows to convert the map to a driver.value.
+func (m Map) Value() (driver.Value, error) {
+	b, err := json.Marshal(m)
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
@@ -46,9 +51,9 @@ func (m Map) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-func (s Map) UnmarshalText(text []byte) error {
+func (m Map) UnmarshalText(text []byte) error {
 	fmt.Println(string(text))
-	err := json.Unmarshal(text, &s)
+	err := json.Unmarshal(text, &m)
 	if err != nil {
 		return errors.WithStack(err)
 	}

@@ -117,7 +117,7 @@ func (m Migrator) Down(step int) error {
 	})
 }
 
-// Reset the database by runing the down migrations followed by the up migrations.
+// Reset the database by running the down migrations followed by the up migrations.
 func (m Migrator) Reset() error {
 	err := m.Down(-1)
 	if err != nil {

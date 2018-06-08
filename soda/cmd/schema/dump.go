@@ -14,6 +14,7 @@ var dumpOptions = struct {
 	output string
 }{}
 
+// DumpCmd dumps out the schema of the selected database.
 var DumpCmd = &cobra.Command{
 	Use:   "dump",
 	Short: "Dumps out the schema of the selected database",

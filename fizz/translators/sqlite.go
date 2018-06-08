@@ -13,6 +13,7 @@ type SQLite struct {
 	Schema SchemaQuery
 }
 
+// NewSQLite constructs a new SQLite translator.
 func NewSQLite(url string) *SQLite {
 	schema := &sqliteSchema{
 		Schema{
@@ -74,7 +75,7 @@ func (p *SQLite) DropTable(t fizz.Table) (string, error) {
 
 func (p *SQLite) RenameTable(t []fizz.Table) (string, error) {
 	if len(t) < 2 {
-		return "", errors.New("Not enough table names supplied!")
+		return "", errors.New("not enough table names supplied")
 	}
 	oldName := t[0].Name
 	newName := t[1].Name
@@ -123,7 +124,7 @@ func (p *SQLite) ChangeColumn(t fizz.Table) (string, error) {
 
 func (p *SQLite) AddColumn(t fizz.Table) (string, error) {
 	if len(t.Columns) == 0 {
-		return "", errors.New("Not enough columns supplied!")
+		return "", errors.New("not enough columns supplied")
 	}
 	c := t.Columns[0]
 
@@ -140,7 +141,7 @@ func (p *SQLite) AddColumn(t fizz.Table) (string, error) {
 
 func (p *SQLite) DropColumn(t fizz.Table) (string, error) {
 	if len(t.Columns) < 1 {
-		return "", errors.New("Not enough columns supplied!")
+		return "", errors.New("not enough columns supplied")
 	}
 
 	tableInfo, err := p.Schema.TableInfo(t.Name)
@@ -196,7 +197,7 @@ func (p *SQLite) DropColumn(t fizz.Table) (string, error) {
 
 func (p *SQLite) RenameColumn(t fizz.Table) (string, error) {
 	if len(t.Columns) < 2 {
-		return "", errors.New("Not enough columns supplied!")
+		return "", errors.New("not enough columns supplied")
 	}
 
 	tableInfo, err := p.Schema.TableInfo(t.Name)
@@ -253,7 +254,7 @@ func (p *SQLite) RenameColumn(t fizz.Table) (string, error) {
 
 func (p *SQLite) AddIndex(t fizz.Table) (string, error) {
 	if len(t.Indexes) == 0 {
-		return "", errors.New("Not enough indexes supplied!")
+		return "", errors.New("not enough indexes supplied")
 	}
 	i := t.Indexes[0]
 	s := fmt.Sprintf("CREATE INDEX \"%s\" ON \"%s\" (%s);", i.Name, t.Name, strings.Join(i.Columns, ", "))
@@ -271,7 +272,7 @@ func (p *SQLite) AddIndex(t fizz.Table) (string, error) {
 
 func (p *SQLite) DropIndex(t fizz.Table) (string, error) {
 	if len(t.Indexes) == 0 {
-		return "", errors.New("Not enough indexes supplied!")
+		return "", errors.New("not enough indexes supplied")
 	}
 	i := t.Indexes[0]
 	s := fmt.Sprintf("DROP INDEX IF EXISTS \"%s\";", i.Name)
@@ -293,7 +294,7 @@ func (p *SQLite) DropIndex(t fizz.Table) (string, error) {
 
 func (p *SQLite) RenameIndex(t fizz.Table) (string, error) {
 	if len(t.Indexes) < 2 {
-		return "", errors.New("Not enough indexes supplied!")
+		return "", errors.New("not enough indexes supplied")
 	}
 
 	tableInfo, err := p.Schema.TableInfo(t.Name)
