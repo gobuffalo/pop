@@ -10,6 +10,7 @@ import (
 	"github.com/gobuffalo/pop/fizz"
 )
 
+// MySQL is the fizz translator implementation for MySQL.
 type MySQL struct {
 	Schema SchemaQuery
 }
@@ -23,6 +24,7 @@ func NewMySQL(url, name string) *MySQL {
 	}
 }
 
+// CreateTable backs fizz create table command.
 func (p *MySQL) CreateTable(t fizz.Table) (string, error) {
 	sql := []string{}
 	cols := []string{}
@@ -55,10 +57,12 @@ func (p *MySQL) CreateTable(t fizz.Table) (string, error) {
 	return strings.Join(sql, "\n"), nil
 }
 
+// DropTable backs fizz drop table command.
 func (p *MySQL) DropTable(t fizz.Table) (string, error) {
 	return fmt.Sprintf("DROP TABLE %s;", t.Name), nil
 }
 
+// RenameTable backs fizz rename table command.
 func (p *MySQL) RenameTable(t []fizz.Table) (string, error) {
 	if len(t) < 2 {
 		return "", errors.New("not enough table names supplied")
@@ -66,6 +70,7 @@ func (p *MySQL) RenameTable(t []fizz.Table) (string, error) {
 	return fmt.Sprintf("ALTER TABLE %s RENAME TO %s;", t[0].Name, t[1].Name), nil
 }
 
+// ChangeColumn backs fizz change column command.
 func (p *MySQL) ChangeColumn(t fizz.Table) (string, error) {
 	if len(t.Columns) == 0 {
 		return "", errors.New("not enough columns supplied")
@@ -75,6 +80,7 @@ func (p *MySQL) ChangeColumn(t fizz.Table) (string, error) {
 	return s, nil
 }
 
+// AddColumn backs fizz add column command.
 func (p *MySQL) AddColumn(t fizz.Table) (string, error) {
 	if len(t.Columns) == 0 {
 		return "", errors.New("not enough columns supplied")
@@ -97,6 +103,7 @@ func (p *MySQL) AddColumn(t fizz.Table) (string, error) {
 	return s, nil
 }
 
+// DropColumn backs fizz drop column command.
 func (p *MySQL) DropColumn(t fizz.Table) (string, error) {
 	if len(t.Columns) == 0 {
 		return "", errors.New("not enough columns supplied")
@@ -105,6 +112,7 @@ func (p *MySQL) DropColumn(t fizz.Table) (string, error) {
 	return fmt.Sprintf("ALTER TABLE %s DROP COLUMN %s;", t.Name, c.Name), nil
 }
 
+// RenameColumn backs fizz rename column command.
 func (p *MySQL) RenameColumn(t fizz.Table) (string, error) {
 	if len(t.Columns) < 2 {
 		return "", errors.New("not enough columns supplied")
@@ -128,6 +136,7 @@ func (p *MySQL) RenameColumn(t fizz.Table) (string, error) {
 	return s, nil
 }
 
+// AddIndex backs fizz add index command.
 func (p *MySQL) AddIndex(t fizz.Table) (string, error) {
 	if len(t.Indexes) == 0 {
 		return "", errors.New("not enough indexes supplied")
@@ -140,6 +149,7 @@ func (p *MySQL) AddIndex(t fizz.Table) (string, error) {
 	return s, nil
 }
 
+// DropIndex backs fizz drop index command.
 func (p *MySQL) DropIndex(t fizz.Table) (string, error) {
 	if len(t.Indexes) == 0 {
 		return "", errors.New("not enough indexes supplied")
@@ -148,6 +158,7 @@ func (p *MySQL) DropIndex(t fizz.Table) (string, error) {
 	return fmt.Sprintf("DROP INDEX %s ON %s;", i.Name, t.Name), nil
 }
 
+// RenameIndex backs fizz rename index command.
 func (p *MySQL) RenameIndex(t fizz.Table) (string, error) {
 	schema := p.Schema.(*mysqlSchema)
 	version, err := schema.Version()
@@ -166,6 +177,7 @@ func (p *MySQL) RenameIndex(t fizz.Table) (string, error) {
 	return fmt.Sprintf("ALTER TABLE %s RENAME INDEX %s TO %s;", t.Name, oi.Name, ni.Name), nil
 }
 
+// AddForeignKey backs fizz add foreign key command.
 func (p *MySQL) AddForeignKey(t fizz.Table) (string, error) {
 	if len(t.ForeignKeys) == 0 {
 		return "", errors.New("not enough foreign keys supplied")
@@ -174,6 +186,7 @@ func (p *MySQL) AddForeignKey(t fizz.Table) (string, error) {
 	return p.buildForeignKey(t, t.ForeignKeys[0], false), nil
 }
 
+// DropForeignKey backs fizz drop foreign key command.
 func (p *MySQL) DropForeignKey(t fizz.Table) (string, error) {
 	if len(t.ForeignKeys) == 0 {
 		return "", errors.New("not enough foreign keys supplied")

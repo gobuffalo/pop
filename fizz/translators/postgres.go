@@ -9,6 +9,7 @@ import (
 	"github.com/gobuffalo/pop/fizz"
 )
 
+// Postgre is the fizz translator implementation for PostgreSQL.
 type Postgres struct {
 }
 
@@ -17,6 +18,7 @@ func NewPostgres() *Postgres {
 	return &Postgres{}
 }
 
+// CreateTable backs fizz create table command.
 func (p *Postgres) CreateTable(t fizz.Table) (string, error) {
 	sql := []string{}
 	cols := []string{}
@@ -60,10 +62,12 @@ func (p *Postgres) CreateTable(t fizz.Table) (string, error) {
 	return strings.Join(sql, "\n"), nil
 }
 
+// DropTable backs fizz drop table command.
 func (p *Postgres) DropTable(t fizz.Table) (string, error) {
 	return fmt.Sprintf("DROP TABLE \"%s\";", t.Name), nil
 }
 
+// RenameTable backs fizz rename table command.
 func (p *Postgres) RenameTable(t []fizz.Table) (string, error) {
 	if len(t) < 2 {
 		return "", errors.New("not enough table names supplied")
@@ -71,6 +75,7 @@ func (p *Postgres) RenameTable(t []fizz.Table) (string, error) {
 	return fmt.Sprintf("ALTER TABLE \"%s\" RENAME TO \"%s\";", t[0].Name, t[1].Name), nil
 }
 
+// ChangeColumn backs fizz change column command.
 func (p *Postgres) ChangeColumn(t fizz.Table) (string, error) {
 	if len(t.Columns) == 0 {
 		return "", errors.New("not enough columns supplied")
@@ -80,6 +85,7 @@ func (p *Postgres) ChangeColumn(t fizz.Table) (string, error) {
 	return s, nil
 }
 
+// AddColumn backs fizz add column command.
 func (p *Postgres) AddColumn(t fizz.Table) (string, error) {
 	if len(t.Columns) == 0 {
 		return "", errors.New("not enough columns supplied")
@@ -89,6 +95,7 @@ func (p *Postgres) AddColumn(t fizz.Table) (string, error) {
 	return s, nil
 }
 
+// DropColumn backs fizz drop column command.
 func (p *Postgres) DropColumn(t fizz.Table) (string, error) {
 	if len(t.Columns) == 0 {
 		return "", errors.New("not enough columns supplied")
@@ -97,6 +104,7 @@ func (p *Postgres) DropColumn(t fizz.Table) (string, error) {
 	return fmt.Sprintf("ALTER TABLE \"%s\" DROP COLUMN \"%s\";", t.Name, c.Name), nil
 }
 
+// RenameColumn backs fizz rename column command.
 func (p *Postgres) RenameColumn(t fizz.Table) (string, error) {
 	if len(t.Columns) < 2 {
 		return "", errors.New("not enough columns supplied")
@@ -107,6 +115,7 @@ func (p *Postgres) RenameColumn(t fizz.Table) (string, error) {
 	return s, nil
 }
 
+// AddIndex backs fizz add index command.
 func (p *Postgres) AddIndex(t fizz.Table) (string, error) {
 	if len(t.Indexes) == 0 {
 		return "", errors.New("not enough indexes supplied")
@@ -119,6 +128,7 @@ func (p *Postgres) AddIndex(t fizz.Table) (string, error) {
 	return s, nil
 }
 
+// DropIndex backs fizz drop index command.
 func (p *Postgres) DropIndex(t fizz.Table) (string, error) {
 	if len(t.Indexes) == 0 {
 		return "", errors.New("not enough indexes supplied")
@@ -127,6 +137,7 @@ func (p *Postgres) DropIndex(t fizz.Table) (string, error) {
 	return fmt.Sprintf("DROP INDEX \"%s\";", i.Name), nil
 }
 
+// RenameIndex backs fizz rename index command.
 func (p *Postgres) RenameIndex(t fizz.Table) (string, error) {
 	ix := t.Indexes
 	if len(ix) < 2 {
@@ -137,6 +148,7 @@ func (p *Postgres) RenameIndex(t fizz.Table) (string, error) {
 	return fmt.Sprintf("ALTER INDEX \"%s\" RENAME TO \"%s\";", oi.Name, ni.Name), nil
 }
 
+// AddForeignKey backs fizz add foreign key command.
 func (p *Postgres) AddForeignKey(t fizz.Table) (string, error) {
 	if len(t.ForeignKeys) == 0 {
 		return "", errors.New("not enough foreign keys supplied")
@@ -145,6 +157,7 @@ func (p *Postgres) AddForeignKey(t fizz.Table) (string, error) {
 	return p.buildForeignKey(t, t.ForeignKeys[0], false), nil
 }
 
+// DropForeignKey backs fizz drop foreign key command.
 func (p *Postgres) DropForeignKey(t fizz.Table) (string, error) {
 	if len(t.ForeignKeys) == 0 {
 		return "", errors.New("not enough foreign keys supplied")

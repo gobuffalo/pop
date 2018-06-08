@@ -9,6 +9,7 @@ import (
 	"github.com/gobuffalo/pop/fizz"
 )
 
+// SQLite is the fizz translator implementation for SQLite3.
 type SQLite struct {
 	Schema SchemaQuery
 }
@@ -27,6 +28,7 @@ func NewSQLite(url string) *SQLite {
 	}
 }
 
+// CreateTable backs fizz create table command.
 func (p *SQLite) CreateTable(t fizz.Table) (string, error) {
 	p.Schema.SetTable(&t)
 
@@ -67,12 +69,14 @@ func (p *SQLite) CreateTable(t fizz.Table) (string, error) {
 	return strings.Join(sql, "\n"), nil
 }
 
+// DropTable backs fizz drop table command.
 func (p *SQLite) DropTable(t fizz.Table) (string, error) {
 	p.Schema.Delete(t.Name)
 	s := fmt.Sprintf("DROP TABLE \"%s\";", t.Name)
 	return s, nil
 }
 
+// RenameTable backs fizz rename table command.
 func (p *SQLite) RenameTable(t []fizz.Table) (string, error) {
 	if len(t) < 2 {
 		return "", errors.New("not enough table names supplied")
@@ -88,6 +92,7 @@ func (p *SQLite) RenameTable(t []fizz.Table) (string, error) {
 	return s, nil
 }
 
+// ChangeColumn backs fizz change column command.
 func (p *SQLite) ChangeColumn(t fizz.Table) (string, error) {
 	tableInfo, err := p.Schema.TableInfo(t.Name)
 
@@ -122,6 +127,7 @@ func (p *SQLite) ChangeColumn(t fizz.Table) (string, error) {
 	return strings.Join(sql, "\n"), nil
 }
 
+// AddColumn backs fizz add column command.
 func (p *SQLite) AddColumn(t fizz.Table) (string, error) {
 	if len(t.Columns) == 0 {
 		return "", errors.New("not enough columns supplied")
@@ -139,6 +145,7 @@ func (p *SQLite) AddColumn(t fizz.Table) (string, error) {
 	return s, nil
 }
 
+// DropColumn backs fizz drop column command.
 func (p *SQLite) DropColumn(t fizz.Table) (string, error) {
 	if len(t.Columns) < 1 {
 		return "", errors.New("not enough columns supplied")
@@ -195,6 +202,7 @@ func (p *SQLite) DropColumn(t fizz.Table) (string, error) {
 	return strings.Join(sql, "\n"), nil
 }
 
+// RenameColumn backs fizz rename column command.
 func (p *SQLite) RenameColumn(t fizz.Table) (string, error) {
 	if len(t.Columns) < 2 {
 		return "", errors.New("not enough columns supplied")
@@ -252,6 +260,7 @@ func (p *SQLite) RenameColumn(t fizz.Table) (string, error) {
 	return strings.Join(sql, "\n"), nil
 }
 
+// AddIndex backs fizz add index command.
 func (p *SQLite) AddIndex(t fizz.Table) (string, error) {
 	if len(t.Indexes) == 0 {
 		return "", errors.New("not enough indexes supplied")
@@ -270,6 +279,7 @@ func (p *SQLite) AddIndex(t fizz.Table) (string, error) {
 	return s, nil
 }
 
+// DropIndex backs fizz drop index command.
 func (p *SQLite) DropIndex(t fizz.Table) (string, error) {
 	if len(t.Indexes) == 0 {
 		return "", errors.New("not enough indexes supplied")
@@ -292,6 +302,7 @@ func (p *SQLite) DropIndex(t fizz.Table) (string, error) {
 	return s, nil
 }
 
+// RenameIndex backs fizz rename index command.
 func (p *SQLite) RenameIndex(t fizz.Table) (string, error) {
 	if len(t.Indexes) < 2 {
 		return "", errors.New("not enough indexes supplied")
@@ -340,10 +351,12 @@ func (p *SQLite) RenameIndex(t fizz.Table) (string, error) {
 	return strings.Join(sql, "\n"), nil
 }
 
+// AddForeignKey backs fizz add foreign key command. This is not supported by this driver.
 func (p *SQLite) AddForeignKey(t fizz.Table) (string, error) {
 	return "", errors.New("SQLite does not support this feature")
 }
 
+// DropForeignKey backs fizz drop foreign key command. This is not supported by this driver.
 func (p *SQLite) DropForeignKey(t fizz.Table) (string, error) {
 	return "", errors.New("SQLite does not support this feature")
 }

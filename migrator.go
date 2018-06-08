@@ -208,7 +208,7 @@ func (m Migrator) exec(fn func() error) error {
 }
 
 func printTimer(timerStart time.Time) {
-	diff := time.Now().Sub(timerStart).Seconds()
+	diff := time.Since(timerStart).Seconds()
 	if diff > 60 {
 		fmt.Printf("\n%.4f minutes\n", diff/60)
 	} else {
