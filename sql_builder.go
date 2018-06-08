@@ -193,7 +193,7 @@ func (sq *sqlBuilder) buildOrderClauses(sql string) string {
 	if len(oc) > 0 {
 		orderSQL := oc.Join(", ")
 		if RegexpMatchNames.MatchString(orderSQL) {
-			warningMsg := fmt.Sprintf("Order clause(s) contains invalid characters: %s", orderSQL)
+			warningMsg := fmt.Sprintf("Warning: Order clause(s) contains invalid characters: %s", orderSQL)
 			log.Println(warningMsg)
 			return sql
 		}
