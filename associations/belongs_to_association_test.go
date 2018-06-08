@@ -30,7 +30,7 @@ func Test_Belongs_To_Association(t *testing.T) {
 	id, _ := uuid.NewV1()
 	bar := barBelongsTo{FooID: id}
 
-	as, err := associations.AssociationsForStruct(&bar, "Foo")
+	as, err := associations.ForStruct(&bar, "Foo")
 	a.NoError(err)
 	a.Equal(len(as), 1)
 	a.Equal(reflect.Struct, as[0].Kind())

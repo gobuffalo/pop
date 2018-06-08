@@ -2,6 +2,7 @@ package columns
 
 import "fmt"
 
+// Column represents a SQL table column.
 type Column struct {
 	Name      string
 	Writeable bool

@@ -16,6 +16,7 @@ type Bubbler struct {
 	data []string
 }
 
+// NewBubbler constructs a new Bubbler.
 func NewBubbler(t Translator) *Bubbler {
 	return &Bubbler{
 		Translator: t,
@@ -38,7 +39,7 @@ func (b *Bubbler) Bubble(s string) (string, error) {
 	env.Define("drop_column", f.DropColumn())
 	env.Define("rename_column", f.RenameColumn())
 
-	env.Define("raw", f.RawSql())
+	env.Define("raw", f.RawSQL())
 	env.Define("exec", f.Exec(os.Stdout))
 
 	// indexes:

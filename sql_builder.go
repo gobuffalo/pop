@@ -188,7 +188,7 @@ func (sq *sqlBuilder) buildColumns() columns.Columns {
 		if ok && cols.TableAlias == asName {
 			return cols
 		}
-		cols = columns.ColumnsForStructWithAlias(sq.Model.Value, tableName, asName)
+		cols = columns.ForStructWithAlias(sq.Model.Value, tableName, asName)
 		columnCacheMutex.Lock()
 		columnCache[tableName] = cols
 		columnCacheMutex.Unlock()

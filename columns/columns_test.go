@@ -20,8 +20,8 @@ type foos []foo
 func Test_Column_MapsSlice(t *testing.T) {
 	r := require.New(t)
 
-	c1 := columns.ColumnsForStruct(&foo{}, "foo")
-	c2 := columns.ColumnsForStruct(&foos{}, "foo")
+	c1 := columns.ForStruct(&foo{}, "foo")
+	c2 := columns.ForStruct(&foos{}, "foo")
 	r.Equal(c1.String(), c2.String())
 }
 
@@ -29,7 +29,7 @@ func Test_Columns_Basics(t *testing.T) {
 	r := require.New(t)
 
 	for _, f := range []interface{}{foo{}, &foo{}} {
-		c := columns.ColumnsForStruct(f, "foo")
+		c := columns.ForStruct(f, "foo")
 		r.Equal(len(c.Cols), 4)
 		r.Equal(c.Cols["first_name"], &columns.Column{Name: "first_name", Writeable: false, Readable: true, SelectSQL: "first_name as f"})
 		r.Equal(c.Cols["LastName"], &columns.Column{Name: "LastName", Writeable: true, Readable: true, SelectSQL: "foo.LastName"})
@@ -42,7 +42,7 @@ func Test_Columns_Add(t *testing.T) {
 	r := require.New(t)
 
 	for _, f := range []interface{}{foo{}, &foo{}} {
-		c := columns.ColumnsForStruct(f, "foo")
+		c := columns.ForStruct(f, "foo")
 		r.Equal(len(c.Cols), 4)
 		c.Add("foo", "first_name")
 		r.Equal(len(c.Cols), 5)
@@ -54,7 +54,7 @@ func Test_Columns_Remove(t *testing.T) {
 	r := require.New(t)
 
 	for _, f := range []interface{}{foo{}, &foo{}} {
-		c := columns.ColumnsForStruct(f, "foo")
+		c := columns.ForStruct(f, "foo")
 		r.Equal(len(c.Cols), 4)
 		c.Remove("foo", "first_name")
 		r.Equal(len(c.Cols), 3)

@@ -5,6 +5,7 @@ import (
 	"strings"
 )
 
+// Table represents a table which will be generated with fizz.
 type Table struct {
 	Name        string `db:"name"`
 	Columns     []Column
@@ -13,10 +14,12 @@ type Table struct {
 	Options     map[string]interface{}
 }
 
+// DisableTimestamps disables timestamp columns (created_at & updated_at) generation.
 func (t *Table) DisableTimestamps() {
 	t.Options["timestamps"] = false
 }
 
+// Column adds a new column to the table definition.
 func (t *Table) Column(name string, colType string, options map[string]interface{}) {
 	var primary bool
 	if _, ok := options["primary"]; ok {
@@ -31,6 +34,7 @@ func (t *Table) Column(name string, colType string, options map[string]interface
 	t.Columns = append(t.Columns, c)
 }
 
+// ForeignKey adds a new foreign key to the table definition.
 func (t *Table) ForeignKey(column string, refs interface{}, options Options) {
 	fk := ForeignKey{
 		Column:     column,
@@ -47,6 +51,7 @@ func (t *Table) ForeignKey(column string, refs interface{}, options Options) {
 	t.ForeignKeys = append(t.ForeignKeys, fk)
 }
 
+// Timestamp adds a new column with timestamp type, to the table definition.
 func (t *Table) Timestamp(name string) {
 	c := Column{
 		Name:    name,
@@ -57,10 +62,12 @@ func (t *Table) Timestamp(name string) {
 	t.Columns = append(t.Columns, c)
 }
 
+// Timestamps adds the created_at and updated_at columns to the table definition.
 func (t *Table) Timestamps() {
-	t.Columns = append(t.Columns, []Column{CREATED_COL, UPDATED_COL}...)
+	t.Columns = append(t.Columns, []Column{CreatedCol, UpdatedCol}...)
 }
 
+// ColumnNames gets the list of the column names from the table definition.
 func (t *Table) ColumnNames() []string {
 	cols := make([]string, len(t.Columns))
 	for i, c := range t.Columns {
@@ -69,6 +76,7 @@ func (t *Table) ColumnNames() []string {
 	return cols
 }
 
+// HasColumns checks if the table definition contains all the given columns.
 func (t *Table) HasColumns(args ...string) bool {
 	keys := map[string]struct{}{}
 	for _, k := range t.ColumnNames() {
@@ -99,7 +107,7 @@ func (f fizzer) CreateTable() interface{} {
 		}
 
 		if !foundPrimary {
-			t.Columns = append([]Column{INT_ID_COL}, t.Columns...)
+			t.Columns = append([]Column{IntIDCol}, t.Columns...)
 		}
 
 		if enabled, exists := t.Options["timestamps"]; !exists || enabled == true {
