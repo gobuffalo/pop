@@ -31,6 +31,9 @@ func NewByteSlice(b []byte) ByteSlice {
 func (ns *ByteSlice) Scan(value interface{}) error {
 	n := sql.NullString{String: base64.StdEncoding.EncodeToString(ns.ByteSlice)}
 	err := n.Scan(value)
+	if err != nil {
+		return err
+	}
 	//ns.Float32, ns.Valid = float32(n.Float64), n.Valid
 	ns.ByteSlice, err = base64.StdEncoding.DecodeString(n.String)
 	ns.Valid = n.Valid

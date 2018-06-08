@@ -35,11 +35,7 @@ var DumpCmd = &cobra.Command{
 				return err
 			}
 		}
-		err = c.Dialect.DumpSchema(out)
-		if err != nil {
-			return err
-		}
-		return nil
+		return c.Dialect.DumpSchema(out)
 	},
 }
 

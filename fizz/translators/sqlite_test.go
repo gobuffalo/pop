@@ -28,7 +28,7 @@ func (s *fauxSchema) ReplaceSchema(schema map[string]*fizz.Table) {
 }
 
 func (s *fauxSchema) DeleteColumn(table string, column string) {
-	return
+
 }
 
 func (s *fauxSchema) ReplaceColumn(table string, column string, newColumn fizz.Column) error {
