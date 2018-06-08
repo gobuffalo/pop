@@ -14,6 +14,8 @@ type ByteSlice struct {
 	Valid     bool // Valid is true if ByteSlice is not NULL
 }
 
+// Interface implements the nullable interface. It returns nil if
+// the byte slice is not valid, otherwise it returns the byte slice value.
 func (ns ByteSlice) Interface() interface{} {
 	if !ns.Valid {
 		return nil
@@ -70,6 +72,8 @@ func (ns *ByteSlice) UnmarshalJSON(text []byte) error {
 	return nil
 }
 
+// UnmarshalText will unmarshal text value into
+// the propert representation of that value.
 func (ns *ByteSlice) UnmarshalText(text []byte) error {
 	return ns.UnmarshalJSON(text)
 }

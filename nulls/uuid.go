@@ -16,6 +16,8 @@ type UUID struct {
 	Valid bool
 }
 
+// Interface implements the nullable interface. It returns nil if
+// the UUID is not valid, otherwise it returns the UUID value.
 func (u UUID) Interface() interface{} {
 	if !u.Valid {
 		return nil

@@ -39,6 +39,8 @@ func (m Map) Value() (driver.Value, error) {
 	return string(b), nil
 }
 
+// UnmarshalJSON will unmarshall JSON value into
+// the map representation of this value.
 func (m Map) UnmarshalJSON(b []byte) error {
 	var stuff map[string]interface{}
 	err := json.Unmarshal(b, &stuff)
@@ -51,6 +53,8 @@ func (m Map) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
+// UnmarshalText will unmarshall text value into
+// the map representation of this value.
 func (m Map) UnmarshalText(text []byte) error {
 	fmt.Println(string(text))
 	err := json.Unmarshal(text, &m)

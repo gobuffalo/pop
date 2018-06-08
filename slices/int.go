@@ -38,6 +38,8 @@ func (i Int) Value() (driver.Value, error) {
 	return fmt.Sprintf("{%s}", strings.Join(sa, ",")), nil
 }
 
+// UnmarshalText will unmarshall text value into
+// the int slice representation of this value.
 func (i *Int) UnmarshalText(text []byte) error {
 	ss := []int{}
 	for _, x := range strings.Split(string(text), ",") {

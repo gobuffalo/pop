@@ -30,7 +30,7 @@ func (s *UUID) Scan(src interface{}) error {
 	if err != nil {
 		return errors.WithStack(err)
 	}
-	(*s) = UUID(us)
+	(*s) = us
 	return nil
 }
 
@@ -44,10 +44,12 @@ func (s UUID) Value() (driver.Value, error) {
 	return fmt.Sprintf("{%s}", strings.Join(ss, ",")), nil
 }
 
-func (s *UUID) UnmarshalText(text []byte) error {
+// UnmarshalJSON will unmarshall JSON value into
+// the UUID slice representation of this value.
+func (s *UUID) UnmarshalJSON(data []byte) error {
 	ss := []string{}
-	for _, x := range strings.Split(string(text), ",") {
-		ss = append(ss, strings.TrimSpace(x))
+	if err := json.Unmarshal(data, &ss); err != nil {
+		return err
 	}
 	us, err := strSliceToUUIDSlice(ss)
 	if err != nil {
@@ -57,10 +59,12 @@ func (s *UUID) UnmarshalText(text []byte) error {
 	return nil
 }
 
-func (s *UUID) UnmarshalJSON(data []byte) error {
+// UnmarshalText will unmarshall text value into
+// the UUID slice representation of this value.
+func (s *UUID) UnmarshalText(text []byte) error {
 	ss := []string{}
-	if err := json.Unmarshal(data, &ss); err != nil {
-		return err
+	for _, x := range strings.Split(string(text), ",") {
+		ss = append(ss, strings.TrimSpace(x))
 	}
 	us, err := strSliceToUUIDSlice(ss)
 	if err != nil {
