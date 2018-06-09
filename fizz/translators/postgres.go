@@ -9,7 +9,7 @@ import (
 	"github.com/gobuffalo/pop/fizz"
 )
 
-// Postgre is the fizz translator implementation for PostgreSQL.
+// Postgres is the fizz translator implementation for PostgreSQL.
 type Postgres struct {
 }
 

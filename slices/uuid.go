@@ -15,6 +15,7 @@ import (
 // UUID is a slice of UUIDs.
 type UUID []uuid.UUID
 
+// Interface implements the nulls.nullable interface.
 func (s UUID) Interface() interface{} {
 	return []uuid.UUID(s)
 }
@@ -74,10 +75,12 @@ func (s *UUID) UnmarshalText(text []byte) error {
 	return nil
 }
 
+// TagValue implements the tagValuer interface, to work with https://github.com/gobuffalo/tags.
 func (s UUID) TagValue() string {
 	return s.Format(",")
 }
 
+// Format presents the slice as a string, using a given separator.
 func (s UUID) Format(sep string) string {
 	ss := make([]string, len(s))
 	for i, u := range s {

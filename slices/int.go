@@ -12,6 +12,7 @@ import (
 // Int is a slice of int.
 type Int []int
 
+// Interface implements the nulls.nullable interface.
 func (i Int) Interface() interface{} {
 	return []int(i)
 }

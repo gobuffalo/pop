@@ -11,6 +11,7 @@ import (
 // Map is a map[string]interface.
 type Map map[string]interface{}
 
+// Interface implements the nulls.nullable interface.
 func (m Map) Interface() interface{} {
 	return map[string]interface{}(m)
 }

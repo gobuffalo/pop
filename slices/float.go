@@ -12,6 +12,7 @@ import (
 // Float is a slice of float64.
 type Float []float64
 
+// Interface implements the nulls.nullable interface.
 func (f Float) Interface() interface{} {
 	return []float64(f)
 }
@@ -24,7 +25,7 @@ func (f *Float) Scan(src interface{}) error {
 		return errors.New("Scan source was not []byte")
 	}
 	str := string(b)
-	(*f) = strToFloat(str, *f)
+	(*f) = strToFloat(str)
 	return nil
 }
 
@@ -53,9 +54,9 @@ func (f *Float) UnmarshalText(text []byte) error {
 	return nil
 }
 
-func strToFloat(s string, a []float64) []float64 {
+func strToFloat(s string) []float64 {
 	r := strings.Trim(s, "{}")
-	a = make([]float64, 0, 10)
+	a := make([]float64, 0, 10)
 	for _, t := range strings.Split(r, ",") {
 		i, _ := strconv.ParseFloat(t, 64)
 		a = append(a, i)
