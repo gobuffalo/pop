@@ -26,7 +26,7 @@ before_script:
   - ./tsoda migrate -e "sqlite"
 
 script:
-  - gometalinter --vendor --deadline=5m ./...
+#  - gometalinter --vendor --deadline=5m ./...
   - go test -tags sqlite ./... -v
 
 global_env:

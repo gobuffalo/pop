@@ -15,6 +15,7 @@ func (c Column) UpdateString() string {
 	return fmt.Sprintf("%s = :%s", c.Name, c.Name)
 }
 
+// SetSelectSQL sets a custom SELECT statement for the column.
 func (c *Column) SetSelectSQL(s string) {
 	c.SelectSQL = s
 	c.Writeable = false

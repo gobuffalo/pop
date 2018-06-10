@@ -36,9 +36,13 @@ func (t *Table) Column(name string, colType string, options map[string]interface
 
 // ForeignKey adds a new foreign key to the table definition.
 func (t *Table) ForeignKey(column string, refs interface{}, options Options) {
+	r, err := parseForeignKeyRef(refs)
+	if err != nil {
+		fmt.Println(err)
+	}
 	fk := ForeignKey{
 		Column:     column,
-		References: parseForeignKeyRef(refs),
+		References: r,
 		Options:    options,
 	}
 

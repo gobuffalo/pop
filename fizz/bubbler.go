@@ -11,6 +11,7 @@ import (
 
 type BubbleType int
 
+// Bubbler is used to transform fizz script to SQL, using a Translator.
 type Bubbler struct {
 	Translator
 	data []string
@@ -28,6 +29,7 @@ func (b *Bubbler) String() string {
 	return strings.Join(b.data, "\n")
 }
 
+// Bubble transforms a fizz script to SQL.
 func (b *Bubbler) Bubble(s string) (string, error) {
 	env := core.Import(vm.NewEnv())
 

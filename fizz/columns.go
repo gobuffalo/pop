@@ -34,6 +34,7 @@ var UUIDIDCol = Column{
 var CreatedCol = Column{Name: "created_at", ColType: "timestamp", Options: Options{}}
 var UpdatedCol = Column{Name: "updated_at", ColType: "timestamp", Options: Options{}}
 
+// Column describes a table column, from fizz point of view.
 type Column struct {
 	Name    string
 	ColType string
