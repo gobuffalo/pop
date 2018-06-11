@@ -29,23 +29,23 @@ func newSQLBuilder(q Query, m *Model, addColumns ...string) *sqlBuilder {
 }
 
 var (
-	RegexpMatchLimit    = regexp.MustCompile("(?i).*\\s+limit\\s+[0-9]*(\\s?,\\s?[0-9]*)?$")
-	RegexpMatchOffset   = regexp.MustCompile("(?i).*\\s+offset\\s+[0-9]*$")
-	RegexpMatchRowsOnly = regexp.MustCompile("(?i).*\\s+rows only$")
-	RegexpMatchNames    = regexp.MustCompile("(?i).*;+.*") // https://play.golang.org/p/FAmre5Sjin5
+	regexpMatchLimit    = regexp.MustCompile("(?i).*\\s+limit\\s+[0-9]*(\\s?,\\s?[0-9]*)?$")
+	regexpMatchOffset   = regexp.MustCompile("(?i).*\\s+offset\\s+[0-9]*$")
+	regexpMatchRowsOnly = regexp.MustCompile("(?i).*\\s+rows only$")
+	regexpMatchNames    = regexp.MustCompile("(?i).*;+.*") // https://play.golang.org/p/FAmre5Sjin5
 )
 
 func hasLimitOrOffset(sqlString string) bool {
 	trimmedSQL := strings.TrimSpace(sqlString)
-	if RegexpMatchLimit.MatchString(trimmedSQL) {
+	if regexpMatchLimit.MatchString(trimmedSQL) {
 		return true
 	}
 
-	if RegexpMatchOffset.MatchString(trimmedSQL) {
+	if regexpMatchOffset.MatchString(trimmedSQL) {
 		return true
 	}
 
-	if RegexpMatchRowsOnly.MatchString(trimmedSQL) {
+	if regexpMatchRowsOnly.MatchString(trimmedSQL) {
 		return true
 	}
 
@@ -192,7 +192,7 @@ func (sq *sqlBuilder) buildOrderClauses(sql string) string {
 	oc := sq.Query.orderClauses
 	if len(oc) > 0 {
 		orderSQL := oc.Join(", ")
-		if RegexpMatchNames.MatchString(orderSQL) {
+		if regexpMatchNames.MatchString(orderSQL) {
 			warningMsg := fmt.Sprintf("Warning: Order clause(s) contains invalid characters: %s", orderSQL)
 			log.Println(warningMsg)
 			return sql
