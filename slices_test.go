@@ -27,6 +27,7 @@ func (p *PostgreSQLSuite) Test_String() {
 		r.NoError(err)
 
 		err = tx.Reload(c)
+		r.NoError(err)
 		r.Equal(slices.String{"a", "b", "c"}, c.String)
 	})
 }
@@ -42,6 +43,7 @@ func (p *PostgreSQLSuite) Test_Int() {
 		r.NoError(err)
 
 		err = tx.Reload(c)
+		r.NoError(err)
 		r.Equal(slices.Int{1, 2, 3}, c.Int)
 	})
 }

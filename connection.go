@@ -203,9 +203,9 @@ func (c *Connection) TruncateAll() error {
 }
 
 func (c *Connection) timeFunc(name string, fn func() error) error {
-	now := time.Now()
+	start := time.Now()
 	err := fn()
-	atomic.AddInt64(&c.Elapsed, int64(time.Now().Sub(now)))
+	atomic.AddInt64(&c.Elapsed, int64(time.Since(start)))
 	if err != nil {
 		return errors.WithStack(err)
 	}

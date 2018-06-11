@@ -7,13 +7,13 @@ import (
 	"path/filepath"
 	"regexp"
 
-	. "github.com/markbates/grift/grift"
+	"github.com/markbates/grift/grift"
 	"github.com/pkg/errors"
 )
 
-var _ = Desc("release", "Generates a CHANGELOG and creates a new GitHub release based on what is in the version.go file.")
-var _ = Add("release", func(c *Context) error {
-	Run("shoulders", c)
+var _ = grift.Desc("release", "Generates a CHANGELOG and creates a new GitHub release based on what is in the version.go file.")
+var _ = grift.Add("release", func(c *grift.Context) error {
+	grift.Run("shoulders", c)
 	v, err := findVersion()
 	if err != nil {
 		return err
@@ -69,10 +69,7 @@ func tagRelease(v string) error {
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
-	if err := cmd.Run(); err != nil {
-		return err
-	}
-	return nil
+	return cmd.Run()
 }
 
 func commitAndPush(v string) error {
@@ -105,7 +102,7 @@ func findVersion() (string, error) {
 	re := regexp.MustCompile(`const Version = "(v.+)"`)
 	matches := re.FindStringSubmatch(string(vfile))
 	if len(matches) < 2 {
-		return "", errors.New("failed to find the version!")
+		return "", errors.New("failed to find the version")
 	}
 	v := matches[1]
 	return v, nil

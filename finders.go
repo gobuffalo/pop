@@ -192,7 +192,7 @@ func (q *Query) eagerAssociations(model interface{}) error {
 		return err
 	}
 
-	assos, err := associations.AssociationsForStruct(model, q.eagerFields...)
+	assos, err := associations.ForStruct(model, q.eagerFields...)
 	if err != nil {
 		return err
 	}

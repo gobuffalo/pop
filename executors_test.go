@@ -242,41 +242,41 @@ func Test_ValidateAndUpdate_With_Slice(t *testing.T) {
 
 func Test_Exec(t *testing.T) {
 	transaction(func(tx *pop.Connection) {
-		a := require.New(t)
+		r := require.New(t)
 
 		user := User{Name: nulls.NewString("Mark 'Awesome' Bates")}
 		tx.Create(&user)
 
 		ctx, _ := tx.Count(user)
-		a.Equal(1, ctx)
+		r.Equal(1, ctx)
 
 		q := tx.RawQuery("delete from users where id = ?", user.ID)
 		err := q.Exec()
-		a.NoError(err)
+		r.NoError(err)
 
 		ctx, _ = tx.Count(user)
-		a.Equal(0, ctx)
+		r.Equal(0, ctx)
 	})
 }
 
 func Test_ExecCount(t *testing.T) {
 	transaction(func(tx *pop.Connection) {
-		a := require.New(t)
+		r := require.New(t)
 
 		user := User{Name: nulls.NewString("Mark 'Awesome' Bates")}
 		tx.Create(&user)
 
 		ctx, _ := tx.Count(user)
-		a.Equal(1, ctx)
+		r.Equal(1, ctx)
 
 		q := tx.RawQuery("delete from users where id = ?", user.ID)
 		count, err := q.ExecWithCount()
-		a.NoError(err)
+		r.NoError(err)
 
-		a.Equal(1, count)
+		r.Equal(1, count)
 
 		ctx, _ = tx.Count(user)
-		a.Equal(0, ctx)
+		r.Equal(0, ctx)
 	})
 }
 
@@ -318,28 +318,28 @@ func Test_Save_With_Slice(t *testing.T) {
 
 func Test_Create(t *testing.T) {
 	transaction(func(tx *pop.Connection) {
-		a := require.New(t)
+		r := require.New(t)
 
 		count, _ := tx.Count(&User{})
 		user := User{Name: nulls.NewString("Mark 'Awesome' Bates")}
 		err := tx.Create(&user)
-		a.NoError(err)
-		a.NotEqual(user.ID, 0)
+		r.NoError(err)
+		r.NotEqual(user.ID, 0)
 
 		ctx, _ := tx.Count(&User{})
-		a.Equal(count+1, ctx)
+		r.Equal(count+1, ctx)
 
 		u := User{}
 		q := tx.Where("name = ?", "Mark 'Awesome' Bates")
 		err = q.First(&u)
-		a.NoError(err)
-		a.Equal(user.Name.String, "Mark 'Awesome' Bates")
+		r.NoError(err)
+		r.Equal(user.Name.String, "Mark 'Awesome' Bates")
 	})
 }
 
 func Test_Create_With_Slice(t *testing.T) {
 	transaction(func(tx *pop.Connection) {
-		a := require.New(t)
+		r := require.New(t)
 
 		count, _ := tx.Count(&User{})
 		users := Users{
@@ -348,16 +348,16 @@ func Test_Create_With_Slice(t *testing.T) {
 			{Name: nulls.NewString("Pop")},
 		}
 		err := tx.Create(&users)
-		a.NoError(err)
+		r.NoError(err)
 
 		ctx, _ := tx.Count(&User{})
-		a.Equal(count+3, ctx)
+		r.Equal(count+3, ctx)
 	})
 }
 
 func Test_Eager_Create_Has_Many(t *testing.T) {
 	transaction(func(tx *pop.Connection) {
-		a := require.New(t)
+		r := require.New(t)
 		count, _ := tx.Count(&User{})
 		user := User{
 			Name:         nulls.NewString("Mark 'Awesome' Bates"),
@@ -369,35 +369,35 @@ func Test_Eager_Create_Has_Many(t *testing.T) {
 		}
 
 		err := tx.Eager().Create(&user)
-		a.NoError(err)
-		a.NotEqual(user.ID, 0)
+		r.NoError(err)
+		r.NotEqual(user.ID, 0)
 
 		ctx, _ := tx.Count(&User{})
-		a.Equal(count+1, ctx)
+		r.Equal(count+1, ctx)
 
 		ctx, _ = tx.Count(&Book{})
-		a.Equal(count+1, ctx)
+		r.Equal(count+1, ctx)
 
 		ctx, _ = tx.Count(&Song{})
-		a.Equal(count+1, ctx)
+		r.Equal(count+1, ctx)
 
 		ctx, _ = tx.Count(&Address{})
-		a.Equal(count+1, ctx)
+		r.Equal(count+1, ctx)
 
 		u := User{}
 		q := tx.Eager().Where("name = ?", "Mark 'Awesome' Bates")
 		err = q.First(&u)
-		a.NoError(err)
-		a.Equal(u.Name.String, "Mark 'Awesome' Bates")
-		a.Equal(u.Books[0].Title, "Pop Book")
-		a.Equal(u.FavoriteSong.Title, "Hook - Blues Traveler")
-		a.Equal(u.Houses[0].Street, "Modelo")
+		r.NoError(err)
+		r.Equal(u.Name.String, "Mark 'Awesome' Bates")
+		r.Equal(u.Books[0].Title, "Pop Book")
+		r.Equal(u.FavoriteSong.Title, "Hook - Blues Traveler")
+		r.Equal(u.Houses[0].Street, "Modelo")
 	})
 }
 
 func Test_Eager_Create_Has_Many_Reset_Eager_Mode_Connection(t *testing.T) {
 	transaction(func(tx *pop.Connection) {
-		a := require.New(t)
+		r := require.New(t)
 		count, _ := tx.Count(&User{})
 		user1 := User{
 			Name:  nulls.NewString("Mark 'Awesome' Bates"),
@@ -405,23 +405,23 @@ func Test_Eager_Create_Has_Many_Reset_Eager_Mode_Connection(t *testing.T) {
 		}
 
 		err := tx.Eager("Books").Create(&user1)
-		a.NoError(err)
+		r.NoError(err)
 		ctx, _ := tx.Count(&User{})
-		a.Equal(count+1, ctx)
+		r.Equal(count+1, ctx)
 		ctx, _ = tx.Count(&Book{})
-		a.Equal(count+1, ctx)
+		r.Equal(count+1, ctx)
 
 		book := Book{Title: "Pop Book", Description: "Pop Book", Isbn: "PB1"}
 
 		err = tx.Eager().Create(&book)
-		a.NoError(err)
+		r.NoError(err)
 		ctx, _ = tx.Count(&Book{})
-		a.Equal(count+2, ctx)
+		r.Equal(count+2, ctx)
 	})
 }
 
 func Test_Eager_Validate_And_Create_Has_Many(t *testing.T) {
-	a := require.New(t)
+	r := require.New(t)
 	transaction(func(tx *pop.Connection) {
 		user := User{
 			Name:         nulls.NewString("Mark 'Awesome' Bates"),
@@ -433,15 +433,15 @@ func Test_Eager_Validate_And_Create_Has_Many(t *testing.T) {
 		}
 
 		verrs, err := tx.Eager().ValidateAndCreate(&user)
-		a.NoError(err)
+		r.NoError(err)
 		ctx, _ := tx.Count(&User{})
-		a.Zero(ctx)
-		a.Equal(1, verrs.Count()) // Missing Books.Description.
+		r.Zero(ctx)
+		r.Equal(1, verrs.Count()) // Missing Books.Description.
 	})
 }
 
 func Test_Eager_Validate_And_Create_Parental(t *testing.T) {
-	a := require.New(t)
+	r := require.New(t)
 	transaction(func(tx *pop.Connection) {
 		user := User{
 			Name:         nulls.NewString(""),
@@ -453,16 +453,16 @@ func Test_Eager_Validate_And_Create_Parental(t *testing.T) {
 		}
 
 		verrs, err := tx.Eager().ValidateAndCreate(&user)
-		a.NoError(err)
+		r.NoError(err)
 		ctx, _ := tx.Count(&User{})
-		a.Zero(ctx)
-		a.Equal(1, verrs.Count()) // Missing Books.Description.
+		r.Zero(ctx)
+		r.Equal(1, verrs.Count()) // Missing Books.Description.
 	})
 }
 
 func Test_Eager_Create_Belongs_To(t *testing.T) {
 	transaction(func(tx *pop.Connection) {
-		a := require.New(t)
+		r := require.New(t)
 		book := Book{
 			Title:       "Pop Book",
 			Description: "Pop Book",
@@ -473,13 +473,13 @@ func Test_Eager_Create_Belongs_To(t *testing.T) {
 		}
 
 		err := tx.Eager().Create(&book)
-		a.NoError(err)
+		r.NoError(err)
 
 		ctx, _ := tx.Count(&Book{})
-		a.Equal(1, ctx)
+		r.Equal(1, ctx)
 
 		ctx, _ = tx.Count(&User{})
-		a.Equal(1, ctx)
+		r.Equal(1, ctx)
 
 		car := Taxi{
 			Model: "Fancy car",
@@ -489,50 +489,50 @@ func Test_Eager_Create_Belongs_To(t *testing.T) {
 		}
 
 		err = tx.Eager().Create(&car)
-		a.NoError(err)
+		r.NoError(err)
 
 		ctx, _ = tx.Count(&Taxi{})
-		a.Equal(1, ctx)
+		r.Equal(1, ctx)
 
 		err = tx.Eager().Find(&car, car.ID)
-		a.NoError(err)
+		r.NoError(err)
 
-		a.Equal(nulls.NewString("Larry 2"), car.Driver.Name)
+		r.Equal(nulls.NewString("Larry 2"), car.Driver.Name)
 	})
 }
 
 func Test_Eager_Creation_Without_Associations(t *testing.T) {
 	transaction(func(tx *pop.Connection) {
-		a := require.New(t)
+		r := require.New(t)
 		code := CourseCode{
 			Course: Course{},
 		}
 
 		err := tx.Eager().Create(&code)
-		a.NoError(err)
+		r.NoError(err)
 
 		ctx, _ := tx.Count(&CourseCode{})
-		a.Equal(1, ctx)
+		r.Equal(1, ctx)
 	})
 }
 
 func Test_Create_UUID(t *testing.T) {
 	transaction(func(tx *pop.Connection) {
-		a := require.New(t)
+		r := require.New(t)
 
 		count, _ := tx.Count(&Song{})
 		song := Song{Title: "Automatic Buffalo"}
 		err := tx.Create(&song)
-		a.NoError(err)
-		a.NotZero(song.ID)
+		r.NoError(err)
+		r.NotZero(song.ID)
 
 		ctx, _ := tx.Count(&Song{})
-		a.Equal(count+1, ctx)
+		r.Equal(count+1, ctx)
 
 		u := Song{}
 		q := tx.Where("title = ?", "Automatic Buffalo")
 		err = q.First(&u)
-		a.NoError(err)
+		r.NoError(err)
 	})
 }
 
@@ -561,46 +561,46 @@ func Test_Create_Existing_UUID(t *testing.T) {
 
 func Test_Create_Timestamps(t *testing.T) {
 	transaction(func(tx *pop.Connection) {
-		a := require.New(t)
+		r := require.New(t)
 
 		user := User{Name: nulls.NewString("Mark 'Awesome' Bates")}
-		a.Zero(user.CreatedAt)
-		a.Zero(user.UpdatedAt)
+		r.Zero(user.CreatedAt)
+		r.Zero(user.UpdatedAt)
 
 		err := tx.Create(&user)
-		a.NoError(err)
+		r.NoError(err)
 
-		a.NotZero(user.CreatedAt)
-		a.NotZero(user.UpdatedAt)
+		r.NotZero(user.CreatedAt)
+		r.NotZero(user.UpdatedAt)
 
 		friend := Friend{FirstName: "Ross", LastName: "Gellar"}
 		err = tx.Create(&friend)
-		a.NoError(err)
+		r.NoError(err)
 	})
 }
 
 func Test_Update(t *testing.T) {
 	transaction(func(tx *pop.Connection) {
-		a := require.New(t)
+		r := require.New(t)
 
 		user := User{Name: nulls.NewString("Mark")}
 		tx.Create(&user)
 
-		a.NotZero(user.CreatedAt)
-		a.NotZero(user.UpdatedAt)
+		r.NotZero(user.CreatedAt)
+		r.NotZero(user.UpdatedAt)
 
 		user.Name.String = "Marky"
 		err := tx.Update(&user)
-		a.NoError(err)
+		r.NoError(err)
 
 		tx.Reload(&user)
-		a.Equal(user.Name.String, "Marky")
+		r.Equal(user.Name.String, "Marky")
 	})
 }
 
 func Test_Update_With_Slice(t *testing.T) {
 	transaction(func(tx *pop.Connection) {
-		a := require.New(t)
+		r := require.New(t)
 
 		user := Users{
 			{Name: nulls.NewString("Mark")},
@@ -608,21 +608,21 @@ func Test_Update_With_Slice(t *testing.T) {
 		}
 		tx.Create(&user)
 
-		a.NotZero(user[0].CreatedAt)
-		a.NotZero(user[0].UpdatedAt)
+		r.NotZero(user[0].CreatedAt)
+		r.NotZero(user[0].UpdatedAt)
 
-		a.NotZero(user[1].CreatedAt)
-		a.NotZero(user[1].UpdatedAt)
+		r.NotZero(user[1].CreatedAt)
+		r.NotZero(user[1].UpdatedAt)
 
 		user[0].Name.String = "Marky"
 		user[1].Name.String = "Lawrence"
 
 		err := tx.Update(&user)
-		a.NoError(err)
+		r.NoError(err)
 
 		tx.Reload(&user)
-		a.Equal(user[0].Name.String, "Marky")
-		a.Equal(user[1].Name.String, "Lawrence")
+		r.Equal(user[0].Name.String, "Marky")
+		r.Equal(user[1].Name.String, "Lawrence")
 	})
 }
 
@@ -649,47 +649,51 @@ func Test_Update_UUID(t *testing.T) {
 
 func Test_Destroy(t *testing.T) {
 	transaction(func(tx *pop.Connection) {
-		a := require.New(t)
+		r := require.New(t)
 
 		count, err := tx.Count("users")
+		r.NoError(err)
 		user := User{Name: nulls.NewString("Mark")}
 		err = tx.Create(&user)
-		a.NoError(err)
-		a.NotEqual(user.ID, 0)
+		r.NoError(err)
+		r.NotEqual(user.ID, 0)
 
 		ctx, err := tx.Count("users")
-		a.Equal(count+1, ctx)
+		r.NoError(err)
+		r.Equal(count+1, ctx)
 
 		err = tx.Destroy(&user)
-		a.NoError(err)
+		r.NoError(err)
 
 		ctx, _ = tx.Count("users")
-		a.Equal(count, ctx)
+		r.Equal(count, ctx)
 	})
 }
 
 func Test_Destroy_With_Slice(t *testing.T) {
 	transaction(func(tx *pop.Connection) {
-		a := require.New(t)
+		r := require.New(t)
 
 		count, err := tx.Count("users")
+		r.NoError(err)
 		user := Users{
 			{Name: nulls.NewString("Mark")},
 			{Name: nulls.NewString("Larry")},
 		}
 		err = tx.Create(&user)
-		a.NoError(err)
-		a.NotEqual(user[0].ID, 0)
-		a.NotEqual(user[1].ID, 0)
+		r.NoError(err)
+		r.NotEqual(user[0].ID, 0)
+		r.NotEqual(user[1].ID, 0)
 
 		ctx, err := tx.Count("users")
-		a.Equal(count+2, ctx)
+		r.NoError(err)
+		r.Equal(count+2, ctx)
 
 		err = tx.Destroy(&user)
-		a.NoError(err)
+		r.NoError(err)
 
 		ctx, _ = tx.Count("users")
-		a.Equal(count, ctx)
+		r.Equal(count, ctx)
 	})
 }
 
@@ -698,12 +702,14 @@ func Test_Destroy_UUID(t *testing.T) {
 		r := require.New(t)
 
 		count, err := tx.Count("songs")
+		r.NoError(err)
 		song := Song{Title: "Automatic Buffalo"}
 		err = tx.Create(&song)
 		r.NoError(err)
 		r.NotZero(song.ID)
 
 		ctx, err := tx.Count("songs")
+		r.NoError(err)
 		r.Equal(count+1, ctx)
 
 		err = tx.Destroy(&song)
@@ -717,26 +723,28 @@ func Test_Destroy_UUID(t *testing.T) {
 func Test_TruncateAll(t *testing.T) {
 	count := int(0)
 	transaction(func(tx *pop.Connection) {
-		a := require.New(t)
+		r := require.New(t)
 
 		var err error
 		count, err = tx.Count("users")
+		r.NoError(err)
 		user := User{Name: nulls.NewString("Mark")}
 		err = tx.Create(&user)
-		a.NoError(err)
-		a.NotEqual(user.ID, 0)
+		r.NoError(err)
+		r.NotEqual(user.ID, 0)
 
 		ctx, err := tx.Count("users")
-		a.Equal(count+1, ctx)
+		r.NoError(err)
+		r.Equal(count+1, ctx)
 	})
 
 	transaction(func(tx *pop.Connection) {
-		a := require.New(t)
+		r := require.New(t)
 
 		err := tx.TruncateAll()
-		a.NoError(err)
+		r.NoError(err)
 
 		ctx, _ := tx.Count("users")
-		a.Equal(count, ctx)
+		r.Equal(count, ctx)
 	})
 }

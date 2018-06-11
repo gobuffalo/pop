@@ -12,7 +12,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-var mrx = regexp.MustCompile(`(\d+)_([^\.]+)(\.[a-z0-9]+)?\.(up|down)\.(sql|fizz)`)
+var mrx = regexp.MustCompile(`(\d+)_([^\.]+)(\.[a-z0-9]+)?\.(up|down)\.(sql|fizz)$`)
 
 // NewMigrator returns a new "blank" migrator. It is recommended
 // to use something like MigrationBox or FileMigrator. A "blank"
@@ -117,7 +117,7 @@ func (m Migrator) Down(step int) error {
 	})
 }
 
-// Reset the database by runing the down migrations followed by the up migrations.
+// Reset the database by running the down migrations followed by the up migrations.
 func (m Migrator) Reset() error {
 	err := m.Down(-1)
 	if err != nil {
@@ -208,7 +208,7 @@ func (m Migrator) exec(fn func() error) error {
 }
 
 func printTimer(timerStart time.Time) {
-	diff := time.Now().Sub(timerStart).Seconds()
+	diff := time.Since(timerStart).Seconds()
 	if diff > 60 {
 		fmt.Printf("\n%.4f minutes\n", diff/60)
 	} else {
