@@ -41,7 +41,7 @@ func (s *Schema) ReplaceSchema(newSchema map[string]*fizz.Table) {
 }
 
 func (s *Schema) Build() error {
-	return fmt.Errorf("Build not implemented for this translator!")
+	return fmt.Errorf("build not implemented for this translator")
 }
 
 func (s *Schema) TableInfo(table string) (*fizz.Table, error) {
@@ -63,7 +63,7 @@ func (s *Schema) TableInfo(table string) (*fizz.Table, error) {
 	if ti, ok := s.schema[table]; ok {
 		return ti, nil
 	}
-	return nil, fmt.Errorf("Could not find table data for %s!", table)
+	return nil, fmt.Errorf("could not find table data for %s", table)
 }
 
 func (s *Schema) ReplaceColumn(table string, oldColumn string, newColumn fizz.Column) error {
@@ -77,7 +77,7 @@ func (s *Schema) ReplaceColumn(table string, oldColumn string, newColumn fizz.Co
 			return nil
 		}
 	}
-	return fmt.Errorf("Could not find column(%s) in table(%s)!", oldColumn, table)
+	return fmt.Errorf("could not find column(%s) in table(%s)", oldColumn, table)
 }
 
 func (s *Schema) ColumnInfo(table string, column string) (*fizz.Column, error) {
@@ -89,7 +89,7 @@ func (s *Schema) ColumnInfo(table string, column string) (*fizz.Column, error) {
 	if ci, ok := s.findColumnInfo(ti, column); ok {
 		return ci, nil
 	}
-	return nil, fmt.Errorf("Could not find column data for %s in table %s!", column, table)
+	return nil, fmt.Errorf("could not find column data for %s in table %s", column, table)
 }
 
 func (s *Schema) IndexInfo(table string, idx string) (*fizz.Index, error) {
@@ -101,7 +101,7 @@ func (s *Schema) IndexInfo(table string, idx string) (*fizz.Index, error) {
 	if i, ok := s.findIndexInfo(ti, idx); ok {
 		return i, nil
 	}
-	return nil, fmt.Errorf("Could not find index data for %s in table %s!", idx, table)
+	return nil, fmt.Errorf("could not find index data for %s in table %s", idx, table)
 }
 
 func (s *Schema) Delete(table string) {
@@ -117,8 +117,9 @@ func (s *Schema) DeleteColumn(table string, column string) {
 	if err != nil {
 		return
 	}
+	c := strings.ToLower(strings.TrimSpace(column))
 	for i, col := range tableInfo.Columns {
-		if strings.ToLower(strings.TrimSpace(col.Name)) == strings.ToLower(strings.TrimSpace(column)) {
+		if strings.ToLower(strings.TrimSpace(col.Name)) == c {
 			tableInfo.Columns = append(tableInfo.Columns[:i], tableInfo.Columns[i+1:]...)
 			return
 		}
@@ -126,8 +127,9 @@ func (s *Schema) DeleteColumn(table string, column string) {
 }
 
 func (s *Schema) findColumnInfo(tableInfo *fizz.Table, column string) (*fizz.Column, bool) {
+	c := strings.ToLower(strings.TrimSpace(column))
 	for _, col := range tableInfo.Columns {
-		if strings.ToLower(strings.TrimSpace(col.Name)) == strings.ToLower(strings.TrimSpace(column)) {
+		if strings.ToLower(strings.TrimSpace(col.Name)) == c {
 			return &col, true
 		}
 	}
@@ -135,8 +137,9 @@ func (s *Schema) findColumnInfo(tableInfo *fizz.Table, column string) (*fizz.Col
 }
 
 func (s *Schema) findIndexInfo(tableInfo *fizz.Table, index string) (*fizz.Index, bool) {
+	li := strings.ToLower(strings.TrimSpace(index))
 	for _, ind := range tableInfo.Indexes {
-		if strings.ToLower(strings.TrimSpace(ind.Name)) == strings.ToLower(strings.TrimSpace(index)) {
+		if strings.ToLower(strings.TrimSpace(ind.Name)) == li {
 			return &ind, true
 		}
 	}

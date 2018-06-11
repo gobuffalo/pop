@@ -17,6 +17,24 @@ var UUID_ID_COL = Column{
 var CREATED_COL = Column{Name: "created_at", ColType: "timestamp", Options: Options{}}
 var UPDATED_COL = Column{Name: "updated_at", ColType: "timestamp", Options: Options{}}
 
+var IntIDCol = Column{
+	Name:    "id",
+	Primary: true,
+	ColType: "integer",
+	Options: Options{},
+}
+
+var UUIDIDCol = Column{
+	Name:    "id",
+	Primary: true,
+	ColType: "uuid",
+	Options: Options{},
+}
+
+var CreatedCol = Column{Name: "created_at", ColType: "timestamp", Options: Options{}}
+var UpdatedCol = Column{Name: "updated_at", ColType: "timestamp", Options: Options{}}
+
+// Column describes a table column, from fizz point of view.
 type Column struct {
 	Name    string
 	ColType string

@@ -68,10 +68,7 @@ var ModelCmd = &cobra.Command{
 		default:
 			err = model.generateFizz(cmd.Flag("path"))
 		}
-		if err != nil {
-			return err
-		}
 
-		return nil
+		return err
 	},
 }

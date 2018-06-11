@@ -37,7 +37,7 @@ func (fm *MigrationBox) findMigrations() error {
 			return errors.WithStack(err)
 		}
 		matches := mrx.FindAllStringSubmatch(info.Name(), -1)
-		if matches == nil || len(matches) == 0 {
+		if len(matches) == 0 {
 			return nil
 		}
 		m := matches[0]
