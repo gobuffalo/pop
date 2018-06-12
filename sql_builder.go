@@ -147,9 +147,7 @@ func (sq *sqlBuilder) buildWhereClauses(sql string) string {
 	wc := sq.Query.whereClauses
 	if len(wc) > 0 {
 		sql = fmt.Sprintf("%s WHERE %s", sql, wc.Join(" AND "))
-		for _, arg := range wc.Args() {
-			sq.args = append(sq.args, arg)
-		}
+		sq.args = append(sq.args, wc.Args()...)
 	}
 	return sql
 }
@@ -159,9 +157,7 @@ func (sq *sqlBuilder) buildJoinClauses(sql string) string {
 	if len(oc) > 0 {
 		sql += " " + oc.String()
 		for i := range oc {
-			for _, arg := range oc[i].Arguments {
-				sq.args = append(sq.args, arg)
-			}
+			sq.args = append(sq.args, oc[i].Arguments...)
 		}
 	}
 
@@ -179,9 +175,7 @@ func (sq *sqlBuilder) buildGroupClauses(sql string) string {
 		}
 
 		for i := range hc {
-			for _, arg := range hc[i].Arguments {
-				sq.args = append(sq.args, arg)
-			}
+			sq.args = append(sq.args, hc[i].Arguments...)
 		}
 	}
 
@@ -235,7 +229,7 @@ func (sq *sqlBuilder) buildColumns() columns.Columns {
 		if ok && cols.TableAlias == asName {
 			return cols
 		}
-		cols = columns.ColumnsForStructWithAlias(sq.Model.Value, tableName, asName)
+		cols = columns.ForStructWithAlias(sq.Model.Value, tableName, asName)
 		columnCacheMutex.Lock()
 		columnCache[tableName] = cols
 		columnCacheMutex.Unlock()

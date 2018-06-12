@@ -109,7 +109,7 @@ func (c *Connection) Create(model interface{}, excludeColumns ...string) error {
 				return err
 			}
 
-			cols := columns.ColumnsForStructWithAlias(m.Value, m.TableName(), m.As)
+			cols := columns.ForStructWithAlias(m.Value, m.TableName(), m.As)
 
 			if sm.TableName() == m.TableName() {
 				cols.Remove(excludeColumns...)
@@ -160,7 +160,7 @@ func (c *Connection) Update(model interface{}, excludeColumns ...string) error {
 				return err
 			}
 
-			cols := columns.ColumnsForStructWithAlias(model, m.TableName(), m.As)
+			cols := columns.ForStructWithAlias(model, m.TableName(), m.As)
 			cols.Remove("id", "created_at")
 
 			if m.TableName() == sm.TableName() {

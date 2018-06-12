@@ -174,43 +174,43 @@ func Test_ToSQL(t *testing.T) {
 		a.Equal(args[1], 1)
 
 		query = pop.Q(tx)
-		q, args = query.ToSQL(user, "distinct on (users.name, users.email) users.*", "users.bio")
+		q, _ = query.ToSQL(user, "distinct on (users.name, users.email) users.*", "users.bio")
 		a.Equal("SELECT distinct on (users.name, users.email) users.*, users.bio FROM users AS users", q)
 
 		query = pop.Q(tx)
-		q, args = query.ToSQL(user, "distinct on (users.id) users.*", "users.bio")
+		q, _ = query.ToSQL(user, "distinct on (users.id) users.*", "users.bio")
 		a.Equal("SELECT distinct on (users.id) users.*, users.bio FROM users AS users", q)
 
 		query = pop.Q(tx)
-		q, args = query.ToSQL(user, "id,r", "users.bio,r", "users.email,w")
+		q, _ = query.ToSQL(user, "id,r", "users.bio,r", "users.email,w")
 		a.Equal("SELECT id, users.bio FROM users AS users", q)
 
 		query = pop.Q(tx)
-		q, args = query.ToSQL(user, "distinct on (id) id,r", "users.bio,r", "email,w")
+		q, _ = query.ToSQL(user, "distinct on (id) id,r", "users.bio,r", "email,w")
 		a.Equal("SELECT distinct on (id) id, users.bio FROM users AS users", q)
 
 		query = pop.Q(tx)
-		q, args = query.ToSQL(user, "distinct id", "users.bio,r", "email,w")
+		q, _ = query.ToSQL(user, "distinct id", "users.bio,r", "email,w")
 		a.Equal("SELECT distinct id, users.bio FROM users AS users", q)
 
 		query = pop.Q(tx)
-		q, args = query.ToSQL(user, "distinct id", "concat(users.name,'-',users.email)")
+		q, _ = query.ToSQL(user, "distinct id", "concat(users.name,'-',users.email)")
 		a.Equal("SELECT concat(users.name,'-',users.email), distinct id FROM users AS users", q)
 
 		query = pop.Q(tx)
-		q, args = query.ToSQL(user, "id", "concat(users.name,'-',users.email) name_email")
+		q, _ = query.ToSQL(user, "id", "concat(users.name,'-',users.email) name_email")
 		a.Equal("SELECT concat(users.name,'-',users.email) name_email, id FROM users AS users", q)
 
 		query = pop.Q(tx)
-		q, args = query.ToSQL(user, "distinct id", "concat(users.name,'-',users.email),r")
+		q, _ = query.ToSQL(user, "distinct id", "concat(users.name,'-',users.email),r")
 		a.Equal("SELECT concat(users.name,'-',users.email), distinct id FROM users AS users", q)
 
 		query = pop.Q(tx)
-		q, args = query.ToSQL(user, "distinct id", "concat(users.name,'-',users.email) AS x")
+		q, _ = query.ToSQL(user, "distinct id", "concat(users.name,'-',users.email) AS x")
 		a.Equal("SELECT concat(users.name,'-',users.email) AS x, distinct id FROM users AS users", q)
 
 		query = pop.Q(tx)
-		q, args = query.ToSQL(user, "distinct id", "users.name as english_name", "email private_email")
+		q, _ = query.ToSQL(user, "distinct id", "users.name as english_name", "email private_email")
 		a.Equal("SELECT distinct id, email private_email, users.name as english_name FROM users AS users", q)
 	})
 }

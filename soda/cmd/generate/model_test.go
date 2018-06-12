@@ -83,6 +83,7 @@ func Test_testPkgName(t *testing.T) {
 	r.NoError(err)
 	_, err = f.Write([]byte("// some comment\npackage models"))
 	f.Close()
+	r.NoError(err)
 
 	r.Equal("models", m.testPkgName())
 
@@ -91,6 +92,7 @@ func Test_testPkgName(t *testing.T) {
 	r.NoError(err)
 	_, err = f.Write([]byte("// some comment\npackage models_test"))
 	f.Close()
+	r.NoError(err)
 
 	r.Equal("models_test", m.testPkgName())
 }

@@ -28,7 +28,7 @@ func (s *fauxSchema) ReplaceSchema(schema map[string]*fizz.Table) {
 }
 
 func (s *fauxSchema) DeleteColumn(table string, column string) {
-	return
+
 }
 
 func (s *fauxSchema) ReplaceColumn(table string, column string, newColumn fizz.Column) error {
@@ -150,9 +150,9 @@ DROP TABLE "_users_tmp";`
 	schema.schema["users"] = &fizz.Table{
 		Name: "users",
 		Columns: []fizz.Column{
-			fizz.INT_ID_COL,
-			fizz.CREATED_COL,
-			fizz.UPDATED_COL,
+			fizz.IntIDCol,
+			fizz.CreatedCol,
+			fizz.UpdatedCol,
 		},
 	}
 
@@ -185,9 +185,9 @@ DROP TABLE "_users_tmp";`
 	schema.schema["users"] = &fizz.Table{
 		Name: "users",
 		Columns: []fizz.Column{
-			fizz.INT_ID_COL,
-			fizz.CREATED_COL,
-			fizz.UPDATED_COL,
+			fizz.IntIDCol,
+			fizz.CreatedCol,
+			fizz.UpdatedCol,
 		},
 	}
 	res, _ := fizz.AString(`drop_column("users", "created_at")`, sqt)
@@ -209,9 +209,9 @@ DROP TABLE "_users_tmp";`
 	schema.schema["users"] = &fizz.Table{
 		Name: "users",
 		Columns: []fizz.Column{
-			fizz.INT_ID_COL,
-			fizz.CREATED_COL,
-			fizz.UPDATED_COL,
+			fizz.IntIDCol,
+			fizz.CreatedCol,
+			fizz.UpdatedCol,
 		},
 	}
 	res, _ := fizz.AString(`rename_column("users", "created_at", "created_when")`, sqt)
@@ -288,9 +288,9 @@ CREATE UNIQUE INDEX "new_ix" ON "users" (id, created_at);`
 	schema.schema["users"] = &fizz.Table{
 		Name: "users",
 		Columns: []fizz.Column{
-			fizz.INT_ID_COL,
-			fizz.CREATED_COL,
-			fizz.UPDATED_COL,
+			fizz.IntIDCol,
+			fizz.CreatedCol,
+			fizz.UpdatedCol,
 		},
 		Indexes: []fizz.Index{
 			{

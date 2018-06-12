@@ -10,6 +10,7 @@ import (
 	"strings"
 )
 
+// Options is a map of Fizz options.
 type Options map[string]interface{}
 
 type fizzer struct {
@@ -38,6 +39,7 @@ func (f fizzer) Exec(out io.Writer) interface{} {
 	}
 }
 
+// AFile translates a fizz file to a SQL string.
 func AFile(f *os.File, t Translator) (string, error) {
 	b, err := ioutil.ReadAll(f)
 	if err != nil {
@@ -46,6 +48,7 @@ func AFile(f *os.File, t Translator) (string, error) {
 	return AString(string(b), t)
 }
 
+// AString translates a fizz string to a SQL string.
 func AString(s string, t Translator) (string, error) {
 	b := NewBubbler(t)
 	return b.Bubble(s)

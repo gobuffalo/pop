@@ -5,6 +5,7 @@ import (
 	"strings"
 )
 
+// Index represents a SQL table index.
 type Index struct {
 	Name    string
 	Columns []string
@@ -12,6 +13,7 @@ type Index struct {
 	Options Options
 }
 
+// AddIndex backs fizz command to create a new index.
 func (f fizzer) AddIndex() interface{} {
 	return func(table string, columns interface{}, options Options) {
 		i := Index{}
@@ -41,6 +43,7 @@ func (f fizzer) AddIndex() interface{} {
 	}
 }
 
+// DropIndex backs fizz command to drop an existing index.
 func (f fizzer) DropIndex() interface{} {
 	return func(table, name string) {
 		f.add(f.Bubbler.DropIndex(Table{
@@ -52,6 +55,7 @@ func (f fizzer) DropIndex() interface{} {
 	}
 }
 
+// RenameIndex backs fizz command to rename a given index.
 func (f fizzer) RenameIndex() interface{} {
 	return func(table, old, new string) {
 		f.add(f.Bubbler.RenameIndex(Table{

@@ -26,7 +26,7 @@ func Test_Has_One_Association(t *testing.T) {
 	id, _ := uuid.NewV1()
 	foo := FooHasOne{ID: id}
 
-	as, err := associations.AssociationsForStruct(&foo)
+	as, err := associations.ForStruct(&foo)
 
 	a.NoError(err)
 	a.Equal(len(as), 1)
@@ -42,7 +42,7 @@ func Test_Has_One_SetValue(t *testing.T) {
 	id, _ := uuid.NewV1()
 	foo := FooHasOne{ID: id, BarHasOne: barHasOne{Title: "bar"}}
 
-	as, _ := associations.AssociationsForStruct(&foo)
+	as, _ := associations.ForStruct(&foo)
 	a.Equal(len(as), 1)
 
 	ca, ok := as[0].(associations.AssociationAfterCreatable)

@@ -1,5 +1,6 @@
 package fizz
 
+// Translator describes a fizz driver for a given SQL driver.
 type Translator interface {
 	CreateTable(Table) (string, error)
 	DropTable(Table) (string, error)

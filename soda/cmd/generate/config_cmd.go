@@ -38,8 +38,15 @@ var ConfigCmd = &cobra.Command{
 	},
 }
 
-//GenerateConfig generates pop configuration files
+// GenerateConfig generates pop configuration files.
+//
+// Deprecated: use Config instead.
 func GenerateConfig(cfgFile string, data map[string]interface{}) error {
+	return Config(cfgFile, data)
+}
+
+// Config generates pop configuration files.
+func Config(cfgFile string, data map[string]interface{}) error {
 	pwd, _ := os.Getwd()
 	if data["appPath"] == nil {
 		data["appPath"] = pwd
