@@ -39,23 +39,28 @@ type Migrator struct {
 }
 
 // Up runs pending "up" migrations and applies them to the database.
-func (m Migrator) Up() error {
+// If a version is provided, only this version will be applied.
+func (m Migrator) Up(version ...string) error {
 	c := m.Connection
+	if len(version) > 1 {
+		return errors.New("you can't pick more than one version to apply")
+	}
 	return m.exec(func() error {
 		mtn := c.MigrationTableName()
 		mfs := m.Migrations["up"]
 		sort.Sort(mfs)
-		for _, mi := range mfs {
+
+		m := func(mi Migration, c *Connection) error {
 			if mi.DBType != "all" && mi.DBType != c.Dialect.Name() {
 				// Skip migration for non-matching dialect
-				continue
+				return nil
 			}
 			exists, err := c.Where("version = ?", mi.Version).Exists(mtn)
 			if err != nil {
 				return errors.Wrapf(err, "problem checking for migration version %s", mi.Version)
 			}
 			if exists {
-				continue
+				return nil
 			}
 			err = c.Transaction(func(tx *Connection) error {
 				err := mi.Run(tx)
@@ -69,6 +74,28 @@ func (m Migrator) Up() error {
 				return errors.WithStack(err)
 			}
 			fmt.Printf("> %s\n", mi.Name)
+			return nil
+		}
+
+		if len(version) > 0 {
+			v := version[0]
+			// Apply the picked migration, if it exists
+			var vrx = regexp.MustCompile(regexp.QuoteMeta(v) + `\.(up|down)\.(sql|fizz)$`)
+			for _, mi := range mfs {
+				if vrx.Match([]byte(mi.Name)) {
+					if err := m(mi, c); err != nil {
+						return err
+					}
+					return nil
+				}
+			}
+			return fmt.Errorf("migration \"%s\" not found", v)
+		}
+		// Apply all remaining migrations
+		for _, mi := range mfs {
+			if err := m(mi, c); err != nil {
+				return err
+			}
 		}
 		return nil
 	})

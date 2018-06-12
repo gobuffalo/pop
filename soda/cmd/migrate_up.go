@@ -6,6 +6,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var migrationVersion string
+
 var migrateUpCmd = &cobra.Command{
 	Use:   "up",
 	Short: "Apply all of the 'up' migrations.",
@@ -14,10 +16,14 @@ var migrateUpCmd = &cobra.Command{
 		if err != nil {
 			return errors.WithStack(err)
 		}
+		if migrationVersion != "" {
+			return mig.Up(migrationVersion)
+		}
 		return mig.Up()
 	},
 }
 
 func init() {
 	migrateCmd.AddCommand(migrateUpCmd)
+	migrateUpCmd.Flags().StringVarP(&migrationVersion, "version", "v", "", "Apply a specific migration")
 }
