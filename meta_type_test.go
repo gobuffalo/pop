@@ -127,6 +127,9 @@ func Test_Model_Meta_Associations_Direct(t *testing.T) {
 		a.NoError(err)
 
 		loadIndirect(&books, tx, "belongs_to")
+		a.Equal(users[0].ID, books[0].User.ID)
+		a.Equal(users[1].ID, books[1].User.ID)
+		a.Equal(users[2].ID, books[2].User.ID)
 	})
 }
 
@@ -205,23 +208,18 @@ func loadIndirect(model interface{}, tx *pop.Connection, tag string) error {
 
 			// Get the relationship field.
 			v := elemVal.FieldByName("ID")
-			mmap.MapValue(v.Interface())
-
-			// get the map value with the id specified.
-			// var u reflect.Value
-			// if n := nulls.New(v.Interface()); n != nil { // is a nulls type.
-			// 	u = mmap.MapValue(n.Interface())
-			// } else {
-			// 	u = mmap.MapValue(v.Interface())
-			// }
-
-			// // get the association field of the map value and append value.
-			// b := u.FieldByName(asso.Name)
-			// if b.Kind() == reflect.Slice || b.Kind() == reflect.Array {
-			// 	b.Set(reflect.Append(b, elemVal))
-			// } else {
-			// 	b.Set(elemVal)
-			// }
+			slices := mmap.MapValue(v.Interface())
+			if slices.IsValid() && (slices.Kind() == reflect.Slice || slices.Kind() == reflect.Array) {
+				for j := 0; j < slices.Len(); j++ {
+					vel := reflect.Indirect(slices.Index(j))
+					b := vel.FieldByName("User")
+					if b.Kind() == reflect.Ptr {
+						b.Set(elemVal.Addr())
+					} else {
+						b.Set(elemVal)
+					}
+				}
+			}
 		}
 	}
 	return nil

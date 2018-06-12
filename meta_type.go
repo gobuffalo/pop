@@ -78,7 +78,11 @@ func (t *MetaType) FieldByName(field string) ReflectValues {
 			s := t.IndirectValue.Index(i)
 			if s.Kind() == reflect.Struct {
 				v := s.FieldByName(field)
-				allValues = append(allValues, v)
+				if n := nulls.New(v.Interface()); n != nil {
+					allValues = append(allValues, reflect.ValueOf(n.Interface()))
+				} else {
+					allValues = append(allValues, v)
+				}
 			}
 		}
 		return allValues
@@ -205,23 +209,29 @@ func (t *MetaType) makeMapForSlice() *MetaType {
 func (t *MetaType) MakeMapWithField(field string) *MetaType {
 	if t.IndirectType.Kind() == reflect.Slice || t.IndirectType.Kind() == reflect.Array {
 		val := innerValueForSlice(t)
+		sliceValType := reflect.SliceOf(val.Type())
 		fval := reflect.Indirect(val).FieldByName(field)
 
 		var m reflect.Value
 		if n := nulls.New(fval.Interface()); n != nil {
-			m = buildMap(reflect.TypeOf(n.Interface()), val.Type())
+			m = buildMap(reflect.TypeOf(n.WrappedValue()), sliceValType)
 		} else {
-			m = buildMap(fval.Type(), val.Type())
+			m = buildMap(fval.Type(), sliceValType)
 		}
 
 		for i := 0; i < t.IndirectValue.Len(); i++ {
-			v := t.IndirectValue.Index(0)
+			v := t.IndirectValue.Index(i)
 			f := v.FieldByName(field)
 			if n := nulls.New(f.Interface()); n != nil {
-				m.SetMapIndex(reflect.ValueOf(n.Interface()), v.Addr())
-			} else {
-				m.SetMapIndex(f, v.Addr())
+				f = reflect.ValueOf(n.Interface())
 			}
+
+			vslice := m.MapIndex(f)
+			if !vslice.IsValid() {
+				vslice = reflect.MakeSlice(sliceValType, 0, 0)
+			}
+			vslice = reflect.Append(vslice, v.Addr())
+			m.SetMapIndex(f, vslice)
 		}
 		return buildMetaType(m.Interface(), "")
 	}

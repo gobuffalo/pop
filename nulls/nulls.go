@@ -2,6 +2,7 @@ package nulls
 
 import (
 	"database/sql/driver"
+	"reflect"
 
 	"github.com/gobuffalo/uuid"
 )
@@ -23,6 +24,22 @@ type Nulls struct {
 func (nulls *Nulls) Interface() interface{} {
 	n := nulls.Value.(nullable)
 	return n.Interface()
+}
+
+// WrappedValue returns the wrapped value for a nulls
+// implementation.
+func (nulls *Nulls) WrappedValue() interface{} {
+	v := reflect.ValueOf(nulls.Value)
+	switch nulls.Value.(type) {
+	case Int:
+		return v.FieldByName("Int").Interface()
+	case Int64:
+		return v.FieldByName("Int64").Interface()
+	case UUID:
+		return v.FieldByName("UUID").Interface()
+	default:
+		return nil
+	}
 }
 
 // Parse parses the specified value to the corresponding
