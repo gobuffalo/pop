@@ -6,12 +6,29 @@ import (
 
 // ColumnsForStruct returns a Columns instance for
 // the struct passed in.
-
+//
+// Deprecated: use ForStruct instead.
 func ColumnsForStruct(s interface{}, tableName string) (columns Columns) {
-	return ColumnsForStructWithAlias(s, tableName, "")
+	return ForStruct(s, tableName)
 }
 
+// ColumnsForStructWithAlias returns a Columns instance for the struct passed in.
+// If the tableAlias is not empty, it will be used.
+//
+// Deprecated: use ForStructWithAlias instead.
 func ColumnsForStructWithAlias(s interface{}, tableName string, tableAlias string) (columns Columns) {
+	return ForStructWithAlias(s, tableName, tableAlias)
+}
+
+// ForStruct returns a Columns instance for
+// the struct passed in.
+func ForStruct(s interface{}, tableName string) (columns Columns) {
+	return ForStructWithAlias(s, tableName, "")
+}
+
+// ForStructWithAlias returns a Columns instance for the struct passed in.
+// If the tableAlias is not empty, it will be used.
+func ForStructWithAlias(s interface{}, tableName string, tableAlias string) (columns Columns) {
 	columns = NewColumnsWithAlias(tableName, tableAlias)
 	defer func() {
 		if r := recover(); r != nil {
@@ -41,7 +58,7 @@ func ColumnsForStructWithAlias(s interface{}, tableName string, tableAlias strin
 		if !tag.Ignored() && !tag.Empty() {
 			col := tag.Value
 
-			//add writable or readable.
+			// add writable or readable.
 			tag := popTags.Find("rw")
 			if !tag.Empty() {
 				col = col + "," + tag.Value
@@ -49,7 +66,7 @@ func ColumnsForStructWithAlias(s interface{}, tableName string, tableAlias strin
 
 			cs := columns.Add(col)
 
-			//add select clause.
+			// add select clause.
 			tag = popTags.Find("select")
 			if !tag.Empty() {
 				c := cs[0]

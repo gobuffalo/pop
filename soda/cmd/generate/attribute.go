@@ -15,7 +15,7 @@ type attribute struct {
 }
 
 func (a attribute) String() string {
-	return fmt.Sprintf("\t%s %s `%s:\"%s\" db:\"%s\"`", a.Name.Camel(), a.GoType, structTag, a.Name.UnderSingular(), a.Name.UnderSingular())
+	return fmt.Sprintf("\t%s %s `%s:\"%s\" db:\"%s\"`", a.Name.Camel(), a.GoType, structTag, a.Name.Underscore(), a.Name.Underscore())
 }
 
 func (a attribute) IsValidable() bool {

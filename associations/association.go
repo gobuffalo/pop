@@ -49,18 +49,22 @@ type InnerAssociation struct {
 // InnerAssociations is a group of InnerAssociation.
 type InnerAssociations []InnerAssociation
 
-// AssociationSortable a type to be sortable.
+// AssociationSortable allows a type to be sortable.
 type AssociationSortable interface {
 	OrderBy() string
 	Association
 }
 
+// AssociationBeforeCreatable allows an association to be created before
+// the parent structure.
 type AssociationBeforeCreatable interface {
 	BeforeInterface() interface{}
 	BeforeSetup() error
 	Association
 }
 
+// AssociationAfterCreatable allows an association to be created after
+// the parent structure.
 type AssociationAfterCreatable interface {
 	AfterInterface() interface{}
 	AfterSetup() error
@@ -120,7 +124,7 @@ func (a Associations) AssociationsCreatableStatement() []AssociationCreatableSta
 	return stm
 }
 
-// associationParams a wrapper for associations definition
+// associationParams is a wrapper for associations definition
 // and creation.
 type associationParams struct {
 	field             reflect.StructField // an association field defined in model.

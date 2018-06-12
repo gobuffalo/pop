@@ -14,6 +14,7 @@ var dumpOptions = struct {
 	output string
 }{}
 
+// DumpCmd dumps out the schema of the selected database.
 var DumpCmd = &cobra.Command{
 	Use:   "dump",
 	Short: "Dumps out the schema of the selected database",
@@ -35,11 +36,7 @@ var DumpCmd = &cobra.Command{
 				return err
 			}
 		}
-		err = c.Dialect.DumpSchema(out)
-		if err != nil {
-			return err
-		}
-		return nil
+		return c.Dialect.DumpSchema(out)
 	},
 }
 

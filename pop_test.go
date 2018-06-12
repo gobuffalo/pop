@@ -163,8 +163,6 @@ func (Friend) TableName() string {
 	return "good_friends"
 }
 
-type Friends []Friend
-
 type Family struct {
 	ID        int       `db:"id"`
 	FirstName string    `db:"first_name"`
@@ -177,8 +175,6 @@ func (Family) TableName() string {
 	// schema.table_name
 	return "family.members"
 }
-
-type Families []Family
 
 type Enemy struct {
 	A string

@@ -9,31 +9,39 @@ import (
 	"github.com/pkg/errors"
 )
 
+// Int is a slice of int.
 type Int []int
 
+// Interface implements the nulls.nullable interface.
 func (i Int) Interface() interface{} {
 	return []int(i)
 }
 
-func (s *Int) Scan(src interface{}) error {
+// Scan implements the sql.Scanner interface.
+// It allows to read the int slice from the database value.
+func (i *Int) Scan(src interface{}) error {
 	b, ok := src.([]byte)
 	if !ok {
 		return errors.New("Scan source was not []byte")
 	}
 	str := string(b)
-	(*s) = strToInt(str)
+	(*i) = strToInt(str)
 	return nil
 }
 
-func (s Int) Value() (driver.Value, error) {
-	sa := make([]string, len(s))
-	for x, i := range s {
-		sa[x] = strconv.Itoa(i)
+// Value implements the driver.Valuer interface.
+// It allows to convert the int slice to a driver.value.
+func (i Int) Value() (driver.Value, error) {
+	sa := make([]string, len(i))
+	for x, v := range i {
+		sa[x] = strconv.Itoa(v)
 	}
 	return fmt.Sprintf("{%s}", strings.Join(sa, ",")), nil
 }
 
-func (s *Int) UnmarshalText(text []byte) error {
+// UnmarshalText will unmarshall text value into
+// the int slice representation of this value.
+func (i *Int) UnmarshalText(text []byte) error {
 	ss := []int{}
 	for _, x := range strings.Split(string(text), ",") {
 		f, err := strconv.Atoi(x)
@@ -42,7 +50,7 @@ func (s *Int) UnmarshalText(text []byte) error {
 		}
 		ss = append(ss, f)
 	}
-	(*s) = ss
+	(*i) = ss
 	return nil
 }
 
