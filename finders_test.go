@@ -5,6 +5,7 @@ import (
 
 	"github.com/gobuffalo/pop"
 	"github.com/gobuffalo/pop/nulls"
+	"github.com/gobuffalo/uuid"
 	"github.com/stretchr/testify/require"
 )
 
@@ -157,6 +158,17 @@ func Test_Find_Eager_Has_One(t *testing.T) {
 		r.NotEqual(u.ID, 0)
 		r.Equal(u.Name.String, "Mark")
 		r.Equal(u.FavoriteSong.ID, coolSong.ID)
+
+		//eager should work with rawquery
+		uid := u.ID
+		u = User{}
+		err = tx.RawQuery("select * from users where id=?", uid).First(&u)
+		r.NoError(err)
+		r.Equal(u.FavoriteSong.ID, uuid.Nil)
+
+		err = tx.RawQuery("select * from users where id=?", uid).Eager("FavoriteSong").First(&u)
+		r.NoError(err)
+		r.Equal(u.FavoriteSong.ID, coolSong.ID)
 	})
 }
 
@@ -266,6 +278,39 @@ func Test_Find_Eager_Many_To_Many(t *testing.T) {
 
 		r.Equal(len(u.Houses), 1)
 		r.Equal(u.Houses[0].Street, address.Street)
+
+		address2 := Address{Street: "Pop Avenue 2", HouseNumber: 1}
+		err = tx.Create(&address2)
+		r.NoError(err)
+
+		user2 := User{Name: nulls.NewString("Mark 2")}
+		err = tx.Create(&user2)
+		r.NoError(err)
+
+		ownerProperty2 := UsersAddress{UserID: user2.ID, AddressID: address2.ID}
+		err = tx.Create(&ownerProperty2)
+		r.NoError(err)
+
+		//eager should work with rawquery
+		uid := u.ID
+		u = User{}
+		err = tx.RawQuery("select * from users where id=?", uid).Eager("Houses").First(&u)
+		r.Equal(1, len(u.Houses))
+
+		//eager ALL
+		var users []User
+		err = tx.RawQuery("select * from users order by created_at asc").Eager("Houses").All(&users)
+		r.Equal(2, len(users))
+
+		u = users[0]
+		r.Equal(u.Name.String, "Mark")
+		r.Equal(1, len(u.Houses))
+		r.Equal(u.Houses[0].Street, "Pop Avenue")
+
+		u = users[1]
+		r.Equal(u.Name.String, "Mark 2")
+		r.Equal(1, len(u.Houses))
+		r.Equal(u.Houses[0].Street, "Pop Avenue 2")
 	})
 }
 
@@ -491,6 +536,15 @@ func Test_Count_Disregards_Pagination(t *testing.T) {
 
 		q := tx.Paginate(1, 3)
 		q.All(&first_users)
+		r.Equal(len(names), q.Paginator.TotalEntriesSize) //ensure paginator populates count
+		r.Equal(3, len(first_users))
+
+		first_users = Users{}
+		q = tx.RawQuery("select * from users").Paginate(1, 3)
+		q.All(&first_users)
+		r.Equal(1, q.Paginator.Page)
+		r.Equal(3, q.Paginator.PerPage)
+		r.Equal(len(names), q.Paginator.TotalEntriesSize) //ensure paginator populates count
 
 		r.Equal(3, len(first_users))
 		totalFirstPage := q.Paginator.TotalPages
@@ -504,6 +558,61 @@ func Test_Count_Disregards_Pagination(t *testing.T) {
 		r.NotEqual(0, totalFirstPage)
 		r.NotEqual(0, totalSecondPage)
 		r.Equal(totalFirstPage, totalSecondPage)
+
+		first_users = Users{}
+		q = tx.RawQuery("select * from users limit  2").Paginate(1, 5)
+		err := q.All(&first_users)
+		r.NoError(err)
+		r.Equal(2, len(first_users)) //raw query limit applies
+
+		first_users = Users{}
+		q = tx.RawQuery("select * from users limit 2 offset 1").Paginate(1, 5)
+		err = q.All(&first_users)
+		r.NoError(err)
+		r.Equal(2, len(first_users))
+
+		first_users = Users{}
+		q = tx.RawQuery("select * from users limit 2 offset\t1").Paginate(1, 5)
+		err = q.All(&first_users)
+		r.NoError(err)
+		r.Equal(2, len(first_users))
+
+		first_users = Users{}
+		q = tx.RawQuery(`select * from users limit 2 offset
+			1`).Paginate(1, 5)
+		err = q.All(&first_users)
+		r.NoError(err)
+		r.Equal(2, len(first_users))
+
+		first_users = Users{}
+		q = tx.RawQuery(`select * from users limit 2 offset
+			1	 
+			`).Paginate(1, 5) //ending space and tab
+		err = q.All(&first_users)
+		r.NoError(err)
+		r.Equal(2, len(first_users))
+
+		if tx.Dialect.Name() == "sqlite" {
+			first_users = Users{}
+			q = tx.RawQuery("select * from users limit 2,1").Paginate(1, 5)
+			err = q.All(&first_users)
+			r.NoError(err)
+			r.Equal(2, len(first_users))
+
+			first_users = Users{}
+			q = tx.RawQuery("select * from users limit 2 , 1").Paginate(1, 5)
+			err = q.All(&first_users)
+			r.NoError(err)
+			r.Equal(2, len(first_users))
+		}
+
+		if tx.Dialect.Name() == "postgresql" {
+			first_users = Users{}
+			q = tx.RawQuery("select * from users FETCH FIRST 3 rows only").Paginate(1, 5)
+			err = q.All(&first_users)
+			r.NoError(err)
+			r.Equal(3, len(first_users)) //should fetch only 3
+		}
 	})
 }
 
