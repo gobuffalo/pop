@@ -38,6 +38,37 @@ type Migrator struct {
 	Migrations map[string]Migrations
 }
 
+// UpLogOnly insert pending "up" migrations logs only, without applying the patch.
+// It's used when loading the schema dump, instead of the migrations.
+func (m Migrator) UpLogOnly() error {
+	c := m.Connection
+	return m.exec(func() error {
+		mtn := c.MigrationTableName()
+		mfs := m.Migrations["up"]
+		sort.Sort(mfs)
+		return c.Transaction(func(tx *Connection) error {
+			for _, mi := range mfs {
+				if mi.DBType != "all" && mi.DBType != c.Dialect.Name() {
+					// Skip migration for non-matching dialect
+					continue
+				}
+				exists, err := c.Where("version = ?", mi.Version).Exists(mtn)
+				if err != nil {
+					return errors.Wrapf(err, "problem checking for migration version %s", mi.Version)
+				}
+				if exists {
+					continue
+				}
+				_, err = tx.Store.Exec(fmt.Sprintf("insert into %s (version) values ('%s')", mtn, mi.Version))
+				if err != nil {
+					return errors.Wrapf(err, "problem inserting migration version %s", mi.Version)
+				}
+			}
+			return nil
+		})
+	})
+}
+
 // Up runs pending "up" migrations and applies them to the database.
 func (m Migrator) Up() error {
 	c := m.Connection

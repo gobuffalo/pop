@@ -61,16 +61,18 @@ func doReset(c *pop.Connection, f *os.File, useMigrations bool) error {
 	if err := pop.CreateDB(c); err != nil {
 		return err
 	}
+	mig, err := pop.NewFileMigrator(migrationPath, getConn())
+	if err != nil {
+		return errors.WithStack(err)
+	}
 	if useMigrations {
-		mig, err := pop.NewFileMigrator(migrationPath, getConn())
-		if err != nil {
-			return errors.WithStack(err)
-		}
+		// Apply the migrations directly
 		return mig.Up()
 	}
-	// Use schema instead
+	// Otherwise, use schema instead
 	if err := c.Dialect.LoadSchema(f); err != nil {
 		return err
 	}
-	return nil
+	// Then load migrations entries, without applying them
+	return mig.UpLogOnly()
 }
