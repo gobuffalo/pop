@@ -1,6 +1,7 @@
 package pop_test
 
 import (
+	"fmt"
 	"reflect"
 	"testing"
 
@@ -69,8 +70,8 @@ func Test_Model_Meta_Map_For_Slice(t *testing.T) {
 	m = pop.Model{Value: &v2}
 	mm = m.Meta()
 	sl = mm.MakeMap()
-	r.Equal(sl.Type, reflect.MapOf(reflect.TypeOf(""), reflect.TypeOf(v2[0])))
-	r.Equal(1, len(sl.Value.Interface().(map[string]int)))
+	r.Equal(sl.Type, reflect.MapOf(reflect.TypeOf(""), reflect.PtrTo(reflect.TypeOf(v2[0]))))
+	r.Equal(1, len(sl.Value.Interface().(map[string]*int)))
 }
 
 func Test_Model_Meta_Associations(t *testing.T) {
@@ -117,6 +118,9 @@ func Test_Model_Meta_Associations_Direct(t *testing.T) {
 
 		err = loadDirect(&users, tx, "has_one")
 		a.NoError(err)
+
+		// err = pop.LoadBidirect(&users, tx, "many_to_many")
+		// a.NoError(err)
 
 		a.Equal(1, len(users[0].Books))
 		a.Equal(users[0].ID, users[0].FavoriteSong.UserID)
@@ -188,15 +192,17 @@ func loadIndirect(model interface{}, tx *pop.Connection, tag string) error {
 
 	// 2- get all associations with tag specified.
 	assos := mm.Association(tag)
-	args := mm.FieldByName("UserID").Interface()
-	mmap := mm.MakeMapWithField("UserID")
 
 	// 3- iterate and fill every has many association.
 	for _, asso := range assos {
 		assoSlice := asso.MakeSlice()
 		assoSliceInt := assoSlice.Interface()
 
-		err := tx.Where(asso.Constraint(), args...).All(assoSliceInt)
+		fieldName := fmt.Sprintf("%s%s", asso.Name, "ID")
+
+		args := mm.FieldByName(fieldName).Interface()
+		mmap := mm.MakeMapWithField(fieldName)
+		err := tx.Where("id in (?)", args...).All(assoSliceInt)
 		if err != nil {
 			return err
 		}
@@ -209,10 +215,11 @@ func loadIndirect(model interface{}, tx *pop.Connection, tag string) error {
 			// Get the relationship field.
 			v := elemVal.FieldByName("ID")
 			slices := mmap.MapValue(v.Interface())
+
 			if slices.IsValid() && (slices.Kind() == reflect.Slice || slices.Kind() == reflect.Array) {
 				for j := 0; j < slices.Len(); j++ {
 					vel := reflect.Indirect(slices.Index(j))
-					b := vel.FieldByName("User")
+					b := vel.FieldByName(asso.Name)
 					if b.Kind() == reflect.Ptr {
 						b.Set(elemVal.Addr())
 					} else {

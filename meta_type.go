@@ -2,6 +2,7 @@ package pop
 
 import (
 	"fmt"
+	"github.com/gobuffalo/pop/columns"
 	"reflect"
 	"strings"
 
@@ -31,10 +32,6 @@ type AssociationMetaType struct {
 // for this association.
 func (amt *AssociationMetaType) Constraint() string {
 	column := (&Model{Value: amt.Root.Value.Interface()}).associationName()
-
-	if amt.tags.Get("belongs_to") != "" {
-		column = "id"
-	}
 
 	if amt.tags.Get("fk_id") != "" {
 		column = amt.tags.Get("fk_id")
@@ -189,7 +186,11 @@ func (t *MetaType) makeMapForSlice() *MetaType {
 		if t.IndirectValue.Len() > 0 {
 			for i := 0; i < t.IndirectValue.Len(); i++ {
 				v := t.IndirectValue.Index(i)
-				m.AppendMap(reflect.Indirect(v).FieldByName("ID").Interface(), v.Addr().Interface())
+				if v.Kind() == reflect.Ptr {
+					m.AppendMap(reflect.Indirect(v).FieldByName("ID").Interface(), v.Interface())
+				} else {
+					m.AppendMap(reflect.Indirect(v).FieldByName("ID").Interface(), v.Addr().Interface())
+				}
 			}
 		}
 		return m
@@ -197,8 +198,12 @@ func (t *MetaType) makeMapForSlice() *MetaType {
 
 	if t.IndirectValue.Len() > 0 {
 		for i := 0; i < t.IndirectValue.Len(); i++ {
-			v := t.IndirectValue.Index(i).Interface()
-			m.AppendMap(fmt.Sprintf("%s", v), v)
+			v := t.IndirectValue.Index(i)
+			if v.Kind() == reflect.Ptr {
+				m.AppendMap(fmt.Sprintf("%s", v.Elem().Interface()), v.Interface())
+			} else {
+				m.AppendMap(fmt.Sprintf("%s", v.Interface()), v.Addr().Interface())
+			}
 		}
 	}
 	return m
@@ -348,4 +353,50 @@ func (rv ReflectValues) Interface() []interface{} {
 		values = append(values, v.Interface())
 	}
 	return values
+}
+
+func LoadBidirect(model interface{}, tx *Connection, tag string) error {
+	// 1- transform into a model and get meta.
+	m := Model{Value: model}
+	mm := m.Meta()
+	mmap := mm.MakeMap()
+
+	// 2- get all associations with tag specified.
+	assos := mm.Association(tag)
+
+	// 3- iterate and fill every has many association.
+	for _, asso := range assos {
+		masso := &Model{Value: asso.Value.Interface()}
+
+		through := asso.tags.Get(tag)
+		modelTableName := m.TableName()
+		assoTableName := masso.TableName()
+		modelAssociationName := m.associationName()
+		if asso.tags.Get("fk_id") != "" {
+			modelAssociationName = asso.tags.Get("fk_id")
+		}
+		assoAssociationName := masso.associationName()
+
+		// build query.
+		cols := columns.ColumnsForStruct(masso.Value, assoTableName)
+		selectPart := fmt.Sprintf("select %s.%s as %s,%s from %s", modelTableName, "id", modelAssociationName, cols.Readable().SelectString(), assoTableName)
+
+		joinPart := fmt.Sprintf("left join %s on %s.%s = %s.id left join %s on %s.%s = %s.id",
+			through, through, assoAssociationName, assoTableName,
+			modelTableName, through, modelAssociationName, modelTableName)
+
+		wherePart := fmt.Sprintf("where %s.%s in (?)", through, modelAssociationName)
+		query := fmt.Sprintf("%s %s %s", selectPart, joinPart, wherePart)
+		fmt.Println(query)
+		// execute for store map.
+		conn := tx.Store.(*dB)
+		row := conn.QueryRowx(tx.Dialect.TranslateSQL(query), mmap.MapKeys().Interface())
+		result := map[string]interface{}{}
+		err := row.MapScan(result)
+		if err != nil {
+			return err
+		}
+		fmt.Println(result)
+	}
+	return nil
 }
