@@ -33,6 +33,7 @@ func (tx *Tx) Transaction() (*Tx, error) {
 	return tx, nil
 }
 
+// Close does nothing. This is defined so it implements the `Store` interface.
 func (tx *Tx) Close() error {
 	return nil
 }

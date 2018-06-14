@@ -5,6 +5,7 @@ import (
 	"strings"
 )
 
+// ReadableColumns represents a list of columns Pop is allowed to read.
 type ReadableColumns struct {
 	Columns
 }

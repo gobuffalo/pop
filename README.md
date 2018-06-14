@@ -6,7 +6,7 @@ So what does Pop do exactly? Well, it wraps the absolutely amazing [https://gith
 
 Pop makes it easy to do CRUD operations, run migrations, and build/execute queries. Is Pop an ORM? I'll leave that up to you, the reader, to decide.
 
-Pop, by default, follows conventions that were influenced by the (ActiveRecord)[http://www.rubyonrails.org] Ruby gem. What does this mean?
+Pop, by default, follows conventions that were influenced by the [ActiveRecord](http://www.rubyonrails.org) Ruby gem. What does this mean?
 
 * Tables must have an "id" column and a corresponding "ID" field on the `struct` being used.
 * If there is a `timestamp` column named `created_at`, and a `CreatedAt time.Time` attribute on the `struct`, it will be set with the current time when the record is created.
