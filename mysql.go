@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
 	"os/exec"
 	"strings"
@@ -148,31 +149,32 @@ func (m *mysql) DumpSchema(w io.Writer) error {
 }
 
 func (m *mysql) LoadSchema(r io.Reader) error {
-	deets := m.Details()
-	cmd := exec.Command("mysql", "-u", deets.User, fmt.Sprintf("--password=%s", deets.Password), "-h", deets.Host, "-P", deets.Port, "-D", deets.Database)
-	if deets.Port == "socket" {
-		cmd = exec.Command("mysql", "-u", deets.User, fmt.Sprintf("--password=%s", deets.Password), "-S", deets.Host, "-D", deets.Database)
-	}
-	in, err := cmd.StdinPipe()
+	// Open DB connection on the target DB
+	deets := m.ConnectionDetails
+	db, err := sqlx.Open(deets.Dialect, m.MigrationURL())
 	if err != nil {
-		return err
+		return errors.WithMessage(err, fmt.Sprintf("unable to load schema for %s", deets.Database))
 	}
-	go func() {
-		defer in.Close()
-		io.Copy(in, r)
-	}()
-	Log(strings.Join(cmd.Args, " "))
-	err = cmd.Start()
+	defer db.Close()
+
+	// Get reader contents
+	contents, err := ioutil.ReadAll(r)
 	if err != nil {
 		return err
 	}
 
-	err = cmd.Wait()
-	if err != nil {
-		return err
+	if len(contents) == 0 {
+		fmt.Printf("schema is empty for %s, skipping\n", deets.Database)
+		return nil
 	}
 
-	fmt.Printf("loaded schema for %s\n", m.Details().Database)
+	// From the sqlx package docs, this works with pq driver
+	_, err = db.Exec(string(contents))
+	if err != nil {
+		return errors.WithMessage(err, fmt.Sprintf("unable to load schema for %s", deets.Database))
+	}
+
+	fmt.Printf("loaded schema for %s\n", deets.Database)
 	return nil
 }
 
