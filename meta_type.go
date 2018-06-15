@@ -2,9 +2,10 @@ package pop
 
 import (
 	"fmt"
-	"github.com/gobuffalo/pop/columns"
 	"reflect"
 	"strings"
+
+	"github.com/jmoiron/sqlx"
 
 	"github.com/gobuffalo/pop/nulls"
 )
@@ -341,7 +342,7 @@ func buildMap(key, val reflect.Type) reflect.Value {
 	return mapVal
 }
 
-// ReflectValue is a helper to wrap some util functions for
+// ReflectValues is a helper to wrap some util functions for
 // reflect.Value slice.
 type ReflectValues []reflect.Value
 
@@ -355,6 +356,7 @@ func (rv ReflectValues) Interface() []interface{} {
 	return values
 }
 
+// LoadBidirect loads bidirectional associations. Use many to many.
 func LoadBidirect(model interface{}, tx *Connection, tag string) error {
 	// 1- transform into a model and get meta.
 	m := Model{Value: model}
@@ -369,34 +371,60 @@ func LoadBidirect(model interface{}, tx *Connection, tag string) error {
 		masso := &Model{Value: asso.Value.Interface()}
 
 		through := asso.tags.Get(tag)
-		modelTableName := m.TableName()
-		assoTableName := masso.TableName()
+		// modelTableName := m.TableName()
+		// assoTableName := masso.TableName()
 		modelAssociationName := m.associationName()
-		if asso.tags.Get("fk_id") != "" {
-			modelAssociationName = asso.tags.Get("fk_id")
-		}
 		assoAssociationName := masso.associationName()
+		if asso.tags.Get("fk_id") != "" {
+			assoAssociationName = asso.tags.Get("fk_id")
+		}
 
 		// build query.
-		cols := columns.ColumnsForStruct(masso.Value, assoTableName)
-		selectPart := fmt.Sprintf("select %s.%s as %s,%s from %s", modelTableName, "id", modelAssociationName, cols.Readable().SelectString(), assoTableName)
+		selectPart := fmt.Sprintf("select %s,%s from %s", modelAssociationName, assoAssociationName, through)
+		wherePart := fmt.Sprintf("where %s in (?)", modelAssociationName)
+		query := fmt.Sprintf("%s %s", selectPart, wherePart)
 
-		joinPart := fmt.Sprintf("left join %s on %s.%s = %s.id left join %s on %s.%s = %s.id",
-			through, through, assoAssociationName, assoTableName,
-			modelTableName, through, modelAssociationName, modelTableName)
-
-		wherePart := fmt.Sprintf("where %s.%s in (?)", through, modelAssociationName)
-		query := fmt.Sprintf("%s %s %s", selectPart, joinPart, wherePart)
-		fmt.Println(query)
 		// execute for store map.
-		conn := tx.Store.(*dB)
-		row := conn.QueryRowx(tx.Dialect.TranslateSQL(query), mmap.MapKeys().Interface())
-		result := map[string]interface{}{}
-		err := row.MapScan(result)
+		conn := tx.Store.(*Tx)
+
+		slice := mmap.MapKeys().Interface()
+		sliceInt := []int{}
+		for _, i := range slice {
+			sliceInt = append(sliceInt, i.(int))
+		}
+
+		query, args, err := sqlx.In(query, sliceInt)
 		if err != nil {
 			return err
 		}
-		fmt.Println(result)
+
+		rows, err := conn.Queryx(tx.Dialect.TranslateSQL(query), args...)
+		if err != nil {
+			return err
+		}
+
+		assoModelMap := []map[string]interface{}{}
+		assoIDsMap := []interface{}{}
+		for rows.Next() {
+			result := map[string]interface{}{}
+			err = rows.MapScan(result)
+			if err != nil {
+				return err
+			}
+			assoIDsMap = append(assoIDsMap, result[assoAssociationName])
+			assoModelMap = append(assoModelMap, result)
+		}
+
+		// Load all associations.
+		modelAsso := &Model{Value: mm.IndirectValue.FieldByName(asso.Name).Interface()}
+		metaAsso := modelAsso.Meta()
+		metaAssoSlice := metaAsso.MakeSlice()
+		tx.Where("id in (?)", assoIDsMap...).All(metaAssoSlice.Interface())
+
+		for i := 0; i < metaAssoSlice.IndirectValue.Len(); i++ {
+			v := metaAssoSlice.IndirectValue.Index(i)
+			fmt.Println(v)
+		}
 	}
 	return nil
 }
