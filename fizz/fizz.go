@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-type Options map[string]interface{}
+type Options map[interface{}]interface{}
 
 type fizzer struct {
 	Bubbler *Bubbler
