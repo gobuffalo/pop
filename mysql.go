@@ -10,9 +10,9 @@ import (
 
 	// Load MySQL Go driver
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/gobuffalo/fizz"
+	"github.com/gobuffalo/fizz/translators"
 	"github.com/gobuffalo/pop/columns"
-	"github.com/gobuffalo/pop/fizz"
-	"github.com/gobuffalo/pop/fizz/translators"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 )
