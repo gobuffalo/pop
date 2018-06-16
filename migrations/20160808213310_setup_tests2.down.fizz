@@ -1,6 +1,0 @@
-drop_table("songs")
-drop_table("course_codes")
-drop_table("courses")
-{{ if eq .Dialect "postgres" }}
-drop_table("cakes")
-{{ end }}

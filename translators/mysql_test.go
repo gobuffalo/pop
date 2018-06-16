@@ -1,8 +1,6 @@
 package translators_test
 
 import (
-	"os"
-
 	"github.com/gobuffalo/fizz"
 	"github.com/gobuffalo/fizz/translators"
 	"github.com/gobuffalo/pop"
@@ -12,8 +10,6 @@ var _ fizz.Translator = (*translators.MySQL)(nil)
 var myt = translators.NewMySQL("", "")
 
 func init() {
-	pwd, _ := os.Getwd()
-	pop.AddLookupPaths(pwd)
 	myconn, err := pop.Connect("mysql")
 	if err != nil {
 		panic(err.Error())
