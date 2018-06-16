@@ -17,7 +17,7 @@ func (t *Table) DisableTimestamps() {
 	t.Options["timestamps"] = false
 }
 
-func (t *Table) Column(name string, colType string, options map[string]interface{}) {
+func (t *Table) Column(name string, colType string, options Options) {
 	var primary bool
 	if _, ok := options["primary"]; ok {
 		primary = true

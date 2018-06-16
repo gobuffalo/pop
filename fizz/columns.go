@@ -21,7 +21,7 @@ type Column struct {
 	Name    string
 	ColType string
 	Primary bool
-	Options map[string]interface{}
+	Options Options
 }
 
 func (f fizzer) ChangeColumn() interface{} {
