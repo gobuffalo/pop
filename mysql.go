@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"strings"
@@ -148,36 +147,12 @@ func (m *mysql) DumpSchema(w io.Writer) error {
 	return nil
 }
 
+// LoadSchema executes a schema sql file against the configured database.
 func (m *mysql) LoadSchema(r io.Reader) error {
-	// Open DB connection on the target DB
-	deets := m.ConnectionDetails
-	db, err := sqlx.Open(deets.Dialect, m.MigrationURL())
-	if err != nil {
-		return errors.WithMessage(err, fmt.Sprintf("unable to load schema for %s", deets.Database))
-	}
-	defer db.Close()
-
-	// Get reader contents
-	contents, err := ioutil.ReadAll(r)
-	if err != nil {
-		return err
-	}
-
-	if len(contents) == 0 {
-		fmt.Printf("schema is empty for %s, skipping\n", deets.Database)
-		return nil
-	}
-
-	// From the sqlx package docs, this works with pq driver
-	_, err = db.Exec(string(contents))
-	if err != nil {
-		return errors.WithMessage(err, fmt.Sprintf("unable to load schema for %s", deets.Database))
-	}
-
-	fmt.Printf("loaded schema for %s\n", deets.Database)
-	return nil
+	return genericLoadSchema(m.ConnectionDetails, m.MigrationURL(), r)
 }
 
+// TruncateAll truncates all tables for the given connection.
 func (m *mysql) TruncateAll(tx *Connection) error {
 	stmts := []string{}
 	err := tx.RawQuery(mysqlTruncate, m.Details().Database).All(&stmts)
