@@ -23,7 +23,7 @@ func (ti mysqlTableInfo) ToColumn() fizz.Column {
 		Name:    ti.Field,
 		ColType: ti.Type,
 		Primary: ti.Key == "PRI",
-		Options: map[string]interface{}{},
+		Options: fizz.Options{},
 	}
 	if strings.ToLower(ti.Null) == "yes" {
 		c.Options["null"] = true
