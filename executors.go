@@ -134,6 +134,11 @@ func (c *Connection) Create(model interface{}, excludeColumns ...string) error {
 // ValidateAndUpdate applies validation rules on the given entry, then update it
 // if the validation succeed, excluding the given columns.
 func (c *Connection) ValidateAndUpdate(model interface{}, excludeColumns ...string) (*validate.Errors, error) {
+
+	if c.eager {
+		return c.eagerValidateAndUpdate(model, excludeColumns...)
+	}
+
 	sm := &Model{Value: model}
 	verrs, err := sm.validateUpdate(c)
 	if err != nil {

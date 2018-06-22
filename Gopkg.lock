@@ -44,6 +44,23 @@
   version = "v1.10.4"
 
 [[projects]]
+  name = "github.com/gobuffalo/pop"
+  packages = [
+    ".",
+    "associations",
+    "columns",
+    "fizz",
+    "fizz/translators",
+    "nulls",
+    "slices",
+    "soda/cmd",
+    "soda/cmd/generate",
+    "soda/cmd/schema"
+  ]
+  revision = "fb309e29896c205465f53af10679c52f9ce7c858"
+  version = "v4.5.10"
+
+[[projects]]
   name = "github.com/gobuffalo/uuid"
   packages = ["."]
   revision = "3a9fb6c5c481d4886f1e9323c61ad743fb955860"
@@ -212,6 +229,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "be5f89623ebc72c1e48d90328642f9bf45ef80766479a040f579511bb4c7d857"
+  inputs-digest = "0d5f23baa3245074716de656d07142c444ec49f59d72e09842351eb29b85b905"
   solver-name = "gps-cdcl"
   solver-version = 1
