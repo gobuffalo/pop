@@ -148,7 +148,6 @@ func (c *Connection) eagerUpdate(model interface{}, excludeColumns ...string) er
 			continue
 		}
 
-		// TODO  figure out a way to make something upsert
 		sm := &Model{Value: i}
 		verrs, err := sm.validateUpdate(c)
 		if err != nil {
