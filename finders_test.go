@@ -26,6 +26,23 @@ func Test_Find(t *testing.T) {
 	})
 }
 
+func Test_Find_UTF8(t *testing.T) {
+	transaction(func(tx *pop.Connection) {
+		r := require.New(t)
+
+		user := User{Name: nulls.NewString("💩")}
+		err := tx.Create(&user)
+		r.NoError(err)
+
+		u := User{}
+		err = tx.Find(&u, user.ID)
+		r.NoError(err)
+
+		r.NotEqual(u.ID, 0)
+		r.Equal(u.Name.String, "💩")
+	})
+}
+
 func Test_Select(t *testing.T) {
 	transaction(func(tx *pop.Connection) {
 		r := require.New(t)
