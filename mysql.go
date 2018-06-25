@@ -147,35 +147,12 @@ func (m *mysql) DumpSchema(w io.Writer) error {
 	return nil
 }
 
+// LoadSchema executes a schema sql file against the configured database.
 func (m *mysql) LoadSchema(r io.Reader) error {
-	deets := m.Details()
-	cmd := exec.Command("mysql", "-u", deets.User, fmt.Sprintf("--password=%s", deets.Password), "-h", deets.Host, "-P", deets.Port, "-D", deets.Database)
-	if deets.Port == "socket" {
-		cmd = exec.Command("mysql", "-u", deets.User, fmt.Sprintf("--password=%s", deets.Password), "-S", deets.Host, "-D", deets.Database)
-	}
-	in, err := cmd.StdinPipe()
-	if err != nil {
-		return err
-	}
-	go func() {
-		defer in.Close()
-		io.Copy(in, r)
-	}()
-	Log(strings.Join(cmd.Args, " "))
-	err = cmd.Start()
-	if err != nil {
-		return err
-	}
-
-	err = cmd.Wait()
-	if err != nil {
-		return err
-	}
-
-	fmt.Printf("loaded schema for %s\n", m.Details().Database)
-	return nil
+	return genericLoadSchema(m.ConnectionDetails, m.MigrationURL(), r)
 }
 
+// TruncateAll truncates all tables for the given connection.
 func (m *mysql) TruncateAll(tx *Connection) error {
 	stmts := []string{}
 	err := tx.RawQuery(mysqlTruncate, m.Details().Database).All(&stmts)
