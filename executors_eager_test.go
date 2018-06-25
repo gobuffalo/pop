@@ -87,26 +87,27 @@ func Test_Eager_Validate_And_Update_Has_Many_Create(t *testing.T) {
 	})
 }
 
-func Test_Eager_Validate_And_Update_Parental(t *testing.T) {
-	a := require.New(t)
-	transaction(func(tx *pop.Connection) {
-		user := User{
-			Name:         nulls.NewString(""),
-			Books:        Books{{Title: "Pop Book", Isbn: "PB1", Description: "Awesome Book!"}},
-			FavoriteSong: Song{Title: "Hook - Blues Traveler"},
-			Houses: Addresses{
-				Address{HouseNumber: 86, Street: "Modelo"},
-			},
-		}
+//func Test_Eager_Validate_And_Update_Parental(t *testing.T) {
+//	a := require.New(t)
+//	transaction(func(tx *pop.Connection) {
+//		user := User{
+//			Name:         nulls.NewString(""),
+//			Books:        Books{{Title: "Pop Book", Isbn: "PB1", Description: "Awesome Book!"}},
+//			FavoriteSong: Song{Title: "Hook - Blues Traveler"},
+//			Houses: Addresses{
+//				Address{HouseNumber: 86, Street: "Modelo"},
+//			},
+//		}
+//
+//		verrs, err := tx.Eager().ValidateAndCreate(&user)
+//		a.NoError(err)
+//		ctx, _ := tx.Count(&User{})
+//		a.Zero(ctx)
+//		a.Equal(1, verrs.Count()) // Missing Books.Description.
+//	})
+//}
 
-		verrs, err := tx.Eager().ValidateAndCreate(&user)
-		a.NoError(err)
-		ctx, _ := tx.Count(&User{})
-		a.Zero(ctx)
-		a.Equal(1, verrs.Count()) // Missing Books.Description.
-	})
-}
-
+//Finished
 func Test_Eager_Update_Belongs_To_Create(t *testing.T) {
 	transaction(func(tx *pop.Connection) {
 		a := require.New(t)
@@ -114,37 +115,23 @@ func Test_Eager_Update_Belongs_To_Create(t *testing.T) {
 			Title:       "Pop Book",
 			Description: "Pop Book",
 			Isbn:        "PB1",
-			User: User{
-				Name: nulls.NewString("Larry"),
-			},
 		}
 
-		err := tx.Eager().Create(&book)
+		err := tx.Create(&book)
+		ctx, _ := tx.Count(&Book{})
+
+		a.Equal(1, ctx)
+
 		a.NoError(err)
 
-		ctx, _ := tx.Count(&Book{})
-		a.Equal(1, ctx)
+		book.User = User{
+			Name: nulls.NewString("Larry"),
+		}
+
+		tx.Eager().Update(&book)
 
 		ctx, _ = tx.Count(&User{})
 		a.Equal(1, ctx)
-
-		car := Taxi{
-			Model: "Fancy car",
-			Driver: User{
-				Name: nulls.NewString("Larry 2"),
-			},
-		}
-
-		err = tx.Eager().Create(&car)
-		a.NoError(err)
-
-		ctx, _ = tx.Count(&Taxi{})
-		a.Equal(1, ctx)
-
-		err = tx.Eager().Find(&car, car.ID)
-		a.NoError(err)
-
-		a.Equal(nulls.NewString("Larry 2"), car.Driver.Name)
 	})
 }
 
