@@ -59,7 +59,7 @@ func (f fizzer) DropForeignKey() interface{} {
 
 func parseForeignKeyRef(refs interface{}) (ForeignKeyRef, error) {
 	fkr := ForeignKeyRef{}
-	refMap, ok := refs.(map[string]interface{})
+	refMap, ok := refs.(map[interface{}]interface{})
 	if !ok {
 		return fkr, errors.New(`invalid references format %s\nmust be "{"table": ["colum1", "column2"]}"`)
 	}
@@ -67,7 +67,7 @@ func parseForeignKeyRef(refs interface{}) (ForeignKeyRef, error) {
 		return fkr, errors.New("only one table is supported as Foreign key reference")
 	}
 	for table, columns := range refMap {
-		fkr.Table = table
+		fkr.Table = fmt.Sprint(table)
 		for _, c := range columns.([]interface{}) {
 			fkr.Columns = append(fkr.Columns, fmt.Sprintf("%s", c))
 		}
