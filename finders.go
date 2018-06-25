@@ -70,7 +70,9 @@ func (q *Query) First(model interface{}) error {
 	}
 
 	if q.eager {
-		return q.eagerAssociations(model)
+		err = q.eagerAssociations(model)
+		q.disableEager()
+		return err
 	}
 	return nil
 }
@@ -102,7 +104,9 @@ func (q *Query) Last(model interface{}) error {
 	}
 
 	if q.eager {
-		return q.eagerAssociations(model)
+		err = q.eagerAssociations(model)
+		q.disableEager()
+		return err
 	}
 
 	return nil
@@ -138,7 +142,9 @@ func (q *Query) All(models interface{}) error {
 	}
 
 	if q.eager {
-		return q.eagerAssociations(models)
+		err = q.eagerAssociations(models)
+		q.disableEager()
+		return err
 	}
 
 	return nil
@@ -172,7 +178,9 @@ func (q *Query) paginateModel(models interface{}) error {
 func (c *Connection) Load(model interface{}, fields ...string) error {
 	q := Q(c)
 	q.eagerFields = fields
-	return q.eagerAssociations(model)
+	err := q.eagerAssociations(model)
+	q.disableEager()
+	return err
 }
 
 func (q *Query) eagerAssociations(model interface{}) error {
@@ -198,7 +206,8 @@ func (q *Query) eagerAssociations(model interface{}) error {
 	}
 
 	//disable eager mode for current connection.
-	q.disableEager()
+	q.eager = false
+	q.Connection.eager = false
 
 	for _, association := range assos {
 		if association.Skipped() {
@@ -241,8 +250,9 @@ func (q *Query) eagerAssociations(model interface{}) error {
 		innerAssociations := association.InnerAssociations()
 		for _, inner := range innerAssociations {
 			v = reflect.Indirect(reflect.ValueOf(model)).FieldByName(inner.Name)
-			q.eagerFields = []string{inner.Fields}
-			err = q.eagerAssociations(v.Addr().Interface())
+			innerQuery := Q(query.Connection)
+			innerQuery.eagerFields = []string{inner.Fields}
+			err = innerQuery.eagerAssociations(v.Addr().Interface())
 			if err != nil {
 				return err
 			}

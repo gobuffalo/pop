@@ -402,6 +402,31 @@ func Test_All(t *testing.T) {
 	})
 }
 
+func Test_All_Eager_Slice_With_All(t *testing.T) {
+	transaction(func(tx *pop.Connection) {
+		r := require.New(t)
+
+		for _, name := range []string{"Mark", "Joe", "Jane"} {
+			user := User{Name: nulls.NewString(name)}
+			err := tx.Create(&user)
+			r.NoError(err)
+
+			book := Book{Title: "Book of " + user.Name.String, UserID: nulls.NewInt(user.ID)}
+			err = tx.Create(&book)
+			r.NoError(err)
+		}
+
+		u := Users{}
+		err := tx.Eager("Books.User").All(&u)
+		r.NoError(err)
+		r.Equal(len(u), 3)
+
+		r.Equal(u[0].ID, u[0].Books[0].User.ID)
+		r.Equal(u[1].ID, u[1].Books[0].User.ID)
+		r.Equal(u[2].ID, u[2].Books[0].User.ID)
+	})
+}
+
 func Test_All_Eager(t *testing.T) {
 	transaction(func(tx *pop.Connection) {
 		r := require.New(t)
