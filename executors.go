@@ -134,6 +134,11 @@ func (c *Connection) Create(model interface{}, excludeColumns ...string) error {
 // ValidateAndUpdate applies validation rules on the given entry, then update it
 // if the validation succeed, excluding the given columns.
 func (c *Connection) ValidateAndUpdate(model interface{}, excludeColumns ...string) (*validate.Errors, error) {
+
+	if c.eager {
+		return c.eagerValidateAndUpdate(model, excludeColumns...)
+	}
+
 	sm := &Model{Value: model}
 	verrs, err := sm.validateUpdate(c)
 	if err != nil {
@@ -148,6 +153,9 @@ func (c *Connection) ValidateAndUpdate(model interface{}, excludeColumns ...stri
 // Update writes changes from an entry to the database, excluding the given columns.
 // It updates the `updated_at` column automatically.
 func (c *Connection) Update(model interface{}, excludeColumns ...string) error {
+	if c.eager {
+		return c.eagerUpdate(model, excludeColumns...)
+	}
 	sm := &Model{Value: model}
 	return sm.iterate(func(m *Model) error {
 		return c.timeFunc("Update", func() error {

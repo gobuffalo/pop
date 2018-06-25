@@ -128,3 +128,164 @@ func (c *Connection) eagerValidateAndCreate(model interface{}, excludeColumns ..
 
 	return verrs, c.eagerCreate(model, excludeColumns...)
 }
+
+func (c *Connection) eagerUpdate(model interface{}, excludeColumns ...string) error {
+	asos, err := associations.AssociationsForStruct(model, c.eagerFields...)
+	if err != nil {
+		return err
+	}
+
+	c.disableEager()
+
+	if len(asos) == 0 {
+		return c.Update(model, excludeColumns...)
+	}
+
+	before := asos.AssociationsBeforeCreatable()
+	for index := range before {
+		i := before[index].BeforeInterface()
+		if i == nil {
+			continue
+		}
+
+		sm := &Model{Value: i}
+		verrs, err := sm.validateUpdate(c)
+		if err != nil {
+			return err
+		}
+
+		if verrs.HasAny() {
+
+			err = c.Create(i)
+			if err != nil {
+				return err
+			}
+		} else {
+
+			c.Update(i)
+
+		}
+
+		err = before[index].BeforeSetup()
+		if err != nil {
+			return err
+		}
+	}
+
+	err = c.Update(model, excludeColumns...)
+	if err != nil {
+		return err
+	}
+
+	after := asos.AssociationsAfterCreatable()
+	for index := range after {
+		err = after[index].AfterSetup()
+		if err != nil {
+			return err
+		}
+
+		i := after[index].AfterInterface()
+		if i == nil {
+			continue
+		}
+
+		sm := &Model{Value: i}
+		verrs, err := sm.validateUpdate(c)
+		if err != nil {
+			return err
+		}
+
+		if verrs.HasAny() {
+
+			err = c.Create(i)
+			if err != nil {
+				return err
+			}
+		} else {
+
+			c.Update(i)
+
+		}
+	}
+
+	// TODO need to check if all the assoications exist or if they should be deleted some how.
+	stms := asos.AssociationsCreatableStatement()
+	for index := range stms {
+		statements := stms[index].Statements()
+		for _, stm := range statements {
+			if c.TX != nil {
+				_, err := c.TX.Exec(c.Dialect.TranslateSQL(stm.Statement), stm.Args...)
+				if err != nil {
+					return err
+				}
+				continue
+			}
+			_, err = c.Store.Exec(c.Dialect.TranslateSQL(stm.Statement), stm.Args...)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return err
+}
+
+func (c *Connection) eagerValidateAndUpdate(model interface{}, excludeColumns ...string) (*validate.Errors, error) {
+	asos, err := associations.AssociationsForStruct(model, c.eagerFields...)
+	verrs := validate.NewErrors()
+
+	if err != nil {
+		return verrs, err
+	}
+
+	if len(asos) == 0 {
+		c.disableEager()
+		return c.ValidateAndUpdate(model, excludeColumns...)
+	}
+
+	before := asos.AssociationsBeforeCreatable()
+	for index := range before {
+		i := before[index].BeforeInterface()
+		if i == nil {
+			continue
+		}
+
+		sm := &Model{Value: i}
+		verrs, err := sm.validateUpdate(c)
+		if err != nil {
+			return verrs, err
+		}
+
+		verrs, err = sm.validateCreate(c)
+		if err != nil || verrs.HasAny() {
+			return verrs, err
+		}
+	}
+
+	after := asos.AssociationsAfterCreatable()
+	for index := range after {
+		i := after[index].AfterInterface()
+		if i == nil {
+			continue
+		}
+
+		sm := &Model{Value: i}
+		verrs, err := sm.validateUpdate(c)
+		if err != nil {
+			return verrs, err
+		}
+
+		verrs, err = sm.validateCreate(c)
+		if err != nil || verrs.HasAny() {
+			return verrs, err
+		}
+	}
+
+	sm := &Model{Value: model}
+	verrs, err = sm.validateUpdate(c)
+	if err != nil || verrs.HasAny() {
+		return verrs, err
+	}
+
+	return verrs, c.eagerUpdate(model, excludeColumns...)
+}
