@@ -184,6 +184,13 @@ func (c *Connection) Load(model interface{}, fields ...string) error {
 }
 
 func (q *Query) eagerAssociations(model interface{}) error {
+	if q.eagerMode == EagerPreload {
+		return q.eagerPreloadAssociations(model)
+	}
+	return q.eagerDefaultAssociations(model)
+}
+
+func (q *Query) eagerDefaultAssociations(model interface{}) error {
 	var err error
 
 	// eagerAssociations for a slice or array model passed as a param.
@@ -258,6 +265,25 @@ func (q *Query) eagerAssociations(model interface{}) error {
 			}
 		}
 	}
+	return nil
+}
+
+func (q *Query) eagerPreloadAssociations(model interface{}) error {
+	mt := (&Model{Value: model}).Meta()
+	err := mt.LoadDirect(q.Connection, "has_many")
+	if err != nil {
+		return err
+	}
+	err = mt.LoadDirect(q.Connection, "has_one")
+	if err != nil {
+		return err
+	}
+
+	err = mt.LoadIndirect(q.Connection, "belongs_to")
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 

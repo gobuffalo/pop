@@ -91,6 +91,30 @@ func Test_Find_Eager_Has_Many(t *testing.T) {
 	})
 }
 
+func Test_All_Eager_Preload_Mode(t *testing.T) {
+	transaction(func(tx *pop.Connection) {
+		r := require.New(t)
+
+		for _, name := range []string{"Mark", "Joe", "Jane"} {
+			user := User{Name: nulls.NewString(name)}
+			err := tx.Create(&user)
+			r.NoError(err)
+
+			if name == "Mark" {
+				book := Book{Title: "Pop Book", Isbn: "PB1", UserID: nulls.NewInt(user.ID)}
+				err = tx.Create(&book)
+				r.NoError(err)
+			}
+		}
+
+		u := Users{}
+		err := tx.SetEagerMode(pop.EagerPreload).Eager().All(&u)
+		r.NoError(err)
+		r.Equal(len(u), 3)
+		r.Equal(len(u[0].Books), 1)
+	})
+}
+
 func Test_Find_Eager_Has_Many_Order_By(t *testing.T) {
 	transaction(func(tx *pop.Connection) {
 		r := require.New(t)

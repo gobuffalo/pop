@@ -170,9 +170,14 @@ func (t *MetaType) makeMapForStruct() *MetaType {
 	if t.Ptr {
 		typ = reflect.PtrTo(t.IndirectType)
 	}
-	mapMade := buildMap(fIDs[0].Type, typ)
 
-	return buildMetaType(mapMade.Interface(), "")
+	mapMade := buildMap(fIDs[0].Type, typ)
+	m := buildMetaType(mapMade.Interface(), "")
+
+	if !reflect.DeepEqual(fIDs[0].Value.Interface(), reflect.Zero(fIDs[0].Type).Interface()) {
+		m.AppendMap(fIDs[0].Value.Interface(), t.Value.Interface())
+	}
+	return m
 }
 
 func (t *MetaType) makeMapForSlice() *MetaType {
@@ -357,14 +362,12 @@ func (rv ReflectValues) Interface() []interface{} {
 }
 
 // LoadDirect loads associations which depends only from parent model.
-func LoadDirect(model interface{}, tx *Connection, tag string) error {
-	// 1- transform into a model and get meta.
-	m := Model{Value: model}
-	mm := m.Meta()
-	mmap := mm.MakeMap()
+func (t *MetaType) LoadDirect(tx *Connection, tag string) error {
+	// 1- make a map for model.
+	mmap := t.MakeMap()
 
 	// 2- get all associations with tag specified.
-	assos := mm.Association(tag)
+	assos := t.Association(tag)
 
 	// 3- iterate and fill every has many association.
 	for _, asso := range assos {
@@ -406,23 +409,19 @@ func LoadDirect(model interface{}, tx *Connection, tag string) error {
 }
 
 // LoadIndirect loads those associations that are before.
-func LoadIndirect(model interface{}, tx *Connection, tag string) error {
-	// 1- transform into a model and get meta.
-	m := Model{Value: model}
-	mm := m.Meta()
+func (t *MetaType) LoadIndirect(tx *Connection, tag string) error {
+	// 1- get all associations with tag specified.
+	assos := t.Association(tag)
 
-	// 2- get all associations with tag specified.
-	assos := mm.Association(tag)
-
-	// 3- iterate and fill every has many association.
+	// 2- iterate and fill every has many association.
 	for _, asso := range assos {
 		assoSlice := asso.MakeSlice()
 		assoSliceInt := assoSlice.Interface()
 
 		fieldName := fmt.Sprintf("%s%s", asso.Name, "ID")
 
-		args := mm.FieldByName(fieldName).Interface()
-		mmap := mm.MakeMapWithField(fieldName)
+		args := t.FieldByName(fieldName).Interface()
+		mmap := t.MakeMapWithField(fieldName)
 		err := tx.Where("id in (?)", args...).All(assoSliceInt)
 		if err != nil {
 			return err

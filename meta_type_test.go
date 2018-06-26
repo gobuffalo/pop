@@ -83,7 +83,7 @@ func Test_Model_Meta_Associations(t *testing.T) {
 	r.Equal(3, len(mAssociations))
 }
 
-func Test_Model_Meta_Associations_Direct(t *testing.T) {
+func Test_Model_Meta_Associations_Loading(t *testing.T) {
 	transaction(func(tx *pop.Connection) {
 		a := require.New(t)
 
@@ -112,10 +112,11 @@ func Test_Model_Meta_Associations_Direct(t *testing.T) {
 		users := Users{}
 		tx.All(&users)
 
-		err := pop.LoadDirect(&users, tx, "has_many")
+		mt := (&pop.Model{Value: &users}).Meta()
+		err := mt.LoadDirect(tx, "has_many")
 		a.NoError(err)
 
-		err = pop.LoadDirect(&users, tx, "has_one")
+		err = mt.LoadDirect(tx, "has_one")
 		a.NoError(err)
 
 		// err = pop.LoadBidirect(&users, tx, "many_to_many")
@@ -129,7 +130,8 @@ func Test_Model_Meta_Associations_Direct(t *testing.T) {
 		err = tx.All(&books)
 		a.NoError(err)
 
-		pop.LoadIndirect(&books, tx, "belongs_to")
+		mt = (&pop.Model{Value: &books}).Meta()
+		mt.LoadIndirect(tx, "belongs_to")
 		a.Equal(users[0].ID, books[0].User.ID)
 		a.Equal(users[1].ID, books[1].User.ID)
 		a.Equal(users[2].ID, books[2].User.ID)
