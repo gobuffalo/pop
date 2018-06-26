@@ -185,7 +185,7 @@ func Q(c *Connection) *Query {
 		Connection:  c,
 		eager:       c.eager,
 		eagerFields: c.eagerFields,
-		eagerMode:   EagerDefault,
+		eagerMode:   eagerModeNil,
 	}
 }
 

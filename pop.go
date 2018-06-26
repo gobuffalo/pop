@@ -22,10 +22,11 @@ var logger = log.New(os.Stdout, "[POP] ", log.LstdFlags)
 type EagerMode int8
 
 const (
+	eagerModeNil EagerMode = iota
 	// EagerDefault is the current implementation, the default
 	// behavior of pop. This one introduce N+1 problem and will be used as
 	// default value for backward compatibility.
-	EagerDefault EagerMode = iota
+	EagerDefault
 
 	// EagerPreload mode works similar to Preload mode used in ActiveRecord.
 	// Avoid N+1 problem by reducing the number of hits to the database but

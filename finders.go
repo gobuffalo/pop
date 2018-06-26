@@ -184,7 +184,10 @@ func (c *Connection) Load(model interface{}, fields ...string) error {
 }
 
 func (q *Query) eagerAssociations(model interface{}) error {
-	if q.eagerMode == EagerPreload || loadingAssociationsStrategy == EagerPreload {
+	if q.eagerMode == eagerModeNil {
+		q.eagerMode = loadingAssociationsStrategy
+	}
+	if q.eagerMode == EagerPreload {
 		return q.eagerPreloadAssociations(model)
 	}
 	return q.eagerDefaultAssociations(model)
