@@ -149,7 +149,10 @@ func (m model) generateModelFile() error {
 }
 
 func (m model) generateFizz(cflag *pflag.Flag) error {
-	migrationPath := defaults.String(cflag.Value.String(), "./migrations")
+	migrationPath := "./migrations"
+	if cflag != nil {
+		migrationPath = cflag.Value.String()
+	}
 	err := pop.MigrationCreate(migrationPath, fmt.Sprintf("create_%s", m.Name.Table()), "fizz", []byte(m.Fizz()), []byte(m.UnFizz()))
 	if err != nil {
 		return err

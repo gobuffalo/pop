@@ -10,7 +10,7 @@ import (
 
 var migrationPath string
 
-var migrateCmd = &cobra.Command{
+var MigrateCmd = &cobra.Command{
 	Use:     "migrate",
 	Aliases: []string{"m"},
 	Short:   "Runs migrations against your database.",
@@ -28,6 +28,6 @@ var migrateCmd = &cobra.Command{
 }
 
 func init() {
-	RootCmd.AddCommand(migrateCmd)
+	RootCmd.AddCommand(MigrateCmd)
 	RootCmd.PersistentFlags().StringVarP(&migrationPath, "path", "p", "./migrations", "Path to the migrations folder")
 }
