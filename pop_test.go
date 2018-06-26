@@ -40,7 +40,7 @@ func TestSpecificSuites(t *testing.T) {
 }
 
 func init() {
-	pop.Debug = true
+	pop.Debug = false
 	pop.AddLookupPaths("./")
 
 	dialect := os.Getenv("SODA_DIALECT")

@@ -1,7 +1,6 @@
 package pop_test
 
 import (
-	"fmt"
 	"reflect"
 	"testing"
 
@@ -113,10 +112,10 @@ func Test_Model_Meta_Associations_Direct(t *testing.T) {
 		users := Users{}
 		tx.All(&users)
 
-		err := loadDirect(&users, tx, "has_many")
+		err := pop.LoadDirect(&users, tx, "has_many")
 		a.NoError(err)
 
-		err = loadDirect(&users, tx, "has_one")
+		err = pop.LoadDirect(&users, tx, "has_one")
 		a.NoError(err)
 
 		// err = pop.LoadBidirect(&users, tx, "many_to_many")
@@ -130,104 +129,9 @@ func Test_Model_Meta_Associations_Direct(t *testing.T) {
 		err = tx.All(&books)
 		a.NoError(err)
 
-		loadIndirect(&books, tx, "belongs_to")
+		pop.LoadIndirect(&books, tx, "belongs_to")
 		a.Equal(users[0].ID, books[0].User.ID)
 		a.Equal(users[1].ID, books[1].User.ID)
 		a.Equal(users[2].ID, books[2].User.ID)
 	})
-}
-
-func loadDirect(model interface{}, tx *pop.Connection, tag string) error {
-	// 1- transform into a model and get meta.
-	m := pop.Model{Value: model}
-	mm := m.Meta()
-	mmap := mm.MakeMap()
-
-	// 2- get all associations with tag specified.
-	assos := mm.Association(tag)
-
-	// 3- iterate and fill every has many association.
-	for _, asso := range assos {
-		assoSlice := asso.MakeSlice()
-		assoSliceInt := assoSlice.Interface()
-		args := mmap.MapKeys().Interface()
-
-		err := tx.Where(asso.Constraint(), args...).All(assoSliceInt)
-		if err != nil {
-			return err
-		}
-
-		// iterate over every slice element fill in the database.
-		assoSliceVal := assoSlice.IndirectValue
-		for i := 0; i < assoSliceVal.Len(); i++ {
-			elemVal := assoSliceVal.Index(i)
-
-			// Get the relationship field.
-			v := elemVal.FieldByName(asso.DependencyField())
-
-			// get the map value with the id specified.
-			var u reflect.Value
-			if n := nulls.New(v.Interface()); n != nil { // is a nulls type.
-				u = mmap.MapValue(n.Interface())
-			} else {
-				u = mmap.MapValue(v.Interface())
-			}
-
-			// get the association field of the map value and append value.
-			b := u.FieldByName(asso.Name)
-			if b.Kind() == reflect.Slice || b.Kind() == reflect.Array {
-				b.Set(reflect.Append(b, elemVal))
-			} else {
-				b.Set(elemVal)
-			}
-		}
-	}
-	return nil
-}
-
-func loadIndirect(model interface{}, tx *pop.Connection, tag string) error {
-	// 1- transform into a model and get meta.
-	m := pop.Model{Value: model}
-	mm := m.Meta()
-
-	// 2- get all associations with tag specified.
-	assos := mm.Association(tag)
-
-	// 3- iterate and fill every has many association.
-	for _, asso := range assos {
-		assoSlice := asso.MakeSlice()
-		assoSliceInt := assoSlice.Interface()
-
-		fieldName := fmt.Sprintf("%s%s", asso.Name, "ID")
-
-		args := mm.FieldByName(fieldName).Interface()
-		mmap := mm.MakeMapWithField(fieldName)
-		err := tx.Where("id in (?)", args...).All(assoSliceInt)
-		if err != nil {
-			return err
-		}
-
-		// iterate over every slice element fill in the database.
-		assoSliceVal := assoSlice.IndirectValue
-		for i := 0; i < assoSliceVal.Len(); i++ {
-			elemVal := assoSliceVal.Index(i)
-
-			// Get the relationship field.
-			v := elemVal.FieldByName("ID")
-			slices := mmap.MapValue(v.Interface())
-
-			if slices.IsValid() && (slices.Kind() == reflect.Slice || slices.Kind() == reflect.Array) {
-				for j := 0; j < slices.Len(); j++ {
-					vel := reflect.Indirect(slices.Index(j))
-					b := vel.FieldByName(asso.Name)
-					if b.Kind() == reflect.Ptr {
-						b.Set(elemVal.Addr())
-					} else {
-						b.Set(elemVal)
-					}
-				}
-			}
-		}
-	}
-	return nil
 }
