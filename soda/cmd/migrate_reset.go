@@ -19,5 +19,5 @@ var migrateResetCmd = &cobra.Command{
 }
 
 func init() {
-	migrateCmd.AddCommand(migrateResetCmd)
+	MigrateCmd.AddCommand(migrateResetCmd)
 }

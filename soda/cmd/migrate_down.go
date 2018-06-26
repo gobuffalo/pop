@@ -21,6 +21,6 @@ var migrateDownCmd = &cobra.Command{
 }
 
 func init() {
-	migrateCmd.AddCommand(migrateDownCmd)
+	MigrateCmd.AddCommand(migrateDownCmd)
 	migrateDownCmd.Flags().IntVarP(&migrationStep, "step", "s", 1, "Number of migration to down")
 }
