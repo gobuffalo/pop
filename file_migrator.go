@@ -7,9 +7,11 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 	"text/template"
 
-	"github.com/gobuffalo/pop/fizz"
+	"github.com/gobuffalo/fizz"
+	"github.com/gobuffalo/pop/fix"
 	"github.com/pkg/errors"
 )
 
@@ -100,6 +102,18 @@ func migrationContent(mf Migration, c *Connection, r io.Reader) (string, error) 
 	}
 
 	content := string(b)
+
+	if mf.Type == "fizz" {
+		// test for && fix anko migrations
+		fixed, err := fix.Anko(content)
+		if err != nil {
+			return "", errors.Wrapf(err, "could not fizz the migration %s", mf.Path)
+		}
+		if strings.TrimSpace(fixed) != strings.TrimSpace(content) {
+			fmt.Printf("[WARN] %s uses an old fizz syntax. please use\n%s\n", mf.Path, fixed)
+		}
+		content = fixed
+	}
 
 	t := template.Must(template.New("sql").Parse(content))
 	var bb bytes.Buffer

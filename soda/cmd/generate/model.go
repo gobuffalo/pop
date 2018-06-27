@@ -17,8 +17,8 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
 
+	"github.com/gobuffalo/fizz"
 	"github.com/gobuffalo/pop"
-	"github.com/gobuffalo/pop/fizz"
 	"github.com/markbates/going/defaults"
 	"github.com/markbates/inflect"
 )

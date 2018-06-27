@@ -14,9 +14,9 @@ import (
 	// also loads github.com/lib/pq
 	_ "github.com/cockroachdb/cockroach-go/crdb"
 
+	"github.com/gobuffalo/fizz"
+	"github.com/gobuffalo/fizz/translators"
 	"github.com/gobuffalo/pop/columns"
-	"github.com/gobuffalo/pop/fizz"
-	"github.com/gobuffalo/pop/fizz/translators"
 	"github.com/markbates/going/defaults"
 	"github.com/pkg/errors"
 )
