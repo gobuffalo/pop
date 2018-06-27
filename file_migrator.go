@@ -110,7 +110,7 @@ func migrationContent(mf Migration, c *Connection, r io.Reader) (string, error) 
 			return "", errors.Wrapf(err, "could not fizz the migration %s", mf.Path)
 		}
 		if strings.TrimSpace(fixed) != strings.TrimSpace(content) {
-			fmt.Printf("[WARN] %s uses an old fizz syntax. please use\n%s\n", mf.Path, fixed)
+			fmt.Printf("[WARN] %q uses an old fizz syntax. please use\n%s\n", mf.Path, fixed)
 		}
 		content = fixed
 	}
