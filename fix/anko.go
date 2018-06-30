@@ -6,16 +6,12 @@ import (
 )
 
 func Anko(content string) (string, error) {
-	if !strings.Contains(content, "create_table") {
-		return content, nil
-	}
-	if !strings.Contains(content, "func(t) {") {
-		return content, nil
-	}
-
 	bb := &bytes.Buffer{}
 
-	for _, line := range strings.Split(content, "\n") {
+	lines := strings.Split(content, "\n")
+
+	// fix create_table
+	for i, line := range lines {
 		tl := strings.TrimSpace(line)
 		if strings.HasPrefix(tl, "create_table") {
 			line = strings.Replace(line, ", func(t) {", ") {", -1)
@@ -23,11 +19,25 @@ func Anko(content string) (string, error) {
 		if strings.HasPrefix(tl, "})") {
 			line = "}"
 		}
-		if tl == "" {
-			continue
-		}
-		bb.WriteString(line + "\n")
+		lines[i] = line
 	}
+
+	// fix (` && `)
+	for i, line := range lines {
+		lines[i] = strings.Replace(line, "(`", `("`, -1)
+		lines[i] = strings.Replace(lines[i], "`)", `")`, -1)
+	}
+
+	// fix raw
+	for i, line := range lines {
+		tl := strings.TrimSpace(line)
+		if strings.HasPrefix(tl, "raw(") {
+			line = strings.Replace(line, "raw(", "sql(", -1)
+		}
+		lines[i] = line
+	}
+
+	bb.WriteString(strings.Join(lines, "\n"))
 
 	return bb.String(), nil
 }
