@@ -5,6 +5,7 @@ import (
 	"strings"
 )
 
+// Anko converts old anko-form migrations to new plush ones.
 func Anko(content string) (string, error) {
 	if !strings.Contains(content, "create_table") {
 		return content, nil
