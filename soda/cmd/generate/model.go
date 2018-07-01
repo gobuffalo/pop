@@ -162,7 +162,7 @@ func (m model) generateSQL(pathFlag, envFlag *pflag.Flag) error {
 
 // Fizz generates the create table instructions
 func (m model) Fizz() string {
-	s := []string{fmt.Sprintf("create_table(\"%s\", func(t) {", m.Name.Table())}
+	s := []string{fmt.Sprintf("create_table(\"%s\") {", m.Name.Table())}
 	for _, a := range m.Attributes {
 		switch a.Name {
 		case "created_at", "updated_at":
