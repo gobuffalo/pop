@@ -17,12 +17,12 @@ before_script:
   - go get -u github.com/alecthomas/gometalinter
   - gometalinter --install
   - go build -v -tags sqlite -o tsoda ./soda
-  - ./tsoda create -e "mysql_travis"
-  - ./tsoda create -e "postgres"
-  - ./tsoda create -e "sqlite"
-  - ./tsoda migrate -e "mysql_travis"
-  - ./tsoda migrate -e "postgres"
-  - ./tsoda migrate -e "sqlite"
+  - if [[ "$SODA_DIALECT" == "mysql" ]]; then ./tsoda create -e "mysql_travis"; fi
+  - if [[ "$SODA_DIALECT" == "postgres" ]]; then ./tsoda create -e "postgres"; fi
+  - if [[ "$SODA_DIALECT" == "sqlite" ]]; then ./tsoda create -e "sqlite"; fi
+  - if [[ "$SODA_DIALECT" == "mysql" ]]; then ./tsoda migrate -e "mysql_travis"; fi
+  - if [[ "$SODA_DIALECT" == "postgres" ]]; then ./tsoda migrate -e "postgres"; fi
+  - if [[ "$SODA_DIALECT" == "sqlite" ]]; then ./tsoda migrate -e "sqlite"; fi
 
 script:
 #  - gometalinter --vendor --deadline=5m ./...
