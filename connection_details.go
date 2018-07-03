@@ -94,6 +94,7 @@ func (cd *ConnectionDetails) Finalize() error {
 			cd.User = cfg.User
 			cd.Password = cfg.Passwd
 			cd.Database = cfg.DBName
+			cd.Encoding = defaults.String(cfg.Collation, "utf8_general_ci")
 			addr := strings.TrimSuffix(strings.TrimPrefix(cfg.Addr, "("), ")")
 			if cfg.Net == "unix" {
 				cd.Port = "socket"
