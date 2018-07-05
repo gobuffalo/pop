@@ -46,21 +46,28 @@ func Test_ConnectionDetails_Finalize_MySQL_DSN(t *testing.T) {
 func Test_ConnectionDetails_Finalize_MySQL_DSN_collation(t *testing.T) {
 	r := require.New(t)
 
-	url := "mysql://user:pass@(host:port)/database?collation=utf8mb4_general_ci"
-	cd := &pop.ConnectionDetails{
-		URL: url,
+	urls := []string{
+		"mysql://user:pass@(host:port)/database?collation=utf8mb4_general_ci",
+		"mysql://user:pass@(host:port)/database?collation=utf8mb4_general_ci&readTimeout=10",
+		"mysql://user:pass@(host:port)/database?readTimeout=10&collation=utf8mb4_general_ci",
 	}
-	err := cd.Finalize()
-	r.NoError(err)
 
-	r.Equal(url, cd.URL)
-	r.Equal("mysql", cd.Dialect)
-	r.Equal("user", cd.User)
-	r.Equal("pass", cd.Password)
-	r.Equal("host", cd.Host)
-	r.Equal("port", cd.Port)
-	r.Equal("database", cd.Database)
-	r.Equal("utf8mb4_general_ci", cd.Encoding)
+	for _, url := range urls {
+		cd := &pop.ConnectionDetails{
+			URL: url,
+		}
+		err := cd.Finalize()
+		r.NoError(err)
+
+		r.Equal(url, cd.URL)
+		r.Equal("mysql", cd.Dialect)
+		r.Equal("user", cd.User)
+		r.Equal("pass", cd.Password)
+		r.Equal("host", cd.Host)
+		r.Equal("port", cd.Port)
+		r.Equal("database", cd.Database)
+		r.Equal("utf8mb4_general_ci", cd.Encoding)
+	}
 }
 
 func Test_ConnectionDetails_Finalize_MySQL_DSN_Protocol(t *testing.T) {
