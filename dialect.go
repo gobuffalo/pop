@@ -6,8 +6,8 @@ import (
 	"io"
 	"io/ioutil"
 
+	"github.com/gobuffalo/fizz"
 	"github.com/gobuffalo/pop/columns"
-	"github.com/gobuffalo/pop/fizz"
 	"github.com/gobuffalo/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
