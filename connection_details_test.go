@@ -48,8 +48,8 @@ func Test_ConnectionDetails_Finalize_MySQL_DSN_collation(t *testing.T) {
 
 	urls := []string{
 		"mysql://user:pass@(host:port)/database?collation=utf8mb4_general_ci",
-		"mysql://user:pass@(host:port)/database?collation=utf8mb4_general_ci&readTimeout=10",
-		"mysql://user:pass@(host:port)/database?readTimeout=10&collation=utf8mb4_general_ci",
+		"mysql://user:pass@(host:port)/database?collation=utf8mb4_general_ci&readTimeout=10s",
+		"mysql://user:pass@(host:port)/database?readTimeout=10s&collation=utf8mb4_general_ci",
 	}
 
 	for _, url := range urls {
