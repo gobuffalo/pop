@@ -310,3 +310,7 @@ func (u *CallbacksUser) AfterFind(tx *pop.Connection) error {
 	u.AfterF = "AfterFind"
 	return nil
 }
+
+type Label struct {
+	ID string `db:"id"`
+}
