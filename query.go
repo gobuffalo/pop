@@ -3,6 +3,8 @@ package pop
 import (
 	"fmt"
 	"strings"
+
+	"github.com/gobuffalo/pop/log"
 )
 
 // Query is the main value that is used to build up a query
@@ -117,7 +119,7 @@ func (c *Connection) Where(stmt string, args ...interface{}) *Query {
 // 	q.Where("id in (?)", 1, 2, 3)
 func (q *Query) Where(stmt string, args ...interface{}) *Query {
 	if q.RawSQL.Fragment != "" {
-		fmt.Println("Warning: Query is setup to use raw SQL")
+		log.DefaultLogger.WithField("raw", q.RawSQL.Fragment).WithField("where", stmt).WithField("args", args).Warn("Query is setup to use raw SQL, not adding WHERE clause")
 		return q
 	}
 	if inRegex.MatchString(stmt) {
@@ -144,7 +146,7 @@ func (c *Connection) Order(stmt string) *Query {
 // 	q.Order("name desc")
 func (q *Query) Order(stmt string) *Query {
 	if q.RawSQL.Fragment != "" {
-		fmt.Println("Warning: Query is setup to use raw SQL")
+		log.DefaultLogger.WithField("raw", q.RawSQL.Fragment).WithField("order", stmt).Warn("Query is setup to use raw SQL, not adding order clause")
 		return q
 	}
 	q.orderClauses = append(q.orderClauses, clause{stmt, []interface{}{}})

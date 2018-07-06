@@ -1,9 +1,8 @@
 package cmd
 
 import (
-	"fmt"
-
 	"github.com/gobuffalo/pop"
+	"github.com/gobuffalo/pop/log"
 	"github.com/spf13/cobra"
 )
 
@@ -15,15 +14,15 @@ var dropCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
 		if all {
-			for _, conn := range pop.Connections {
+			for env, conn := range pop.Connections {
 				err = pop.DropDB(conn)
 				if err != nil {
-					fmt.Println(err)
+					log.DefaultLogger.WithField("environment", env).WithField("error", err).Error("Failed to drop database")
 				}
 			}
 		} else {
 			if err := pop.DropDB(getConn()); err != nil {
-				fmt.Println(err)
+				log.DefaultLogger.WithField("error", err).Error("Failed to drop database")
 			}
 		}
 	},
