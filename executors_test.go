@@ -324,7 +324,7 @@ func Test_Create(t *testing.T) {
 		user := User{Name: nulls.NewString("Mark 'Awesome' Bates")}
 		err := tx.Create(&user)
 		r.NoError(err)
-		r.NotEqual(user.ID, 0)
+		r.NotEqual(0, user.ID)
 
 		ctx, _ := tx.Count(&User{})
 		r.Equal(count+1, ctx)
@@ -333,7 +333,27 @@ func Test_Create(t *testing.T) {
 		q := tx.Where("name = ?", "Mark 'Awesome' Bates")
 		err = q.First(&u)
 		r.NoError(err)
-		r.Equal(user.Name.String, "Mark 'Awesome' Bates")
+		r.Equal("Mark 'Awesome' Bates", user.Name.String)
+	})
+}
+
+func Test_Create_stringID(t *testing.T) {
+	transaction(func(tx *pop.Connection) {
+		r := require.New(t)
+
+		count, _ := tx.Count(&Label{})
+		label := Label{ID: "red"}
+		err := tx.Create(&label)
+		r.NoError(err)
+		r.Equal("red", label.ID)
+
+		ctx, _ := tx.Count(&Label{})
+		r.Equal(count+1, ctx)
+
+		l := Label{}
+		err = tx.Find(&l, "red")
+		r.NoError(err)
+		r.Equal("red", l.ID)
 	})
 }
 
