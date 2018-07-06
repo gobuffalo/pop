@@ -26,6 +26,9 @@ create_table("course_codes") {
   t.Column("id", "uuid", {"primary": true})
   t.Column("course_id", "uuid", {})
 }
+create_table("labels") {
+  t.Column("id", "string", {"primary": true})
+}
 {{ if eq .Dialect "postgres" -}}
   create_table("cakes") {
     t.Column("int_slice", "int[]", {"null": true})

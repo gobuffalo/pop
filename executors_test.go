@@ -341,13 +341,15 @@ func Test_Create_stringID(t *testing.T) {
 	transaction(func(tx *pop.Connection) {
 		r := require.New(t)
 
-		count, _ := tx.Count(&Label{})
+		count, err := tx.Count(&Label{})
+		r.NoError(err)
 		label := Label{ID: "red"}
-		err := tx.Create(&label)
+		err = tx.Create(&label)
 		r.NoError(err)
 		r.Equal("red", label.ID)
 
-		ctx, _ := tx.Count(&Label{})
+		ctx, err := tx.Count(&Label{})
+		r.NoError(err)
 		r.Equal(count+1, ctx)
 
 		l := Label{}
