@@ -28,6 +28,7 @@ create_table("course_codes") {
 }
 create_table("labels") {
   t.Column("id", "string", {"primary": true})
+  t.DisableTimestamps()
 }
 {{ if eq .Dialect "postgres" -}}
   create_table("cakes") {
