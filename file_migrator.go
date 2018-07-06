@@ -47,7 +47,7 @@ func (fm *FileMigrator) findMigrations() error {
 	filepath.Walk(dir, func(p string, info os.FileInfo, err error) error {
 		if !info.IsDir() {
 			matches := mrx.FindAllStringSubmatch(info.Name(), -1)
-			if matches == nil || len(matches) == 0 {
+			if len(matches) == 0 {
 				return nil
 			}
 			m := matches[0]

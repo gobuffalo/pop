@@ -58,10 +58,8 @@ func (p *cockroach) Create(s store, model *Model, cols columns.Columns) error {
 		}
 		model.setID(id.ID)
 		return nil
-	case "UUID":
-		return genericCreate(s, model, cols)
 	}
-	return errors.Errorf("can not use %s as a primary key type!", keyType)
+	return genericCreate(s, model, cols)
 }
 
 func (p *cockroach) Update(s store, model *Model, cols columns.Columns) error {

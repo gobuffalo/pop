@@ -1,6 +1,7 @@
 package schema
 
 import (
+	"errors"
 	"io"
 	"os"
 	"path/filepath"
@@ -14,10 +15,16 @@ var dumpOptions = struct {
 	output string
 }{}
 
+// DumpCmd dumps out the schema of the selected database.
 var DumpCmd = &cobra.Command{
 	Use:   "dump",
 	Short: "Dumps out the schema of the selected database",
 	RunE: func(cmd *cobra.Command, args []string) error {
+		env := cmd.Flag("env")
+		if env == nil {
+			return errors.New("env is required")
+		}
+		dumpOptions.env = env.Value.String()
 		c, err := pop.Connect(dumpOptions.env)
 		if err != nil {
 			return err
@@ -35,15 +42,10 @@ var DumpCmd = &cobra.Command{
 				return err
 			}
 		}
-		err = c.Dialect.DumpSchema(out)
-		if err != nil {
-			return err
-		}
-		return nil
+		return c.Dialect.DumpSchema(out)
 	},
 }
 
 func init() {
-	DumpCmd.Flags().StringVarP(&dumpOptions.env, "env", "e", "development", "The environment you want to run schema against. Will use $GO_ENV if set.")
-	DumpCmd.Flags().StringVarP(&dumpOptions.output, "output", "o", "schema.sql", "The path to dump the schema to.")
+	DumpCmd.Flags().StringVarP(&dumpOptions.output, "output", "o", "./migrations/schema.sql", "The path to dump the schema to.")
 }

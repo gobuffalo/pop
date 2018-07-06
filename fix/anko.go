@@ -5,6 +5,7 @@ import (
 	"strings"
 )
 
+// Anko converts old anko-form migrations to new plush ones.
 func Anko(content string) (string, error) {
 	bb := &bytes.Buffer{}
 

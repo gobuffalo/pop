@@ -3,7 +3,6 @@ package pop
 import (
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"strings"
@@ -55,10 +54,8 @@ func (p *postgresql) Create(s store, model *Model, cols columns.Columns) error {
 		}
 		model.setID(id.ID)
 		return nil
-	case "UUID":
-		return genericCreate(s, model, cols)
 	}
-	return errors.Errorf("can not use %s as a primary key type!", keyType)
+	return genericCreate(s, model, cols)
 }
 
 func (p *postgresql) Update(s store, model *Model, cols columns.Columns) error {
@@ -179,36 +176,12 @@ func (p *postgresql) DumpSchema(w io.Writer) error {
 	return nil
 }
 
+// LoadSchema executes a schema sql file against the configured database.
 func (p *postgresql) LoadSchema(r io.Reader) error {
-	// Open DB connection on the target DB
-	deets := p.ConnectionDetails
-	db, err := sqlx.Open(deets.Dialect, p.MigrationURL())
-	if err != nil {
-		return errors.WithMessage(err, fmt.Sprintf("unable to load schema for %s", deets.Database))
-	}
-	defer db.Close()
-
-	// Get reader contents
-	contents, err := ioutil.ReadAll(r)
-	if err != nil {
-		return err
-	}
-
-	if len(contents) == 0 {
-		fmt.Printf("schema is empty for %s, skipping\n", deets.Database)
-		return nil
-	}
-
-	// From the sqlx package docs, this works with pq driver
-	_, err = db.Exec(string(contents))
-	if err != nil {
-		return errors.WithMessage(err, fmt.Sprintf("unable to load schema for %s", deets.Database))
-	}
-
-	fmt.Printf("loaded schema for %s\n", deets.Database)
-	return nil
+	return genericLoadSchema(p.ConnectionDetails, p.MigrationURL(), r)
 }
 
+// TruncateAll truncates all tables for the given connection.
 func (p *postgresql) TruncateAll(tx *Connection) error {
 	return tx.RawQuery(pgTruncate).Exec()
 }

@@ -62,7 +62,7 @@ func (m model) testPkgName() string {
 	pkg := m.Package
 
 	path, _ := os.Getwd()
-	path = filepath.Join("models")
+	path = filepath.Join(path, "models")
 
 	if _, err := os.Stat(path); err != nil {
 		return pkg
@@ -140,22 +140,12 @@ func (m model) generateModelFile() error {
 		return errors.Wrapf(err, "couldn't create folder %s", m.Package)
 	}
 
-	err = m.Generate()
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return m.Generate()
 }
 
 func (m model) generateFizz(cflag *pflag.Flag) error {
 	migrationPath := defaults.String(cflag.Value.String(), "./migrations")
-	err := pop.MigrationCreate(migrationPath, fmt.Sprintf("create_%s", m.Name.Table()), "fizz", []byte(m.Fizz()), []byte(m.UnFizz()))
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return pop.MigrationCreate(migrationPath, fmt.Sprintf("create_%s", m.Name.Table()), "fizz", []byte(m.Fizz()), []byte(m.UnFizz()))
 }
 
 func (m model) generateSQL(pathFlag, envFlag *pflag.Flag) error {
@@ -167,17 +157,12 @@ func (m model) generateSQL(pathFlag, envFlag *pflag.Flag) error {
 		return err
 	}
 
-	err = pop.MigrationCreate(migrationPath, fmt.Sprintf("create_%s.%s", m.Name.Table(), db.Dialect.Name()), "sql", []byte(m.GenerateSQLFromFizz(m.Fizz(), db)), []byte(m.GenerateSQLFromFizz(m.UnFizz(), db)))
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return pop.MigrationCreate(migrationPath, fmt.Sprintf("create_%s.%s", m.Name.Table(), db.Dialect.Name()), "sql", []byte(m.GenerateSQLFromFizz(m.Fizz(), db)), []byte(m.GenerateSQLFromFizz(m.UnFizz(), db)))
 }
 
 // Fizz generates the create table instructions
 func (m model) Fizz() string {
-	s := []string{fmt.Sprintf("create_table(\"%s\", func(t) {", m.Name.Table())}
+	s := []string{fmt.Sprintf("create_table(\"%s\") {", m.Name.Table())}
 	for _, a := range m.Attributes {
 		switch a.Name {
 		case "created_at", "updated_at":

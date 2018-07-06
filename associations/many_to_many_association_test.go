@@ -30,7 +30,7 @@ func Test_Many_To_Many_Association(t *testing.T) {
 	id, _ := uuid.NewV1()
 	foo := fooManyToMany{ID: id}
 
-	as, err := associations.AssociationsForStruct(&foo)
+	as, err := associations.ForStruct(&foo)
 
 	a.NoError(err)
 	a.Equal(len(as), 1)

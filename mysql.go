@@ -14,6 +14,7 @@ import (
 	"github.com/gobuffalo/fizz/translators"
 	"github.com/gobuffalo/pop/columns"
 	"github.com/jmoiron/sqlx"
+	"github.com/markbates/going/defaults"
 	"github.com/pkg/errors"
 )
 
@@ -32,23 +33,31 @@ func (m *mysql) Details() *ConnectionDetails {
 }
 
 func (m *mysql) URL() string {
-	c := m.ConnectionDetails
-	if m.ConnectionDetails.URL != "" {
-		return strings.TrimPrefix(m.ConnectionDetails.URL, "mysql://")
+	deets := m.ConnectionDetails
+	if deets.URL != "" {
+		return strings.TrimPrefix(deets.URL, "mysql://")
 	}
-	s := "%s:%s@(%s:%s)/%s?parseTime=true&multiStatements=true&readTimeout=1s"
-	return fmt.Sprintf(s, c.User, c.Password, c.Host, c.Port, c.Database)
+	encoding := defaults.String(deets.Encoding, "utf8_general_ci")
+	if deets.Encoding == "" {
+		Log(`Warning: The default encoding will change to "utf8mb4_general_ci" in the next version. Set the "encoding" param in your connection setup to "utf8_general_ci" if you still want to use this encoding with MySQL.`)
+	}
+	s := "%s:%s@(%s:%s)/%s?parseTime=true&multiStatements=true&readTimeout=1s&collation=%s"
+	return fmt.Sprintf(s, deets.User, deets.Password, deets.Host, deets.Port, deets.Database, encoding)
 }
 
 func (m *mysql) urlWithoutDb() string {
-	c := m.ConnectionDetails
-	if m.ConnectionDetails.URL != "" {
+	deets := m.ConnectionDetails
+	if deets.URL != "" {
 		// respect user's own URL definition (with options).
-		url := strings.TrimPrefix(m.ConnectionDetails.URL, "mysql://")
-		return strings.Replace(url, "/"+c.Database+"?", "/?", 1)
+		url := strings.TrimPrefix(deets.URL, "mysql://")
+		return strings.Replace(url, "/"+deets.Database+"?", "/?", 1)
 	}
-	s := "%s:%s@(%s:%s)/?parseTime=true&multiStatements=true&readTimeout=1s"
-	return fmt.Sprintf(s, c.User, c.Password, c.Host, c.Port)
+	encoding := defaults.String(deets.Encoding, "utf8_general_ci")
+	if deets.Encoding == "" {
+		Log(`Warning: The default encoding will change to "utf8mb4_general_ci" in the next version. Set the "encoding" param in your connection setup to "utf8_general_ci" if you still want to use this encoding with MySQL.`)
+	}
+	s := "%s:%s@(%s:%s)/?parseTime=true&multiStatements=true&readTimeout=1s&collation=%s"
+	return fmt.Sprintf(s, deets.User, deets.Password, deets.Host, deets.Port, encoding)
 }
 
 func (m *mysql) MigrationURL() string {
@@ -83,7 +92,11 @@ func (m *mysql) CreateDB() error {
 		return errors.Wrapf(err, "error creating MySQL database %s", deets.Database)
 	}
 	defer db.Close()
-	query := fmt.Sprintf("CREATE DATABASE `%s` DEFAULT COLLATE `utf8_general_ci`", deets.Database)
+	encoding := defaults.String(deets.Encoding, "utf8_general_ci")
+	if deets.Encoding == "" {
+		Log(`Warning: The default encoding will change to "utf8mb4_general_ci" in the next version. Set the "encoding" param in your connection setup to "utf8_general_ci" if you still want to use this encoding with MySQL.`)
+	}
+	query := fmt.Sprintf("CREATE DATABASE `%s` DEFAULT COLLATE `%s`", deets.Database, encoding)
 	Log(query)
 
 	_, err = db.Exec(query)
@@ -147,35 +160,12 @@ func (m *mysql) DumpSchema(w io.Writer) error {
 	return nil
 }
 
+// LoadSchema executes a schema sql file against the configured database.
 func (m *mysql) LoadSchema(r io.Reader) error {
-	deets := m.Details()
-	cmd := exec.Command("mysql", "-u", deets.User, fmt.Sprintf("--password=%s", deets.Password), "-h", deets.Host, "-P", deets.Port, "-D", deets.Database)
-	if deets.Port == "socket" {
-		cmd = exec.Command("mysql", "-u", deets.User, fmt.Sprintf("--password=%s", deets.Password), "-S", deets.Host, "-D", deets.Database)
-	}
-	in, err := cmd.StdinPipe()
-	if err != nil {
-		return err
-	}
-	go func() {
-		defer in.Close()
-		io.Copy(in, r)
-	}()
-	Log(strings.Join(cmd.Args, " "))
-	err = cmd.Start()
-	if err != nil {
-		return err
-	}
-
-	err = cmd.Wait()
-	if err != nil {
-		return err
-	}
-
-	fmt.Printf("loaded schema for %s\n", m.Details().Database)
-	return nil
+	return genericLoadSchema(m.ConnectionDetails, m.MigrationURL(), r)
 }
 
+// TruncateAll truncates all tables for the given connection.
 func (m *mysql) TruncateAll(tx *Connection) error {
 	stmts := []string{}
 	err := tx.RawQuery(mysqlTruncate, m.Details().Database).All(&stmts)

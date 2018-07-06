@@ -14,6 +14,7 @@ var cfgFile string
 var env string
 var version bool
 
+// RootCmd is the entry point of soda CLI.
 var RootCmd = &cobra.Command{
 	Short: "A tasty treat for all your database needs",
 	PersistentPreRun: func(c *cobra.Command, args []string) {
@@ -28,6 +29,7 @@ var RootCmd = &cobra.Command{
 	},
 }
 
+// Execute runs RunCmd.
 func Execute() {
 	if err := RootCmd.Execute(); err != nil {
 		fmt.Println(err)
