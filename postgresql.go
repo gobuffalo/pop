@@ -204,7 +204,7 @@ BEGIN
    FOR _sch, _tbl IN
       SELECT schemaname, tablename
       FROM   pg_tables
-      WHERE    schemaname = 'public'
+      WHERE    schemaname <> 'pg_catalog'
    LOOP
       --RAISE ERROR '%',
       EXECUTE  -- dangerous, test before you execute!
