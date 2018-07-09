@@ -202,9 +202,9 @@ DECLARE
    _sch text;
 BEGIN
    FOR _sch, _tbl IN
-      SELECT schemaname, tablename
+      SELECT schemaname, tablename, tableowner
       FROM   pg_tables
-      WHERE    schemaname <> 'pg_catalog'
+      WHERE  schemaname <> 'pg_catalog' AND tableowner = current_user
    LOOP
       --RAISE ERROR '%',
       EXECUTE  -- dangerous, test before you execute!
