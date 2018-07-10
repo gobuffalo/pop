@@ -176,7 +176,7 @@ func (m model) Fizz() string {
 			s = append(s, x)
 		}
 	}
-	s = append(s, "})")
+	s = append(s, "}")
 	return strings.Join(s, "\n")
 }
 
