@@ -109,7 +109,7 @@ func (m *sqlite) CreateDB() error {
 		return errors.Wrapf(err, "could not create SQLite database %s", m.ConnectionDetails.Database)
 	}
 
-	fmt.Printf("created database %s\n", m.ConnectionDetails.Database)
+	Log("created database %s", m.ConnectionDetails.Database)
 	return nil
 }
 
@@ -118,7 +118,7 @@ func (m *sqlite) DropDB() error {
 	if err != nil {
 		return errors.Wrapf(err, "could not drop SQLite database %s", m.ConnectionDetails.Database)
 	}
-	fmt.Printf("dropped database %s\n", m.ConnectionDetails.Database)
+	Log("dropped database %s", m.ConnectionDetails.Database)
 	return nil
 }
 
@@ -141,7 +141,7 @@ func (m *sqlite) DumpSchema(w io.Writer) error {
 		return err
 	}
 
-	fmt.Printf("dumped schema for %s\n", m.Details().Database)
+	Log("dumped schema for %s", m.Details().Database)
 	return nil
 }
 
@@ -166,7 +166,7 @@ func (m *sqlite) LoadSchema(r io.Reader) error {
 		return err
 	}
 
-	fmt.Printf("loaded schema for %s\n", m.Details().Database)
+	Log("loaded schema for %s", m.Details().Database)
 	return nil
 }
 

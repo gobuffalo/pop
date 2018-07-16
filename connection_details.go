@@ -122,9 +122,11 @@ func (cd *ConnectionDetails) Finalize() error {
 	return nil
 }
 
-// Parse is deprecated! Please use `ConnectionDetails.Finalize()` instead!
+// Parse cleans up the connection details by normalizing names,
+// filling in default values, etc...
+// Deprecated: use ConnectionDetails.Finalize() instead.
 func (cd *ConnectionDetails) Parse(port string) error {
-	fmt.Println("[POP] ConnectionDetails#Parse(port string) has been deprecated!")
+	fmt.Println("Warning: ConnectionDetails#Parse(port string) is deprecated, and will be removed in a future version. Please use ForStructWithAlias instead.")
 	return cd.Finalize()
 }
 

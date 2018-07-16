@@ -104,7 +104,7 @@ func (m *mysql) CreateDB() error {
 		return errors.Wrapf(err, "error creating MySQL database %s", deets.Database)
 	}
 
-	fmt.Printf("created database %s\n", deets.Database)
+	Log("created database %s", deets.Database)
 	return nil
 }
 
@@ -124,7 +124,7 @@ func (m *mysql) DropDB() error {
 		return errors.Wrapf(err, "error dropping MySQL database %s", deets.Database)
 	}
 
-	fmt.Printf("dropped database %s\n", deets.Database)
+	Log("dropped database %s", deets.Database)
 	return nil
 }
 
@@ -156,7 +156,7 @@ func (m *mysql) DumpSchema(w io.Writer) error {
 		return err
 	}
 
-	fmt.Printf("dumped schema for %s\n", m.Details().Database)
+	Log("dumped schema for %s", m.Details().Database)
 	return nil
 }
 

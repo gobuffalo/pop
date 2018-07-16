@@ -149,7 +149,7 @@ func genericLoadSchema(deets *ConnectionDetails, migrationURL string, r io.Reade
 	}
 
 	if len(contents) == 0 {
-		fmt.Printf("schema is empty for %s, skipping\n", deets.Database)
+		Log("schema is empty for %s, skipping", deets.Database)
 		return nil
 	}
 
@@ -158,6 +158,6 @@ func genericLoadSchema(deets *ConnectionDetails, migrationURL string, r io.Reade
 		return errors.WithMessage(err, fmt.Sprintf("unable to load schema for %s", deets.Database))
 	}
 
-	fmt.Printf("loaded schema for %s\n", deets.Database)
+	Log("loaded schema for %s", deets.Database)
 	return nil
 }

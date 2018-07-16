@@ -90,7 +90,7 @@ func (p *postgresql) CreateDB() error {
 		return errors.Wrapf(err, "error creating PostgreSQL database %s", deets.Database)
 	}
 
-	fmt.Printf("created database %s\n", deets.Database)
+	Log("created database %s", deets.Database)
 	return nil
 }
 
@@ -109,7 +109,7 @@ func (p *postgresql) DropDB() error {
 		return errors.Wrapf(err, "error dropping PostgreSQL database %s", deets.Database)
 	}
 
-	fmt.Printf("dropped database %s\n", deets.Database)
+	Log("dropped database %s", deets.Database)
 	return nil
 }
 
@@ -172,7 +172,7 @@ func (p *postgresql) DumpSchema(w io.Writer) error {
 		return err
 	}
 
-	fmt.Printf("dumped schema for %s\n", p.Details().Database)
+	Log("dumped schema for %s", p.Details().Database)
 	return nil
 }
 
