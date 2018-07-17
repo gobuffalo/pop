@@ -180,7 +180,7 @@ The `models/user.go` file contains a structure named `User` with fields `ID`, `C
 * `time` or `timestamp` (`time.Time`)
 * `nulls.Text` (`nulls.String`) which corresponds to a nullifyable string, which can be distinguished from an empty string
 * `uuid` (`uuid.UUID`)
-* Other types are passed thru and are used as [Fizz](./fizz/README.md) types.
+* Other types are passed thru and are used as [Fizz](https://github.com/gobuffalo/fizz) types.
 
 The `models/user_test.go` contains tests for the User model and they must be implemented by you.
 
@@ -224,7 +224,7 @@ Running this command will generate the following files:
 ./migrations/20160815134952_name_of_migration.down.fizz
 ```
 
-The generated files are `fizz` files. [Fizz](./fizz/README.md) lets you use a common DSL for generating migrations. This means the same `.fizz` file can be run against any of the supported dialects of Pop! Find out more about [Fizz](./fizz/README.md)
+The generated files are `fizz` files. [Fizz](https://github.com/gobuffalo/fizz) lets you use a common DSL for generating migrations. This means the same `.fizz` file can be run against any of the supported dialects of Pop! Find out more about [Fizz](https://github.com/gobuffalo/fizz)
 
 If you want to generate old fashion `.sql` files you can use the `-t` flag for that:
 
