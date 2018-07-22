@@ -28,6 +28,8 @@ type ConnectionDetails struct {
 	User string
 	// The password of the database user. Example: "password"
 	Password string
+	// The encoding to use to create the database and communicate with it.
+	Encoding string
 	// Instead of specifying each individual piece of the
 	// connection you can instead just specify the URL of the
 	// database. Example: "postgres://postgres:postgres@localhost:5432/pop_test?sslmode=disable"
@@ -92,6 +94,7 @@ func (cd *ConnectionDetails) Finalize() error {
 			cd.User = cfg.User
 			cd.Password = cfg.Passwd
 			cd.Database = cfg.DBName
+			cd.Encoding = defaults.String(cfg.Collation, "utf8_general_ci")
 			addr := strings.TrimSuffix(strings.TrimPrefix(cfg.Addr, "("), ")")
 			if cfg.Net == "unix" {
 				cd.Port = "socket"

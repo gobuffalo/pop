@@ -6,8 +6,8 @@ import (
 	"io"
 	"io/ioutil"
 
+	"github.com/gobuffalo/fizz"
 	"github.com/gobuffalo/pop/columns"
-	"github.com/gobuffalo/pop/fizz"
 	"github.com/gobuffalo/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
@@ -57,13 +57,17 @@ func genericCreate(s store, model *Model, cols columns.Columns) error {
 			return errors.WithStack(err)
 		}
 		return nil
-	case "UUID":
-		if model.ID() == emptyUUID {
-			u, err := uuid.NewV4()
-			if err != nil {
-				return errors.WithStack(err)
+	case "UUID", "string":
+		if keyType == "UUID" {
+			if model.ID() == emptyUUID {
+				u, err := uuid.NewV4()
+				if err != nil {
+					return errors.WithStack(err)
+				}
+				model.setID(u)
 			}
-			model.setID(u)
+		} else if model.ID() == "" {
+			return fmt.Errorf("missing ID value")
 		}
 		w := cols.Writeable()
 		w.Add("id")

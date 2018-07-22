@@ -29,9 +29,9 @@ func newSQLBuilder(q Query, m *Model, addColumns ...string) *sqlBuilder {
 }
 
 var (
-	regexpMatchLimit    = regexp.MustCompile("(?i).*\\s+limit\\s+[0-9]*(\\s?,\\s?[0-9]*)?$")
-	regexpMatchOffset   = regexp.MustCompile("(?i).*\\s+offset\\s+[0-9]*$")
-	regexpMatchRowsOnly = regexp.MustCompile("(?i).*\\s+rows only$")
+	regexpMatchLimit    = regexp.MustCompile(`(?i).*\s+limit\s+[0-9]*(\s?,\s?[0-9]*)?$`)
+	regexpMatchOffset   = regexp.MustCompile(`(?i).*\s+offset\s+[0-9]*$`)
+	regexpMatchRowsOnly = regexp.MustCompile(`(?i).*\s+rows only`)
 	regexpMatchNames    = regexp.MustCompile("(?i).*;+.*") // https://play.golang.org/p/FAmre5Sjin5
 )
 
@@ -193,9 +193,7 @@ func (sq *sqlBuilder) buildOrderClauses(sql string) string {
 		}
 
 		sql = fmt.Sprintf("%s ORDER BY %s", sql, orderSQL)
-		for _, arg := range oc.Args() {
-			sq.args = append(sq.args, arg)
-		}
+		sq.args = append(sq.args, oc.Args()...)
 	}
 	return sql
 }

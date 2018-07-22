@@ -42,6 +42,7 @@ var ConfigCmd = &cobra.Command{
 //
 // Deprecated: use Config instead.
 func GenerateConfig(cfgFile string, data map[string]interface{}) error {
+	fmt.Println(`Warning: GenerateConfig is deprecated, and will be removed in a future version. Please use Config instead.`)
 	return Config(cfgFile, data)
 }
 
