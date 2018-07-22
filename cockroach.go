@@ -47,7 +47,7 @@ func (p *cockroach) Create(s store, model *Model, cols columns.Columns) error {
 		}{}
 		w := cols.Writeable()
 		query := fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s) returning id", model.TableName(), w.String(), w.SymbolizedString())
-		Log(query)
+		Log("sql", query)
 		stmt, err := s.PrepareNamed(query)
 		if err != nil {
 			return errors.WithStack(err)
@@ -87,14 +87,14 @@ func (p *cockroach) CreateDB() error {
 	}
 	defer db.Close()
 	query := fmt.Sprintf("CREATE DATABASE \"%s\"", deets.Database)
-	Log(query)
+	Log("sql", query)
 
 	_, err = db.Exec(query)
 	if err != nil {
 		return errors.Wrapf(err, "error creating Cockroach database %s", deets.Database)
 	}
 
-	Log("created database %s", deets.Database)
+	Log("info", "created database %s", deets.Database)
 	return nil
 }
 
@@ -106,14 +106,14 @@ func (p *cockroach) DropDB() error {
 	}
 	defer db.Close()
 	query := fmt.Sprintf("DROP DATABASE \"%s\" CASCADE;", deets.Database)
-	Log(query)
+	Log("sql", query)
 
 	_, err = db.Exec(query)
 	if err != nil {
 		return errors.Wrapf(err, "error dropping Cockroach database %s", deets.Database)
 	}
 
-	Log("dropped database %s", deets.Database)
+	Log("info", "dropped database %s", deets.Database)
 	return nil
 }
 
@@ -168,7 +168,7 @@ func (p *cockroach) DumpSchema(w io.Writer) error {
 		secure = "--insecure"
 	}
 	cmd := exec.Command("cockroach", "dump", p.Details().Database, "--dump-mode=schema", secure)
-	Log(strings.Join(cmd.Args, " "))
+	Log("sql", strings.Join(cmd.Args, " "))
 	cmd.Stdout = w
 	cmd.Stderr = os.Stderr
 
@@ -177,7 +177,7 @@ func (p *cockroach) DumpSchema(w io.Writer) error {
 		return err
 	}
 
-	Log("dumped schema for %s", p.Details().Database)
+	Log("info", "dumped schema for %s", p.Details().Database)
 	return nil
 }
 
@@ -197,7 +197,7 @@ func (p *cockroach) LoadSchema(r io.Reader) error {
 		defer in.Close()
 		io.Copy(in, r)
 	}()
-	Log(strings.Join(cmd.Args, " "))
+	Log("sql", strings.Join(cmd.Args, " "))
 
 	bb := &bytes.Buffer{}
 	cmd.Stdout = bb
@@ -213,7 +213,7 @@ func (p *cockroach) LoadSchema(r io.Reader) error {
 		return errors.WithMessage(err, bb.String())
 	}
 
-	Log("loaded schema for %s", p.Details().Database)
+	Log("info", "loaded schema for %s", p.Details().Database)
 	return nil
 }
 

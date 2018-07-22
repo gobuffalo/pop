@@ -20,7 +20,7 @@ func (c *Connection) Reload(model interface{}) error {
 func (q *Query) Exec() error {
 	return q.Connection.timeFunc("Exec", func() error {
 		sql, args := q.ToSQL(nil)
-		Log(sql, args...)
+		Log("sql", sql, args...)
 		_, err := q.Connection.Store.Exec(sql, args...)
 		return err
 	})
@@ -32,7 +32,7 @@ func (q *Query) ExecWithCount() (int, error) {
 	count := int64(0)
 	return int(count), q.Connection.timeFunc("Exec", func() error {
 		sql, args := q.ToSQL(nil)
-		Log(sql, args...)
+		Log("sql", sql, args...)
 		result, err := q.Connection.Store.Exec(sql, args...)
 		if err != nil {
 			return err

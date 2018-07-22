@@ -43,7 +43,7 @@ func (p *postgresql) Create(s store, model *Model, cols columns.Columns) error {
 		}{}
 		w := cols.Writeable()
 		query := fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s) returning id", model.TableName(), w.String(), w.SymbolizedString())
-		Log(query)
+		Log("sql", query)
 		stmt, err := s.PrepareNamed(query)
 		if err != nil {
 			return errors.WithStack(err)
@@ -83,14 +83,14 @@ func (p *postgresql) CreateDB() error {
 	}
 	defer db.Close()
 	query := fmt.Sprintf("CREATE DATABASE \"%s\"", deets.Database)
-	Log(query)
+	Log("sql", query)
 
 	_, err = db.Exec(query)
 	if err != nil {
 		return errors.Wrapf(err, "error creating PostgreSQL database %s", deets.Database)
 	}
 
-	Log("created database %s", deets.Database)
+	Log("info", "created database %s", deets.Database)
 	return nil
 }
 
@@ -102,14 +102,14 @@ func (p *postgresql) DropDB() error {
 	}
 	defer db.Close()
 	query := fmt.Sprintf("DROP DATABASE \"%s\"", deets.Database)
-	Log(query)
+	Log("sql", query)
 
 	_, err = db.Exec(query)
 	if err != nil {
 		return errors.Wrapf(err, "error dropping PostgreSQL database %s", deets.Database)
 	}
 
-	Log("dropped database %s", deets.Database)
+	Log("info", "dropped database %s", deets.Database)
 	return nil
 }
 
@@ -163,7 +163,7 @@ func (p *postgresql) Lock(fn func() error) error {
 
 func (p *postgresql) DumpSchema(w io.Writer) error {
 	cmd := exec.Command("pg_dump", "-s", fmt.Sprintf("--dbname=%s", p.URL()))
-	Log(strings.Join(cmd.Args, " "))
+	Log("sql", strings.Join(cmd.Args, " "))
 	cmd.Stdout = w
 	cmd.Stderr = os.Stderr
 
@@ -172,7 +172,7 @@ func (p *postgresql) DumpSchema(w io.Writer) error {
 		return err
 	}
 
-	Log("dumped schema for %s", p.Details().Database)
+	Log("info", "dumped schema for %s", p.Details().Database)
 	return nil
 }
 
