@@ -17,6 +17,7 @@ import (
 	"github.com/gobuffalo/fizz"
 	"github.com/gobuffalo/fizz/translators"
 	"github.com/gobuffalo/pop/columns"
+	"github.com/gobuffalo/pop/log"
 	"github.com/markbates/going/defaults"
 	"github.com/pkg/errors"
 )
@@ -47,7 +48,7 @@ func (p *cockroach) Create(s store, model *Model, cols columns.Columns) error {
 		}{}
 		w := cols.Writeable()
 		query := fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s) returning id", model.TableName(), w.String(), w.SymbolizedString())
-		Log(query)
+		log.DefaultLogger.WithField("query", query).Debug("Creating record")
 		stmt, err := s.PrepareNamed(query)
 		if err != nil {
 			return errors.WithStack(err)
@@ -87,14 +88,14 @@ func (p *cockroach) CreateDB() error {
 	}
 	defer db.Close()
 	query := fmt.Sprintf("CREATE DATABASE \"%s\"", deets.Database)
-	Log(query)
+	log.DefaultLogger.WithField("query", query).Debug("Creating database")
 
 	_, err = db.Exec(query)
 	if err != nil {
 		return errors.Wrapf(err, "error creating Cockroach database %s", deets.Database)
 	}
 
-	fmt.Printf("created database %s\n", deets.Database)
+	log.DefaultLogger.WithField("database", deets.Database).Info("Created database")
 	return nil
 }
 
@@ -106,14 +107,14 @@ func (p *cockroach) DropDB() error {
 	}
 	defer db.Close()
 	query := fmt.Sprintf("DROP DATABASE \"%s\" CASCADE;", deets.Database)
-	Log(query)
+	log.DefaultLogger.WithField("query", query).Debug("Dropping database")
 
 	_, err = db.Exec(query)
 	if err != nil {
 		return errors.Wrapf(err, "error dropping Cockroach database %s", deets.Database)
 	}
 
-	fmt.Printf("dropped database %s\n", deets.Database)
+	log.DefaultLogger.WithField("database", deets.Database).Info("Dropped database")
 	return nil
 }
 
@@ -168,7 +169,7 @@ func (p *cockroach) DumpSchema(w io.Writer) error {
 		secure = "--insecure"
 	}
 	cmd := exec.Command("cockroach", "dump", p.Details().Database, "--dump-mode=schema", secure)
-	Log(strings.Join(cmd.Args, " "))
+	log.DefaultLogger.WithField("args", cmd.Args).Debug("Dumping schema")
 	cmd.Stdout = w
 	cmd.Stderr = os.Stderr
 
@@ -177,7 +178,7 @@ func (p *cockroach) DumpSchema(w io.Writer) error {
 		return err
 	}
 
-	fmt.Printf("dumped schema for %s\n", p.Details().Database)
+	log.DefaultLogger.WithField("database", p.Details().Database).Info("Dumped schema")
 	return nil
 }
 
@@ -197,7 +198,7 @@ func (p *cockroach) LoadSchema(r io.Reader) error {
 		defer in.Close()
 		io.Copy(in, r)
 	}()
-	Log(strings.Join(cmd.Args, " "))
+	log.DefaultLogger.WithField("args", cmd.Args).Debug("Loading schema")
 
 	bb := &bytes.Buffer{}
 	cmd.Stdout = bb
@@ -213,7 +214,7 @@ func (p *cockroach) LoadSchema(r io.Reader) error {
 		return errors.WithMessage(err, bb.String())
 	}
 
-	fmt.Printf("loaded schema for %s\n", p.Details().Database)
+	log.DefaultLogger.WithField("database", p.Details().Database).Info("Loaded schema")
 	return nil
 }
 

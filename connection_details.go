@@ -1,7 +1,6 @@
 package pop
 
 import (
-	"fmt"
 	"net/url"
 	"regexp"
 	"strconv"
@@ -9,6 +8,7 @@ import (
 	"time"
 
 	_mysql "github.com/go-sql-driver/mysql"
+	"github.com/gobuffalo/pop/log"
 	"github.com/markbates/going/defaults"
 	"github.com/pkg/errors"
 )
@@ -124,7 +124,7 @@ func (cd *ConnectionDetails) Finalize() error {
 
 // Parse is deprecated! Please use `ConnectionDetails.Finalize()` instead!
 func (cd *ConnectionDetails) Parse(port string) error {
-	fmt.Println("[POP] ConnectionDetails#Parse(port string) has been deprecated!")
+	log.DefaultLogger.Warn("ConnectionDetails#Parse(port string) has been deprecated!")
 	return cd.Finalize()
 }
 
