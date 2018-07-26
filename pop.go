@@ -44,9 +44,9 @@ var loadingAssociationsStrategy = EagerDefault
 // SetEagerMode changes overall mode when eager loading.
 // this will change the default loading associations strategy for all Eager queries.
 // This should be used once, when setting up pop connection.
-func SetEagerMode(eagerMode EagerMode) {
-	loadingAssociationsStrategy = eagerMode
-}
+// func SetEagerMode(eagerMode EagerMode) {
+// 	loadingAssociationsStrategy = eagerMode
+// }
 
 // Log a formatted string to the logger
 var Log = func(s string, args ...interface{}) {
