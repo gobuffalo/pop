@@ -120,7 +120,7 @@ func Test_Find_Eager_Belongs_To(t *testing.T) {
 	transaction(func(tx *pop.Connection) {
 		r := require.New(t)
 
-		user := User{Name: nulls.NewString("Mark")}
+		user := User{Name: nulls.NewString("Mark"), UserName: "mark"}
 		err := tx.Create(&user)
 		r.NoError(err)
 
@@ -135,6 +135,15 @@ func Test_Find_Eager_Belongs_To(t *testing.T) {
 		r.NotEqual(b.ID, 0)
 		r.NotEqual(b.User.ID, 0)
 		r.Equal(b.User.ID, user.ID)
+
+		userAttr := UserAttribute{UserName: "mark", NickName: "Mark Z."}
+		err = tx.Create(&userAttr)
+		r.NoError(err)
+
+		uA := UserAttribute{}
+		err = tx.Eager().Find(&uA, userAttr.ID)
+		r.NoError(err)
+		r.Equal(uA.User.ID, user.ID)
 	})
 }
 

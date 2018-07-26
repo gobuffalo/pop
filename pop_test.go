@@ -67,6 +67,7 @@ func ts(s string) string {
 
 type User struct {
 	ID           int           `db:"id"`
+	UserName     string        `db:"user_name"`
 	Email        string        `db:"email"`
 	Name         nulls.String  `db:"name"`
 	Alive        nulls.Bool    `db:"alive"`
@@ -90,6 +91,14 @@ func (u *User) Validate(tx *pop.Connection) (*validate.Errors, error) {
 }
 
 type Users []User
+
+type UserAttribute struct {
+	ID       int    `db:"id"`
+	UserName string `db:"user_name"`
+	NickName string `db:"nick_name"`
+
+	User User `json:"user" belongs_to:"user" fk_id:"UserName" primary_id:"UserName"`
+}
 
 type Book struct {
 	ID          int       `db:"id"`
