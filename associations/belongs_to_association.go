@@ -71,7 +71,6 @@ func belongsToAssociationBuilder(p associationParams) (Association, error) {
 			}
 		}
 	}
-	// fmt.Printf("final primary cond: attr: %s, %s=?, child field: %v, tags: %+v\n", primaryIDField, ownerPrimaryTableField, ownerIDField, p.popTags)
 
 	return &belongsToAssociation{
 		ownerModel: fval,
