@@ -17,8 +17,8 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
 
+	"github.com/gobuffalo/fizz"
 	"github.com/gobuffalo/pop"
-	"github.com/gobuffalo/pop/fizz"
 	"github.com/markbates/going/defaults"
 	"github.com/markbates/inflect"
 )
@@ -162,7 +162,7 @@ func (m model) generateSQL(pathFlag, envFlag *pflag.Flag) error {
 
 // Fizz generates the create table instructions
 func (m model) Fizz() string {
-	s := []string{fmt.Sprintf("create_table(\"%s\", func(t) {", m.Name.Table())}
+	s := []string{fmt.Sprintf("create_table(\"%s\") {", m.Name.Table())}
 	for _, a := range m.Attributes {
 		switch a.Name {
 		case "created_at", "updated_at":
@@ -176,7 +176,7 @@ func (m model) Fizz() string {
 			s = append(s, x)
 		}
 	}
-	s = append(s, "})")
+	s = append(s, "}")
 	return strings.Join(s, "\n")
 }
 

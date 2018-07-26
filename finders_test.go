@@ -336,11 +336,13 @@ func Test_Find_Eager_Many_To_Many(t *testing.T) {
 		uid := u.ID
 		u = User{}
 		err = tx.RawQuery("select * from users where id=?", uid).Eager("Houses").First(&u)
+		r.NoError(err)
 		r.Equal(1, len(u.Houses))
 
 		//eager ALL
 		var users []User
 		err = tx.RawQuery("select * from users order by created_at asc").Eager("Houses").All(&users)
+		r.NoError(err)
 		r.Equal(2, len(users))
 
 		u = users[0]

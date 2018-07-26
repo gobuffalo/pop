@@ -2,7 +2,7 @@
 
 package pop
 
-import "github.com/gobuffalo/pop/fizz"
+import "github.com/gobuffalo/fizz"
 
 func newSchemaMigrations(name string) fizz.Table {
 	return fizz.Table{

@@ -27,7 +27,7 @@ require (
 	github.com/stretchr/testify v1.2.2
 	golang.org/x/net v0.0.0-20180611182652-db08ff08e862
 	golang.org/x/sync v0.0.0-20180314180146-1d60e4601c6f
-	golang.org/x/sys v0.0.0-20180619160947-fc8bd948cf46
+	golang.org/x/sys v0.0.0-20180616030259-6c888cc515d3
 	gopkg.in/check.v1 v1.0.0-20161208181325-20d25e280405
 	gopkg.in/yaml.v2 v2.2.1
 )
