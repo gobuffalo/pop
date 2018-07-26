@@ -29,6 +29,7 @@ var associationBuilders = map[string]associationBuilder{}
 //
 // Deprecated: use ForStruct instead.
 func AssociationsForStruct(s interface{}, fields ...string) (Associations, error) {
+	fmt.Println(`Warning: AssociationsForStruct is deprecated, and will be removed in a future version. Please use ForStruct instead.`)
 	return ForStruct(s, fields...)
 }
 

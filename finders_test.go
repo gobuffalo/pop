@@ -26,6 +26,23 @@ func Test_Find(t *testing.T) {
 	})
 }
 
+func Test_Find_UTF8(t *testing.T) {
+	transaction(func(tx *pop.Connection) {
+		r := require.New(t)
+
+		user := User{Name: nulls.NewString("💩")}
+		err := tx.Create(&user)
+		r.NoError(err)
+
+		u := User{}
+		err = tx.Find(&u, user.ID)
+		r.NoError(err)
+
+		r.NotEqual(u.ID, 0)
+		r.Equal(u.Name.String, "💩")
+	})
+}
+
 func Test_Select(t *testing.T) {
 	transaction(func(tx *pop.Connection) {
 		r := require.New(t)
@@ -295,11 +312,13 @@ func Test_Find_Eager_Many_To_Many(t *testing.T) {
 		uid := u.ID
 		u = User{}
 		err = tx.RawQuery("select * from users where id=?", uid).Eager("Houses").First(&u)
+		r.NoError(err)
 		r.Equal(1, len(u.Houses))
 
 		//eager ALL
 		var users []User
 		err = tx.RawQuery("select * from users order by created_at asc").Eager("Houses").All(&users)
+		r.NoError(err)
 		r.Equal(2, len(users))
 
 		u = users[0]
@@ -399,6 +418,31 @@ func Test_All(t *testing.T) {
 		err = tx.Where("name = 'Mark'").All(&u)
 		r.NoError(err)
 		r.Equal(len(u), 1)
+	})
+}
+
+func Test_All_Eager_Slice_With_All(t *testing.T) {
+	transaction(func(tx *pop.Connection) {
+		r := require.New(t)
+
+		for _, name := range []string{"Mark", "Joe", "Jane"} {
+			user := User{Name: nulls.NewString(name)}
+			err := tx.Create(&user)
+			r.NoError(err)
+
+			book := Book{Title: "Book of " + user.Name.String, UserID: nulls.NewInt(user.ID)}
+			err = tx.Create(&book)
+			r.NoError(err)
+		}
+
+		u := Users{}
+		err := tx.Eager("Books.User").All(&u)
+		r.NoError(err)
+		r.Equal(len(u), 3)
+
+		r.Equal(u[0].ID, u[0].Books[0].User.ID)
+		r.Equal(u[1].ID, u[1].Books[0].User.ID)
+		r.Equal(u[2].ID, u[2].Books[0].User.ID)
 	})
 }
 

@@ -21,6 +21,7 @@ var mysqlConfig = `development:
   port: "3306"
   user: "root"
   password: "root"
+  encoding: "utf8mb4_general_ci"
 
 test:
   url: {{"{{"}}envOr "TEST_DATABASE_URL" "mysql://root:root@(localhost:3306)/{{.name}}_test?parseTime=true&multiStatements=true&readTimeout=1s"}}

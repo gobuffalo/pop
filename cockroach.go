@@ -14,9 +14,9 @@ import (
 	// also loads github.com/lib/pq
 	_ "github.com/cockroachdb/cockroach-go/crdb"
 
+	"github.com/gobuffalo/fizz"
+	"github.com/gobuffalo/fizz/translators"
 	"github.com/gobuffalo/pop/columns"
-	"github.com/gobuffalo/pop/fizz"
-	"github.com/gobuffalo/pop/fizz/translators"
 	"github.com/markbates/going/defaults"
 	"github.com/pkg/errors"
 )
@@ -58,10 +58,8 @@ func (p *cockroach) Create(s store, model *Model, cols columns.Columns) error {
 		}
 		model.setID(id.ID)
 		return nil
-	case "UUID":
-		return genericCreate(s, model, cols)
 	}
-	return errors.Errorf("can not use %s as a primary key type!", keyType)
+	return genericCreate(s, model, cols)
 }
 
 func (p *cockroach) Update(s store, model *Model, cols columns.Columns) error {
