@@ -207,7 +207,7 @@ BEGIN
    FOR _sch, _tbl IN
       SELECT schemaname, tablename 
       FROM   pg_tables 
-      WHERE  table_name <> '%s' AND schemaname NOT IN ('pg_catalog', 'information_schema') AND tableowner = current_user
+      WHERE  tablename <> '%s' AND schemaname NOT IN ('pg_catalog', 'information_schema') AND tableowner = current_user
    LOOP
       --RAISE ERROR '%%',
       EXECUTE  -- dangerous, test before you execute!
