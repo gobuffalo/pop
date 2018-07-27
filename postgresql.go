@@ -183,7 +183,7 @@ func (p *postgresql) LoadSchema(r io.Reader) error {
 
 // TruncateAll truncates all tables for the given connection.
 func (p *postgresql) TruncateAll(tx *Connection) error {
-	return tx.RawQuery(pgTruncate, tx.MigrationTableName()).Exec()
+	return tx.RawQuery(fmt.Sprintf(pgTruncate, tx.MigrationTableName())).Exec()
 }
 
 func newPostgreSQL(deets *ConnectionDetails) dialect {
