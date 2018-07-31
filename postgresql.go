@@ -186,7 +186,7 @@ func (p *postgresql) LoadSchema(r io.Reader) error {
 
 // TruncateAll truncates all tables for the given connection.
 func (p *postgresql) TruncateAll(tx *Connection) error {
-	return tx.RawQuery(pgTruncate).Exec()
+	return tx.RawQuery(fmt.Sprintf(pgTruncate, tx.MigrationTableName())).Exec()
 }
 
 func newPostgreSQL(deets *ConnectionDetails) dialect {
@@ -205,13 +205,13 @@ DECLARE
    _sch text;
 BEGIN
    FOR _sch, _tbl IN
-      SELECT schemaname, tablename
-      FROM   pg_tables
-      WHERE    schemaname = 'public'
+      SELECT schemaname, tablename 
+      FROM   pg_tables 
+      WHERE  tablename <> '%s' AND schemaname NOT IN ('pg_catalog', 'information_schema') AND tableowner = current_user
    LOOP
-      --RAISE ERROR '%',
+      --RAISE ERROR '%%',
       EXECUTE  -- dangerous, test before you execute!
-         format('TRUNCATE TABLE %I.%I CASCADE', _sch, _tbl);
+         format('TRUNCATE TABLE %%I.%%I CASCADE', _sch, _tbl);
    END LOOP;
 END
 $func$;`
