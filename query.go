@@ -38,6 +38,7 @@ func (q *Query) Clone(targetQ *Query) {
 	targetQ.joinClauses = q.joinClauses
 	targetQ.groupClauses = q.groupClauses
 	targetQ.havingClauses = q.havingClauses
+	targetQ.addColumns = q.addColumns
 
 	if q.Paginator != nil {
 		paginator := *q.Paginator
