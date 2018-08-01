@@ -29,7 +29,14 @@ func (c *Connection) Find(model interface{}, id interface{}) error {
 //	q.Find(&User{}, 1)
 func (q *Query) Find(model interface{}, id interface{}) error {
 	m := &Model{Value: model}
-	idq := fmt.Sprintf("%s.id = ?", m.TableName())
+	tn := m.TableName()
+	for _, c := range q.fromClauses {
+		if c.From == tn {
+			tn = c.As
+			break
+		}
+	}
+	idq := fmt.Sprintf("%s.id = ?", tn)
 	switch t := id.(type) {
 	case uuid.UUID:
 		return q.Where(idq, t.String()).First(model)
