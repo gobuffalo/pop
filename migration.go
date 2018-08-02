@@ -2,7 +2,6 @@ package pop
 
 import (
 	"fmt"
-	"log"
 	"path/filepath"
 	"runtime"
 	"time"
@@ -33,7 +32,7 @@ func (c *Connection) MigrateUp(path string) error {
 	if ok {
 		warningMsg = fmt.Sprintf("%s Called from %s:%d", warningMsg, file, no)
 	}
-	log.Println(warningMsg)
+	fmt.Println(warningMsg)
 
 	mig, err := NewFileMigrator(path, c)
 	if err != nil {
@@ -49,7 +48,7 @@ func (c *Connection) MigrateDown(path string, step int) error {
 	if ok {
 		warningMsg = fmt.Sprintf("%s Called from %s:%d", warningMsg, file, no)
 	}
-	log.Println(warningMsg)
+	fmt.Println(warningMsg)
 
 	mig, err := NewFileMigrator(path, c)
 	if err != nil {
@@ -65,7 +64,7 @@ func (c *Connection) MigrateStatus(path string) error {
 	if ok {
 		warningMsg = fmt.Sprintf("%s Called from %s:%d", warningMsg, file, no)
 	}
-	log.Println(warningMsg)
+	fmt.Println(warningMsg)
 
 	mig, err := NewFileMigrator(path, c)
 	if err != nil {
@@ -81,7 +80,7 @@ func (c *Connection) MigrateReset(path string) error {
 	if ok {
 		warningMsg = fmt.Sprintf("%s Called from %s:%d", warningMsg, file, no)
 	}
-	log.Println(warningMsg)
+	fmt.Println(warningMsg)
 
 	mig, err := NewFileMigrator(path, c)
 	if err != nil {

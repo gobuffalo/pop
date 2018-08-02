@@ -10,7 +10,7 @@ import (
 func CreateDB(c *Connection) error {
 	deets := c.Dialect.Details()
 	if deets.Database != "" {
-		Log("info", fmt.Sprintf("create %s (%s)", deets.Database, c.URL()))
+		log("info", fmt.Sprintf("create %s (%s)", deets.Database, c.URL()))
 		return errors.Wrapf(c.Dialect.CreateDB(), "couldn't create database %s", deets.Database)
 	}
 	return nil
@@ -20,7 +20,7 @@ func CreateDB(c *Connection) error {
 func DropDB(c *Connection) error {
 	deets := c.Dialect.Details()
 	if deets.Database != "" {
-		Log("info", fmt.Sprintf("drop %s (%s)", deets.Database, c.URL()))
+		log("info", fmt.Sprintf("drop %s (%s)", deets.Database, c.URL()))
 		return errors.Wrapf(c.Dialect.DropDB(), "couldn't drop database %s", deets.Database)
 	}
 	return nil

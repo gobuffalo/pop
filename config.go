@@ -20,6 +20,8 @@ var lookupPaths = []string{"", "./config", "/config", "../", "../config", "../..
 var ConfigName = "database.yml"
 
 func init() {
+	SetLogger(defaultLogger)
+
 	ap := os.Getenv("APP_PATH")
 	if ap != "" {
 		AddLookupPaths(ap)
@@ -38,7 +40,7 @@ func LoadConfigFile() error {
 		return errors.WithStack(err)
 	}
 	Connections = map[string]*Connection{}
-	Log("info", "Loading config file from %s", path)
+	log("info", "Loading config file from %s", path)
 	f, err := os.Open(path)
 	if err != nil {
 		return errors.WithStack(err)

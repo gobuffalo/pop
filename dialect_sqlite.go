@@ -109,7 +109,7 @@ func (m *sqlite) CreateDB() error {
 		return errors.Wrapf(err, "could not create SQLite database %s", m.ConnectionDetails.Database)
 	}
 
-	Log("info", "created database %s", m.ConnectionDetails.Database)
+	log("info", "created database %s", m.ConnectionDetails.Database)
 	return nil
 }
 
@@ -118,7 +118,7 @@ func (m *sqlite) DropDB() error {
 	if err != nil {
 		return errors.Wrapf(err, "could not drop SQLite database %s", m.ConnectionDetails.Database)
 	}
-	Log("info", "dropped database %s", m.ConnectionDetails.Database)
+	log("info", "dropped database %s", m.ConnectionDetails.Database)
 	return nil
 }
 
@@ -132,7 +132,7 @@ func (m *sqlite) FizzTranslator() fizz.Translator {
 
 func (m *sqlite) DumpSchema(w io.Writer) error {
 	cmd := exec.Command("sqlite3", m.Details().Database, ".schema")
-	Log("sql", strings.Join(cmd.Args, " "))
+	log("sql", strings.Join(cmd.Args, " "))
 	cmd.Stdout = w
 	cmd.Stderr = os.Stderr
 
@@ -141,7 +141,7 @@ func (m *sqlite) DumpSchema(w io.Writer) error {
 		return err
 	}
 
-	Log("info", "dumped schema for %s", m.Details().Database)
+	log("info", "dumped schema for %s", m.Details().Database)
 	return nil
 }
 
@@ -155,7 +155,7 @@ func (m *sqlite) LoadSchema(r io.Reader) error {
 		defer in.Close()
 		io.Copy(in, r)
 	}()
-	Log("sql", strings.Join(cmd.Args, " "))
+	log("sql", strings.Join(cmd.Args, " "))
 	err = cmd.Start()
 	if err != nil {
 		return err
@@ -166,7 +166,7 @@ func (m *sqlite) LoadSchema(r io.Reader) error {
 		return err
 	}
 
-	Log("info", "loaded schema for %s", m.Details().Database)
+	log("info", "loaded schema for %s", m.Details().Database)
 	return nil
 }
 

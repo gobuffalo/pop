@@ -44,7 +44,7 @@ func genericCreate(s store, model *Model, cols columns.Columns) error {
 		var id int64
 		w := cols.Writeable()
 		query := fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s)", model.TableName(), w.String(), w.SymbolizedString())
-		Log("sql", query)
+		log("sql", query)
 		res, err := s.NamedExec(query, model.Value)
 		if err != nil {
 			return errors.WithStack(err)
@@ -72,7 +72,7 @@ func genericCreate(s store, model *Model, cols columns.Columns) error {
 		w := cols.Writeable()
 		w.Add("id")
 		query := fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s)", model.TableName(), w.String(), w.SymbolizedString())
-		Log("sql", query)
+		log("sql", query)
 		stmt, err := s.PrepareNamed(query)
 		if err != nil {
 			return errors.WithStack(err)
@@ -91,7 +91,7 @@ func genericCreate(s store, model *Model, cols columns.Columns) error {
 
 func genericUpdate(s store, model *Model, cols columns.Columns) error {
 	stmt := fmt.Sprintf("UPDATE %s SET %s where %s", model.TableName(), cols.Writeable().UpdateString(), model.whereID())
-	Log("sql", stmt)
+	log("sql", stmt)
 	_, err := s.NamedExec(stmt, model.Value)
 	if err != nil {
 		return errors.WithStack(err)
@@ -109,7 +109,7 @@ func genericDestroy(s store, model *Model) error {
 }
 
 func genericExec(s store, stmt string) error {
-	Log("sql", stmt)
+	log("sql", stmt)
 	_, err := s.Exec(stmt)
 	if err != nil {
 		return errors.WithStack(err)
@@ -119,7 +119,7 @@ func genericExec(s store, stmt string) error {
 
 func genericSelectOne(s store, model *Model, query Query) error {
 	sql, args := query.ToSQL(model)
-	Log("sql", sql, args...)
+	log("sql", sql, args...)
 	err := s.Get(model.Value, sql, args...)
 	if err != nil {
 		return errors.WithStack(err)
@@ -129,7 +129,7 @@ func genericSelectOne(s store, model *Model, query Query) error {
 
 func genericSelectMany(s store, models *Model, query Query) error {
 	sql, args := query.ToSQL(models)
-	Log("sql", sql, args...)
+	log("sql", sql, args...)
 	err := s.Select(models.Value, sql, args...)
 	if err != nil {
 		return errors.WithStack(err)
@@ -152,7 +152,7 @@ func genericLoadSchema(deets *ConnectionDetails, migrationURL string, r io.Reade
 	}
 
 	if len(contents) == 0 {
-		Log("info", "schema is empty for %s, skipping", deets.Database)
+		log("info", "schema is empty for %s, skipping", deets.Database)
 		return nil
 	}
 
@@ -161,6 +161,6 @@ func genericLoadSchema(deets *ConnectionDetails, migrationURL string, r io.Reade
 		return errors.WithMessage(err, fmt.Sprintf("unable to load schema for %s", deets.Database))
 	}
 
-	Log("info", "loaded schema for %s", deets.Database)
+	log("info", "loaded schema for %s", deets.Database)
 	return nil
 }

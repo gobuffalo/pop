@@ -288,7 +288,7 @@ func (q *Query) Exists(model interface{}) (bool, error) {
 		}
 
 		existsQuery := fmt.Sprintf("SELECT EXISTS (%s)", query)
-		Log("sql", existsQuery, args...)
+		log("sql", existsQuery, args...)
 		return q.Connection.Store.Get(&res, existsQuery, args...)
 	})
 	return res, err
@@ -334,7 +334,7 @@ func (q Query) CountByField(model interface{}, field string) (int, error) {
 		}
 
 		countQuery := fmt.Sprintf("SELECT COUNT(%s) AS row_count FROM (%s) a", field, query)
-		Log("sql", countQuery, args...)
+		log("sql", countQuery, args...)
 		return q.Connection.Store.Get(res, countQuery, args...)
 	})
 	return res.Count, err

@@ -99,7 +99,7 @@ func (m Migrator) Up() error {
 			if err != nil {
 				return errors.WithStack(err)
 			}
-			Log("info", "> %s", mi.Name)
+			log("info", "> %s", mi.Name)
 		}
 		return nil
 	})
@@ -142,7 +142,7 @@ func (m Migrator) Down(step int) error {
 				return err
 			}
 
-			Log("info", "< %s", mi.Name)
+			log("info", "< %s", mi.Name)
 		}
 		return nil
 	})
@@ -241,8 +241,8 @@ func (m Migrator) exec(fn func() error) error {
 func printTimer(timerStart time.Time) {
 	diff := time.Since(timerStart).Seconds()
 	if diff > 60 {
-		Log("info", "%.4f minutes", diff/60)
+		log("info", "%.4f minutes", diff/60)
 	} else {
-		Log("info", "%.4f seconds", diff)
+		log("info", "%.4f seconds", diff)
 	}
 }

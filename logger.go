@@ -2,21 +2,31 @@ package pop
 
 import (
 	"fmt"
-	"log"
+	stdlog "log"
 	"os"
 
 	"github.com/fatih/color"
 )
+
+type logger func(lvl string, s string, args ...interface{})
+type legacyLogger func(s string, args ...interface{})
 
 // Debug mode, to toggle verbose log traces
 var Debug = false
 
 // Color mode, to toggle colored logs
 var Color = true
-var logger = log.New(os.Stdout, "[POP] ", log.LstdFlags)
 
-// Log a formatted string to the logger
-var Log = func(lvl string, s string, args ...interface{}) {
+var log logger
+
+var defaultStdLogger = stdlog.New(os.Stdout, "[POP] ", stdlog.LstdFlags)
+var defaultLogger = func(lvl string, s string, args ...interface{}) {
+	// Handle legacy logger
+	if Log != nil {
+		fmt.Println("Warning: Log is deprecated, and will be removed in a future version. Please use SetLogger instead.")
+		Log(s, args...)
+		return
+	}
 	if !Debug && (lvl == "sql" || lvl == "debug") {
 		return
 	}
@@ -42,5 +52,19 @@ var Log = func(lvl string, s string, args ...interface{}) {
 	if Color {
 		s = color.YellowString(s)
 	}
-	logger.Println(s)
+	defaultStdLogger.Println(s)
 }
+
+// SetLogger overrides the default logger.
+//
+// The logger must implement the following interface:
+// type logger func(lvl string, s string, args ...interface{})
+//
+// lvl can be either "sql", "debug" or "info"
+func SetLogger(l logger) {
+	log = l
+}
+
+// Log defines the pop logger. Override it to customize pop logs handling.
+// Deprecated: use SetLogger instead
+var Log legacyLogger
