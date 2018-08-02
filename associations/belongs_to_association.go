@@ -53,13 +53,7 @@ func belongsToAssociationBuilder(p associationParams) (Association, error) {
 	//associated model
 	ownerPrimaryTableField := "id"
 	if primaryIDField != "ID" {
-		var ownerModel reflect.Value
-		if fval.Kind() == reflect.Ptr {
-			ownerModel = fval.Elem()
-		} else {
-			ownerModel = fval
-		}
-
+		ownerModel := reflect.Indirect(fval)
 		if ownerPrimaryField, found := ownerModel.Type().FieldByName(primaryIDField); !found {
 			return nil, fmt.Errorf("there is no primary field '%s' defined in model '%s'", primaryIDField, ownerModel.Type())
 		} else {
