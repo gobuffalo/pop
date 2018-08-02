@@ -6,9 +6,10 @@ import (
 	"os"
 
 	"github.com/fatih/color"
+	"github.com/gobuffalo/pop/logging"
 )
 
-type logger func(lvl string, s string, args ...interface{})
+type logger func(lvl logging.Level, s string, args ...interface{})
 type legacyLogger func(s string, args ...interface{})
 
 // Debug mode, to toggle verbose log traces
@@ -20,17 +21,17 @@ var Color = true
 var log logger
 
 var defaultStdLogger = stdlog.New(os.Stdout, "[POP] ", stdlog.LstdFlags)
-var defaultLogger = func(lvl string, s string, args ...interface{}) {
+var defaultLogger = func(lvl logging.Level, s string, args ...interface{}) {
 	// Handle legacy logger
 	if Log != nil {
 		fmt.Println("Warning: Log is deprecated, and will be removed in a future version. Please use SetLogger instead.")
 		Log(s, args...)
 		return
 	}
-	if !Debug && (lvl == "sql" || lvl == "debug") {
+	if !Debug && lvl > logging.Debug {
 		return
 	}
-	if lvl == "sql" {
+	if lvl == logging.SQL {
 		if len(args) > 0 {
 			xargs := make([]string, len(args))
 			for i, a := range args {
@@ -58,9 +59,7 @@ var defaultLogger = func(lvl string, s string, args ...interface{}) {
 // SetLogger overrides the default logger.
 //
 // The logger must implement the following interface:
-// type logger func(lvl string, s string, args ...interface{})
-//
-// lvl can be either "sql", "debug" or "info"
+// type logger func(lvl logging.Level, s string, args ...interface{})
 func SetLogger(l logger) {
 	log = l
 }

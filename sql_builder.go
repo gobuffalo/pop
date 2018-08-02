@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	"github.com/gobuffalo/pop/columns"
+	"github.com/gobuffalo/pop/logging"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -78,7 +79,7 @@ func (sq *sqlBuilder) compile() {
 				sq.sql = sq.buildPaginationClauses(sq.Query.RawSQL.Fragment)
 			} else {
 				if sq.Query.Paginator != nil {
-					log("warn", "Query already contains pagination")
+					log(logging.Warn, "Query already contains pagination")
 				}
 				sq.sql = sq.Query.RawSQL.Fragment
 			}
@@ -187,7 +188,7 @@ func (sq *sqlBuilder) buildOrderClauses(sql string) string {
 		orderSQL := oc.Join(", ")
 		if regexpMatchNames.MatchString(orderSQL) {
 			warningMsg := fmt.Sprintf("Order clause(s) contains invalid characters: %s", orderSQL)
-			log("warn", warningMsg)
+			log(logging.Warn, warningMsg)
 			return sql
 		}
 

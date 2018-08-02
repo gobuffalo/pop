@@ -9,6 +9,7 @@ import (
 	"text/template"
 
 	"github.com/gobuffalo/envy"
+	"github.com/gobuffalo/pop/logging"
 	"github.com/pkg/errors"
 
 	"gopkg.in/yaml.v2"
@@ -40,7 +41,7 @@ func LoadConfigFile() error {
 		return errors.WithStack(err)
 	}
 	Connections = map[string]*Connection{}
-	log("info", "Loading config file from %s", path)
+	log(logging.Info, "Loading config file from %s", path)
 	f, err := os.Open(path)
 	if err != nil {
 		return errors.WithStack(err)
