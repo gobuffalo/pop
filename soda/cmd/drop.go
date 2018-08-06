@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"fmt"
+
 	"github.com/gobuffalo/pop"
 	"github.com/spf13/cobra"
 )
@@ -10,21 +12,20 @@ var all bool
 var dropCmd = &cobra.Command{
 	Use:   "drop",
 	Short: "Drops databases for you",
-	RunE: func(cmd *cobra.Command, args []string) error {
+	Run: func(cmd *cobra.Command, args []string) {
 		var err error
 		if all {
 			for _, conn := range pop.Connections {
 				err = pop.DropDB(conn)
 				if err != nil {
-					return err
+					fmt.Println(err)
 				}
 			}
 		} else {
 			if err := pop.DropDB(getConn()); err != nil {
-				return err
+				fmt.Println(err)
 			}
 		}
-		return nil
 	},
 }
 
