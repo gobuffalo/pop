@@ -1,7 +1,6 @@
 package pop
 
 import (
-	"bytes"
 	"fmt"
 	"io"
 	"os"
@@ -17,6 +16,7 @@ import (
 	"github.com/gobuffalo/fizz"
 	"github.com/gobuffalo/fizz/translators"
 	"github.com/gobuffalo/pop/columns"
+	"github.com/gobuffalo/pop/logging"
 	"github.com/markbates/going/defaults"
 	"github.com/pkg/errors"
 )
@@ -47,17 +47,20 @@ func (p *cockroach) Create(s store, model *Model, cols columns.Columns) error {
 		}{}
 		w := cols.Writeable()
 		query := fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s) returning id", model.TableName(), w.String(), w.SymbolizedString())
-		Log(query)
+		log(logging.SQL, query)
 		stmt, err := s.PrepareNamed(query)
 		if err != nil {
 			return errors.WithStack(err)
 		}
 		err = stmt.Get(&id, model.Value)
 		if err != nil {
+			if err := stmt.Close(); err != nil {
+				return errors.WithMessage(err, "failed to close statement")
+			}
 			return errors.WithStack(err)
 		}
 		model.setID(id.ID)
-		return nil
+		return errors.WithMessage(stmt.Close(), "failed to close statement")
 	}
 	return genericCreate(s, model, cols)
 }
@@ -87,14 +90,14 @@ func (p *cockroach) CreateDB() error {
 	}
 	defer db.Close()
 	query := fmt.Sprintf("CREATE DATABASE \"%s\"", deets.Database)
-	Log(query)
+	log(logging.SQL, query)
 
 	_, err = db.Exec(query)
 	if err != nil {
 		return errors.Wrapf(err, "error creating Cockroach database %s", deets.Database)
 	}
 
-	fmt.Printf("created database %s\n", deets.Database)
+	log(logging.Info, "created database %s", deets.Database)
 	return nil
 }
 
@@ -106,14 +109,14 @@ func (p *cockroach) DropDB() error {
 	}
 	defer db.Close()
 	query := fmt.Sprintf("DROP DATABASE \"%s\" CASCADE;", deets.Database)
-	Log(query)
+	log(logging.SQL, query)
 
 	_, err = db.Exec(query)
 	if err != nil {
 		return errors.Wrapf(err, "error dropping Cockroach database %s", deets.Database)
 	}
 
-	fmt.Printf("dropped database %s\n", deets.Database)
+	log(logging.Info, "dropped database %s", deets.Database)
 	return nil
 }
 
@@ -168,7 +171,7 @@ func (p *cockroach) DumpSchema(w io.Writer) error {
 		secure = "--insecure"
 	}
 	cmd := exec.Command("cockroach", "dump", p.Details().Database, "--dump-mode=schema", secure)
-	Log(strings.Join(cmd.Args, " "))
+	log(logging.SQL, strings.Join(cmd.Args, " "))
 	cmd.Stdout = w
 	cmd.Stderr = os.Stderr
 
@@ -177,44 +180,12 @@ func (p *cockroach) DumpSchema(w io.Writer) error {
 		return err
 	}
 
-	fmt.Printf("dumped schema for %s\n", p.Details().Database)
+	log(logging.Info, "dumped schema for %s", p.Details().Database)
 	return nil
 }
 
 func (p *cockroach) LoadSchema(r io.Reader) error {
-	secure := ""
-	c := p.ConnectionDetails
-	if defaults.String(c.Options["sslmode"], "disable") == "disable" {
-		secure = "--insecure"
-	}
-
-	cmd := exec.Command("cockroach", "sql", secure, fmt.Sprintf("--database=%s", p.Details().Database), fmt.Sprintf("--user=%s", p.Details().User))
-	in, err := cmd.StdinPipe()
-	if err != nil {
-		return err
-	}
-	go func() {
-		defer in.Close()
-		io.Copy(in, r)
-	}()
-	Log(strings.Join(cmd.Args, " "))
-
-	bb := &bytes.Buffer{}
-	cmd.Stdout = bb
-	cmd.Stderr = bb
-
-	err = cmd.Start()
-	if err != nil {
-		return errors.WithMessage(err, bb.String())
-	}
-
-	err = cmd.Wait()
-	if err != nil {
-		return errors.WithMessage(err, bb.String())
-	}
-
-	fmt.Printf("loaded schema for %s\n", p.Details().Database)
-	return nil
+	return genericLoadSchema(p.ConnectionDetails, p.MigrationURL(), r)
 }
 
 func (p *cockroach) TruncateAll(tx *Connection) error {

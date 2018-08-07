@@ -1,6 +1,7 @@
 package generate
 
 import (
+	"fmt"
 	"regexp"
 
 	"github.com/markbates/inflect"
@@ -24,7 +25,7 @@ func init() {
 	inflect.AddAcronym("UUID")
 }
 
-//ModelCmd is the cmd to generate a model
+// ModelCmd is the cmd to generate a model
 var ModelCmd = &cobra.Command{
 	Use:     "model [name]",
 	Aliases: []string{"m"},
@@ -45,8 +46,13 @@ var ModelCmd = &cobra.Command{
 			return errors.New("Invalid struct tags (use xml or json)")
 		}
 
+		attrs := make(map[inflect.Name]struct{})
 		for _, def := range args[1:] {
 			a := newAttribute(def, &model)
+			if _, found := attrs[a.Name]; found {
+				return fmt.Errorf("Duplicated field \"%s\"", a.Name.String())
+			}
+			attrs[a.Name] = struct{}{}
 			model.addAttribute(a)
 		}
 

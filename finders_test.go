@@ -559,6 +559,13 @@ func Test_Count(t *testing.T) {
 		c, err = tx.Order("id desc").Count(&user)
 		r.NoError(err)
 		r.Equal(c, 1)
+
+		var uAQ []UsersAddressQuery
+		_, err = pop.Q(tx).Select("users_addresses.*").LeftJoin("users", "users.id=users_addresses.user_id").Count(&uAQ)
+		r.NoError(err)
+
+		_, err = pop.Q(tx).Select("users_addresses.*", "users.name", "users.email").LeftJoin("users", "users.id=users_addresses.user_id").Count(&uAQ)
+		r.NoError(err)
 	})
 }
 
