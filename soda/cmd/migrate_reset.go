@@ -13,7 +13,7 @@ var migrateResetCmd = &cobra.Command{
 	Use:   "reset",
 	Short: "The equivalent of running `migrate down` and then `migrate up`",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		fmt.Println("[POP] The `migrate reset` command has been deprecated! Use `reset` instead.")
+		fmt.Println("Warning: The `migrate reset` command has been deprecated! Use `reset` instead.")
 		mig, err := pop.NewFileMigrator(migrationPath, getConn())
 		if err != nil {
 			return errors.WithStack(err)
