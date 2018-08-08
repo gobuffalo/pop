@@ -461,6 +461,8 @@ type Writer struct {
    BookID uuid.UUID   `db:"book_id"`
    Book   Book        `belongs_to:"book"`
 }
+
+type Writers []Writer
 ```
 
 ```go
