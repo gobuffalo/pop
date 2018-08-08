@@ -15,6 +15,7 @@ import (
 	"github.com/gobuffalo/fizz"
 	"github.com/gobuffalo/fizz/translators"
 	"github.com/gobuffalo/pop/columns"
+	"github.com/gobuffalo/pop/logging"
 	"github.com/markbates/going/defaults"
 	// Load SQLite3 CGo driver
 	_ "github.com/mattn/go-sqlite3"
@@ -109,7 +110,7 @@ func (m *sqlite) CreateDB() error {
 		return errors.Wrapf(err, "could not create SQLite database %s", m.ConnectionDetails.Database)
 	}
 
-	fmt.Printf("created database %s\n", m.ConnectionDetails.Database)
+	log(logging.Info, "created database %s", m.ConnectionDetails.Database)
 	return nil
 }
 
@@ -118,7 +119,7 @@ func (m *sqlite) DropDB() error {
 	if err != nil {
 		return errors.Wrapf(err, "could not drop SQLite database %s", m.ConnectionDetails.Database)
 	}
-	fmt.Printf("dropped database %s\n", m.ConnectionDetails.Database)
+	log(logging.Info, "dropped database %s", m.ConnectionDetails.Database)
 	return nil
 }
 
@@ -132,7 +133,7 @@ func (m *sqlite) FizzTranslator() fizz.Translator {
 
 func (m *sqlite) DumpSchema(w io.Writer) error {
 	cmd := exec.Command("sqlite3", m.Details().Database, ".schema")
-	Log(strings.Join(cmd.Args, " "))
+	log(logging.SQL, strings.Join(cmd.Args, " "))
 	cmd.Stdout = w
 	cmd.Stderr = os.Stderr
 
@@ -141,7 +142,7 @@ func (m *sqlite) DumpSchema(w io.Writer) error {
 		return err
 	}
 
-	fmt.Printf("dumped schema for %s\n", m.Details().Database)
+	log(logging.Info, "dumped schema for %s", m.Details().Database)
 	return nil
 }
 
@@ -155,7 +156,7 @@ func (m *sqlite) LoadSchema(r io.Reader) error {
 		defer in.Close()
 		io.Copy(in, r)
 	}()
-	Log(strings.Join(cmd.Args, " "))
+	log(logging.SQL, strings.Join(cmd.Args, " "))
 	err = cmd.Start()
 	if err != nil {
 		return err
@@ -166,7 +167,7 @@ func (m *sqlite) LoadSchema(r io.Reader) error {
 		return err
 	}
 
-	fmt.Printf("loaded schema for %s\n", m.Details().Database)
+	log(logging.Info, "loaded schema for %s", m.Details().Database)
 	return nil
 }
 
