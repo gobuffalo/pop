@@ -1,21 +1,20 @@
-package pop_test
+package pop
 
 import (
 	"testing"
 
-	"github.com/gobuffalo/pop"
 	"github.com/stretchr/testify/require"
 )
 
 func Test_LoadsConnectionsFromConfig(t *testing.T) {
 	r := require.New(t)
 
-	conns := pop.Connections
+	conns := Connections
 	r.Equal(5, len(conns))
 }
 
 func Test_AddLookupPaths(t *testing.T) {
 	r := require.New(t)
-	pop.AddLookupPaths("./foo")
-	r.Contains(pop.LookupPaths(), "./foo")
+	AddLookupPaths("./foo")
+	r.Contains(LookupPaths(), "./foo")
 }
