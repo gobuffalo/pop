@@ -24,7 +24,7 @@ func (c *Connection) eagerCreate(model interface{}, excludeColumns ...string) er
 			continue
 		}
 
-		err = c.Create(i)
+		err = c.Save(i)
 		if err != nil {
 			return err
 		}
@@ -52,7 +52,7 @@ func (c *Connection) eagerCreate(model interface{}, excludeColumns ...string) er
 			continue
 		}
 
-		err = c.Create(i)
+		err = c.Save(i)
 		if err != nil {
 			return err
 		}
@@ -100,7 +100,7 @@ func (c *Connection) eagerValidateAndCreate(model interface{}, excludeColumns ..
 		}
 
 		sm := &Model{Value: i}
-		verrs, err := sm.validateCreate(c)
+		verrs, err := sm.validateSave(c)
 		if err != nil || verrs.HasAny() {
 			return verrs, err
 		}
@@ -114,7 +114,7 @@ func (c *Connection) eagerValidateAndCreate(model interface{}, excludeColumns ..
 		}
 
 		sm := &Model{Value: i}
-		verrs, err := sm.validateCreate(c)
+		verrs, err := sm.validateSave(c)
 		if err != nil || verrs.HasAny() {
 			return verrs, err
 		}

@@ -416,6 +416,62 @@ func Test_Eager_Create_Has_Many(t *testing.T) {
 	})
 }
 
+func Test_Eager_Create_Has_Many_With_Existing(t *testing.T) {
+	transaction(func(tx *pop.Connection) {
+		r := require.New(t)
+
+		addr := Address{HouseNumber: 42, Street: "Life"}
+		addr_verrs, addr_err := tx.ValidateAndCreate(&addr)
+		r.NoError(addr_err)
+		addr_count, _ := tx.Count(&Address{})
+		r.Zero(addr_verrs.Count())
+		r.Equal(1, addr_count)
+		r.NotZero(addr.ID)
+
+		count, _ := tx.Count(&User{})
+		user := User{
+			Name:         nulls.NewString("Mark 'Awesome' Bates"),
+			Books:        Books{{Title: "Pop Book", Description: "Pop Book", Isbn: "PB1"}},
+			FavoriteSong: Song{Title: "Hook - Blues Traveler"},
+			Houses: Addresses{
+				Address{HouseNumber: 86, Street: "Modelo"},
+				addr,
+			},
+		}
+
+		err := tx.Eager().Create(&user)
+		r.NoError(err)
+		r.NotEqual(user.ID, 0)
+
+		ctx, _ := tx.Count(&User{})
+		r.Equal(count+1, ctx)
+
+		ctx, _ = tx.Count(&Book{})
+		r.Equal(count+1, ctx)
+
+		ctx, _ = tx.Count(&Song{})
+		r.Equal(count+1, ctx)
+
+		ctx, _ = tx.Count(&Address{})
+		r.Equal(addr_count+1, ctx)
+
+		u := User{}
+		q := tx.Eager().Where("name = ?", "Mark 'Awesome' Bates")
+		err = q.First(&u)
+		r.NoError(err)
+		r.Equal(u.Name.String, "Mark 'Awesome' Bates")
+		r.Equal(u.Books[0].Title, "Pop Book")
+		r.Equal(u.FavoriteSong.Title, "Hook - Blues Traveler")
+		if u.Houses[0].ID == addr.ID {
+			r.Equal(u.Houses[0].Street, "Life")
+			r.Equal(u.Houses[1].Street, "Modelo")
+		} else {
+			r.Equal(u.Houses[0].Street, "Modelo")
+			r.Equal(u.Houses[1].Street, "Life")
+		}
+	})
+}
+
 func Test_Eager_Create_Has_Many_Reset_Eager_Mode_Connection(t *testing.T) {
 	transaction(func(tx *Connection) {
 		r := require.New(t)
@@ -478,6 +534,57 @@ func Test_Eager_Validate_And_Create_Parental(t *testing.T) {
 		ctx, _ := tx.Count(&User{})
 		r.Zero(ctx)
 		r.Equal(1, verrs.Count()) // Missing Books.Description.
+	})
+}
+
+func Test_Eager_Validate_And_Create_Parental_With_Existing(t *testing.T) {
+	r := require.New(t)
+	transaction(func(tx *pop.Connection) {
+		addr := Address{HouseNumber: 42, Street: "Life"}
+		addr_verrs, addr_err := tx.ValidateAndCreate(&addr)
+		r.NoError(addr_err)
+		addr_count, _ := tx.Count(&Address{})
+		r.Zero(addr_verrs.Count())
+		r.Equal(1, addr_count)
+		r.NotZero(addr.ID)
+
+		user := User{
+			Name:         nulls.NewString("Mark 'Awesome' Bates"),
+			Books:        Books{{Title: "Pop Book", Isbn: "PB1", Description: "Awesome Book!"}},
+			FavoriteSong: Song{Title: "Hook - Blues Traveler"},
+			Houses: Addresses{
+				Address{HouseNumber: 86, Street: "Modelo"},
+				addr,
+			},
+		}
+		count, _ := tx.Count(&User{})
+
+		verrs, err := tx.Eager().ValidateAndCreate(&user)
+		r.NoError(err)
+		r.NotEqual(user.ID, 0)
+		r.Equal(0, verrs.Count())
+
+		ctx, _ := tx.Count(&User{})
+		r.Equal(count+1, ctx)
+
+		ctx, _ = tx.Count(&Address{})
+		r.Equal(addr_count+1, ctx)
+
+		u := User{}
+		q := tx.Eager().Where("name = ?", "Mark 'Awesome' Bates")
+		err = q.First(&u)
+		r.NoError(err)
+		r.Equal(u.Name.String, "Mark 'Awesome' Bates")
+		r.Equal(u.Books[0].Title, "Pop Book")
+		r.Equal(u.FavoriteSong.Title, "Hook - Blues Traveler")
+		if u.Houses[0].ID == addr.ID {
+			r.Equal(u.Houses[0].Street, "Life")
+			r.Equal(u.Houses[1].Street, "Modelo")
+		} else {
+			r.Equal(u.Houses[1].ID, addr.ID)
+			r.Equal(u.Houses[0].Street, "Modelo")
+			r.Equal(u.Houses[1].Street, "Life")
+		}
 	})
 }
 
