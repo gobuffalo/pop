@@ -1,16 +1,15 @@
-package pop_test
+package pop
 
 import (
 	"testing"
 
-	"github.com/gobuffalo/pop"
 	"github.com/stretchr/testify/require"
 )
 
 func Test_ConnectionDetails_Finalize(t *testing.T) {
 	r := require.New(t)
 
-	cd := &pop.ConnectionDetails{
+	cd := &ConnectionDetails{
 		URL: "postgres://user:pass@host:port/database",
 	}
 	err := cd.Finalize()
@@ -28,7 +27,7 @@ func Test_ConnectionDetails_Finalize_MySQL_DSN(t *testing.T) {
 	r := require.New(t)
 
 	url := "mysql://user:pass@(host:port)/database?param1=value1&param2=value2"
-	cd := &pop.ConnectionDetails{
+	cd := &ConnectionDetails{
 		URL: url,
 	}
 	err := cd.Finalize()
@@ -53,7 +52,7 @@ func Test_ConnectionDetails_Finalize_MySQL_DSN_collation(t *testing.T) {
 	}
 
 	for _, url := range urls {
-		cd := &pop.ConnectionDetails{
+		cd := &ConnectionDetails{
 			URL: url,
 		}
 		err := cd.Finalize()
@@ -74,7 +73,7 @@ func Test_ConnectionDetails_Finalize_MySQL_DSN_Protocol(t *testing.T) {
 	r := require.New(t)
 
 	url := "mysql://user:pass@tcp(host:port)/protocol"
-	cd := &pop.ConnectionDetails{
+	cd := &ConnectionDetails{
 		URL: url,
 	}
 	err := cd.Finalize()
@@ -93,7 +92,7 @@ func Test_ConnectionDetails_Finalize_MySQL_DSN_Socket(t *testing.T) {
 	r := require.New(t)
 
 	url := "mysql://user:pass@unix(/path/to/socket)/socket"
-	cd := &pop.ConnectionDetails{
+	cd := &ConnectionDetails{
 		URL: url,
 	}
 	err := cd.Finalize()
@@ -110,7 +109,7 @@ func Test_ConnectionDetails_Finalize_MySQL_DSN_Socket(t *testing.T) {
 
 func Test_ConnectionDetails_Finalize_UnknownDialect(t *testing.T) {
 	r := require.New(t)
-	cd := &pop.ConnectionDetails{
+	cd := &ConnectionDetails{
 		URL: "unknown://user:pass@host:port/database",
 	}
 	err := cd.Finalize()
@@ -120,7 +119,7 @@ func Test_ConnectionDetails_Finalize_UnknownDialect(t *testing.T) {
 func Test_ConnectionDetails_Finalize_SQLite(t *testing.T) {
 	r := require.New(t)
 
-	cd := &pop.ConnectionDetails{
+	cd := &ConnectionDetails{
 		URL: "sqlite3:///tmp/foo.db",
 	}
 	err := cd.Finalize()

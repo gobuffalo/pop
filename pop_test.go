@@ -1,4 +1,4 @@
-package pop_test
+package pop
 
 import (
 	"log"
@@ -6,7 +6,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/gobuffalo/pop"
 	"github.com/gobuffalo/pop/nulls"
 	"github.com/gobuffalo/uuid"
 	"github.com/gobuffalo/validate"
@@ -14,7 +13,7 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
-var PDB *pop.Connection
+var PDB *Connection
 
 type PostgreSQLSuite struct {
 	suite.Suite
@@ -40,20 +39,20 @@ func TestSpecificSuites(t *testing.T) {
 }
 
 func init() {
-	pop.Debug = false
-	pop.AddLookupPaths("./")
+	Debug = false
+	AddLookupPaths("./")
 
 	dialect := os.Getenv("SODA_DIALECT")
 
 	var err error
-	PDB, err = pop.Connect(dialect)
+	PDB, err = Connect(dialect)
 	if err != nil {
 		log.Panic(err)
 	}
 }
 
-func transaction(fn func(tx *pop.Connection)) {
-	err := PDB.Rollback(func(tx *pop.Connection) {
+func transaction(fn func(tx *Connection)) {
+	err := PDB.Rollback(func(tx *Connection) {
 		fn(tx)
 	})
 	if err != nil {
@@ -81,9 +80,9 @@ type User struct {
 	Houses       Addresses     `many_to_many:"users_addresses"`
 }
 
-// Validate gets run every time you call a "pop.Validate*" (pop.ValidateAndSave, pop.ValidateAndCreate, pop.ValidateAndUpdate) method.
+// Validate gets run every time you call a "Validate*" (ValidateAndSave, ValidateAndCreate, ValidateAndUpdate) method.
 // This method is not required and may be deleted.
-func (u *User) Validate(tx *pop.Connection) (*validate.Errors, error) {
+func (u *User) Validate(tx *Connection) (*validate.Errors, error) {
 	return validate.Validate(
 		&validators.StringIsPresent{Field: u.Name.String, Name: "Name"},
 	), nil
@@ -112,9 +111,9 @@ type Taxi struct {
 	UpdatedAt time.Time `db:"updated_at"`
 }
 
-// Validate gets run every time you call a "pop.Validate*" (pop.ValidateAndSave, pop.ValidateAndCreate, pop.ValidateAndUpdate) method.
+// Validate gets run every time you call a "Validate*" (ValidateAndSave, ValidateAndCreate, ValidateAndUpdate) method.
 // This method is not required and may be deleted.
-func (b *Book) Validate(tx *pop.Connection) (*validate.Errors, error) {
+func (b *Book) Validate(tx *Connection) (*validate.Errors, error) {
 	return validate.Validate(
 		&validators.StringIsPresent{Field: b.Description, Name: "Description"},
 	), nil
@@ -221,23 +220,23 @@ type ValidatableCar struct {
 
 var validationLogs = []string{}
 
-func (v *ValidatableCar) Validate(tx *pop.Connection) (*validate.Errors, error) {
+func (v *ValidatableCar) Validate(tx *Connection) (*validate.Errors, error) {
 	validationLogs = append(validationLogs, "Validate")
 	verrs := validate.Validate(&validators.StringIsPresent{Field: v.Name, Name: "Name"})
 	return verrs, nil
 }
 
-func (v *ValidatableCar) ValidateSave(tx *pop.Connection) (*validate.Errors, error) {
+func (v *ValidatableCar) ValidateSave(tx *Connection) (*validate.Errors, error) {
 	validationLogs = append(validationLogs, "ValidateSave")
 	return nil, nil
 }
 
-func (v *ValidatableCar) ValidateUpdate(tx *pop.Connection) (*validate.Errors, error) {
+func (v *ValidatableCar) ValidateUpdate(tx *Connection) (*validate.Errors, error) {
 	validationLogs = append(validationLogs, "ValidateUpdate")
 	return nil, nil
 }
 
-func (v *ValidatableCar) ValidateCreate(tx *pop.Connection) (*validate.Errors, error) {
+func (v *ValidatableCar) ValidateCreate(tx *Connection) (*validate.Errors, error) {
 	validationLogs = append(validationLogs, "ValidateCreate")
 	return nil, nil
 }
@@ -266,47 +265,47 @@ type CallbacksUser struct {
 
 type CallbacksUsers []CallbacksUser
 
-func (u *CallbacksUser) BeforeSave(tx *pop.Connection) error {
+func (u *CallbacksUser) BeforeSave(tx *Connection) error {
 	u.BeforeS = "BeforeSave"
 	return nil
 }
 
-func (u *CallbacksUser) BeforeUpdate(tx *pop.Connection) error {
+func (u *CallbacksUser) BeforeUpdate(tx *Connection) error {
 	u.BeforeU = "BeforeUpdate"
 	return nil
 }
 
-func (u *CallbacksUser) BeforeCreate(tx *pop.Connection) error {
+func (u *CallbacksUser) BeforeCreate(tx *Connection) error {
 	u.BeforeC = "BeforeCreate"
 	return nil
 }
 
-func (u *CallbacksUser) BeforeDestroy(tx *pop.Connection) error {
+func (u *CallbacksUser) BeforeDestroy(tx *Connection) error {
 	u.BeforeD = "BeforeDestroy"
 	return nil
 }
 
-func (u *CallbacksUser) AfterSave(tx *pop.Connection) error {
+func (u *CallbacksUser) AfterSave(tx *Connection) error {
 	u.AfterS = "AfterSave"
 	return nil
 }
 
-func (u *CallbacksUser) AfterUpdate(tx *pop.Connection) error {
+func (u *CallbacksUser) AfterUpdate(tx *Connection) error {
 	u.AfterU = "AfterUpdate"
 	return nil
 }
 
-func (u *CallbacksUser) AfterCreate(tx *pop.Connection) error {
+func (u *CallbacksUser) AfterCreate(tx *Connection) error {
 	u.AfterC = "AfterCreate"
 	return nil
 }
 
-func (u *CallbacksUser) AfterDestroy(tx *pop.Connection) error {
+func (u *CallbacksUser) AfterDestroy(tx *Connection) error {
 	u.AfterD = "AfterDestroy"
 	return nil
 }
 
-func (u *CallbacksUser) AfterFind(tx *pop.Connection) error {
+func (u *CallbacksUser) AfterFind(tx *Connection) error {
 	u.AfterF = "AfterFind"
 	return nil
 }

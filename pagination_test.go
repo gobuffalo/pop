@@ -1,11 +1,10 @@
-package pop_test
+package pop
 
 import (
 	"net/url"
 	"reflect"
 	"testing"
 
-	"github.com/gobuffalo/pop"
 	"github.com/gobuffalo/pop/nulls"
 	"github.com/stretchr/testify/require"
 )
@@ -13,13 +12,13 @@ import (
 func Test_NewPaginator(t *testing.T) {
 	a := require.New(t)
 
-	p := pop.NewPaginator(1, 10)
+	p := NewPaginator(1, 10)
 	a.Equal(p.Offset, 0)
 
-	p = pop.NewPaginator(2, 10)
+	p = NewPaginator(2, 10)
 	a.Equal(p.Offset, 10)
 
-	p = pop.NewPaginator(2, 30)
+	p = NewPaginator(2, 30)
 	a.Equal(p.Offset, 30)
 }
 
@@ -28,23 +27,23 @@ func Test_NewPaginatorFromParams(t *testing.T) {
 
 	params := url.Values{}
 
-	p := pop.NewPaginatorFromParams(params)
+	p := NewPaginatorFromParams(params)
 	a.Equal(p.Page, 1)
 	a.Equal(p.PerPage, 20)
 
 	params.Set("page", "2")
-	p = pop.NewPaginatorFromParams(params)
+	p = NewPaginatorFromParams(params)
 	a.Equal(p.Page, 2)
 	a.Equal(p.PerPage, 20)
 
 	params.Set("per_page", "30")
-	p = pop.NewPaginatorFromParams(params)
+	p = NewPaginatorFromParams(params)
 	a.Equal(p.Page, 2)
 	a.Equal(p.PerPage, 30)
 }
 
 func Test_Pagination(t *testing.T) {
-	transaction(func(tx *pop.Connection) {
+	transaction(func(tx *Connection) {
 		a := require.New(t)
 
 		for _, name := range []string{"Mark", "Joe", "Jane"} {
