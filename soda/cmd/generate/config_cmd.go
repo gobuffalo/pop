@@ -19,7 +19,7 @@ func init() {
 
 var dialect string
 
-//ConfigCmd is the command to generate pop config files
+// ConfigCmd is the command to generate pop config files
 var ConfigCmd = &cobra.Command{
 	Use:   "config",
 	Short: "Generates a database.yml file for your project.",
@@ -34,7 +34,7 @@ var ConfigCmd = &cobra.Command{
 			"dialect": dialect,
 			"name":    filepath.Base(pwd),
 		}
-		return GenerateConfig(cfgFile, data)
+		return Config(cfgFile, data)
 	},
 }
 
