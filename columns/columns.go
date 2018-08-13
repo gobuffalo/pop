@@ -125,7 +125,7 @@ func (c Columns) String() string {
 		xs = append(xs, t.Name)
 	}
 	sort.Strings(xs)
-	return strings.Join(xs, ", ")
+	return "`" + strings.Join(xs, "`, `") + "`"
 }
 
 // SymbolizedString returns a list of tokens (:token) to bind
