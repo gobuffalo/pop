@@ -21,7 +21,7 @@ func Test_Columns_UpdateString(t *testing.T) {
 	for _, f := range []interface{}{foo{}, &foo{}} {
 		c := columns.ForStruct(f, "foo")
 		u := c.Writeable().UpdateString()
-		r.Equal(u, "LastName = :LastName, write = :write")
+		r.Equal(u, "`LastName` = :LastName, `write` = :write")
 	}
 }
 

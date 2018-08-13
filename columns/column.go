@@ -12,7 +12,7 @@ type Column struct {
 
 // UpdateString returns the SQL statement to UPDATE the column.
 func (c Column) UpdateString() string {
-	return fmt.Sprintf("%s = :%s", c.Name, c.Name)
+	return fmt.Sprintf("`%s` = :%s", c.Name, c.Name)
 }
 
 // SetSelectSQL sets a custom SELECT statement for the column.
