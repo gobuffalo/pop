@@ -30,6 +30,6 @@ func Test_Columns_WriteableString(t *testing.T) {
 	for _, f := range []interface{}{foo{}, &foo{}} {
 		c := columns.ForStruct(f, "foo")
 		u := c.Writeable().String()
-		r.Equal(u, "LastName, write")
+		r.Equal(u, "`LastName`, `write`")
 	}
 }

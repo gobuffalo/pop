@@ -12,7 +12,7 @@ func Test_Columns_ReadableString(t *testing.T) {
 	for _, f := range []interface{}{foo{}, &foo{}} {
 		c := columns.ForStruct(f, "foo")
 		u := c.Readable().String()
-		r.Equal(u, "LastName, first_name, read")
+		r.Equal(u, "`LastName`, `first_name`, `read`")
 	}
 }
 
