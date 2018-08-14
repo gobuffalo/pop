@@ -16,8 +16,6 @@ github.com/gobuffalo/github_flavored_markdown v1.0.0 h1:e2dK+SoHgOc/vfXuYMdXwEg2
 github.com/gobuffalo/github_flavored_markdown v1.0.0/go.mod h1:c8/8gRnd6MSyyk+fp6E8O8cUTHd7P2cnDnH4G7o91l0=
 github.com/gobuffalo/makr v1.1.1 h1:IZXL0NMtPDCuzINbsCLjzo8/KYi2j/ySSyzeSn4B7Ds=
 github.com/gobuffalo/makr v1.1.1/go.mod h1:1Ga9O4Gqd5xXc+AoI3eLwgu7k+gWamSUXd2Ps942KkM=
-github.com/gobuffalo/packr v1.13.1 h1:1Z7KOEokVtxM7PFvh8ZYD/+h7vwN/hl1DBD4wDKWGvE=
-github.com/gobuffalo/packr v1.13.1/go.mod h1:m3J/Q/tkaODAQq3r6NyWhDhJs2cVZS/lU0+0Edmfv3c=
 github.com/gobuffalo/packr v1.13.2 h1:fQmeSiOMhl+4U+da7VmX2AjdcCaSOi5IvnqsSXdKYmQ=
 github.com/gobuffalo/packr v1.13.2/go.mod h1:qdqw8AgJyKw60qj56fnEBiS9fIqqCaP/vWJQvR4Jcss=
 github.com/gobuffalo/plush v0.0.0-20180810170812-274552812256 h1:F0IV6ybT9TYIXHVICqIHKcjCNvJuicTL3WwoE8kNuuI=
@@ -36,7 +34,6 @@ github.com/lib/pq v0.0.0-20180523175426-90697d60dd84 h1:it29sI2IM490luSc3RAhp5Wu
 github.com/lib/pq v0.0.0-20180523175426-90697d60dd84/go.mod h1:5WUZQaWbwv1U+lTReE5YruASi9Al49XbQIvNi/34Woo=
 github.com/markbates/going v1.0.1 h1:IFDakPS7ROqx1rESYPSZmURUTwI4HWuM5waQIFCUZZQ=
 github.com/markbates/going v1.0.1/go.mod h1:I6mnB4BPnEeqo85ynXIx1ZFLLbtiLHNXVgWeFO9OGOA=
-github.com/markbates/grift v1.0.0/go.mod h1:6qyNEZSY8v6duE2tBtO/tPgBvxhT7g7DnQoIYpEyCfw=
 github.com/markbates/grift v1.0.1 h1:n3yUdXi+qdChTRvVCbRmD9iMLjSzv7ainzW3qYTP284=
 github.com/markbates/grift v1.0.1/go.mod h1:aC7s7OfCOzc2WCafmTm7wI3cfGFA/8opYhdTGlIAmmo=
 github.com/markbates/inflect v1.0.0 h1:gTffXSQCc+WaIvBcI/IItJQMOemietXr5EIKLXDYqI4=
@@ -71,20 +68,17 @@ github.com/sourcegraph/syntaxhighlight v0.0.0-20170531221838-bd320f5d308e h1:qpG
 github.com/sourcegraph/syntaxhighlight v0.0.0-20170531221838-bd320f5d308e/go.mod h1:HuIsMU8RRBOtsCgI77wP899iHVBQpCmg4ErYMZB+2IA=
 github.com/spf13/cobra v0.0.3 h1:ZlrZ4XsMRm04Fr5pSFxBgfND2EBVa1nLpiy1stUsX/8=
 github.com/spf13/cobra v0.0.3/go.mod h1:1l0Ry5zgKvJasoi3XT1TypsSe7PqH0Sj9dhYf7v3XqQ=
-github.com/spf13/pflag v1.0.1/go.mod h1:DYY7MBk1bdzusC3SYhjObp+wFpr4gzcvqqNjLnInEg4=
 github.com/spf13/pflag v1.0.2 h1:Fy0orTDgHdbnzHcsOgfCN4LtHf0ec3wwtiwJqwvf3Gc=
 github.com/spf13/pflag v1.0.2/go.mod h1:DYY7MBk1bdzusC3SYhjObp+wFpr4gzcvqqNjLnInEg4=
 github.com/stretchr/testify v1.2.2 h1:bSDNvY7ZPG5RlJ8otE/7V6gMiyenm9RtJ7IUVIAoJ1w=
 github.com/stretchr/testify v1.2.2/go.mod h1:a8OnRcib4nhh0OaRAV+Yts87kKdq0PP7pXfy6kDkUVs=
 golang.org/x/net v0.0.0-20180801234040-f4c29de78a2a/go.mod h1:mL1N/T3taQHkDXs73rZJwtUhF3w3ftmwwsq0BUmARs4=
-golang.org/x/net v0.0.0-20180808004115-f9ce57c11b24 h1:mEsFm194MmS9vCwxFy+zwu0EU7ZkxxMD1iH++vmGdUY=
 golang.org/x/net v0.0.0-20180808004115-f9ce57c11b24/go.mod h1:mL1N/T3taQHkDXs73rZJwtUhF3w3ftmwwsq0BUmARs4=
 golang.org/x/net v0.0.0-20180811021610-c39426892332 h1:efGso+ep0DjyCBJPjvoz0HI6UldX4Md2F1rZFe1ir0E=
 golang.org/x/net v0.0.0-20180811021610-c39426892332/go.mod h1:mL1N/T3taQHkDXs73rZJwtUhF3w3ftmwwsq0BUmARs4=
 golang.org/x/sync v0.0.0-20180314180146-1d60e4601c6f h1:wMNYb4v58l5UBM7MYRLPG6ZhfOqbKu7X5eyFl8ZhKvA=
 golang.org/x/sync v0.0.0-20180314180146-1d60e4601c6f/go.mod h1:RxMgew5VJxzue5/jJTE5uejpjVlOe/izrB70Jof72aM=
 gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
-gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
 gopkg.in/russross/blackfriday.v1 v1.5.1 h1:/G8rrKhg8HTP6/VLtuQLbNSXHUzpDdNqZS5umeauNvc=
 gopkg.in/russross/blackfriday.v1 v1.5.1/go.mod h1:NAEMj3mL3YDCD1Mxuzav3y8y68EZs2OnJ9xdWYLES00=
 gopkg.in/yaml.v2 v2.2.1 h1:mUhvW9EsL+naU5Q3cakzfE91YhliOondGd6ZrsDBHQE=
