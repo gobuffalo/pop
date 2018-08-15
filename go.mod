@@ -7,15 +7,14 @@ require (
 	github.com/go-sql-driver/mysql v1.4.0
 	github.com/gobuffalo/envy v1.6.3
 	github.com/gobuffalo/fizz v1.0.7
-	github.com/gobuffalo/makr v1.1.1
+	github.com/gobuffalo/makr v1.1.2
 	github.com/gobuffalo/packr v1.13.2
-	github.com/gobuffalo/uuid v2.0.0+incompatible
-	github.com/gobuffalo/validate v2.0.0+incompatible
+	github.com/gobuffalo/uuid v2.0.2+incompatible
+	github.com/gobuffalo/validate v2.0.1+incompatible
 	github.com/golang/protobuf v1.1.0 // indirect
 	github.com/hpcloud/tail v1.0.0 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/jmoiron/sqlx v0.0.0-20180614180643-0dae4fefe7c0
-	github.com/kr/pretty v0.1.0 // indirect
 	github.com/lib/pq v0.0.0-20180523175426-90697d60dd84 // indirect
 	github.com/markbates/going v1.0.1
 	github.com/markbates/grift v1.0.1
@@ -32,7 +31,7 @@ require (
 	github.com/spf13/pflag v1.0.2
 	github.com/stretchr/testify v1.2.2
 	golang.org/x/sync v0.0.0-20180314180146-1d60e4601c6f
-	golang.org/x/sys v0.0.0-20180814072032-4e1fef560951 // indirect
+	golang.org/x/sys v0.0.0-20180815093151-14742f9018cd // indirect
 	golang.org/x/text v0.3.0 // indirect
 	google.golang.org/appengine v1.1.0 // indirect
 	gopkg.in/fsnotify.v1 v1.4.7 // indirect
