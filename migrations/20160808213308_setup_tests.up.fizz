@@ -1,5 +1,6 @@
 create_table("users") {
   t.Column("name", "string", {})
+  t.Column("user_name", "string", {"size": 100})
   t.Column("alive", "boolean", {"null": true})
   t.Column("birth_date", "timestamp", {"null": true})
   t.Column("bio", "text", {"null": true})
@@ -35,4 +36,9 @@ create_table("books") {
 create_table("taxis") {
   t.Column("model", "string", {})
   t.Column("user_id", "int", {"null": true})
+}
+create_table("user_attributes") {
+  t.Column("user_name", "string", {"size": 100})
+  t.Column("nick_name", "string", {})
+  t.DisableTimestamps()
 }
