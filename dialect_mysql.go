@@ -38,10 +38,7 @@ func (m *mysql) URL() string {
 	if deets.URL != "" {
 		return strings.TrimPrefix(deets.URL, "mysql://")
 	}
-	encoding := defaults.String(deets.Encoding, "utf8_general_ci")
-	if deets.Encoding == "" {
-		log(logging.Warn, `The default encoding will change to "utf8mb4_general_ci" in the next version. Set the "encoding" param in your connection setup to "utf8_general_ci" if you still want to use this encoding with MySQL.`)
-	}
+	encoding := defaults.String(deets.Encoding, "utf8mb4_general_ci")
 	s := "%s:%s@(%s:%s)/%s?parseTime=true&multiStatements=true&readTimeout=1s&collation=%s"
 	return fmt.Sprintf(s, deets.User, deets.Password, deets.Host, deets.Port, deets.Database, encoding)
 }
@@ -53,10 +50,7 @@ func (m *mysql) urlWithoutDb() string {
 		url := strings.TrimPrefix(deets.URL, "mysql://")
 		return strings.Replace(url, "/"+deets.Database+"?", "/?", 1)
 	}
-	encoding := defaults.String(deets.Encoding, "utf8_general_ci")
-	if deets.Encoding == "" {
-		log(logging.Warn, `The default encoding will change to "utf8mb4_general_ci" in the next version. Set the "encoding" param in your connection setup to "utf8_general_ci" if you still want to use this encoding with MySQL.`)
-	}
+	encoding := defaults.String(deets.Encoding, "utf8mb4_general_ci")
 	s := "%s:%s@(%s:%s)/?parseTime=true&multiStatements=true&readTimeout=1s&collation=%s"
 	return fmt.Sprintf(s, deets.User, deets.Password, deets.Host, deets.Port, encoding)
 }
@@ -93,10 +87,7 @@ func (m *mysql) CreateDB() error {
 		return errors.Wrapf(err, "error creating MySQL database %s", deets.Database)
 	}
 	defer db.Close()
-	encoding := defaults.String(deets.Encoding, "utf8_general_ci")
-	if deets.Encoding == "" {
-		log(logging.Warn, `The default encoding will change to "utf8mb4_general_ci" in the next version. Set the "encoding" param in your connection setup to "utf8_general_ci" if you still want to use this encoding with MySQL.`)
-	}
+	encoding := defaults.String(deets.Encoding, "utf8mb4_general_ci")
 	query := fmt.Sprintf("CREATE DATABASE `%s` DEFAULT COLLATE `%s`", deets.Database, encoding)
 	log(logging.SQL, query)
 
