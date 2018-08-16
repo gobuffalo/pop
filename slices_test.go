@@ -1,9 +1,8 @@
-package pop_test
+package pop
 
 import (
 	"time"
 
-	"github.com/gobuffalo/pop"
 	"github.com/gobuffalo/pop/slices"
 )
 
@@ -17,7 +16,7 @@ type Cake struct {
 }
 
 func (p *PostgreSQLSuite) Test_String() {
-	transaction(func(tx *pop.Connection) {
+	transaction(func(tx *Connection) {
 		r := p.Require()
 
 		c := &Cake{
@@ -33,7 +32,7 @@ func (p *PostgreSQLSuite) Test_String() {
 }
 
 func (p *PostgreSQLSuite) Test_Int() {
-	transaction(func(tx *pop.Connection) {
+	transaction(func(tx *Connection) {
 		r := p.Require()
 
 		c := &Cake{
@@ -49,7 +48,7 @@ func (p *PostgreSQLSuite) Test_Int() {
 }
 
 func (p *PostgreSQLSuite) Test_Float() {
-	transaction(func(tx *pop.Connection) {
+	transaction(func(tx *Connection) {
 		r := p.Require()
 
 		c := &Cake{
