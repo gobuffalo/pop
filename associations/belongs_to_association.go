@@ -56,13 +56,12 @@ func belongsToAssociationBuilder(p associationParams) (Association, error) {
 		ownerModel := reflect.Indirect(fval)
 		if ownerPrimaryField, found := ownerModel.Type().FieldByName(primaryIDField); !found {
 			return nil, fmt.Errorf("there is no primary field '%s' defined in model '%s'", primaryIDField, ownerModel.Type())
+		}
+		ownerPrimaryTags := columns.TagsFor(ownerPrimaryField)
+		if dbField := ownerPrimaryTags.Find("db").Value; dbField == "" {
+			ownerPrimaryTableField = inflect.Underscore(ownerPrimaryField.Name) //autodetect without db tag
 		} else {
-			ownerPrimaryTags := columns.TagsFor(ownerPrimaryField)
-			if dbField := ownerPrimaryTags.Find("db").Value; dbField == "" {
-				ownerPrimaryTableField = inflect.Underscore(ownerPrimaryField.Name) //autodetect without db tag
-			} else {
-				ownerPrimaryTableField = dbField
-			}
+			ownerPrimaryTableField = dbField
 		}
 	}
 
