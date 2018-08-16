@@ -54,7 +54,8 @@ func belongsToAssociationBuilder(p associationParams) (Association, error) {
 	ownerPrimaryTableField := "id"
 	if primaryIDField != "ID" {
 		ownerModel := reflect.Indirect(fval)
-		if ownerPrimaryField, found := ownerModel.Type().FieldByName(primaryIDField); !found {
+		ownerPrimaryField, found := ownerModel.Type().FieldByName(primaryIDField)
+		if !found {
 			return nil, fmt.Errorf("there is no primary field '%s' defined in model '%s'", primaryIDField, ownerModel.Type())
 		}
 		ownerPrimaryTags := columns.TagsFor(ownerPrimaryField)
