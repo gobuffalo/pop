@@ -120,7 +120,7 @@ func Test_ToSQL(t *testing.T) {
 	transaction(func(tx *pop.Connection) {
 		user := &pop.Model{Value: &User{}}
 
-		s := "SELECT name as full_name, users.alive, users.bio, users.birth_date, users.created_at, users.email, users.id, users.name, users.price, users.updated_at FROM users AS users"
+		s := "SELECT name as full_name, users.alive, users.bio, users.birth_date, users.created_at, users.email, users.id, users.name, users.price, users.updated_at, users.user_name FROM users AS users"
 
 		query := pop.Q(tx)
 		q, _ := query.ToSQL(user)
@@ -131,7 +131,7 @@ func Test_ToSQL(t *testing.T) {
 		a.Equal(fmt.Sprintf("%s ORDER BY id desc", s), q)
 
 		q, _ = query.ToSQL(&pop.Model{Value: &User{}, As: "u"})
-		a.Equal("SELECT name as full_name, u.alive, u.bio, u.birth_date, u.created_at, u.email, u.id, u.name, u.price, u.updated_at FROM users AS u ORDER BY id desc", q)
+		a.Equal("SELECT name as full_name, u.alive, u.bio, u.birth_date, u.created_at, u.email, u.id, u.name, u.price, u.updated_at, u.user_name FROM users AS u ORDER BY id desc", q)
 
 		q, _ = query.ToSQL(&pop.Model{Value: &Family{}})
 		a.Equal("SELECT family_members.created_at, family_members.first_name, family_members.id, family_members.last_name, family_members.updated_at FROM family.members AS family_members ORDER BY id desc", q)
