@@ -32,7 +32,7 @@ var ModelCmd = &cobra.Command{
 	Short:   "Generates a model for your database",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) == 0 {
-			return errors.New("You must supply a name for your model")
+			return errors.New("you must supply a name for your model")
 		}
 
 		model := newModel(args[0])
@@ -43,14 +43,14 @@ var ModelCmd = &cobra.Command{
 		case "xml":
 			model.Imports = append(model.Imports, "encoding/xml")
 		default:
-			return errors.New("Invalid struct tags (use xml or json)")
+			return errors.New("invalid struct tags (use xml or json)")
 		}
 
 		attrs := make(map[inflect.Name]struct{})
 		for _, def := range args[1:] {
 			a := newAttribute(def, &model)
 			if _, found := attrs[a.Name]; found {
-				return fmt.Errorf("Duplicated field \"%s\"", a.Name.String())
+				return fmt.Errorf("duplicated field \"%s\"", a.Name.String())
 			}
 			attrs[a.Name] = struct{}{}
 			model.addAttribute(a)
