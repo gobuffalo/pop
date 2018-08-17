@@ -42,10 +42,17 @@ func (q *Query) Find(model interface{}, id interface{}) error {
 	case uuid.UUID:
 		return q.Where(idq, t.String()).First(model)
 	case string:
-		var err error
-		id, err = strconv.Atoi(t)
-		if err != nil {
-			return q.Where(idq, t).First(model)
+		l := len(t)
+		if l > 0 {
+			// Handle leading '0':
+			// if the string have a leading '0' and is not "0", prevent parsing to int
+			if t[0] != '0' || l == 1 {
+				var err error
+				id, err = strconv.Atoi(t)
+				if err != nil {
+					return q.Where(idq, t).First(model)
+				}
+			}
 		}
 	}
 

@@ -43,6 +43,31 @@ func Test_Find_UTF8(t *testing.T) {
 	})
 }
 
+func Test_Find_LeadingZeros(t *testing.T) {
+	transaction(func(tx *pop.Connection) {
+		r := require.New(t)
+
+		labels := []string{
+			"0",
+			"01",
+			"001",
+			"123",
+		}
+
+		for _, v := range labels {
+			label := Label{ID: v}
+			err := tx.Create(&label)
+			r.NoError(err)
+
+			l := Label{}
+			err = tx.Find(&l, v)
+			r.NoError(err)
+
+			r.Equal(l.ID, v)
+		}
+	})
+}
+
 func Test_Select(t *testing.T) {
 	transaction(func(tx *pop.Connection) {
 		r := require.New(t)
