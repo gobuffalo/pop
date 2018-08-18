@@ -1,16 +1,15 @@
-package pop_test
+package pop
 
 import (
 	"testing"
 
-	"github.com/gobuffalo/pop"
 	"github.com/gobuffalo/pop/nulls"
 	"github.com/gobuffalo/uuid"
 	"github.com/stretchr/testify/require"
 )
 
 func Test_Find(t *testing.T) {
-	transaction(func(tx *pop.Connection) {
+	transaction(func(tx *Connection) {
 		r := require.New(t)
 
 		user := User{Name: nulls.NewString("Mark")}
@@ -27,7 +26,7 @@ func Test_Find(t *testing.T) {
 }
 
 func Test_Find_UTF8(t *testing.T) {
-	transaction(func(tx *pop.Connection) {
+	transaction(func(tx *Connection) {
 		r := require.New(t)
 
 		user := User{Name: nulls.NewString("💩")}
@@ -44,7 +43,7 @@ func Test_Find_UTF8(t *testing.T) {
 }
 
 func Test_Find_LeadingZeros(t *testing.T) {
-	transaction(func(tx *pop.Connection) {
+	transaction(func(tx *Connection) {
 		r := require.New(t)
 
 		labels := []string{
@@ -69,7 +68,7 @@ func Test_Find_LeadingZeros(t *testing.T) {
 }
 
 func Test_Select(t *testing.T) {
-	transaction(func(tx *pop.Connection) {
+	transaction(func(tx *Connection) {
 		r := require.New(t)
 
 		user := User{Name: nulls.NewString("Mark"), Email: "mark@gobuffalo.io"}
@@ -78,7 +77,7 @@ func Test_Select(t *testing.T) {
 
 		q := tx.Select("name", "email", "\n", "\t\n", "")
 
-		sm := &pop.Model{Value: &User{}}
+		sm := &Model{Value: &User{}}
 		sql, _ := q.ToSQL(sm)
 		r.Equal(tx.Dialect.TranslateSQL("SELECT email, name FROM users AS users"), sql)
 
@@ -93,7 +92,7 @@ func Test_Select(t *testing.T) {
 }
 
 func Test_Find_Eager_Has_Many(t *testing.T) {
-	transaction(func(tx *pop.Connection) {
+	transaction(func(tx *Connection) {
 		r := require.New(t)
 
 		user := User{Name: nulls.NewString("Mark")}
@@ -117,7 +116,7 @@ func Test_Find_Eager_Has_Many(t *testing.T) {
 }
 
 func Test_Find_Eager_Has_Many_Order_By(t *testing.T) {
-	transaction(func(tx *pop.Connection) {
+	transaction(func(tx *Connection) {
 		r := require.New(t)
 
 		user := User{Name: nulls.NewString("Mark")}
@@ -142,7 +141,7 @@ func Test_Find_Eager_Has_Many_Order_By(t *testing.T) {
 }
 
 func Test_Find_Eager_Belongs_To(t *testing.T) {
-	transaction(func(tx *pop.Connection) {
+	transaction(func(tx *Connection) {
 		r := require.New(t)
 
 		user := User{Name: nulls.NewString("Mark"), UserName: "mark"}
@@ -173,7 +172,7 @@ func Test_Find_Eager_Belongs_To(t *testing.T) {
 }
 
 func Test_Find_Eager_Belongs_To_Nulls(t *testing.T) {
-	transaction(func(tx *pop.Connection) {
+	transaction(func(tx *Connection) {
 		r := require.New(t)
 
 		user := User{Name: nulls.NewString("Mark")}
@@ -191,7 +190,7 @@ func Test_Find_Eager_Belongs_To_Nulls(t *testing.T) {
 }
 
 func Test_Find_Eager_Has_One(t *testing.T) {
-	transaction(func(tx *pop.Connection) {
+	transaction(func(tx *Connection) {
 		r := require.New(t)
 
 		user := User{Name: nulls.NewString("Mark")}
@@ -224,7 +223,7 @@ func Test_Find_Eager_Has_One(t *testing.T) {
 }
 
 func Test_Find_Eager_Has_One_With_Inner_Associations_Struct(t *testing.T) {
-	transaction(func(tx *pop.Connection) {
+	transaction(func(tx *Connection) {
 		r := require.New(t)
 
 		user := User{Name: nulls.NewString("Mark")}
@@ -251,7 +250,7 @@ func Test_Find_Eager_Has_One_With_Inner_Associations_Struct(t *testing.T) {
 }
 
 func Test_Find_Eager_Has_One_With_Inner_Associations_Slice(t *testing.T) {
-	transaction(func(tx *pop.Connection) {
+	transaction(func(tx *Connection) {
 		r := require.New(t)
 
 		user := User{Name: nulls.NewString("Mark")}
@@ -282,7 +281,7 @@ func Test_Find_Eager_Has_One_With_Inner_Associations_Slice(t *testing.T) {
 }
 
 func Test_Eager_Bad_Format(t *testing.T) {
-	transaction(func(tx *pop.Connection) {
+	transaction(func(tx *Connection) {
 		r := require.New(t)
 
 		user := User{Name: nulls.NewString("Mark")}
@@ -305,7 +304,7 @@ func Test_Eager_Bad_Format(t *testing.T) {
 }
 
 func Test_Find_Eager_Many_To_Many(t *testing.T) {
-	transaction(func(tx *pop.Connection) {
+	transaction(func(tx *Connection) {
 		r := require.New(t)
 
 		user := User{Name: nulls.NewString("Mark")}
@@ -368,7 +367,7 @@ func Test_Find_Eager_Many_To_Many(t *testing.T) {
 }
 
 func Test_Load_Associations_Loaded_Model(t *testing.T) {
-	transaction(func(tx *pop.Connection) {
+	transaction(func(tx *Connection) {
 		r := require.New(t)
 
 		user := User{Name: nulls.NewString("Mark")}
@@ -394,7 +393,7 @@ func Test_Load_Associations_Loaded_Model(t *testing.T) {
 }
 
 func Test_First(t *testing.T) {
-	transaction(func(tx *pop.Connection) {
+	transaction(func(tx *Connection) {
 		r := require.New(t)
 
 		first := User{Name: nulls.NewString("Mark")}
@@ -414,7 +413,7 @@ func Test_First(t *testing.T) {
 }
 
 func Test_Last(t *testing.T) {
-	transaction(func(tx *pop.Connection) {
+	transaction(func(tx *Connection) {
 		r := require.New(t)
 
 		first := User{Name: nulls.NewString("Mark")}
@@ -434,7 +433,7 @@ func Test_Last(t *testing.T) {
 }
 
 func Test_All(t *testing.T) {
-	transaction(func(tx *pop.Connection) {
+	transaction(func(tx *Connection) {
 		r := require.New(t)
 
 		for _, name := range []string{"Mark", "Joe", "Jane"} {
@@ -456,7 +455,7 @@ func Test_All(t *testing.T) {
 }
 
 func Test_All_Eager_Slice_With_All(t *testing.T) {
-	transaction(func(tx *pop.Connection) {
+	transaction(func(tx *Connection) {
 		r := require.New(t)
 
 		for _, name := range []string{"Mark", "Joe", "Jane"} {
@@ -481,7 +480,7 @@ func Test_All_Eager_Slice_With_All(t *testing.T) {
 }
 
 func Test_All_Eager(t *testing.T) {
-	transaction(func(tx *pop.Connection) {
+	transaction(func(tx *Connection) {
 		r := require.New(t)
 
 		for _, name := range []string{"Mark", "Joe", "Jane"} {
@@ -505,7 +504,7 @@ func Test_All_Eager(t *testing.T) {
 }
 
 func Test_All_Eager_For_Query(t *testing.T) {
-	transaction(func(tx *pop.Connection) {
+	transaction(func(tx *Connection) {
 		r := require.New(t)
 
 		user := User{Name: nulls.NewString("Mark")}
@@ -526,7 +525,7 @@ func Test_All_Eager_For_Query(t *testing.T) {
 }
 
 func Test_All_Eager_Field_Not_Found_Error(t *testing.T) {
-	transaction(func(tx *pop.Connection) {
+	transaction(func(tx *Connection) {
 		r := require.New(t)
 
 		user := User{Name: nulls.NewString("Mark")}
@@ -541,7 +540,7 @@ func Test_All_Eager_Field_Not_Found_Error(t *testing.T) {
 }
 
 func Test_All_Eager_Allow_Chain_Call(t *testing.T) {
-	transaction(func(tx *pop.Connection) {
+	transaction(func(tx *Connection) {
 		r := require.New(t)
 
 		user := User{Name: nulls.NewString("Mark")}
@@ -566,7 +565,7 @@ func Test_All_Eager_Allow_Chain_Call(t *testing.T) {
 }
 
 func Test_Count(t *testing.T) {
-	transaction(func(tx *pop.Connection) {
+	transaction(func(tx *Connection) {
 		r := require.New(t)
 
 		user := User{Name: nulls.NewString("Mark")}
@@ -586,16 +585,16 @@ func Test_Count(t *testing.T) {
 		r.Equal(c, 1)
 
 		var uAQ []UsersAddressQuery
-		_, err = pop.Q(tx).Select("users_addresses.*").LeftJoin("users", "users.id=users_addresses.user_id").Count(&uAQ)
+		_, err = Q(tx).Select("users_addresses.*").LeftJoin("users", "users.id=users_addresses.user_id").Count(&uAQ)
 		r.NoError(err)
 
-		_, err = pop.Q(tx).Select("users_addresses.*", "users.name", "users.email").LeftJoin("users", "users.id=users_addresses.user_id").Count(&uAQ)
+		_, err = Q(tx).Select("users_addresses.*", "users.name", "users.email").LeftJoin("users", "users.id=users_addresses.user_id").Count(&uAQ)
 		r.NoError(err)
 	})
 }
 
 func Test_Count_Disregards_Pagination(t *testing.T) {
-	transaction(func(tx *pop.Connection) {
+	transaction(func(tx *Connection) {
 		r := require.New(t)
 
 		names := []string{
@@ -671,7 +670,7 @@ func Test_Count_Disregards_Pagination(t *testing.T) {
 
 		first_users = Users{}
 		q = tx.RawQuery(`select * from users limit 2 offset
-			1	 
+			1
 			`).Paginate(1, 5) //ending space and tab
 		err = q.All(&first_users)
 		r.NoError(err)
@@ -702,7 +701,7 @@ func Test_Count_Disregards_Pagination(t *testing.T) {
 }
 
 func Test_Count_RawQuery(t *testing.T) {
-	transaction(func(tx *pop.Connection) {
+	transaction(func(tx *Connection) {
 		r := require.New(t)
 
 		user := User{Name: nulls.NewString("Mark")}
@@ -732,7 +731,7 @@ func Test_Count_RawQuery(t *testing.T) {
 }
 
 func Test_Exists(t *testing.T) {
-	transaction(func(tx *pop.Connection) {
+	transaction(func(tx *Connection) {
 		r := require.New(t)
 
 		t, _ := tx.Where("id = ?", 0).Exists("users")
