@@ -17,7 +17,7 @@ var SQLCmd = &cobra.Command{
 			return errors.New("You must supply a name for your migration")
 		}
 		cflag := cmd.Flag("path")
-		migrationPath := defaults.String(cflag.Value.String(), "./migrates")
+		migrationPath := defaults.String(cflag.Value.String(), "./migrations")
 		return pop.MigrationCreate(migrationPath, args[0], "sql", nil, nil)
 	},
 }
