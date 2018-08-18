@@ -14,7 +14,7 @@ import (
 )
 
 func init() {
-	ConfigCmd.Flags().StringVarP(&dialect, "type", "t", "postgres", fmt.Sprintf("What type of database do you want to use? (%s)", strings.Join(pop.AvailableDialects, ", ")))
+	ConfigCmd.Flags().StringVarP(&dialect, "type", "t", "postgres", fmt.Sprintf("The type of database you want to use (%s)", strings.Join(pop.AvailableDialects, ", ")))
 }
 
 var dialect string
