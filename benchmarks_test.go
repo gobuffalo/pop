@@ -1,16 +1,15 @@
-package pop_test
+package pop
 
 import (
 	"fmt"
 	"strconv"
 	"testing"
 
-	"github.com/gobuffalo/pop"
 	"github.com/gobuffalo/pop/nulls"
 )
 
 func Benchmark_Create_Pop(b *testing.B) {
-	transaction(func(tx *pop.Connection) {
+	transaction(func(tx *Connection) {
 		for n := 0; n < b.N; n++ {
 			u := &User{
 				Name: nulls.NewString("Mark Bates"),
@@ -21,7 +20,7 @@ func Benchmark_Create_Pop(b *testing.B) {
 }
 
 func Benchmark_Create_Raw(b *testing.B) {
-	transaction(func(tx *pop.Connection) {
+	transaction(func(tx *Connection) {
 		for n := 0; n < b.N; n++ {
 			u := &User{
 				Name: nulls.NewString("Mark Bates"),
@@ -33,7 +32,7 @@ func Benchmark_Create_Raw(b *testing.B) {
 }
 
 func Benchmark_Update(b *testing.B) {
-	transaction(func(tx *pop.Connection) {
+	transaction(func(tx *Connection) {
 		u := &User{
 			Name: nulls.NewString("Mark Bates"),
 		}
@@ -45,7 +44,7 @@ func Benchmark_Update(b *testing.B) {
 }
 
 func Benchmark_Find_Pop(b *testing.B) {
-	transaction(func(tx *pop.Connection) {
+	transaction(func(tx *Connection) {
 		u := &User{
 			Name: nulls.NewString("Mark Bates"),
 		}
@@ -57,7 +56,7 @@ func Benchmark_Find_Pop(b *testing.B) {
 }
 
 func Benchmark_Find_Raw(b *testing.B) {
-	transaction(func(tx *pop.Connection) {
+	transaction(func(tx *Connection) {
 		u := &User{
 			Name: nulls.NewString("Mark Bates"),
 		}

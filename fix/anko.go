@@ -23,12 +23,6 @@ func Anko(content string) (string, error) {
 		lines[i] = line
 	}
 
-	// fix (` && `)
-	for i, line := range lines {
-		lines[i] = strings.Replace(line, "(`", `("`, -1)
-		lines[i] = strings.Replace(lines[i], "`)", `")`, -1)
-	}
-
 	// fix raw
 	for i, line := range lines {
 		tl := strings.TrimSpace(line)
