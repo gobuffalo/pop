@@ -12,13 +12,20 @@ func Anko(content string) (string, error) {
 	lines := strings.Split(content, "\n")
 
 	// fix create_table
-	for i, line := range lines {
+	in_create_table := false
+	for i := 0; i < len(lines); i++ {
+		line := lines[i]
 		tl := strings.TrimSpace(line)
 		if strings.HasPrefix(tl, "create_table") {
 			line = strings.Replace(line, ", func(t) {", ") {", -1)
-			if strings.HasPrefix(tl, "})") {
-				line = "}"
-			}
+			in_create_table = true
+		}
+		if strings.HasPrefix(tl, "}") && in_create_table {
+			in_create_table = false
+		}
+		if strings.HasPrefix(tl, "})") && in_create_table {
+			line = "}"
+			in_create_table = false
 		}
 		lines[i] = line
 	}
