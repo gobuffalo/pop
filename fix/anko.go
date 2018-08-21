@@ -3,6 +3,8 @@ package fix
 import (
 	"bytes"
 	"strings"
+
+	"github.com/gobuffalo/plush"
 )
 
 // Anko converts old anko-form migrations to new plush ones.
@@ -39,7 +41,13 @@ func Anko(content string) (string, error) {
 		lines[i] = line
 	}
 
-	bb.WriteString(strings.Join(lines, "\n"))
+	body := strings.Join(lines, "\n")
+
+	if _, err := plush.Parse(body); err != nil {
+		return "", err
+	}
+
+	bb.WriteString(body)
 
 	return bb.String(), nil
 }
