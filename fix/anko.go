@@ -16,9 +16,9 @@ func Anko(content string) (string, error) {
 		tl := strings.TrimSpace(line)
 		if strings.HasPrefix(tl, "create_table") {
 			line = strings.Replace(line, ", func(t) {", ") {", -1)
-		}
-		if strings.HasPrefix(tl, "})") {
-			line = "}"
+			if strings.HasPrefix(tl, "})") {
+				line = "}"
+			}
 		}
 		lines[i] = line
 	}
