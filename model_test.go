@@ -68,7 +68,7 @@ func Test_Touch_Time_Timestamp(t *testing.T) {
 	m := Model{Value: &TimeTimestamp{}}
 	m.touchCreatedAt()
 	m.touchUpdatedAt()
-	v := m.Value.(TimeTimestamp)
+	v := m.Value.(*TimeTimestamp)
 	r.NotZero(v.CreatedAt)
 	r.NotZero(v.UpdatedAt)
 }
@@ -79,7 +79,7 @@ func Test_Touch_Unix_Timestamp(t *testing.T) {
 	m := Model{Value: &UnixTimestamp{}}
 	m.touchCreatedAt()
 	m.touchUpdatedAt()
-	v := m.Value.(UnixTimestamp)
+	v := m.Value.(*UnixTimestamp)
 	r.NotZero(v.CreatedAt)
 	r.NotZero(v.UpdatedAt)
 }
