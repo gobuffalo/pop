@@ -44,6 +44,7 @@ var ModelCmd = &cobra.Command{
 	},
 }
 
+// Model generates new model files to work with pop.
 func Model(name string, opts map[string]interface{}, attributes []string) error {
 	if strings.TrimSpace(name) == "" {
 		return errors.New("model name can't be empty")
@@ -89,12 +90,12 @@ func Model(name string, opts map[string]interface{}, attributes []string) error 
 	if !found {
 		return errors.New("path option is required")
 	}
-	env, found := opts["env"].(string)
-	if !found {
-		return errors.New("env option is required")
-	}
 	switch migrationType {
 	case "sql":
+		env, found := opts["env"].(string)
+		if !found {
+			return errors.New("env option is required")
+		}
 		err = model.generateSQL(p, env)
 	default:
 		err = model.generateFizz(p)
