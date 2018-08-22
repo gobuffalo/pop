@@ -1,31 +1,30 @@
-package pop_test
+package pop
 
 import (
 	"testing"
 
-	"github.com/gobuffalo/pop"
 	"github.com/stretchr/testify/require"
 )
 
 func Test_Model_TableName(t *testing.T) {
 	r := require.New(t)
 
-	m := pop.Model{Value: User{}}
+	m := Model{Value: User{}}
 	r.Equal(m.TableName(), "users")
 
-	m = pop.Model{Value: &User{}}
+	m = Model{Value: &User{}}
 	r.Equal(m.TableName(), "users")
 
-	m = pop.Model{Value: &Users{}}
+	m = Model{Value: &Users{}}
 	r.Equal(m.TableName(), "users")
 
-	m = pop.Model{Value: []User{}}
+	m = Model{Value: []User{}}
 	r.Equal(m.TableName(), "users")
 
-	m = pop.Model{Value: &[]User{}}
+	m = Model{Value: &[]User{}}
 	r.Equal(m.TableName(), "users")
 
-	m = pop.Model{Value: []*User{}}
+	m = Model{Value: []*User{}}
 	r.Equal(m.TableName(), "users")
 
 }
@@ -39,13 +38,13 @@ func (tn) TableName() string {
 func Test_TableName(t *testing.T) {
 	r := require.New(t)
 
-	m := pop.Model{Value: tn{}}
+	m := Model{Value: tn{}}
 	r.Equal("this is my table name", m.TableName())
 }
 
 func Test_TableName_With_Array(t *testing.T) {
 	r := require.New(t)
 
-	m := pop.Model{Value: []tn{}}
+	m := Model{Value: []tn{}}
 	r.Equal("this is my table name", m.TableName())
 }

@@ -13,6 +13,7 @@ import (
 	"github.com/gobuffalo/fizz"
 	"github.com/gobuffalo/fizz/translators"
 	"github.com/gobuffalo/pop/columns"
+	"github.com/gobuffalo/pop/logging"
 	"github.com/jmoiron/sqlx"
 	"github.com/markbates/going/defaults"
 	"github.com/pkg/errors"
@@ -37,10 +38,7 @@ func (m *mysql) URL() string {
 	if deets.URL != "" {
 		return strings.TrimPrefix(deets.URL, "mysql://")
 	}
-	encoding := defaults.String(deets.Encoding, "utf8_general_ci")
-	if deets.Encoding == "" {
-		Log(`Warning: The default encoding will change to "utf8mb4_general_ci" in the next version. Set the "encoding" param in your connection setup to "utf8_general_ci" if you still want to use this encoding with MySQL.`)
-	}
+	encoding := defaults.String(deets.Encoding, "utf8mb4_general_ci")
 	s := "%s:%s@(%s:%s)/%s?parseTime=true&multiStatements=true&readTimeout=1s&collation=%s"
 	return fmt.Sprintf(s, deets.User, deets.Password, deets.Host, deets.Port, deets.Database, encoding)
 }
@@ -52,10 +50,7 @@ func (m *mysql) urlWithoutDb() string {
 		url := strings.TrimPrefix(deets.URL, "mysql://")
 		return strings.Replace(url, "/"+deets.Database+"?", "/?", 1)
 	}
-	encoding := defaults.String(deets.Encoding, "utf8_general_ci")
-	if deets.Encoding == "" {
-		Log(`Warning: The default encoding will change to "utf8mb4_general_ci" in the next version. Set the "encoding" param in your connection setup to "utf8_general_ci" if you still want to use this encoding with MySQL.`)
-	}
+	encoding := defaults.String(deets.Encoding, "utf8mb4_general_ci")
 	s := "%s:%s@(%s:%s)/?parseTime=true&multiStatements=true&readTimeout=1s&collation=%s"
 	return fmt.Sprintf(s, deets.User, deets.Password, deets.Host, deets.Port, encoding)
 }
@@ -92,19 +87,16 @@ func (m *mysql) CreateDB() error {
 		return errors.Wrapf(err, "error creating MySQL database %s", deets.Database)
 	}
 	defer db.Close()
-	encoding := defaults.String(deets.Encoding, "utf8_general_ci")
-	if deets.Encoding == "" {
-		Log(`Warning: The default encoding will change to "utf8mb4_general_ci" in the next version. Set the "encoding" param in your connection setup to "utf8_general_ci" if you still want to use this encoding with MySQL.`)
-	}
+	encoding := defaults.String(deets.Encoding, "utf8mb4_general_ci")
 	query := fmt.Sprintf("CREATE DATABASE `%s` DEFAULT COLLATE `%s`", deets.Database, encoding)
-	Log(query)
+	log(logging.SQL, query)
 
 	_, err = db.Exec(query)
 	if err != nil {
 		return errors.Wrapf(err, "error creating MySQL database %s", deets.Database)
 	}
 
-	fmt.Printf("created database %s\n", deets.Database)
+	log(logging.Info, "created database %s", deets.Database)
 	return nil
 }
 
@@ -117,14 +109,14 @@ func (m *mysql) DropDB() error {
 	}
 	defer db.Close()
 	query := fmt.Sprintf("DROP DATABASE `%s`", deets.Database)
-	Log(query)
+	log(logging.SQL, query)
 
 	_, err = db.Exec(query)
 	if err != nil {
 		return errors.Wrapf(err, "error dropping MySQL database %s", deets.Database)
 	}
 
-	fmt.Printf("dropped database %s\n", deets.Database)
+	log(logging.Info, "dropped database %s", deets.Database)
 	return nil
 }
 
@@ -147,7 +139,7 @@ func (m *mysql) DumpSchema(w io.Writer) error {
 	if deets.Port == "socket" {
 		cmd = exec.Command("mysqldump", "-d", "-S", deets.Host, "-u", deets.User, fmt.Sprintf("--password=%s", deets.Password), deets.Database)
 	}
-	Log(strings.Join(cmd.Args, " "))
+	log(logging.SQL, strings.Join(cmd.Args, " "))
 	cmd.Stdout = w
 	cmd.Stderr = os.Stderr
 
@@ -156,7 +148,7 @@ func (m *mysql) DumpSchema(w io.Writer) error {
 		return err
 	}
 
-	fmt.Printf("dumped schema for %s\n", m.Details().Database)
+	log(logging.Info, "dumped schema for %s", m.Details().Database)
 	return nil
 }
 

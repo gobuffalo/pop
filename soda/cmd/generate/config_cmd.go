@@ -14,12 +14,12 @@ import (
 )
 
 func init() {
-	ConfigCmd.Flags().StringVarP(&dialect, "type", "t", "postgres", fmt.Sprintf("What type of database do you want to use? (%s)", strings.Join(pop.AvailableDialects, ", ")))
+	ConfigCmd.Flags().StringVarP(&dialect, "type", "t", "postgres", fmt.Sprintf("The type of database you want to use (%s)", strings.Join(pop.AvailableDialects, ", ")))
 }
 
 var dialect string
 
-//ConfigCmd is the command to generate pop config files
+// ConfigCmd is the command to generate pop config files
 var ConfigCmd = &cobra.Command{
 	Use:   "config",
 	Short: "Generates a database.yml file for your project.",
@@ -34,7 +34,7 @@ var ConfigCmd = &cobra.Command{
 			"dialect": dialect,
 			"name":    filepath.Base(pwd),
 		}
-		return GenerateConfig(cfgFile, data)
+		return Config(cfgFile, data)
 	},
 }
 

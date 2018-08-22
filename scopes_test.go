@@ -1,9 +1,8 @@
-package pop_test
+package pop
 
 import (
 	"testing"
 
-	"github.com/gobuffalo/pop"
 	"github.com/stretchr/testify/require"
 )
 
@@ -11,13 +10,13 @@ func Test_Scopes(t *testing.T) {
 	r := require.New(t)
 	oql := "SELECT enemies.A FROM enemies AS enemies"
 
-	m := &pop.Model{Value: &Enemy{}}
+	m := &Model{Value: &Enemy{}}
 
 	q := PDB.Q()
 	s, _ := q.ToSQL(m)
 	r.Equal(oql, s)
 
-	q.Scope(func(qy *pop.Query) *pop.Query {
+	q.Scope(func(qy *Query) *Query {
 		return qy.Where("id = ?", 1)
 	})
 
