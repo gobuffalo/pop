@@ -28,18 +28,14 @@ func newAttribute(base string, model *model) attribute {
 		col = append(col, "string")
 	}
 
-	nullable := nrx.MatchString(col[1])
+	nullable := strings.HasPrefix(col[1], "nulls.")
 	if !model.HasNulls && nullable {
 		model.HasNulls = true
 		model.Imports = append(model.Imports, "github.com/gobuffalo/pop/nulls")
-	}
-
-	if !model.HasSlices && strings.HasPrefix(col[1], "slices.") {
+	} else if !model.HasSlices && strings.HasPrefix(col[1], "slices.") {
 		model.HasSlices = true
 		model.Imports = append(model.Imports, "github.com/gobuffalo/pop/slices")
-	}
-
-	if !model.HasUUID && col[1] == "uuid" {
+	} else if !model.HasUUID && col[1] == "uuid" {
 		model.HasUUID = true
 		model.Imports = append(model.Imports, "github.com/gobuffalo/uuid")
 	}
