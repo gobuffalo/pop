@@ -142,14 +142,26 @@ func (m *Model) setID(i interface{}) {
 func (m *Model) touchCreatedAt() {
 	fbn, err := m.fieldByName("CreatedAt")
 	if err == nil {
-		fbn.Set(reflect.ValueOf(time.Now()))
+		now := time.Now()
+		switch fbn.Kind() {
+		case reflect.Int, reflect.Int64:
+			fbn.SetInt(now.Unix())
+		default:
+			fbn.Set(reflect.ValueOf(now))
+		}
 	}
 }
 
 func (m *Model) touchUpdatedAt() {
 	fbn, err := m.fieldByName("UpdatedAt")
 	if err == nil {
-		fbn.Set(reflect.ValueOf(time.Now()))
+		now := time.Now()
+		switch fbn.Kind() {
+		case reflect.Int, reflect.Int64:
+			fbn.SetInt(now.Unix())
+		default:
+			fbn.Set(reflect.ValueOf(now))
+		}
 	}
 }
 
