@@ -90,7 +90,7 @@ func translateOne(sql string) string {
 			for _, char := range str {
 				out = append(out, byte(char))
 			}
-			curr += 1
+			curr++
 		} else {
 			out = append(out, sql[i])
 		}

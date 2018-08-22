@@ -615,87 +615,87 @@ func Test_Count_Disregards_Pagination(t *testing.T) {
 			r.NoError(err)
 		}
 
-		first_users := Users{}
-		second_users := Users{}
+		firstUsers := Users{}
+		secondUsers := Users{}
 
 		q := tx.Paginate(1, 3)
-		q.All(&first_users)
+		q.All(&firstUsers)
 		r.Equal(len(names), q.Paginator.TotalEntriesSize) //ensure paginator populates count
-		r.Equal(3, len(first_users))
+		r.Equal(3, len(firstUsers))
 
-		first_users = Users{}
+		firstUsers = Users{}
 		q = tx.RawQuery("select * from users").Paginate(1, 3)
-		q.All(&first_users)
+		q.All(&firstUsers)
 		r.Equal(1, q.Paginator.Page)
 		r.Equal(3, q.Paginator.PerPage)
 		r.Equal(len(names), q.Paginator.TotalEntriesSize) //ensure paginator populates count
 
-		r.Equal(3, len(first_users))
+		r.Equal(3, len(firstUsers))
 		totalFirstPage := q.Paginator.TotalPages
 
 		q = tx.Paginate(2, 3)
-		q.All(&second_users)
+		q.All(&secondUsers)
 
-		r.Equal(3, len(second_users))
+		r.Equal(3, len(secondUsers))
 		totalSecondPage := q.Paginator.TotalPages
 
 		r.NotEqual(0, totalFirstPage)
 		r.NotEqual(0, totalSecondPage)
 		r.Equal(totalFirstPage, totalSecondPage)
 
-		first_users = Users{}
+		firstUsers = Users{}
 		q = tx.RawQuery("select * from users limit  2").Paginate(1, 5)
-		err := q.All(&first_users)
+		err := q.All(&firstUsers)
 		r.NoError(err)
-		r.Equal(2, len(first_users)) //raw query limit applies
+		r.Equal(2, len(firstUsers)) //raw query limit applies
 
-		first_users = Users{}
+		firstUsers = Users{}
 		q = tx.RawQuery("select * from users limit 2 offset 1").Paginate(1, 5)
-		err = q.All(&first_users)
+		err = q.All(&firstUsers)
 		r.NoError(err)
-		r.Equal(2, len(first_users))
+		r.Equal(2, len(firstUsers))
 
-		first_users = Users{}
+		firstUsers = Users{}
 		q = tx.RawQuery("select * from users limit 2 offset\t1").Paginate(1, 5)
-		err = q.All(&first_users)
+		err = q.All(&firstUsers)
 		r.NoError(err)
-		r.Equal(2, len(first_users))
+		r.Equal(2, len(firstUsers))
 
-		first_users = Users{}
+		firstUsers = Users{}
 		q = tx.RawQuery(`select * from users limit 2 offset
 			1`).Paginate(1, 5)
-		err = q.All(&first_users)
+		err = q.All(&firstUsers)
 		r.NoError(err)
-		r.Equal(2, len(first_users))
+		r.Equal(2, len(firstUsers))
 
-		first_users = Users{}
+		firstUsers = Users{}
 		q = tx.RawQuery(`select * from users limit 2 offset
 			1
 			`).Paginate(1, 5) //ending space and tab
-		err = q.All(&first_users)
+		err = q.All(&firstUsers)
 		r.NoError(err)
-		r.Equal(2, len(first_users))
+		r.Equal(2, len(firstUsers))
 
 		if tx.Dialect.Name() == "sqlite" {
-			first_users = Users{}
+			firstUsers = Users{}
 			q = tx.RawQuery("select * from users limit 2,1").Paginate(1, 5)
-			err = q.All(&first_users)
+			err = q.All(&firstUsers)
 			r.NoError(err)
-			r.Equal(2, len(first_users))
+			r.Equal(2, len(firstUsers))
 
-			first_users = Users{}
+			firstUsers = Users{}
 			q = tx.RawQuery("select * from users limit 2 , 1").Paginate(1, 5)
-			err = q.All(&first_users)
+			err = q.All(&firstUsers)
 			r.NoError(err)
-			r.Equal(2, len(first_users))
+			r.Equal(2, len(firstUsers))
 		}
 
 		if tx.Dialect.Name() == "postgresql" {
-			first_users = Users{}
+			firstUsers = Users{}
 			q = tx.RawQuery("select * from users FETCH FIRST 3 rows only").Paginate(1, 5)
-			err = q.All(&first_users)
+			err = q.All(&firstUsers)
 			r.NoError(err)
-			r.Equal(3, len(first_users)) //should fetch only 3
+			r.Equal(3, len(firstUsers)) //should fetch only 3
 		}
 	})
 }

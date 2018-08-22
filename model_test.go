@@ -65,7 +65,7 @@ type UnixTimestamp struct {
 func Test_Touch_Time_Timestamp(t *testing.T) {
 	r := require.New(t)
 
-	m := Model{Value: TimeTimestamp{}}
+	m := Model{Value: &TimeTimestamp{}}
 	m.touchCreatedAt()
 	m.touchUpdatedAt()
 	v := m.Value.(TimeTimestamp)
@@ -76,7 +76,7 @@ func Test_Touch_Time_Timestamp(t *testing.T) {
 func Test_Touch_Unix_Timestamp(t *testing.T) {
 	r := require.New(t)
 
-	m := Model{Value: UnixTimestamp{}}
+	m := Model{Value: &UnixTimestamp{}}
 	m.touchCreatedAt()
 	m.touchUpdatedAt()
 	v := m.Value.(UnixTimestamp)
