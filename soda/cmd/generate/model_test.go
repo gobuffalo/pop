@@ -55,7 +55,7 @@ func Test_model_addID(t *testing.T) {
 
 	r.Equal(m.HasID, true)
 	r.Equal(m.HasUUID, true)
-	r.Equal(string(m.Attributes[0].Name), "id")
+	r.Equal(string(m.Attributes[0].Name.String()), "id")
 	r.Equal(string(m.Attributes[0].GoType), "uuid.UUID")
 
 	m = newModel("car")
@@ -64,7 +64,7 @@ func Test_model_addID(t *testing.T) {
 
 	r.Equal(m.HasID, true)
 	r.Equal(m.HasUUID, false)
-	r.Equal(string(m.Attributes[0].Name), "id")
+	r.Equal(string(m.Attributes[0].Name.String()), "id")
 	r.Equal(string(m.Attributes[0].GoType), "int")
 }
 
