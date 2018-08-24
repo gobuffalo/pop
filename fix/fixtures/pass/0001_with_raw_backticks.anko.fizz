@@ -8,9 +8,18 @@ create_table("users", func(t) {
   t.Column("joined_at", "timestamp", {})
 })
 
-create_table("domains") {
+create_table("domains", func(t) {
+  t.Column("id","uuid",{"primary":true})
+})
+
+create_table("sodas", func(t) {
   t.Column("id","uuid",{"primary":true})
 }
+)
+
+create_table("humans",func(t) {
+  t.Column("id","uuid",{"primary":true})
+})
 
 raw(`
     INSERT INTO users (email, twitter_handle, joined_at, created_at, updated_at)
