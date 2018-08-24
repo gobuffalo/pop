@@ -30,12 +30,13 @@ func Anko(content string) (string, error) {
 				waitParen := false
 				for {
 					if strings.HasPrefix(tl, "})") {
-						line = "}"
+						line = tl[2:]
 						break
 					} else if strings.HasPrefix(tl, "}") {
 						// Now, we have to make sure to match the missing ")"
 						waitParen = true
 					} else if waitParen && strings.HasPrefix(tl, ")") {
+						line = tl[1:]
 						break
 					}
 					i++
