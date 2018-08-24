@@ -3,6 +3,7 @@ package fix
 import (
 	"bytes"
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/gobuffalo/plush"
@@ -14,15 +15,16 @@ func Anko(content string) (string, error) {
 
 	lines := strings.Split(content, "\n")
 	l := len(lines)
+	re := regexp.MustCompile(`,\s*func\(t\)\s*{`)
 
 	for i := 0; i < l; i++ {
 		line := lines[i]
 		tl := strings.TrimSpace(line)
 		if strings.HasPrefix(tl, "create_table") {
 			// skip already converted create_table
-			if strings.Contains(line, ", func(t) {") {
+			if re.MatchString(line) {
 				// fix create_table
-				line = strings.Replace(line, ", func(t) {", ") {", -1)
+				line = re.ReplaceAllString(line, ") {")
 				ll := i
 				lines[i] = line
 				for {

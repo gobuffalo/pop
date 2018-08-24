@@ -17,6 +17,10 @@ create_table("sodas", func(t) {
 }
 )
 
+create_table("humans",func(t) {
+  t.Column("id","uuid",{"primary":true})
+})
+
 raw(`
     INSERT INTO users (email, twitter_handle, joined_at, created_at, updated_at)
     VALUES ('foo@example.com', 'Soman1994', now(), now(), now());
