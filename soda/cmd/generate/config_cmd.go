@@ -48,8 +48,9 @@ var ConfigCmd = &cobra.Command{
 }
 
 // Config generates pop configuration files.
+// Deprecated: use github.com/gobuffalo/pop/genny/config instead.
 func Config(cfgFile string, data map[string]interface{}) error {
-	fmt.Println(`Warning: Config is deprecated, and will be removed in a future version. Please use ./genny/config.New instead.`)
+	fmt.Println(`Warning: Config is deprecated, and will be removed in a future version. Please use github.com/gobuffalo/pop/genny/config instead.`)
 	pwd, _ := os.Getwd()
 
 	run := genny.WetRunner(context.Background())
