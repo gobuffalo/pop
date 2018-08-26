@@ -44,30 +44,13 @@ var ConfigCmd = &cobra.Command{
 		run.With(g)
 
 		return run.Run()
-
-		// pwd, err := os.Getwd()
-		// if err != nil {
-		// 	return errors.Wrap(err, "couldn't get the current directory")
-		// }
-		// data := map[string]interface{}{
-		// 	"dialect": dialect,
-		// 	"name":    filepath.Base(pwd),
-		// }
-		// return GenerateConfig(cfgFile, data)
 	},
 }
 
-// GenerateConfig generates pop configuration files.
-//
-// Deprecated: use Config instead.
-func GenerateConfig(cfgFile string, data map[string]interface{}) error {
-	fmt.Println(`Warning: GenerateConfig is deprecated, and will be removed in a future version. Please use Config instead.`)
-	return Config(cfgFile, data)
-}
-
 // Config generates pop configuration files.
+// Deprecated: use github.com/gobuffalo/pop/genny/config instead.
 func Config(cfgFile string, data map[string]interface{}) error {
-	fmt.Println(`Warning: Config is deprecated, and will be removed in a future version. Please use ./genny/config.New instead.`)
+	fmt.Println(`Warning: Config is deprecated, and will be removed in a future version. Please use github.com/gobuffalo/pop/genny/config instead.`)
 	pwd, _ := os.Getwd()
 
 	run := genny.WetRunner(context.Background())
