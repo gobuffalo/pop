@@ -36,9 +36,11 @@ var ModelCmd = &cobra.Command{
 		p := cmd.Flag("path")
 		e := cmd.Flag("env")
 		data := map[string]interface{}{
-			"marshalType": structTag,
-			"path":        p.Value.String(),
-			"env":         e.Value.String(),
+			"skipMigration": skipMigration,
+			"marshalType":   structTag,
+			"migrationType": migrationType,
+			"path":          p.Value.String(),
+			"env":           e.Value.String(),
 		}
 		return Model(args[0], data, args[1:])
 	},
@@ -82,7 +84,8 @@ func Model(name string, opts map[string]interface{}, attributes []string) error 
 		return err
 	}
 
-	if skipMigration {
+	sm, found := opts["skipMigration"].(bool)
+	if found && sm {
 		return nil
 	}
 
@@ -90,7 +93,12 @@ func Model(name string, opts map[string]interface{}, attributes []string) error 
 	if !found {
 		return errors.New("path option is required")
 	}
-	switch migrationType {
+
+	migrationT, found := opts["migrationType"].(string)
+	if !found {
+		return errors.New("migrationType option is required")
+	}
+	switch migrationT {
 	case "sql":
 		env, found := opts["env"].(string)
 		if !found {
