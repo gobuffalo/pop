@@ -2,12 +2,6 @@ dist: trusty
 sudo: required
 language: go
 
-env:
-  - SODA_DIALECT="postgres"
-  - SODA_DIALECT="mysql_travis"
-  - SODA_DIALECT="sqlite"
-#  - SODA_DIALECT="mariadb"
-
 install:
   - go get -t -v ./...
   - go build -v -tags sqlite -o tsoda ./soda
