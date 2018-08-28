@@ -32,6 +32,10 @@ global_env:
   addons:
     postgresql: "9.5"
 
+.mariadb: &mariadb
+  addons:
+    mariadb: '10.0'
+
 matrix:
   include:
     - dist: trusty
@@ -44,6 +48,10 @@ matrix:
       <<: *mysql
     - dist: trusty
       go: 1.8
+      env: SODA_DIALECT="mariadb_travis"
+      <<: *mariadb
+    - dist: trusty
+      go: 1.8
       env: SODA_DIALECT="sqlite"
     - dist: trusty
       go: 1.9
@@ -55,6 +63,10 @@ matrix:
       <<: *mysql
     - dist: trusty
       go: 1.9
+      env: SODA_DIALECT="mariadb_travis"
+      <<: *mariadb
+    - dist: trusty
+      go: 1.9
       env: SODA_DIALECT="sqlite"
     - dist: trusty
       go: "1.10"
@@ -64,6 +76,10 @@ matrix:
       go: "1.10"
       env: SODA_DIALECT="mysql_travis"
       <<: *mysql
+    - dist: trusty
+      go: "1.10"
+      env: SODA_DIALECT="mariadb_travis"
+      <<: *mariadb
     - dist: trusty
       go: "1.10"
       env: SODA_DIALECT="sqlite"
@@ -75,6 +91,10 @@ matrix:
       go: "tip"
       env: SODA_DIALECT="mysql_travis"
       <<: *mysql
+    - dist: trusty
+      go: "tip"
+      env: SODA_DIALECT="mariadb_travis"
+      <<: *mariadb
     - dist: trusty
       go: "tip"
       env: SODA_DIALECT="sqlite"
