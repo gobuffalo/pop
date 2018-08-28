@@ -18,52 +18,63 @@ global_env:
   - MYSQL_PASSWORD=""
   - POSTGRES_PASSWORD=""
 
-services:
-  - mysql
+.mysql: &mysql
+  services:
+    - mysql
+  addons:
+    apt:
+      sources:
+        - mysql-5.7-trusty
+      packages:
+        - mysql-server
 
-addons:
-  postgresql: "9.5"
-  apt:
-    sources:
-      - mysql-5.7-trusty
-    packages:
-      - mysql-server
+.postgres: &postgres
+  addons:
+    postgresql: "9.5"
 
 matrix:
   include:
     - dist: trusty
       go: 1.8
       env: SODA_DIALECT="postgres"
+      <<: *postgres
     - dist: trusty
       go: 1.8
       env: SODA_DIALECT="mysql_travis"
+      <<: *mysql
     - dist: trusty
       go: 1.8
       env: SODA_DIALECT="sqlite"
     - dist: trusty
       go: 1.9
       env: SODA_DIALECT="postgres"
+      <<: *postgres
     - dist: trusty
       go: 1.9
       env: SODA_DIALECT="mysql_travis"
+      <<: *mysql
     - dist: trusty
       go: 1.9
       env: SODA_DIALECT="sqlite"
     - dist: trusty
       go: "1.10"
       env: SODA_DIALECT="postgres"
+      <<: *postgres
     - dist: trusty
       go: "1.10"
       env: SODA_DIALECT="mysql_travis"
+      <<: *mysql
     - dist: trusty
       go: "1.10"
       env: SODA_DIALECT="sqlite"
     - dist: trusty
       go: "tip"
       env: SODA_DIALECT="postgres"
+      <<: *postgres
     - dist: trusty
       go: "tip"
       env: SODA_DIALECT="mysql_travis"
+      <<: *mysql
     - dist: trusty
       go: "tip"
       env: SODA_DIALECT="sqlite"
