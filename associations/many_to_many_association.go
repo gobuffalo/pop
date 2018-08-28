@@ -17,6 +17,7 @@ type manyToManyAssociation struct {
 	owner               interface{}
 	fkID                string
 	orderBy             string
+	primaryID           string
 	*associationSkipable
 	*associationComposite
 }
@@ -38,6 +39,7 @@ func init() {
 			manyToManyTableName: p.popTags.Find("many_to_many").Value,
 			fkID:                p.popTags.Find("fk_id").Value,
 			orderBy:             p.popTags.Find("order_by").Value,
+			primaryID:           p.popTags.Find("primary_id").Value,
 			associationSkipable: &associationSkipable{
 				skipped: skipped,
 			},
@@ -83,6 +85,10 @@ func (m *manyToManyAssociation) Constraint() (string, []interface{}) {
 
 	if m.fkID != "" {
 		columnFieldID = m.fkID
+	}
+
+	if m.primaryID != "" {
+	   modelColumnID = m.primaryID
 	}
 
 	subQuery := fmt.Sprintf("select %s from %s where %s = ?", columnFieldID, m.manyToManyTableName, modelColumnID)
