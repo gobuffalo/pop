@@ -8,6 +8,7 @@ import (
 )
 
 type attribute struct {
+	Model        *model
 	Name         inflect.Name
 	OriginalType string
 	GoType       string
@@ -15,7 +16,19 @@ type attribute struct {
 }
 
 func (a attribute) String() string {
-	return fmt.Sprintf("\t%s %s `%s:\"%s\" db:\"%s\"`", a.Name.Camel(), a.GoType, structTag, a.Name.Underscore(), a.Name.Underscore())
+	var s string
+	if a.Model != nil {
+		if a.Model.MarshalType == "jsonapi" {
+			if a.Name == "id" {
+				s = fmt.Sprintf("\t%s %s `%s:\"primary,%s\" db:\"%s\"`", a.Name.Camel(), a.GoType, a.Model.MarshalType, a.Model.Name.PluralUnder(), a.Name.Underscore())
+			} else {
+				s = fmt.Sprintf("\t%s %s `%s:\"attr,%s\" db:\"%s\"`", a.Name.Camel(), a.GoType, a.Model.MarshalType, a.Name.Underscore(), a.Name.Underscore())
+			}
+		} else {
+			s = fmt.Sprintf("\t%s %s `%s:\"%s\" db:\"%s\"`", a.Name.Camel(), a.GoType, a.Model.MarshalType, a.Name.Underscore(), a.Name.Underscore())
+		}
+	}
+	return s
 }
 
 func (a attribute) IsValidable() bool {
@@ -45,6 +58,7 @@ func newAttribute(base string, model *model) attribute {
 		got = col[2]
 	}
 	a := attribute{
+		Model:        model,
 		Name:         inflect.Name(col[0]),
 		OriginalType: col[1],
 		GoType:       got,

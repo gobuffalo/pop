@@ -46,24 +46,35 @@ var ModelCmd = &cobra.Command{
 	},
 }
 
+func getMarshalType(opts map[string]interface{}) (string, error) {
+	mt, found := opts["marshalType"].(string)
+	if !found {
+		return "", errors.New("marshalType option is required")
+	}
+	switch mt {
+	case "json":
+	case "xml":
+	case "jsonapi":
+	default:
+		return "", errors.New("invalid struct tags (use xml or json)")
+	}
+
+	return mt, nil
+}
+
 // Model generates new model files to work with pop.
 func Model(name string, opts map[string]interface{}, attributes []string) error {
 	if strings.TrimSpace(name) == "" {
 		return errors.New("model name can't be empty")
 	}
-	model := newModel(name)
 
-	mt, found := opts["marshalType"].(string)
-	if !found {
-		return errors.New("marshalType option is required")
+	mt, err := getMarshalType(opts)
+	if err != nil {
+		return err
 	}
-	switch mt {
-	case "json":
-		model.Imports = append(model.Imports, "encoding/json")
-	case "xml":
-		model.Imports = append(model.Imports, "encoding/xml")
-	default:
-		return errors.New("invalid struct tags (use xml or json)")
+	model := newModel(name, mt)
+	if model.MarshalType != "jsonapi" {
+		model.Imports = append(model.Imports, fmt.Sprintf("enconding/%v", mt))
 	}
 
 	attrs := make(map[inflect.Name]struct{})
@@ -79,7 +90,7 @@ func Model(name string, opts map[string]interface{}, attributes []string) error 
 	// Add a default UUID, if no custom ID is provided
 	model.addID()
 
-	err := model.generateModelFile()
+	err = model.generateModelFile()
 	if err != nil {
 		return err
 	}

@@ -28,6 +28,7 @@ type model struct {
 	Name                  inflect.Name
 	Attributes            []attribute
 	ValidatableAttributes []attribute
+	MarshalType           string
 
 	HasNulls  bool
 	HasUUID   bool
@@ -127,7 +128,12 @@ func (m *model) addID() {
 	}
 
 	id := inflect.Name("id")
-	a := attribute{Name: id, OriginalType: "uuid.UUID", GoType: "uuid.UUID"}
+	a := attribute{
+		Model:        m,
+		Name:         id,
+		OriginalType: "uuid.UUID",
+		GoType:       "uuid.UUID",
+	}
 	// Ensure ID is the first attribute
 	m.Attributes = append([]attribute{a}, m.Attributes...)
 	m.HasID = true
@@ -194,16 +200,17 @@ func (m model) GenerateSQLFromFizz(content string, f fizz.Translator) string {
 	return content
 }
 
-func newModel(name string) model {
+func newModel(name, marshalType string) model {
 	m := model{
 		Package: "models",
 		Imports: []string{"time", "github.com/gobuffalo/pop", "github.com/gobuffalo/validate"},
 		Name:    inflect.Name(name),
-		Attributes: []attribute{
-			{Name: inflect.Name("created_at"), OriginalType: "time.Time", GoType: "time.Time"},
-			{Name: inflect.Name("updated_at"), OriginalType: "time.Time", GoType: "time.Time"},
-		},
 		ValidatableAttributes: []attribute{},
+		MarshalType:           marshalType,
+	}
+	m.Attributes = []attribute{
+		{Model: &m, Name: inflect.Name("created_at"), OriginalType: "time.Time", GoType: "time.Time"},
+		{Model: &m, Name: inflect.Name("updated_at"), OriginalType: "time.Time", GoType: "time.Time"},
 	}
 	return m
 }
