@@ -27,7 +27,7 @@ func Test_addAttribute(t *testing.T) {
 
 	for index, tcase := range cases {
 		t.Run(fmt.Sprintf("%v", index), func(t *testing.T) {
-			m := newModel("car")
+			m := newModel("car", "json")
 			a := newAttribute(tcase.AttrInput, &m)
 			m.addAttribute(a)
 
@@ -50,7 +50,7 @@ func Test_addAttribute(t *testing.T) {
 func Test_model_addID(t *testing.T) {
 	r := require.New(t)
 
-	m := newModel("car")
+	m := newModel("car", "json")
 	m.addID()
 
 	r.Equal(m.HasID, true)
@@ -58,7 +58,7 @@ func Test_model_addID(t *testing.T) {
 	r.Equal(string(m.Attributes[0].Name), "id")
 	r.Equal(string(m.Attributes[0].GoType), "uuid.UUID")
 
-	m = newModel("car")
+	m = newModel("car", "json")
 	m.addAttribute(newAttribute("id:int", &m))
 	m.addID()
 
@@ -70,7 +70,7 @@ func Test_model_addID(t *testing.T) {
 
 func Test_testPkgName(t *testing.T) {
 	r := require.New(t)
-	m := newModel("car")
+	m := newModel("car", "json")
 
 	r.Equal("models", m.testPkgName())
 
