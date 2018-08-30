@@ -27,6 +27,7 @@ type model struct {
 	Package               string
 	Imports               []string
 	Name                  nflect.Ident
+	attributesCache       map[string]struct{}
 	Attributes            []attribute
 	ValidatableAttributes []attribute
 
@@ -107,7 +108,12 @@ func (m model) testPkgName() string {
 	return pkg
 }
 
-func (m *model) addAttribute(a attribute) {
+func (m *model) addAttribute(a attribute) error {
+	k := a.Name.String()
+	if _, found := m.attributesCache[k]; found {
+		return fmt.Errorf("duplicated field \"%s\"", k)
+	}
+	m.attributesCache[k] = struct{}{}
 	if a.Name.String() == "id" {
 		// No need to create a default ID
 		m.HasID = true
@@ -118,7 +124,7 @@ func (m *model) addAttribute(a attribute) {
 	}
 
 	if a.Nullable {
-		return
+		return nil
 	}
 
 	if a.IsValidable() {
@@ -127,6 +133,7 @@ func (m *model) addAttribute(a attribute) {
 		}
 		m.ValidatableAttributes = append(m.ValidatableAttributes, a)
 	}
+	return nil
 }
 
 func (m *model) addID() {
@@ -209,15 +216,17 @@ func (m model) GenerateSQLFromFizz(content string, f fizz.Translator) string {
 
 func newModel(name string) model {
 	m := model{
-		Package: "models",
-		Imports: []string{"time", "github.com/gobuffalo/pop", "github.com/gobuffalo/validate"},
-		Name:    nflect.New(name),
-		Attributes: []attribute{
-			{Name: flect.New("created_at"), OriginalType: "time.Time", GoType: "time.Time"},
-			{Name: flect.New("updated_at"), OriginalType: "time.Time", GoType: "time.Time"},
-		},
+		Package:               "models",
+		Imports:               []string{"time", "github.com/gobuffalo/pop", "github.com/gobuffalo/validate"},
+		Name:                  nflect.New(name),
+		Attributes:            []attribute{},
 		ValidatableAttributes: []attribute{},
+		attributesCache:       map[string]struct{}{},
 	}
+
+	m.addAttribute(attribute{Name: flect.New("created_at"), OriginalType: "time.Time", GoType: "time.Time"})
+	m.addAttribute(attribute{Name: flect.New("updated_at"), OriginalType: "time.Time", GoType: "time.Time"})
+
 	return m
 }
 

@@ -11,8 +11,6 @@ import (
 )
 
 func Test_addAttribute(t *testing.T) {
-	r := require.New(t)
-
 	cases := []struct {
 		AttrInput string
 		HasID     bool
@@ -26,9 +24,11 @@ func Test_addAttribute(t *testing.T) {
 	}
 
 	for index, tcase := range cases {
-		t.Run(fmt.Sprintf("%v", index), func(t *testing.T) {
+		t.Run(fmt.Sprintf("%v", index), func(tt *testing.T) {
+			r := require.New(tt)
 			m := newModel("car")
-			a := newAttribute(tcase.AttrInput, &m)
+			a, err := newAttribute(tcase.AttrInput, &m)
+			r.NoError(err)
 			m.addAttribute(a)
 
 			r.Equal(m.HasID, tcase.HasID)
@@ -59,13 +59,36 @@ func Test_model_addID(t *testing.T) {
 	r.Equal(string(m.Attributes[0].GoType), "uuid.UUID")
 
 	m = newModel("car")
-	m.addAttribute(newAttribute("id:int", &m))
+	a, err := newAttribute("id:int", &m)
+	r.NoError(err)
+	err = m.addAttribute(a)
+	r.NoError(err)
 	m.addID()
 
 	r.Equal(m.HasID, true)
 	r.Equal(m.HasUUID, false)
 	r.Equal(m.Attributes[0].Name.String(), "id")
 	r.Equal(string(m.Attributes[0].GoType), "int")
+}
+
+func Test_model_addDuplicate(t *testing.T) {
+	r := require.New(t)
+
+	m := newModel("car")
+	a, err := newAttribute("color:string", &m)
+	r.NoError(err)
+	err = m.addAttribute(a)
+	r.NoError(err)
+
+	a, err = newAttribute("color:string", &m)
+	r.NoError(err)
+	err = m.addAttribute(a)
+	r.Error(err)
+
+	a, err = newAttribute("color:int", &m)
+	r.NoError(err)
+	err = m.addAttribute(a)
+	r.Error(err)
 }
 
 func Test_testPkgName(t *testing.T) {

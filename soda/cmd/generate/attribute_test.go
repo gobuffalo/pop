@@ -46,7 +46,8 @@ func Test_Attribute_String(t *testing.T) {
 
 	for _, c := range cases {
 		model := newModel("car")
-		a := newAttribute(c.name, &model)
+		a, err := newAttribute(c.name, &model)
+		r.NoError(err)
 		r.Equal(c.exp, a.String())
 	}
 }
@@ -60,6 +61,7 @@ func Test_newAttribute(t *testing.T) {
 		ModelHasUUID   bool
 		ModelHasNulls  bool
 		ModelHasSlices bool
+		Invalid        bool
 	}{
 		{
 			AttributeInput: "name",
@@ -106,13 +108,34 @@ func Test_newAttribute(t *testing.T) {
 			AttributeInput: "age:int:int64",
 			ResultType:     "int64",
 		},
+		{
+			AttributeInput: "111:int",
+			Invalid:        true,
+		},
+		{
+			AttributeInput: "admin/user",
+			Invalid:        true,
+		},
+		{
+			AttributeInput: "admin;user",
+			Invalid:        true,
+		},
+		{
+			AttributeInput: "_bread",
+			Invalid:        true,
+		},
 	}
 
 	for index, tcase := range cases {
 		t.Run(fmt.Sprintf("%d-%s", index, tcase.AttributeInput), func(tt *testing.T) {
 			r := require.New(tt)
 			model := newModel("car")
-			a := newAttribute(tcase.AttributeInput, &model)
+			a, err := newAttribute(tcase.AttributeInput, &model)
+			if tcase.Invalid {
+				r.Errorf(err, "%s should be an invalid attribute", tcase.AttributeInput)
+				return
+			}
+			r.NoError(err)
 
 			r.Equal(a.GoType, tcase.ResultType)
 			r.Equal(a.Nullable, tcase.Nullable)
