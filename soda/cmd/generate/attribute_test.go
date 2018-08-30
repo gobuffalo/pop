@@ -124,3 +124,51 @@ func Test_newAttribute(t *testing.T) {
 	}
 
 }
+
+func Test_Attribute_JSONAPI(t *testing.T) {
+	r := require.New(t)
+
+	cases := []struct {
+		exp  string
+		name string
+	}{
+		{
+			name: "id",
+			exp:  "\tID string `jsonapi:\"primary,cars\" db:\"id\"`",
+		},
+		{
+			name: "user_id",
+			exp:  "\tUserID string `jsonapi:\"attr,user_id\" db:\"user_id\"`",
+		},
+		{
+			name: "UserID",
+			exp:  "\tUserID string `jsonapi:\"attr,user_id\" db:\"user_id\"`",
+		},
+		{
+			name: "userid",
+			exp:  "\tUserid string `jsonapi:\"attr,userid\" db:\"userid\"`",
+		},
+		{
+			name: "userId",
+			exp:  "\tUserID string `jsonapi:\"attr,user_id\" db:\"user_id\"`",
+		},
+		{
+			name: "user-id",
+			exp:  "\tUserID string `jsonapi:\"attr,user_id\" db:\"user_id\"`",
+		},
+		{
+			name: "expires",
+			exp:  "\tExpires string `jsonapi:\"attr,expires\" db:\"expires\"`",
+		},
+		{
+			name: "message_headers",
+			exp:  "\tMessageHeaders string `jsonapi:\"attr,message_headers\" db:\"message_headers\"`",
+		},
+	}
+
+	model := newModel("car", "jsonapi")
+	for _, c := range cases {
+		a := newAttribute(c.name, &model)
+		r.Equal(c.exp, a.String())
+	}
+}
