@@ -31,10 +31,6 @@ func Test_Attribute_String(t *testing.T) {
 			exp:  "\tUserID string `json:\"user_id\" db:\"user_id\"`",
 		},
 		{
-			name: "user-id",
-			exp:  "\tUserID string `json:\"user_id\" db:\"user_id\"`",
-		},
-		{
 			name: "expires",
 			exp:  "\tExpires string `json:\"expires\" db:\"expires\"`",
 		},

@@ -11,10 +11,11 @@ import (
 var attrNamePattern = regexp.MustCompile(`^\p{L}[\p{L}\d_]*$`)
 
 type attribute struct {
-	Name         flect.Ident
-	OriginalType string
-	GoType       string
-	Nullable     bool
+	Name              flect.Ident
+	OriginalType      string
+	GoType            string
+	Nullable          bool
+	PreventValidation bool
 }
 
 func (a attribute) String() string {
@@ -22,7 +23,7 @@ func (a attribute) String() string {
 }
 
 func (a attribute) IsValidable() bool {
-	return a.GoType == "string" || a.GoType == "time.Time" || a.GoType == "int"
+	return !a.PreventValidation && (a.GoType == "string" || a.GoType == "time.Time" || a.GoType == "int")
 }
 
 func newAttribute(base string, model *model) (attribute, error) {

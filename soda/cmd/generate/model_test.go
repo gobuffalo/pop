@@ -31,16 +31,16 @@ func Test_addAttribute(t *testing.T) {
 			r.NoError(err)
 			m.addAttribute(a)
 
-			r.Equal(m.HasID, tcase.HasID)
-			r.Equal(m.HasNulls, tcase.HasNulls)
+			r.Equal(tcase.HasID, m.HasID)
+			r.Equal(tcase.HasNulls, m.HasNulls)
 
 			if !tcase.Validable {
 				log.Println(m.ValidatableAttributes)
-				r.Equal(len(m.ValidatableAttributes), 0)
+				r.Equal(0, len(m.ValidatableAttributes))
 				return
 			}
 
-			r.Equal(m.ValidatableAttributes[0].Name, a.Name)
+			r.Equal(a.Name, m.ValidatableAttributes[0].Name)
 		})
 
 	}
