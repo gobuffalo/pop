@@ -74,7 +74,7 @@ func Model(name string, opts map[string]interface{}, attributes []string) error 
 	}
 	model := newModel(name, mt)
 	if model.MarshalType != "jsonapi" {
-		model.Imports = append(model.Imports, fmt.Sprintf("enconding/%v", mt))
+		model.Imports = append(model.Imports, fmt.Sprintf("encoding/%v", mt))
 	}
 
 	attrs := make(map[inflect.Name]struct{})

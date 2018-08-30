@@ -16,16 +16,12 @@ type attribute struct {
 }
 
 func (a attribute) String() string {
-	var s string
-	if a.Model != nil {
-		if a.Model.MarshalType == "jsonapi" {
-			if a.Name == "id" {
-				s = fmt.Sprintf("\t%s %s `%s:\"primary,%s\" db:\"%s\"`", a.Name.Camel(), a.GoType, a.Model.MarshalType, a.Model.Name.PluralUnder(), a.Name.Underscore())
-			} else {
-				s = fmt.Sprintf("\t%s %s `%s:\"attr,%s\" db:\"%s\"`", a.Name.Camel(), a.GoType, a.Model.MarshalType, a.Name.Underscore(), a.Name.Underscore())
-			}
+	s := fmt.Sprintf("\t%s %s `%s:\"%s\" db:\"%s\"`", a.Name.Camel(), a.GoType, structTag, a.Name.Underscore(), a.Name.Underscore())
+	if a.Model != nil && a.Model.MarshalType == "jsonapi" {
+		if a.Name == "id" {
+			s = fmt.Sprintf("\t%s %s `%s:\"primary,%s\" db:\"%s\"`", a.Name.Camel(), a.GoType, a.Model.MarshalType, a.Model.Name.PluralUnder(), a.Name.Underscore())
 		} else {
-			s = fmt.Sprintf("\t%s %s `%s:\"%s\" db:\"%s\"`", a.Name.Camel(), a.GoType, a.Model.MarshalType, a.Name.Underscore(), a.Name.Underscore())
+			s = fmt.Sprintf("\t%s %s `%s:\"attr,%s\" db:\"%s\"`", a.Name.Camel(), a.GoType, a.Model.MarshalType, a.Name.Underscore(), a.Name.Underscore())
 		}
 	}
 	return s
