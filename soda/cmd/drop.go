@@ -17,8 +17,8 @@ var dropCmd = &cobra.Command{
 	Short: "Drops databases for you",
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
-		if len(args) > 1 {
-			err = fmt.Errorf("No arguments are allowed with the drop database command.")
+		if len(args) > 0 {
+			err = fmt.Errorf("No arguments allowed with the drop database command.")
 			fmt.Println(err)
 			os.Exit(1)
 		}
@@ -51,6 +51,6 @@ var dropCmd = &cobra.Command{
 
 func init() {
 	dropCmd.Flags().BoolVarP(&all, "all", "a", false, "Drops all of the databases in the database.yml")
-	dropCmd.Flags().BoolVarP(&confirmed, "confirmed", "y", false, "Runs without asking the user for confirmation")
+	dropCmd.Flags().BoolVarP(&confirmed, "yes", "y", false, "Runs without asking the user for confirmation")
 	RootCmd.AddCommand(dropCmd)
 }
