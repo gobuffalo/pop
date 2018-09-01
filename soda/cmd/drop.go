@@ -25,7 +25,7 @@ var dropCmd = &cobra.Command{
 
 		if !confirmed {
 			reader := bufio.NewReader(os.Stdin)
-			fmt.Print("Do you really want to drop the database (y)? ")
+			fmt.Print("Do you really want to drop the database [y/N]? ")
 			text, _ := reader.ReadString('\n')
 			if text != "y" && text != "Y" {
 				fmt.Println("Aborting due to lack of user confirmation.")
