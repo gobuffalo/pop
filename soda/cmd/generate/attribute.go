@@ -4,18 +4,18 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/markbates/inflect"
+	"github.com/gobuffalo/flect"
 )
 
 type attribute struct {
-	Name         inflect.Name
+	Name         flect.Ident
 	OriginalType string
 	GoType       string
 	Nullable     bool
 }
 
 func (a attribute) String() string {
-	return fmt.Sprintf("\t%s %s `%s:\"%s\" db:\"%s\"`", a.Name.Camel(), a.GoType, structTag, a.Name.Underscore(), a.Name.Underscore())
+	return fmt.Sprintf("\t%s %s `%s:\"%s\" db:\"%s\"`", a.Name.Pascalize(), a.GoType, structTag, a.Name.Underscore(), a.Name.Underscore())
 }
 
 func (a attribute) IsValidable() bool {
@@ -45,7 +45,7 @@ func newAttribute(base string, model *model) attribute {
 		got = col[2]
 	}
 	a := attribute{
-		Name:         inflect.Name(col[0]),
+		Name:         flect.New(col[0]),
 		OriginalType: col[1],
 		GoType:       got,
 		Nullable:     nullable,
