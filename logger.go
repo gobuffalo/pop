@@ -28,7 +28,7 @@ var defaultLogger = func(lvl logging.Level, s string, args ...interface{}) {
 		Log(s, args...)
 		return
 	}
-	if !Debug && lvl > logging.Debug {
+	if !Debug && lvl <= logging.Debug {
 		return
 	}
 	if lvl == logging.SQL {
