@@ -1,7 +1,7 @@
 package pop
 
 // AvailableDialects lists the available database dialects
-var AvailableDialects = []string{"postgres", "mysql", "cockroach"}
+var AvailableDialects = []string{}
 
 // DialectSupported checks support for the given database dialect
 func DialectSupported(d string) bool {
