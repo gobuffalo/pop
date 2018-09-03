@@ -6,8 +6,9 @@ import (
 	"sync"
 	"time"
 
+	"github.com/gobuffalo/flect"
+	nflect "github.com/gobuffalo/flect/name"
 	"github.com/gobuffalo/uuid"
-	"github.com/markbates/inflect"
 	"github.com/pkg/errors"
 )
 
@@ -78,7 +79,7 @@ func (m *Model) TableName() string {
 	tableMapMu.Lock()
 
 	if tableMap[name] == "" {
-		m.tableName = inflect.Tableize(name)
+		m.tableName = nflect.Tableize(name)
 		tableMap[name] = m.tableName
 	}
 	return tableMap[name]
@@ -122,7 +123,7 @@ func (m *Model) fieldByName(s string) (reflect.Value, error) {
 }
 
 func (m *Model) associationName() string {
-	tn := inflect.Singularize(m.TableName())
+	tn := flect.Singularize(m.TableName())
 	return fmt.Sprintf("%s_id", tn)
 }
 
