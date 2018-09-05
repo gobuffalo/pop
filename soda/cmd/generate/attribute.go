@@ -16,10 +16,11 @@ type attribute struct {
 	GoType            string
 	Nullable          bool
 	PreventValidation bool
+	StructTag         string
 }
 
 func (a attribute) String() string {
-	return fmt.Sprintf("\t%s %s `%s:\"%s\" db:\"%s\"`", a.Name.Pascalize(), a.GoType, structTag, a.Name.Underscore(), a.Name.Underscore())
+	return fmt.Sprintf("\t%s %s `%s:\"%s\" db:\"%s\"`", a.Name.Pascalize(), a.GoType, a.StructTag, a.Name.Underscore(), a.Name.Underscore())
 }
 
 func (a attribute) IsValidable() bool {
@@ -57,6 +58,7 @@ func newAttribute(base string, model *model) (attribute, error) {
 		OriginalType: col[1],
 		GoType:       got,
 		Nullable:     nullable,
+		StructTag:    model.StructTag,
 	}
 
 	return a, nil
