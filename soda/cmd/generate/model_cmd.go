@@ -1,7 +1,6 @@
 package generate
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -61,15 +60,14 @@ func Model(name string, opts map[string]interface{}, attributes []string) error 
 		return errors.New("invalid struct tags (use xml or json)")
 	}
 
-	attrs := make(map[string]struct{})
 	for _, def := range attributes {
-		a := newAttribute(def, &model)
-		f := a.Name.String()
-		if _, found := attrs[f]; found {
-			return fmt.Errorf("duplicated field \"%s\"", f)
+		a, err := newAttribute(def, &model)
+		if err != nil {
+			return err
 		}
-		attrs[f] = struct{}{}
-		model.addAttribute(a)
+		if err := model.addAttribute(a); err != nil {
+			return err
+		}
 	}
 
 	// Add a default UUID, if no custom ID is provided
