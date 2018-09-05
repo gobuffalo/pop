@@ -6,7 +6,7 @@ type Level int
 const (
 	// SQL level is the lowest logger level. It dumps all logs.
 	SQL Level = iota
-	// Info level dumps logs with higher or equal severity than debug.
+	// Debug level dumps logs with higher or equal severity than debug.
 	Debug
 	// Info level dumps logs with higher or equal severity than info.
 	Info
