@@ -7,5 +7,5 @@ import (
 )
 
 func newSQLite(deets *ConnectionDetails) (dialect, error) {
-	return nil, errors.New("sqlite3 was not compiled into the binary")
+	return nil, errors.New("sqlite3 support was not compiled into the binary")
 }
