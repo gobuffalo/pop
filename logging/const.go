@@ -4,14 +4,16 @@ package logging
 type Level int
 
 const (
-	// SQL level is the lowest logger level. It dumps Debug level + SQL queries.
+	// SQL level is the lowest logger level. It dumps all logs.
 	SQL Level = iota
-	// Debug level dumps debug log traces and info logs.
+	// Debug level dumps logs with higher or equal severity than debug.
 	Debug
-	// Info level dumps info logs and warnings.
+	// Info level dumps logs with higher or equal severity than info.
 	Info
-	// Warn level dumps warnings.
+	// Warn level dumps logs with higher or equal severity than warning.
 	Warn
+	// Error level dumps logs only errors.
+	Error
 )
 
 func (l Level) String() string {
@@ -24,6 +26,8 @@ func (l Level) String() string {
 		return "info"
 	case Warn:
 		return "warn"
+	case Error:
+		return "error"
 	}
 	return "unknown"
 }
