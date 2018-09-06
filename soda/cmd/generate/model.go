@@ -235,8 +235,8 @@ func newModel(name string, structTag string) (model, error) {
 		return model{}, errors.New("invalid struct tags (use xml or json)")
 	}
 
-	m.addAttribute(attribute{Name: flect.New("created_at"), OriginalType: "time.Time", GoType: "time.Time", PreventValidation: true})
-	m.addAttribute(attribute{Name: flect.New("updated_at"), OriginalType: "time.Time", GoType: "time.Time", PreventValidation: true})
+	m.addAttribute(attribute{Name: flect.New("created_at"), OriginalType: "time.Time", GoType: "time.Time", PreventValidation: true, StructTag: structTag})
+	m.addAttribute(attribute{Name: flect.New("updated_at"), OriginalType: "time.Time", GoType: "time.Time", PreventValidation: true, StructTag: structTag})
 
 	return m, nil
 }
