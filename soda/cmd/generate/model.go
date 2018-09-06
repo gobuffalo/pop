@@ -13,19 +13,21 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/gobuffalo/flect"
 	"github.com/gobuffalo/makr"
 	"github.com/pkg/errors"
 
 	"github.com/gobuffalo/fizz"
+	nflect "github.com/gobuffalo/flect/name"
 	"github.com/gobuffalo/pop"
 	"github.com/markbates/going/defaults"
-	"github.com/markbates/inflect"
 )
 
 type model struct {
 	Package               string
 	Imports               []string
-	Name                  inflect.Name
+	Name                  nflect.Ident
+	attributesCache       map[string]struct{}
 	Attributes            []attribute
 	ValidatableAttributes []attribute
 
@@ -40,21 +42,33 @@ func (m model) Generate() error {
 	defer g.Fmt(".")
 	ctx := makr.Data{}
 	ctx["model"] = m
-	ctx["plural_model_name"] = m.Name.ModelPlural()
-	ctx["model_name"] = m.Name.Model()
+	ctx["plural_model_name"] = m.modelNamePlural()
+	ctx["model_name"] = m.modelName()
 	ctx["package_name"] = m.Package
 
 	ctx["test_package_name"] = m.testPkgName()
 
-	ctx["char"] = strings.ToLower(string([]byte(m.Name)[0]))
+	ctx["char"] = m.Name.Char()
 	ctx["encoding_type"] = structTag
 	ctx["encoding_type_char"] = strings.ToLower(string([]byte(structTag)[0]))
 
-	fname := filepath.Join(m.Package, m.Name.File()+".go")
+	fname := filepath.Join(m.Package, m.Name.File(".go").String())
 	g.Add(makr.NewFile(fname, modelTemplate))
-	tfname := filepath.Join(m.Package, m.Name.File()+"_test.go")
+	tfname := filepath.Join(m.Package, m.Name.File("_test.go").String())
 	g.Add(makr.NewFile(tfname, modelTestTemplate))
 	return g.Run(".", ctx)
+}
+
+func (m model) modelName() string {
+	x := strings.Split(m.Name.String(), "/")
+	for i, s := range x {
+		x[i] = flect.New(s).Singularize().Pascalize().String()
+	}
+	return strings.Join(x, "")
+}
+
+func (m model) modelNamePlural() string {
+	return flect.New(m.modelName()).Pluralize().Pascalize().String()
 }
 
 func (m model) testPkgName() string {
@@ -94,8 +108,13 @@ func (m model) testPkgName() string {
 	return pkg
 }
 
-func (m *model) addAttribute(a attribute) {
-	if a.Name == "id" {
+func (m *model) addAttribute(a attribute) error {
+	k := a.Name.String()
+	if _, found := m.attributesCache[k]; found {
+		return fmt.Errorf("duplicated field \"%s\"", k)
+	}
+	m.attributesCache[k] = struct{}{}
+	if a.Name.String() == "id" {
 		// No need to create a default ID
 		m.HasID = true
 		// Ensure ID is the first attribute
@@ -105,7 +124,7 @@ func (m *model) addAttribute(a attribute) {
 	}
 
 	if a.Nullable {
-		return
+		return nil
 	}
 
 	if a.IsValidable() {
@@ -114,6 +133,7 @@ func (m *model) addAttribute(a attribute) {
 		}
 		m.ValidatableAttributes = append(m.ValidatableAttributes, a)
 	}
+	return nil
 }
 
 func (m *model) addID() {
@@ -126,7 +146,7 @@ func (m *model) addID() {
 		m.Imports = append(m.Imports, "github.com/gobuffalo/uuid")
 	}
 
-	id := inflect.Name("id")
+	id := flect.New("id")
 	a := attribute{Name: id, OriginalType: "uuid.UUID", GoType: "uuid.UUID"}
 	// Ensure ID is the first attribute
 	m.Attributes = append([]attribute{a}, m.Attributes...)
@@ -144,7 +164,7 @@ func (m model) generateModelFile() error {
 
 func (m model) generateFizz(path string) error {
 	migrationPath := defaults.String(path, "./migrations")
-	return pop.MigrationCreate(migrationPath, fmt.Sprintf("create_%s", m.Name.Table()), "fizz", []byte(m.Fizz()), []byte(m.UnFizz()))
+	return pop.MigrationCreate(migrationPath, fmt.Sprintf("create_%s", m.Name.Tableize()), "fizz", []byte(m.Fizz()), []byte(m.UnFizz()))
 }
 
 func (m model) generateSQL(path, env string) error {
@@ -157,14 +177,14 @@ func (m model) generateSQL(path, env string) error {
 	d := db.Dialect
 	f := d.FizzTranslator()
 
-	return pop.MigrationCreate(migrationPath, fmt.Sprintf("create_%s.%s", m.Name.Table(), d.Name()), "sql", []byte(m.GenerateSQLFromFizz(m.Fizz(), f)), []byte(m.GenerateSQLFromFizz(m.UnFizz(), f)))
+	return pop.MigrationCreate(migrationPath, fmt.Sprintf("create_%s.%s", m.Name.Tableize(), d.Name()), "sql", []byte(m.GenerateSQLFromFizz(m.Fizz(), f)), []byte(m.GenerateSQLFromFizz(m.UnFizz(), f)))
 }
 
 // Fizz generates the create table instructions
 func (m model) Fizz() string {
-	s := []string{fmt.Sprintf("create_table(\"%s\") {", m.Name.Table())}
+	s := []string{fmt.Sprintf("create_table(\"%s\") {", m.Name.Tableize())}
 	for _, a := range m.Attributes {
-		switch a.Name {
+		switch a.Name.String() {
 		case "created_at", "updated_at":
 		case "id":
 			s = append(s, fmt.Sprintf("\tt.Column(\"id\", \"%s\", {\"primary\": true})", fizzColType(a.OriginalType)))
@@ -182,7 +202,7 @@ func (m model) Fizz() string {
 
 // UnFizz generates the drop table instructions
 func (m model) UnFizz() string {
-	return fmt.Sprintf("drop_table(\"%s\")", m.Name.Table())
+	return fmt.Sprintf("drop_table(\"%s\")", m.Name.Tableize())
 }
 
 // GenerateSQLFromFizz generates SQL instructions from fizz instructions
@@ -196,15 +216,17 @@ func (m model) GenerateSQLFromFizz(content string, f fizz.Translator) string {
 
 func newModel(name string) model {
 	m := model{
-		Package: "models",
-		Imports: []string{"time", "github.com/gobuffalo/pop", "github.com/gobuffalo/validate"},
-		Name:    inflect.Name(name),
-		Attributes: []attribute{
-			{Name: inflect.Name("created_at"), OriginalType: "time.Time", GoType: "time.Time"},
-			{Name: inflect.Name("updated_at"), OriginalType: "time.Time", GoType: "time.Time"},
-		},
+		Package:               "models",
+		Imports:               []string{"time", "github.com/gobuffalo/pop", "github.com/gobuffalo/validate"},
+		Name:                  nflect.New(name),
+		Attributes:            []attribute{},
 		ValidatableAttributes: []attribute{},
+		attributesCache:       map[string]struct{}{},
 	}
+
+	m.addAttribute(attribute{Name: flect.New("created_at"), OriginalType: "time.Time", GoType: "time.Time", PreventValidation: true})
+	m.addAttribute(attribute{Name: flect.New("updated_at"), OriginalType: "time.Time", GoType: "time.Time", PreventValidation: true})
+
 	return m
 }
 

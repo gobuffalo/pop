@@ -2,30 +2,38 @@ package generate
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 
-	"github.com/markbates/inflect"
+	"github.com/gobuffalo/flect"
 )
 
+var attrNamePattern = regexp.MustCompile(`^\p{L}[\p{L}\d_]*$`)
+
 type attribute struct {
-	Name         inflect.Name
-	OriginalType string
-	GoType       string
-	Nullable     bool
+	Name              flect.Ident
+	OriginalType      string
+	GoType            string
+	Nullable          bool
+	PreventValidation bool
 }
 
 func (a attribute) String() string {
-	return fmt.Sprintf("\t%s %s `%s:\"%s\" db:\"%s\"`", a.Name.Camel(), a.GoType, structTag, a.Name.Underscore(), a.Name.Underscore())
+	return fmt.Sprintf("\t%s %s `%s:\"%s\" db:\"%s\"`", a.Name.Pascalize(), a.GoType, structTag, a.Name.Underscore(), a.Name.Underscore())
 }
 
 func (a attribute) IsValidable() bool {
-	return a.GoType == "string" || a.GoType == "time.Time" || a.GoType == "int"
+	return !a.PreventValidation && (a.GoType == "string" || a.GoType == "time.Time" || a.GoType == "int")
 }
 
-func newAttribute(base string, model *model) attribute {
+func newAttribute(base string, model *model) (attribute, error) {
 	col := strings.Split(base, ":")
 	if len(col) == 1 {
 		col = append(col, "string")
+	}
+
+	if !attrNamePattern.MatchString(col[0]) {
+		return attribute{}, fmt.Errorf("%s is not a valid attribute name", col[0])
 	}
 
 	nullable := strings.HasPrefix(col[1], "nulls.")
@@ -45,13 +53,13 @@ func newAttribute(base string, model *model) attribute {
 		got = col[2]
 	}
 	a := attribute{
-		Name:         inflect.Name(col[0]),
+		Name:         flect.New(col[0]),
 		OriginalType: col[1],
 		GoType:       got,
 		Nullable:     nullable,
 	}
 
-	return a
+	return a, nil
 }
 
 func colType(s string) string {

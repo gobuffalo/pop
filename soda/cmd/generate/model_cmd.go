@@ -1,10 +1,7 @@
 package generate
 
 import (
-	"fmt"
 	"strings"
-
-	"github.com/markbates/inflect"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -18,9 +15,6 @@ func init() {
 	ModelCmd.Flags().StringVarP(&structTag, "struct-tag", "", "json", "sets the struct tags for model (xml or json)")
 	ModelCmd.Flags().StringVarP(&migrationType, "migration-type", "", "fizz", "sets the type of migration files for model (sql or fizz)")
 	ModelCmd.Flags().BoolVarP(&skipMigration, "skip-migration", "s", false, "Skip creating a new fizz migration for this model.")
-
-	inflect.AddAcronym("ID")
-	inflect.AddAcronym("UUID")
 }
 
 // ModelCmd is the cmd to generate a model
@@ -66,14 +60,14 @@ func Model(name string, opts map[string]interface{}, attributes []string) error 
 		return errors.New("invalid struct tags (use xml or json)")
 	}
 
-	attrs := make(map[inflect.Name]struct{})
 	for _, def := range attributes {
-		a := newAttribute(def, &model)
-		if _, found := attrs[a.Name]; found {
-			return fmt.Errorf("duplicated field \"%s\"", a.Name.String())
+		a, err := newAttribute(def, &model)
+		if err != nil {
+			return err
 		}
-		attrs[a.Name] = struct{}{}
-		model.addAttribute(a)
+		if err := model.addAttribute(a); err != nil {
+			return err
+		}
 	}
 
 	// Add a default UUID, if no custom ID is provided
