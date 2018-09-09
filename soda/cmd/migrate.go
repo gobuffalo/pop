@@ -19,6 +19,9 @@ var migrateCmd = &cobra.Command{
 		return os.MkdirAll(migrationPath, 0766)
 	},
 	RunE: func(cmd *cobra.Command, args []string) error {
+		if len(args) > 0 {
+			return errors.New("migrate command does not accept any argument")
+		}
 		mig, err := pop.NewFileMigrator(migrationPath, getConn())
 		if err != nil {
 			return errors.WithStack(err)
