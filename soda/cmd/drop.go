@@ -2,12 +2,14 @@ package cmd
 
 import (
 	"fmt"
+	"strings"
+
+	"bufio"
+	"os"
 
 	"github.com/gobuffalo/pop"
 	"github.com/spf13/cobra"
-	"os"
-	"bufio"
-	)
+)
 
 var all bool
 var confirmed bool
@@ -18,7 +20,7 @@ var dropCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
 		if len(args) > 0 {
-			err = fmt.Errorf("No arguments allowed with the drop database command.")
+			err = fmt.Errorf("no arguments allowed with the drop database command")
 			fmt.Println(err)
 			os.Exit(1)
 		}
@@ -26,8 +28,9 @@ var dropCmd = &cobra.Command{
 		if !confirmed {
 			reader := bufio.NewReader(os.Stdin)
 			fmt.Print("Do you really want to drop the database [y/N]? ")
-			text, _ := reader.ReadString('\n')
-			if text != "y" && text != "Y" {
+			r, _ := reader.ReadString('\n')
+			r = strings.TrimSpace(r)
+			if r != "y" && r != "Y" {
 				fmt.Println("Aborting due to lack of user confirmation.")
 				os.Exit(0)
 			}
