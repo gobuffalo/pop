@@ -1,7 +1,6 @@
 package pop
 
 import (
-	"fmt"
 	"net/url"
 	"regexp"
 	"strconv"
@@ -10,6 +9,7 @@ import (
 
 	_mysql "github.com/go-sql-driver/mysql"
 	"github.com/markbates/going/defaults"
+	"github.com/markbates/oncer"
 	"github.com/pkg/errors"
 )
 
@@ -126,7 +126,7 @@ func (cd *ConnectionDetails) Finalize() error {
 // filling in default values, etc...
 // Deprecated: use ConnectionDetails.Finalize() instead.
 func (cd *ConnectionDetails) Parse(port string) error {
-	fmt.Println("Warning: ConnectionDetails#Parse(port string) is deprecated, and will be removed in a future version. Please use ForStructWithAlias instead.")
+	oncer.Deprecate(0, "pop.ConnectionDetails#Parse", "Use pop.ConnectionDetails#Finalize instead.")
 	return cd.Finalize()
 }
 

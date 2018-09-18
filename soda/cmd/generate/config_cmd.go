@@ -9,6 +9,7 @@ import (
 	"github.com/gobuffalo/makr"
 	"github.com/gobuffalo/pop"
 	"github.com/markbates/going/defaults"
+	"github.com/markbates/oncer"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -42,7 +43,7 @@ var ConfigCmd = &cobra.Command{
 //
 // Deprecated: use Config instead.
 func GenerateConfig(cfgFile string, data map[string]interface{}) error {
-	fmt.Println(`Warning: GenerateConfig is deprecated, and will be removed in a future version. Please use Config instead.`)
+	oncer.Deprecate(0, "generate.GenerateConfig", "Use generate.Config instead.")
 	return Config(cfgFile, data)
 }
 
