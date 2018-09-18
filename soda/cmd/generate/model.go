@@ -30,6 +30,7 @@ type model struct {
 	attributesCache       map[string]struct{}
 	Attributes            []attribute
 	ValidatableAttributes []attribute
+	StructTag             string
 
 	HasNulls  bool
 	HasUUID   bool
@@ -49,8 +50,8 @@ func (m model) Generate() error {
 	ctx["test_package_name"] = m.testPkgName()
 
 	ctx["char"] = m.Name.Char()
-	ctx["encoding_type"] = structTag
-	ctx["encoding_type_char"] = strings.ToLower(string([]byte(structTag)[0]))
+	ctx["encoding_type"] = m.StructTag
+	ctx["encoding_type_char"] = nflect.Char(m.StructTag)
 
 	fname := filepath.Join(m.Package, m.Name.File(".go").String())
 	g.Add(makr.NewFile(fname, modelTemplate))
@@ -214,7 +215,7 @@ func (m model) GenerateSQLFromFizz(content string, f fizz.Translator) string {
 	return content
 }
 
-func newModel(name string) model {
+func newModel(name string, structTag string) (model, error) {
 	m := model{
 		Package:               "models",
 		Imports:               []string{"time", "github.com/gobuffalo/pop", "github.com/gobuffalo/validate"},
@@ -222,12 +223,22 @@ func newModel(name string) model {
 		Attributes:            []attribute{},
 		ValidatableAttributes: []attribute{},
 		attributesCache:       map[string]struct{}{},
+		StructTag:             structTag,
 	}
 
-	m.addAttribute(attribute{Name: flect.New("created_at"), OriginalType: "time.Time", GoType: "time.Time", PreventValidation: true})
-	m.addAttribute(attribute{Name: flect.New("updated_at"), OriginalType: "time.Time", GoType: "time.Time", PreventValidation: true})
+	switch structTag {
+	case "json":
+		m.Imports = append(m.Imports, "encoding/json")
+	case "xml":
+		m.Imports = append(m.Imports, "encoding/xml")
+	default:
+		return model{}, errors.New("invalid struct tags (use xml or json)")
+	}
 
-	return m
+	m.addAttribute(attribute{Name: flect.New("created_at"), OriginalType: "time.Time", GoType: "time.Time", PreventValidation: true, StructTag: structTag})
+	m.addAttribute(attribute{Name: flect.New("updated_at"), OriginalType: "time.Time", GoType: "time.Time", PreventValidation: true, StructTag: structTag})
+
+	return m, nil
 }
 
 func fizzColType(s string) string {
