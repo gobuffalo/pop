@@ -111,7 +111,7 @@ func genericDestroy(s store, model *Model) error {
 
 func genericExec(s store, stmt string, args ...interface{}) error {
 	log(logging.SQL, stmt, args...)
-	_, err := s.Exec(stmt, args)
+	_, err := s.Exec(stmt, args...)
 	if err != nil {
 		return errors.WithStack(err)
 	}
