@@ -11,6 +11,7 @@ import (
 	"github.com/gobuffalo/pop"
 	"github.com/gobuffalo/pop/genny/config"
 	"github.com/markbates/going/defaults"
+	"github.com/markbates/oncer"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -50,7 +51,7 @@ var ConfigCmd = &cobra.Command{
 // Config generates pop configuration files.
 // Deprecated: use github.com/gobuffalo/pop/genny/config instead.
 func Config(cfgFile string, data map[string]interface{}) error {
-	fmt.Println(`Warning: Config is deprecated, and will be removed in a future version. Please use github.com/gobuffalo/pop/genny/config instead.`)
+	oncer.Deprecate(0, "generate.Config", "Use github.com/gobuffalo/pop/genny/config instead.")
 	pwd, _ := os.Getwd()
 
 	run := genny.WetRunner(context.Background())
