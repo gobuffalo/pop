@@ -22,7 +22,7 @@ function test {
   echo "!!! Testing $1"
   export SODA_DIALECT=$1
   echo ./tsoda -v
-  ./tsoda drop -y -e $SODA_DIALECT -c ./database.yml
+  ./tsoda drop -e $SODA_DIALECT -c ./database.yml
   ./tsoda create -e $SODA_DIALECT -c ./database.yml
   ./tsoda migrate -e $SODA_DIALECT -c ./database.yml
   go test -race -tags sqlite $verbose $(go list ./... | grep -v /vendor/)
