@@ -75,7 +75,12 @@ func (p *cockroach) Update(s store, model *Model, cols columns.Columns) error {
 }
 
 func (p *cockroach) Destroy(s store, model *Model) error {
-	return genericDestroy(s, model)
+	stmt := p.TranslateSQL(fmt.Sprintf("DELETE FROM %s WHERE %s", model.TableName(), model.whereID()))
+	err := genericExec(s, stmt, model.ID())
+	if err != nil {
+		return errors.WithStack(err)
+	}
+	return nil
 }
 
 func (p *cockroach) SelectOne(s store, model *Model, query Query) error {
