@@ -91,7 +91,7 @@ func genericCreate(s store, model *Model, cols columns.Columns) error {
 }
 
 func genericUpdate(s store, model *Model, cols columns.Columns) error {
-	stmt := fmt.Sprintf("UPDATE %s SET %s WHERE %s", model.TableName(), cols.Writeable().UpdateString(), model.whereID())
+	stmt := fmt.Sprintf("UPDATE %s SET %s WHERE %s", model.TableName(), cols.Writeable().UpdateString(), model.whereNamedID())
 	log(logging.SQL, stmt, model.ID())
 	_, err := s.NamedExec(stmt, model.Value)
 	if err != nil {

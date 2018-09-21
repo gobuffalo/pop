@@ -170,6 +170,10 @@ func (m *Model) whereID() string {
 	return fmt.Sprintf("%s.id = ?", m.TableName())
 }
 
+func (m *Model) whereNamedID() string {
+	return fmt.Sprintf("%s.id = :id", m.TableName())
+}
+
 func (m *Model) isSlice() bool {
 	v := reflect.Indirect(reflect.ValueOf(m.Value))
 	return v.Kind() == reflect.Slice || v.Kind() == reflect.Array
