@@ -180,7 +180,7 @@ The `models/user.go` file contains a structure named `User` with fields `ID`, `C
 * `time` or `timestamp` (`time.Time`)
 * `nulls.Text` (`nulls.String`) which corresponds to a nullifyable string, which can be distinguished from an empty string
 * `uuid` (`uuid.UUID`)
-* Other types are passed thru and are used as [Fizz](./fizz/README.md) types.
+* Other types are passed thru and are used as [Fizz](https://github.com/gobuffalo/fizz/blob/master/README.md#-common-types) types.
 
 The `models/user_test.go` contains tests for the User model and they must be implemented by you.
 
