@@ -5,6 +5,7 @@ import (
 
 	"github.com/gobuffalo/pop/columns"
 	"github.com/gobuffalo/pop/nulls"
+	"github.com/gobuffalo/uuid"
 )
 
 // Association represents a definition of a model association
@@ -68,6 +69,7 @@ type AssociationBeforeCreatable interface {
 type AssociationAfterCreatable interface {
 	AfterInterface() interface{}
 	AfterSetup() error
+	AfterProcess() string
 	Association
 }
 
@@ -153,3 +155,5 @@ func isZero(i interface{}) bool {
 	v := reflect.ValueOf(i)
 	return v.Interface() == reflect.Zero(v.Type()).Interface()
 }
+
+var emptyUUID = uuid.Nil.String()

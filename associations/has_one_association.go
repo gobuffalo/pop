@@ -6,15 +6,18 @@ import (
 
 	"github.com/gobuffalo/flect"
 	"github.com/gobuffalo/pop/nulls"
+	"github.com/gobuffalo/uuid"
+	"github.com/markbates/inflect"
 )
 
 type hasOneAssociation struct {
-	ownedModel reflect.Value
-	ownedType  reflect.Type
-	ownerID    interface{}
-	ownerName  string
-	owner      interface{}
-	fkID       string
+	ownedTableName string
+	ownedModel     reflect.Value
+	ownedType      reflect.Type
+	ownerID        interface{}
+	ownerName      string
+	owner          interface{}
+	fkID           string
 	*associationSkipable
 	*associationComposite
 }
@@ -33,12 +36,13 @@ func hasOneAssociationBuilder(p associationParams) (Association, error) {
 
 	fval := p.modelValue.FieldByName(p.field.Name)
 	return &hasOneAssociation{
-		owner:      p.model,
-		ownedModel: fval,
-		ownedType:  fval.Type(),
-		ownerID:    ownerID.Interface(),
-		ownerName:  p.modelType.Name(),
-		fkID:       p.popTags.Find("fk_id").Value,
+		owner:          p.model,
+		ownedTableName: p.popTags.Find("has_one").Value + "s",
+		ownedModel:     fval,
+		ownedType:      fval.Type(),
+		ownerID:        ownerID.Interface(),
+		ownerName:      p.modelType.Name(),
+		fkID:           p.popTags.Find("fk_id").Value,
 		associationSkipable: &associationSkipable{
 			skipped: skipped,
 		},
@@ -99,4 +103,31 @@ func (h *hasOneAssociation) AfterSetup() error {
 	}
 
 	return fmt.Errorf("could not set '%s' to '%s'", ownerID, fval)
+}
+
+func (h *hasOneAssociation) AfterProcess() string {
+	ids := []interface{}{}
+
+	otherIDField := "ID"
+	fval := h.ownedModel.FieldByName(otherIDField)
+
+	id := ""
+	if fval.Type().Name() == "UUID" {
+		id = fval.Interface().(uuid.UUID).String()
+	} else {
+		id = fmt.Sprint(fval.Interface())
+	}
+	if id != "0" && id != emptyUUID {
+		ids = append(ids, id)
+	}
+	print(ids)
+
+	fk := h.fkID
+	if fk == "" {
+		fk = inflect.Underscore(h.ownerName) + "_id"
+	}
+
+	ret := fmt.Sprintf("UPDATE %s SET %s = ? WHERE %s in (?)", h.ownedTableName, fk, otherIDField)
+
+	return ret
 }

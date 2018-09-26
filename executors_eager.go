@@ -1,8 +1,12 @@
 package pop
 
 import (
+	"fmt"
+
 	"github.com/gobuffalo/pop/associations"
 	"github.com/gobuffalo/validate"
+
+	"github.com/davecgh/go-spew/spew"
 )
 
 func (c *Connection) eagerCreate(model interface{}, excludeColumns ...string) error {
@@ -24,7 +28,18 @@ func (c *Connection) eagerCreate(model interface{}, excludeColumns ...string) er
 			continue
 		}
 
-		err = c.Save(i)
+		sm := &Model{Value: i}
+		err = sm.iterate(func(m *Model) error {
+			id := m.ID()
+			if fmt.Sprint(id) == "0" || fmt.Sprint(id) == emptyUUID {
+				return c.Create(i)
+			}
+
+			fmt.Printf("\n\n=============before(%s,%s): %+v\n\n", id, m.TableName(), m.Value)
+
+			return nil
+		})
+
 		if err != nil {
 			return err
 		}
@@ -52,7 +67,28 @@ func (c *Connection) eagerCreate(model interface{}, excludeColumns ...string) er
 			continue
 		}
 
-		err = c.Save(i)
+		sm := &Model{Value: i}
+		ids := []string{}
+		addToIds := func(id string) {
+			ids = append(ids, id)
+			spew.Printf("\nin ids: %+v\n", ids)
+		}
+		err = sm.iterate(func(m *Model) error {
+			id := fmt.Sprint(m.ID())
+			if id == "0" || id == emptyUUID {
+				return c.Create(i)
+			}
+
+			fmt.Printf("\n\n=============\nafter(%s, %s): %+v\n============\n\n", id, m.TableName(), m.Value)
+
+			addToIds(id)
+			return nil
+		})
+
+		spew.Printf("\nids: %+v\n", ids)
+		// TODO: Raw update call to set fk_ids
+		fmt.Printf("AfterProcessUpdate:%s\n", after[index].AfterProcess())
+
 		if err != nil {
 			return err
 		}
@@ -100,7 +136,7 @@ func (c *Connection) eagerValidateAndCreate(model interface{}, excludeColumns ..
 		}
 
 		sm := &Model{Value: i}
-		verrs, err := sm.validateSave(c)
+		verrs, err := sm.validateAndOnlyCreate(c)
 		if err != nil || verrs.HasAny() {
 			return verrs, err
 		}
@@ -114,7 +150,7 @@ func (c *Connection) eagerValidateAndCreate(model interface{}, excludeColumns ..
 		}
 
 		sm := &Model{Value: i}
-		verrs, err := sm.validateSave(c)
+		verrs, err := sm.validateAndOnlyCreate(c)
 		if err != nil || verrs.HasAny() {
 			return verrs, err
 		}

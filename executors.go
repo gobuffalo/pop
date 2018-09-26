@@ -3,6 +3,7 @@ package pop
 import (
 	"fmt"
 
+	"github.com/gobuffalo/pop/associations"
 	"github.com/gobuffalo/pop/columns"
 	"github.com/gobuffalo/pop/logging"
 	"github.com/gobuffalo/uuid"
@@ -101,13 +102,37 @@ func (c *Connection) Create(model interface{}, excludeColumns ...string) error {
 	sm := &Model{Value: model}
 	return sm.iterate(func(m *Model) error {
 		return c.timeFunc("Create", func() error {
-			var err error
+			asos, err := associations.ForStruct(m)
+			if err != nil {
+				return err
+			}
+
 			if err = m.beforeSave(c); err != nil {
 				return err
 			}
 
 			if err = m.beforeCreate(c); err != nil {
 				return err
+			}
+
+			processAssoc := false
+			if len(asos) != 0 {
+				processAssoc = true
+			}
+
+			if processAssoc {
+				before := asos.AssociationsBeforeCreatable()
+				for index := range before {
+					i := before[index].BeforeInterface()
+					if i == nil {
+						continue
+					}
+
+					err = before[index].BeforeSetup()
+					if err != nil {
+						return err
+					}
+				}
 			}
 
 			tn := m.TableName()
@@ -122,6 +147,32 @@ func (c *Connection) Create(model interface{}, excludeColumns ...string) error {
 
 			if err = c.Dialect.Create(c.Store, m, cols); err != nil {
 				return err
+			}
+
+			if processAssoc {
+				after := asos.AssociationsAfterCreatable()
+				for index := range after {
+					sql := after[index].AfterProcess()
+					print(sql, "\n")
+				}
+
+				stms := asos.AssociationsCreatableStatement()
+				for index := range stms {
+					statements := stms[index].Statements()
+					for _, stm := range statements {
+						if c.TX != nil {
+							_, err := c.TX.Exec(c.Dialect.TranslateSQL(stm.Statement), stm.Args...)
+							if err != nil {
+								return err
+							}
+							continue
+						}
+						_, err = c.Store.Exec(c.Dialect.TranslateSQL(stm.Statement), stm.Args...)
+						if err != nil {
+							return err
+						}
+					}
+				}
 			}
 
 			if err = m.afterCreate(c); err != nil {

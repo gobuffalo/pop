@@ -418,7 +418,7 @@ func Test_Eager_Create_Has_Many(t *testing.T) {
 }
 
 func Test_Eager_Create_Has_Many_With_Existing(t *testing.T) {
-	transaction(func(tx *pop.Connection) {
+	transaction(func(tx *Connection) {
 		r := require.New(t)
 
 		addr := Address{HouseNumber: 42, Street: "Life"}
@@ -540,7 +540,7 @@ func Test_Eager_Validate_And_Create_Parental(t *testing.T) {
 
 func Test_Eager_Validate_And_Create_Parental_With_Existing(t *testing.T) {
 	r := require.New(t)
-	transaction(func(tx *pop.Connection) {
+	transaction(func(tx *Connection) {
 		addr := Address{HouseNumber: 42, Street: "Life"}
 		addr_verrs, addr_err := tx.ValidateAndCreate(&addr)
 		r.NoError(addr_err)
@@ -591,7 +591,7 @@ func Test_Eager_Validate_And_Create_Parental_With_Existing(t *testing.T) {
 
 func Test_Eager_Validate_And_Create_Parental_With_Partial_Existing(t *testing.T) {
 	r := require.New(t)
-	transaction(func(tx *pop.Connection) {
+	transaction(func(tx *Connection) {
 		addr := Address{HouseNumber: 42, Street: "Life"}
 		addr_verrs, addr_err := tx.ValidateAndCreate(&addr)
 		r.NoError(addr_err)
