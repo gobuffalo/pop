@@ -1,6 +1,7 @@
 package pop
 
 import (
+	"database/sql"
 	"fmt"
 	"io"
 	"os"
@@ -17,6 +18,10 @@ import (
 	"github.com/markbates/going/defaults"
 	"github.com/pkg/errors"
 )
+
+func init() {
+	AvailableDialects = append(AvailableDialects, "postgres")
+}
 
 var _ dialect = &postgresql{}
 
@@ -81,7 +86,7 @@ func (p *postgresql) SelectMany(s store, models *Model, query Query) error {
 func (p *postgresql) CreateDB() error {
 	// createdb -h db -p 5432 -U postgres enterprise_development
 	deets := p.ConnectionDetails
-	db, err := sqlx.Open(deets.Dialect, p.urlWithoutDb())
+	db, err := sql.Open(deets.Dialect, p.urlWithoutDb())
 	if err != nil {
 		return errors.Wrapf(err, "error creating PostgreSQL database %s", deets.Database)
 	}
@@ -100,7 +105,7 @@ func (p *postgresql) CreateDB() error {
 
 func (p *postgresql) DropDB() error {
 	deets := p.ConnectionDetails
-	db, err := sqlx.Open(deets.Dialect, p.urlWithoutDb())
+	db, err := sql.Open(deets.Dialect, p.urlWithoutDb())
 	if err != nil {
 		return errors.Wrapf(err, "error dropping PostgreSQL database %s", deets.Database)
 	}
