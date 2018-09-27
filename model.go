@@ -167,15 +167,11 @@ func (m *Model) touchUpdatedAt() {
 }
 
 func (m *Model) whereID() string {
-	id := m.ID()
-	var value string
-	switch id.(type) {
-	case int, int64:
-		value = fmt.Sprintf("%s.id = %d", m.TableName(), id)
-	default:
-		value = fmt.Sprintf("%s.id ='%s'", m.TableName(), id)
-	}
-	return value
+	return fmt.Sprintf("%s.id = ?", m.TableName())
+}
+
+func (m *Model) whereNamedID() string {
+	return fmt.Sprintf("%s.id = :id", m.TableName())
 }
 
 func (m *Model) isSlice() bool {

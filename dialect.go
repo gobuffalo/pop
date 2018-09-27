@@ -91,8 +91,8 @@ func genericCreate(s store, model *Model, cols columns.Columns) error {
 }
 
 func genericUpdate(s store, model *Model, cols columns.Columns) error {
-	stmt := fmt.Sprintf("UPDATE %s SET %s where %s", model.TableName(), cols.Writeable().UpdateString(), model.whereID())
-	log(logging.SQL, stmt)
+	stmt := fmt.Sprintf("UPDATE %s SET %s WHERE %s", model.TableName(), cols.Writeable().UpdateString(), model.whereNamedID())
+	log(logging.SQL, stmt, model.ID())
 	_, err := s.NamedExec(stmt, model.Value)
 	if err != nil {
 		return errors.WithStack(err)
@@ -102,16 +102,16 @@ func genericUpdate(s store, model *Model, cols columns.Columns) error {
 
 func genericDestroy(s store, model *Model) error {
 	stmt := fmt.Sprintf("DELETE FROM %s WHERE %s", model.TableName(), model.whereID())
-	err := genericExec(s, stmt)
+	err := genericExec(s, stmt, model.ID())
 	if err != nil {
 		return errors.WithStack(err)
 	}
 	return nil
 }
 
-func genericExec(s store, stmt string) error {
-	log(logging.SQL, stmt)
-	_, err := s.Exec(stmt)
+func genericExec(s store, stmt string, args ...interface{}) error {
+	log(logging.SQL, stmt, args...)
+	_, err := s.Exec(stmt, args...)
 	if err != nil {
 		return errors.WithStack(err)
 	}
