@@ -1,26 +1,22 @@
 package generate
 
 import (
-	"fmt"
 	"strings"
-
-	"github.com/markbates/inflect"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
-var skipMigration bool
-var structTag string
-var migrationType string
+var modelCmdConfig struct {
+	SkipMigration bool
+	StructTag     string
+	MigrationType string
+}
 
 func init() {
-	ModelCmd.Flags().StringVarP(&structTag, "struct-tag", "", "json", "sets the struct tags for model (xml or json)")
-	ModelCmd.Flags().StringVarP(&migrationType, "migration-type", "", "fizz", "sets the type of migration files for model (sql or fizz)")
-	ModelCmd.Flags().BoolVarP(&skipMigration, "skip-migration", "s", false, "Skip creating a new fizz migration for this model.")
-
-	inflect.AddAcronym("ID")
-	inflect.AddAcronym("UUID")
+	ModelCmd.Flags().StringVarP(&modelCmdConfig.StructTag, "struct-tag", "", "json", "sets the struct tags for model (xml or json)")
+	ModelCmd.Flags().StringVarP(&modelCmdConfig.MigrationType, "migration-type", "", "fizz", "sets the type of migration files for model (sql or fizz)")
+	ModelCmd.Flags().BoolVarP(&modelCmdConfig.SkipMigration, "skip-migration", "s", false, "Skip creating a new fizz migration for this model.")
 }
 
 // ModelCmd is the cmd to generate a model
@@ -36,9 +32,9 @@ var ModelCmd = &cobra.Command{
 		p := cmd.Flag("path")
 		e := cmd.Flag("env")
 		data := map[string]interface{}{
-			"skipMigration": skipMigration,
-			"marshalType":   structTag,
-			"migrationType": migrationType,
+			"skipMigration": modelCmdConfig.SkipMigration,
+			"marshalType":   modelCmdConfig.StructTag,
+			"migrationType": modelCmdConfig.MigrationType,
 			"path":          p.Value.String(),
 			"env":           e.Value.String(),
 		}
@@ -51,36 +47,30 @@ func Model(name string, opts map[string]interface{}, attributes []string) error 
 	if strings.TrimSpace(name) == "" {
 		return errors.New("model name can't be empty")
 	}
-	model := newModel(name)
-
 	mt, found := opts["marshalType"].(string)
 	if !found {
 		return errors.New("marshalType option is required")
 	}
-	switch mt {
-	case "json":
-		model.Imports = append(model.Imports, "encoding/json")
-	case "xml":
-		model.Imports = append(model.Imports, "encoding/xml")
-	default:
-		return errors.New("invalid struct tags (use xml or json)")
+
+	model, err := newModel(name, mt)
+	if err != nil {
+		return errors.WithStack(err)
 	}
 
-	attrs := make(map[inflect.Name]struct{})
 	for _, def := range attributes {
-		a := newAttribute(def, &model)
-		if _, found := attrs[a.Name]; found {
-			return fmt.Errorf("duplicated field \"%s\"", a.Name.String())
+		a, err := newAttribute(def, &model)
+		if err != nil {
+			return err
 		}
-		attrs[a.Name] = struct{}{}
-		model.addAttribute(a)
+		if err := model.addAttribute(a); err != nil {
+			return err
+		}
 	}
 
 	// Add a default UUID, if no custom ID is provided
 	model.addID()
 
-	err := model.generateModelFile()
-	if err != nil {
+	if err := model.generateModelFile(); err != nil {
 		return err
 	}
 

@@ -4,10 +4,10 @@ import (
 	"fmt"
 	stdlog "log"
 	"os"
-	"sync"
 
 	"github.com/fatih/color"
 	"github.com/gobuffalo/pop/logging"
+	"github.com/markbates/oncer"
 )
 
 type logger func(lvl logging.Level, s string, args ...interface{})
@@ -25,9 +25,7 @@ var defaultStdLogger = stdlog.New(os.Stdout, "[POP] ", stdlog.LstdFlags)
 var defaultLogger = func(lvl logging.Level, s string, args ...interface{}) {
 	// Handle legacy logger
 	if Log != nil {
-		legacyLoggerOnce.Do(func() {
-			fmt.Println("Warning: Log is deprecated, and will be removed in a future version. Please use SetLogger instead.")
-		})
+		oncer.Deprecate(0, "pop.Log", "Use pop.SetLogger instead.")
 		Log(s, args...)
 		return
 	}
@@ -70,4 +68,3 @@ func SetLogger(l logger) {
 // Log defines the pop logger. Override it to customize pop logs handling.
 // Deprecated: use SetLogger instead
 var Log legacyLogger
-var legacyLoggerOnce = sync.Once{}

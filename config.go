@@ -15,6 +15,10 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+// ErrConfigFileNotFound is returned when the pop config file can't be found,
+// after looking for it.
+var ErrConfigFileNotFound = errors.New("unable to find pop config file")
+
 var lookupPaths = []string{"", "./config", "/config", "../", "../config", "../..", "../../config"}
 
 // ConfigName is the name of the YAML databases config file
@@ -31,7 +35,9 @@ func init() {
 	if ap != "" {
 		AddLookupPaths(ap)
 	}
-	LoadConfigFile()
+	if err := LoadConfigFile(); err != nil {
+		log(logging.Error, "Unable to load config file: %v", err)
+	}
 }
 
 // LoadConfigFile loads a POP config file from the configured lookup paths
@@ -67,7 +73,7 @@ func findConfigPath() (string, error) {
 			return path, err
 		}
 	}
-	return "", errors.New("tried to load pop configuration file, but couldn't find it")
+	return "", ErrConfigFileNotFound
 }
 
 // LoadFrom reads a configuration from the reader and sets up the connections
@@ -105,7 +111,8 @@ func LoadFrom(r io.Reader) error {
 	for n, d := range deets {
 		con, err := NewConnection(d)
 		if err != nil {
-			return err
+			log(logging.Warn, "unable to load connection %s: %v", n, err)
+			continue
 		}
 		Connections[n] = con
 	}
