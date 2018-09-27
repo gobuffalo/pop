@@ -41,7 +41,7 @@ func LoadConfigFile() error {
 		return errors.WithStack(err)
 	}
 	Connections = map[string]*Connection{}
-	log(logging.Info, "Loading config file from %s", path)
+	log(logging.Debug, "Loading config file from %s", path)
 	f, err := os.Open(path)
 	if err != nil {
 		return errors.WithStack(err)
