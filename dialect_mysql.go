@@ -40,6 +40,11 @@ func (m *mysql) Details() *ConnectionDetails {
 func (m *mysql) URL() string {
 	deets := m.ConnectionDetails
 	if deets.URL != "" {
+		// Force multiStatements=true, migrations can fail otherwise.
+		if !strings.Contains(deets.URL, "multiStatements=true") {
+			log(logging.Warn, "multiStatements=true option is required to work with pop migrations. Please add it to the database URL in the config")
+			deets.URL += "&multiStatements=true"
+		}
 		return strings.TrimPrefix(deets.URL, "mysql://")
 	}
 	encoding := defaults.String(deets.Encoding, "utf8mb4_general_ci")

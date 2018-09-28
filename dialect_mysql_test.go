@@ -16,6 +16,6 @@ func Test_MySQL_URL(t *testing.T) {
 	r.NoError(err)
 
 	m := &mysql{ConnectionDetails: cd}
-	r.Equal("dbase:dbase@(dbase:dbase)/dbase?dbase=dbase", m.URL())
-	r.Equal("dbase:dbase@(dbase:dbase)/?dbase=dbase", m.urlWithoutDb())
+	r.Equal("dbase:dbase@(dbase:dbase)/dbase?dbase=dbase&multiStatements=true", m.URL())
+	r.Equal("dbase:dbase@(dbase:dbase)/?dbase=dbase&multiStatements=true", m.urlWithoutDb())
 }
