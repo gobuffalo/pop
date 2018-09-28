@@ -58,7 +58,6 @@ func (m *Model) validateAndOnlyCreate(c *Connection) (*validate.Errors, error) {
 	return m.iterateAndValidate(func(model *Model) (*validate.Errors, error) {
 		id := model.ID()
 		if fmt.Sprint(id) != "0" && fmt.Sprint(id) != emptyUUID {
-			print("\n~~~~~~~~~~~~~~~~~~~~SHORT~~~~~~~~~~~~~~~~~~~~~~\n")
 			return validate.NewErrors(), nil
 		}
 

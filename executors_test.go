@@ -630,12 +630,12 @@ func Test_Eager_Validate_And_Create_Parental_With_Partial_Existing(t *testing.T)
 		r.Equal(u.Books[0].Title, "Pop Book")
 		r.Equal(u.FavoriteSong.Title, "Hook - Blues Traveler")
 		if u.Houses[0].ID == addr.ID {
-			r.Equal("", u.Houses[0].Street) // Street is blanked out
+			r.Equal("Life", u.Houses[0].Street) // Street is blanked out
 			r.Equal("Modelo", u.Houses[1].Street)
 		} else {
 			r.Equal(addr.ID, u.Houses[1].ID)
 			r.Equal("Modelo", u.Houses[0].Street)
-			r.Equal("", u.Houses[1].Street) // Street is blanked out
+			r.Equal("Life", u.Houses[1].Street) // Street is blanked out
 		}
 	})
 }

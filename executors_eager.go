@@ -32,11 +32,8 @@ func (c *Connection) eagerCreate(model interface{}, excludeColumns ...string) er
 		err = sm.iterate(func(m *Model) error {
 			id := m.ID()
 			if fmt.Sprint(id) == "0" || fmt.Sprint(id) == emptyUUID {
-				return c.Create(i)
+				return c.Create(m.Value)
 			}
-
-			fmt.Printf("\n\n=============before(%s,%s): %+v\n\n", id, m.TableName(), m.Value)
-
 			return nil
 		})
 
@@ -76,11 +73,8 @@ func (c *Connection) eagerCreate(model interface{}, excludeColumns ...string) er
 		err = sm.iterate(func(m *Model) error {
 			id := fmt.Sprint(m.ID())
 			if id == "0" || id == emptyUUID {
-				return c.Create(i)
+				return c.Create(m.Value)
 			}
-
-			fmt.Printf("\n\n=============\nafter(%s, %s): %+v\n============\n\n", id, m.TableName(), m.Value)
-
 			addToIds(id)
 			return nil
 		})
