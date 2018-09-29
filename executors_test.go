@@ -3,7 +3,6 @@ package pop
 import (
 	"testing"
 
-	"github.com/gobuffalo/pop"
 	"github.com/gobuffalo/pop/nulls"
 	"github.com/gobuffalo/uuid"
 	"github.com/stretchr/testify/require"
@@ -422,11 +421,11 @@ func Test_Eager_Create_Has_Many_With_Existing(t *testing.T) {
 		r := require.New(t)
 
 		addr := Address{HouseNumber: 42, Street: "Life"}
-		addr_verrs, addr_err := tx.ValidateAndCreate(&addr)
-		r.NoError(addr_err)
-		addr_count, _ := tx.Count(&Address{})
-		r.Zero(addr_verrs.Count())
-		r.Equal(1, addr_count)
+		addrVerrs, addrErr := tx.ValidateAndCreate(&addr)
+		r.NoError(addrErr)
+		addrCount, _ := tx.Count(&Address{})
+		r.Zero(addrVerrs.Count())
+		r.Equal(1, addrCount)
 		r.NotZero(addr.ID)
 
 		count, _ := tx.Count(&User{})
@@ -454,7 +453,7 @@ func Test_Eager_Create_Has_Many_With_Existing(t *testing.T) {
 		r.Equal(count+1, ctx)
 
 		ctx, _ = tx.Count(&Address{})
-		r.Equal(addr_count+1, ctx)
+		r.Equal(addrCount+1, ctx)
 
 		u := User{}
 		q := tx.Eager().Where("name = ?", "Mark 'Awesome' Bates")
@@ -542,11 +541,11 @@ func Test_Eager_Validate_And_Create_Parental_With_Existing(t *testing.T) {
 	r := require.New(t)
 	transaction(func(tx *Connection) {
 		addr := Address{HouseNumber: 42, Street: "Life"}
-		addr_verrs, addr_err := tx.ValidateAndCreate(&addr)
-		r.NoError(addr_err)
-		addr_count, _ := tx.Count(&Address{})
-		r.Zero(addr_verrs.Count())
-		r.Equal(1, addr_count)
+		addrVerrs, addrErr := tx.ValidateAndCreate(&addr)
+		r.NoError(addrErr)
+		addrCount, _ := tx.Count(&Address{})
+		r.Zero(addrVerrs.Count())
+		r.Equal(1, addrCount)
 		r.NotZero(addr.ID)
 
 		user := User{
@@ -569,7 +568,7 @@ func Test_Eager_Validate_And_Create_Parental_With_Existing(t *testing.T) {
 		r.Equal(count+1, ctx)
 
 		ctx, _ = tx.Count(&Address{})
-		r.Equal(addr_count+1, ctx)
+		r.Equal(addrCount+1, ctx)
 
 		u := User{}
 		q := tx.Eager().Where("name = ?", "Mark 'Awesome' Bates")
@@ -593,11 +592,11 @@ func Test_Eager_Validate_And_Create_Parental_With_Partial_Existing(t *testing.T)
 	r := require.New(t)
 	transaction(func(tx *Connection) {
 		addr := Address{HouseNumber: 42, Street: "Life"}
-		addr_verrs, addr_err := tx.ValidateAndCreate(&addr)
-		r.NoError(addr_err)
-		addr_count, _ := tx.Count(&Address{})
-		r.Zero(addr_verrs.Count())
-		r.Equal(1, addr_count)
+		addrVerrs, addrErr := tx.ValidateAndCreate(&addr)
+		r.NoError(addrErr)
+		addrCount, _ := tx.Count(&Address{})
+		r.Zero(addrVerrs.Count())
+		r.Equal(1, addrCount)
 		r.NotZero(addr.ID)
 
 		user := User{
@@ -620,7 +619,7 @@ func Test_Eager_Validate_And_Create_Parental_With_Partial_Existing(t *testing.T)
 		r.Equal(count+1, ctx)
 
 		ctx, _ = tx.Count(&Address{})
-		r.Equal(addr_count+1, ctx)
+		r.Equal(addrCount+1, ctx)
 
 		u := User{}
 		q := tx.Eager().Where("name = ?", "Mark 'Awesome' Bates")
@@ -636,57 +635,6 @@ func Test_Eager_Validate_And_Create_Parental_With_Partial_Existing(t *testing.T)
 			r.Equal(addr.ID, u.Houses[1].ID)
 			r.Equal("Modelo", u.Houses[0].Street)
 			r.Equal("Life", u.Houses[1].Street) // Street is blanked out
-		}
-	})
-}
-
-func Test_Eager_Validate_And_Create_Parental_With_Partial_Existing(t *testing.T) {
-	r := require.New(t)
-	transaction(func(tx *pop.Connection) {
-		addr := Address{HouseNumber: 42, Street: "Life"}
-		addr_verrs, addr_err := tx.ValidateAndCreate(&addr)
-		r.NoError(addr_err)
-		addr_count, _ := tx.Count(&Address{})
-		r.Zero(addr_verrs.Count())
-		r.Equal(1, addr_count)
-		r.NotZero(addr.ID)
-
-		user := User{
-			Name:         nulls.NewString("Mark 'Awesome' Bates"),
-			Books:        Books{{Title: "Pop Book", Isbn: "PB1", Description: "Awesome Book!"}},
-			FavoriteSong: Song{Title: "Hook - Blues Traveler"},
-			Houses: Addresses{
-				Address{HouseNumber: 86, Street: "Modelo"},
-				Address{ID: addr.ID},
-			},
-		}
-		count, _ := tx.Count(&User{})
-
-		verrs, err := tx.Eager().ValidateAndCreate(&user)
-		r.NoError(err)
-		r.NotEqual(user.ID, 0)
-		r.Equal(0, verrs.Count())
-
-		ctx, _ := tx.Count(&User{})
-		r.Equal(count+1, ctx)
-
-		ctx, _ = tx.Count(&Address{})
-		r.Equal(addr_count+1, ctx)
-
-		u := User{}
-		q := tx.Eager().Where("name = ?", "Mark 'Awesome' Bates")
-		err = q.First(&u)
-		r.NoError(err)
-		r.Equal(u.Name.String, "Mark 'Awesome' Bates")
-		r.Equal(u.Books[0].Title, "Pop Book")
-		r.Equal(u.FavoriteSong.Title, "Hook - Blues Traveler")
-		if u.Houses[0].ID == addr.ID {
-			r.Equal("", u.Houses[0].Street) // Street is blanked out
-			r.Equal("Modelo", u.Houses[1].Street)
-		} else {
-			r.Equal(addr.ID, u.Houses[1].ID)
-			r.Equal("Modelo", u.Houses[0].Street)
-			r.Equal("", u.Houses[1].Street) // Street is blanked out
 		}
 	})
 }
