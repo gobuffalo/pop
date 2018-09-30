@@ -3,6 +3,7 @@ package pop
 import (
 	"fmt"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/gobuffalo/pop/associations"
 	"github.com/gobuffalo/pop/columns"
 	"github.com/gobuffalo/pop/logging"
@@ -102,7 +103,7 @@ func (c *Connection) Create(model interface{}, excludeColumns ...string) error {
 	sm := &Model{Value: model}
 	return sm.iterate(func(m *Model) error {
 		return c.timeFunc("Create", func() error {
-			asos, err := associations.ForStruct(m)
+			asos, err := associations.ForStruct(m.Value)
 			if err != nil {
 				return err
 			}
@@ -152,8 +153,15 @@ func (c *Connection) Create(model interface{}, excludeColumns ...string) error {
 			if processAssoc {
 				after := asos.AssociationsAfterCreatable()
 				for index := range after {
-					sql := after[index].AfterProcess()
-					print(sql, "\n")
+					stm := after[index].AfterProcess()
+					spew.Printf("after:%v\n", stm)
+					if c.TX != nil && !stm.Empty() {
+						_, err := c.TX.Exec(c.Dialect.TranslateSQL(stm.Statement), stm.Args...)
+						if err != nil {
+							return err
+						}
+						continue
+					}
 				}
 
 				stms := asos.AssociationsCreatableStatement()

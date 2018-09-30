@@ -69,7 +69,7 @@ type AssociationBeforeCreatable interface {
 type AssociationAfterCreatable interface {
 	AfterInterface() interface{}
 	AfterSetup() error
-	AfterProcess() string
+	AfterProcess() AssociationStatement
 	Association
 }
 
@@ -85,6 +85,10 @@ type AssociationCreatableStatement interface {
 type AssociationStatement struct {
 	Statement string
 	Args      []interface{}
+}
+
+func (as AssociationStatement) Empty() bool {
+	return as.Statement == ""
 }
 
 // Associations a group of model associations.

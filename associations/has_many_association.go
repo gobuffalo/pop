@@ -124,14 +124,18 @@ func (a *hasManyAssociation) AfterSetup() error {
 	return nil
 }
 
-func (a *hasManyAssociation) AfterProcess() string {
-	ids := []string{}
+func (a *hasManyAssociation) AfterProcess() AssociationStatement {
 	v := a.value
 	if v.Kind() == reflect.Ptr {
 		v = v.Elem()
 	}
 
 	otherIDField := "ID"
+
+	ownerIDField := "ID"
+	ownerID := reflect.Indirect(reflect.ValueOf(a.owner)).FieldByName(ownerIDField).Interface()
+
+	ids := []interface{}{ownerID}
 
 	for i := 0; i < v.Len(); i++ {
 		fval := v.Index(i).FieldByName(otherIDField)
@@ -146,7 +150,13 @@ func (a *hasManyAssociation) AfterProcess() string {
 			ids = append(ids, id)
 		}
 	}
-	spew.Printf("has_many AfterProcess (ids):%v\n", ids)
+	if len(ids) <= 1 {
+		return AssociationStatement{
+			Statement: "",
+			Args:      []interface{}{},
+		}
+	}
+	spew.Printf("has_many AfterProcess (ids):%v(%v)\n", ids, ownerID)
 
 	fk := a.fkID
 	if fk == "" {
@@ -155,5 +165,8 @@ func (a *hasManyAssociation) AfterProcess() string {
 
 	ret := fmt.Sprintf("UPDATE %s SET %s = ? WHERE %s in (?)", a.tableName, fk, otherIDField)
 
-	return ret
+	return AssociationStatement{
+		Statement: ret,
+		Args:      ids,
+	}
 }

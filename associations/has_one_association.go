@@ -106,11 +106,14 @@ func (h *hasOneAssociation) AfterSetup() error {
 	return fmt.Errorf("could not set '%s' to '%s'", ownerID, fval)
 }
 
-func (h *hasOneAssociation) AfterProcess() string {
-	ids := []interface{}{}
-
+func (h *hasOneAssociation) AfterProcess() AssociationStatement {
 	otherIDField := "ID"
 	fval := h.ownedModel.FieldByName(otherIDField)
+
+	ownerIDField := "ID"
+	ownerID := reflect.Indirect(reflect.ValueOf(h.owner)).FieldByName(ownerIDField).Interface()
+
+	ids := []interface{}{ownerID}
 
 	id := ""
 	if fval.Type().Name() == "UUID" {
@@ -121,7 +124,13 @@ func (h *hasOneAssociation) AfterProcess() string {
 	if id != "0" && id != emptyUUID {
 		ids = append(ids, id)
 	}
-	spew.Printf("has_one AfterProcess (ids):%v\n %v has_one %v:%v\n", ids, h.ownerName, h.ownedType, h.ownedTableName)
+	if len(ids) <= 1 {
+		return AssociationStatement{
+			Statement: "",
+			Args:      []interface{}{},
+		}
+	}
+	spew.Printf("has_one AfterProcess (ids):%v\n %v(%v) has_one %v:%v\n", ids, h.ownerName, ownerID, h.ownedType, h.ownedTableName)
 
 	fk := h.fkID
 	if fk == "" {
@@ -130,5 +139,8 @@ func (h *hasOneAssociation) AfterProcess() string {
 
 	ret := fmt.Sprintf("UPDATE %s SET %s = ? WHERE %s in (?)", h.ownedTableName, fk, otherIDField)
 
-	return ret
+	return AssociationStatement{
+		Statement: ret,
+		Args:      ids,
+	}
 }

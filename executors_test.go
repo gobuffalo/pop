@@ -639,6 +639,75 @@ func Test_Eager_Validate_And_Create_Parental_With_Partial_Existing(t *testing.T)
 	})
 }
 
+func Test_Flat_Validate_And_Create_Parental_With_Partial_Existing(t *testing.T) {
+	r := require.New(t)
+	transaction(func(tx *Connection) {
+		addr := Address{HouseNumber: 42, Street: "Life"}
+		addrVerrs, addrErr := tx.ValidateAndCreate(&addr)
+		r.NoError(addrErr)
+		addrCount, _ := tx.Count(&Address{})
+		r.Zero(addrVerrs.Count())
+		r.Equal(1, addrCount)
+		r.NotZero(addr.ID)
+
+		book := Book{Title: "Pop Book", Isbn: "PB1", Description: "Awesome Book!"}
+		bookVerrs, bookErr := tx.ValidateAndCreate(&book)
+		r.NoError(bookErr)
+		bookCount, _ := tx.Count(&Book{})
+		r.Zero(bookVerrs.Count())
+		r.Equal(1, bookCount)
+		r.NotZero(book.ID)
+
+		song := Song{Title: "Hook - Blues Traveler"}
+		songVerrs, songErr := tx.ValidateAndCreate(&song)
+		r.NoError(songErr)
+		songCount, _ := tx.Count(&Song{})
+		r.Zero(songVerrs.Count())
+		r.Equal(1, songCount)
+		r.NotZero(song.ID)
+
+		user := User{
+			Name:         nulls.NewString("Mark 'Awesome' Bates"),
+			Books:        Books{book},
+			FavoriteSong: song,
+			Houses: Addresses{
+				Address{HouseNumber: 86, Street: "Modelo"},
+				//TODO: add another existing here and test for it to make sure this works with multiples
+				Address{ID: addr.ID},
+			},
+		}
+		count, _ := tx.Count(&User{})
+
+		verrs, err := tx.ValidateAndCreate(&user)
+		r.NoError(err)
+		r.NotEqual(user.ID, 0)
+		r.Equal(0, verrs.Count())
+
+		ctx, _ := tx.Count(&User{})
+		r.Equal(count+1, ctx)
+
+		ctx, _ = tx.Count(&Address{})
+		r.Equal(addrCount, ctx)
+
+		ctx, _ = tx.Count(&Book{})
+		r.Equal(bookCount, ctx)
+
+		ctx, _ = tx.Count(&Song{})
+		r.Equal(songCount, ctx)
+
+		u := User{}
+		q := tx.Eager().Where("name = ?", "Mark 'Awesome' Bates")
+		err = q.First(&u)
+		r.NoError(err)
+		r.Equal(u.Name.String, "Mark 'Awesome' Bates")
+		r.Equal(u.Books[0].Title, "Pop Book")
+		r.Equal(u.FavoriteSong.Title, "Hook - Blues Traveler")
+		r.Equal(1, len(u.Houses))
+		r.Equal(addr.ID, u.Houses[0].ID)
+		r.Equal("Life", u.Houses[0].Street)
+	})
+}
+
 func Test_Eager_Create_Belongs_To(t *testing.T) {
 	transaction(func(tx *Connection) {
 		r := require.New(t)
