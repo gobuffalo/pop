@@ -667,12 +667,12 @@ func Test_Flat_Validate_And_Create_Parental_With_Partial_Existing(t *testing.T) 
 		r.NotZero(song.ID)
 
 		user := User{
-			Name:         nulls.NewString("Mark 'Awesome' Bates"),
+			Name: nulls.NewString("Mark 'Awesome' Bates"),
+			//TODO: add another existing here and test for it to make sure this works with multiples (books)
 			Books:        Books{book},
 			FavoriteSong: song,
 			Houses: Addresses{
 				Address{HouseNumber: 86, Street: "Modelo"},
-				//TODO: add another existing here and test for it to make sure this works with multiples
 				Address{ID: addr.ID},
 			},
 		}
