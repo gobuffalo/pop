@@ -831,6 +831,54 @@ func Test_Eager_Create_Belongs_To(t *testing.T) {
 	})
 }
 
+func Test_Flat_Create_Belongs_To(t *testing.T) {
+	transaction(func(tx *Connection) {
+		r := require.New(t)
+		user := User{
+			Name: nulls.NewString("Larry"),
+		}
+
+		err := tx.Create(&user)
+		r.NoError(err)
+		ctx, _ := tx.Count(&User{})
+		r.Equal(1, ctx)
+
+		book := Book{
+			Title:       "Pop Book",
+			Description: "Pop Book",
+			Isbn:        "PB1",
+			User:        user,
+		}
+
+		err = tx.Create(&book)
+		r.NoError(err)
+
+		ctx, _ = tx.Count(&Book{})
+		r.Equal(1, ctx)
+
+		err = tx.Eager().Find(&book, book.ID)
+		r.NoError(err)
+
+		r.Equal(nulls.NewString("Larry"), book.User.Name)
+
+		car := Taxi{
+			Model:  "Fancy car",
+			Driver: user,
+		}
+
+		err = tx.Create(&car)
+		r.NoError(err)
+
+		ctx, _ = tx.Count(&Taxi{})
+		r.Equal(1, ctx)
+
+		err = tx.Eager().Find(&car, car.ID)
+		r.NoError(err)
+
+		r.Equal(nulls.NewString("Larry"), car.Driver.Name)
+	})
+}
+
 func Test_Eager_Creation_Without_Associations(t *testing.T) {
 	transaction(func(tx *Connection) {
 		r := require.New(t)
