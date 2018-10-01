@@ -76,9 +76,6 @@ func (c *Connection) eagerCreate(model interface{}, excludeColumns ...string) er
 			return nil
 		})
 
-		// TODO: Raw update call to set fk_ids
-		fmt.Printf("AfterProcessUpdate:%s\n", after[index].AfterProcess())
-
 		if err != nil {
 			return err
 		}
