@@ -639,6 +639,88 @@ func Test_Eager_Validate_And_Create_Parental_With_Partial_Existing(t *testing.T)
 	})
 }
 
+func Test_Flat_Validate_And_Create_Parental_With_Existing(t *testing.T) {
+	r := require.New(t)
+	transaction(func(tx *Connection) {
+		addr := Address{HouseNumber: 42, Street: "Life"}
+		addrVerrs, addrErr := tx.ValidateAndCreate(&addr)
+		r.NoError(addrErr)
+		addrCount, _ := tx.Count(&Address{})
+		r.Zero(addrVerrs.Count())
+		r.Equal(1, addrCount)
+		r.NotZero(addr.ID)
+
+		book := Book{Title: "Pop Book", Isbn: "PB1", Description: "Awesome Book!"}
+		bookVerrs, bookErr := tx.ValidateAndCreate(&book)
+		r.NoError(bookErr)
+		r.Zero(bookVerrs.Count())
+		r.NotZero(book.ID)
+
+		book2 := Book{Title: "Pop Book2", Isbn: "PB2", Description: "Awesome Book Also!"}
+		bookVerrs, bookErr = tx.ValidateAndCreate(&book2)
+		r.NoError(bookErr)
+		r.Zero(bookVerrs.Count())
+		r.NotZero(book2.ID)
+
+		bookCount, _ := tx.Count(&Book{})
+		r.Equal(2, bookCount)
+
+		song := Song{Title: "Hook - Blues Traveler"}
+		songVerrs, songErr := tx.ValidateAndCreate(&song)
+		r.NoError(songErr)
+		songCount, _ := tx.Count(&Song{})
+		r.Zero(songVerrs.Count())
+		r.Equal(1, songCount)
+		r.NotZero(song.ID)
+
+		user := User{
+			Name:         nulls.NewString("Mark 'Awesome' Bates"),
+			Books:        Books{book, book2},
+			FavoriteSong: song,
+			Houses: Addresses{
+				Address{HouseNumber: 86, Street: "Modelo"},
+				addr,
+			},
+		}
+		count, _ := tx.Count(&User{})
+
+		verrs, err := tx.ValidateAndCreate(&user)
+		r.NoError(err)
+		r.NotEqual(user.ID, 0)
+		r.Equal(0, verrs.Count())
+
+		ctx, _ := tx.Count(&User{})
+		r.Equal(count+1, ctx)
+
+		ctx, _ = tx.Count(&Address{})
+		r.Equal(addrCount, ctx)
+
+		ctx, _ = tx.Count(&Book{})
+		r.Equal(bookCount, ctx)
+
+		ctx, _ = tx.Count(&Song{})
+		r.Equal(songCount, ctx)
+
+		u := User{}
+		q := tx.Eager().Where("name = ?", "Mark 'Awesome' Bates")
+		err = q.First(&u)
+		r.NoError(err)
+		r.Equal(u.Name.String, "Mark 'Awesome' Bates")
+		r.Equal(2, len(u.Books))
+		if u.Books[0].ID == book.ID {
+			r.Equal(u.Books[0].Title, "Pop Book")
+			r.Equal(u.Books[1].Title, "Pop Book2")
+		} else {
+			r.Equal(u.Books[1].Title, "Pop Book")
+			r.Equal(u.Books[0].Title, "Pop Book2")
+		}
+		r.Equal(u.FavoriteSong.Title, "Hook - Blues Traveler")
+		r.Equal(1, len(u.Houses))
+		r.Equal(addr.ID, u.Houses[0].ID)
+		r.Equal("Life", u.Houses[0].Street)
+	})
+}
+
 func Test_Flat_Validate_And_Create_Parental_With_Partial_Existing(t *testing.T) {
 	r := require.New(t)
 	transaction(func(tx *Connection) {
@@ -669,8 +751,8 @@ func Test_Flat_Validate_And_Create_Parental_With_Partial_Existing(t *testing.T) 
 		user := User{
 			Name: nulls.NewString("Mark 'Awesome' Bates"),
 			//TODO: add another existing here and test for it to make sure this works with multiples (books)
-			Books:        Books{book},
-			FavoriteSong: song,
+			Books:        Books{Book{ID: book.ID}},
+			FavoriteSong: Song{ID: song.ID},
 			Houses: Addresses{
 				Address{HouseNumber: 86, Street: "Modelo"},
 				Address{ID: addr.ID},

@@ -163,10 +163,13 @@ func (a *hasManyAssociation) AfterProcess() AssociationStatement {
 		fk = inflect.Underscore(a.ownerName) + "_id"
 	}
 
-	ret := fmt.Sprintf("UPDATE %s SET %s = ? WHERE %s in (?)", a.tableName, fk, otherIDField)
+	ret := fmt.Sprintf("UPDATE %s SET %s = ? WHERE %s in (?", a.tableName, fk, otherIDField)
+	for i := 2; i < len(ids); i++ {
+		ret += ",?"
+	}
 
 	return AssociationStatement{
-		Statement: ret,
+		Statement: ret + ")",
 		Args:      ids,
 	}
 }

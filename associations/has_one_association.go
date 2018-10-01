@@ -123,8 +123,7 @@ func (h *hasOneAssociation) AfterProcess() AssociationStatement {
 	}
 	if id != "0" && id != emptyUUID {
 		ids = append(ids, id)
-	}
-	if len(ids) <= 1 {
+	} else {
 		return AssociationStatement{
 			Statement: "",
 			Args:      []interface{}{},
@@ -137,7 +136,7 @@ func (h *hasOneAssociation) AfterProcess() AssociationStatement {
 		fk = inflect.Underscore(h.ownerName) + "_id"
 	}
 
-	ret := fmt.Sprintf("UPDATE %s SET %s = ? WHERE %s in (?)", h.ownedTableName, fk, otherIDField)
+	ret := fmt.Sprintf("UPDATE %s SET %s = ? WHERE %s = ?", h.ownedTableName, fk, otherIDField)
 
 	return AssociationStatement{
 		Statement: ret,
