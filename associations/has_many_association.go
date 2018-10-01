@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/gobuffalo/flect"
 	"github.com/gobuffalo/pop/nulls"
 
@@ -156,7 +155,6 @@ func (a *hasManyAssociation) AfterProcess() AssociationStatement {
 			Args:      []interface{}{},
 		}
 	}
-	spew.Printf("has_many AfterProcess (ids):%v(%v)\n", ids, ownerID)
 
 	fk := a.fkID
 	if fk == "" {

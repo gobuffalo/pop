@@ -5,8 +5,6 @@ import (
 
 	"github.com/gobuffalo/pop/associations"
 	"github.com/gobuffalo/validate"
-
-	"github.com/davecgh/go-spew/spew"
 )
 
 func (c *Connection) eagerCreate(model interface{}, excludeColumns ...string) error {
@@ -68,7 +66,6 @@ func (c *Connection) eagerCreate(model interface{}, excludeColumns ...string) er
 		ids := []string{}
 		addToIds := func(id string) {
 			ids = append(ids, id)
-			spew.Printf("\nin ids: %+v\n", ids)
 		}
 		err = sm.iterate(func(m *Model) error {
 			id := fmt.Sprint(m.ID())
@@ -79,7 +76,6 @@ func (c *Connection) eagerCreate(model interface{}, excludeColumns ...string) er
 			return nil
 		})
 
-		spew.Printf("\nids: %+v\n", ids)
 		// TODO: Raw update call to set fk_ids
 		fmt.Printf("AfterProcessUpdate:%s\n", after[index].AfterProcess())
 
