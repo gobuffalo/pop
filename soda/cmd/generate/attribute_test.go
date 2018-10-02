@@ -15,6 +15,10 @@ func Test_Attribute_String(t *testing.T) {
 		name string
 	}{
 		{
+			name: "id",
+			exp:  "\tID string `json:\"id\" db:\"id\"`",
+		},
+		{
 			name: "user_id",
 			exp:  "\tUserID string `json:\"user_id\" db:\"user_id\"`",
 		},

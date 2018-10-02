@@ -20,6 +20,9 @@ type attribute struct {
 }
 
 func (a attribute) String() string {
+	if len(a.StructTag) == 0 {
+		a.StructTag = "json"
+	}
 	return fmt.Sprintf("\t%s %s `%s:\"%s\" db:\"%s\"`", a.Name.Pascalize(), a.GoType, a.StructTag, a.Name.Underscore(), a.Name.Underscore())
 }
 
