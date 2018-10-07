@@ -48,6 +48,14 @@ var ConfigCmd = &cobra.Command{
 	},
 }
 
+// GenerateConfig generates pop configuration files.
+//
+// Deprecated: use github.com/gobuffalo/pop/genny/config instead.
+func GenerateConfig(cfgFile string, data map[string]interface{}) error {
+	oncer.Deprecate(0, "generate.GenerateConfig", "Use github.com/gobuffalo/pop/genny/config instead.")
+	return Config(cfgFile, data)
+}
+
 // Config generates pop configuration files.
 // Deprecated: use github.com/gobuffalo/pop/genny/config instead.
 func Config(cfgFile string, data map[string]interface{}) error {
