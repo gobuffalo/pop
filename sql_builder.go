@@ -88,9 +88,10 @@ func (sq *sqlBuilder) compile() {
 		}
 
 		if inRegex.MatchString(sq.sql) {
-			s, _, err := sqlx.In(sq.sql, sq.Args())
+			s, args, err := sqlx.In(sq.sql, sq.Args()...)
 			if err == nil {
 				sq.sql = s
+				sq.args = args
 			}
 		}
 		sq.sql = sq.Query.Connection.Dialect.TranslateSQL(sq.sql)
