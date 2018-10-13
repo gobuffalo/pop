@@ -26,7 +26,7 @@ func (s *String) Scan(src interface{}) error {
 	if !ok {
 		return errors.New("Scan source was not []byte")
 	}
-	(*s) = strToString(string(b))
+	*s = strToString(string(b))
 	return nil
 }
 
@@ -39,22 +39,22 @@ func (s String) Value() (driver.Value, error) {
 // UnmarshalJSON will unmarshall JSON value into
 // the string slice representation of this value.
 func (s *String) UnmarshalJSON(data []byte) error {
-	ss := []string{}
+	var ss []string
 	if err := json.Unmarshal(data, &ss); err != nil {
 		return err
 	}
-	(*s) = String(ss)
+	*s = String(ss)
 	return nil
 }
 
 // UnmarshalText will unmarshall text value into
 // the string slice representation of this value.
 func (s *String) UnmarshalText(text []byte) error {
-	ss := []string{}
+	var ss []string
 	for _, x := range strings.Split(string(text), ",") {
 		ss = append(ss, strings.TrimSpace(x))
 	}
-	(*s) = ss
+	*s = ss
 	return nil
 }
 

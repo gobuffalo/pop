@@ -25,7 +25,7 @@ func (f *Float) Scan(src interface{}) error {
 		return errors.New("Scan source was not []byte")
 	}
 	str := string(b)
-	(*f) = strToFloat(str)
+	*f = strToFloat(str)
 	return nil
 }
 
@@ -42,7 +42,7 @@ func (f Float) Value() (driver.Value, error) {
 // UnmarshalText will unmarshall text value into
 // the float slice representation of this value.
 func (f *Float) UnmarshalText(text []byte) error {
-	ss := []float64{}
+	var ss []float64
 	for _, x := range strings.Split(string(text), ",") {
 		f, err := strconv.ParseFloat(x, 64)
 		if err != nil {
@@ -50,7 +50,7 @@ func (f *Float) UnmarshalText(text []byte) error {
 		}
 		ss = append(ss, f)
 	}
-	(*f) = ss
+	*f = ss
 	return nil
 }
 

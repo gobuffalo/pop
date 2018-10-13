@@ -242,7 +242,7 @@ type ValidatableCar struct {
 	UpdatedAt time.Time `json:"updated_at" db:"updated_at"`
 }
 
-var validationLogs = []string{}
+var validationLogs []string
 
 func (v *ValidatableCar) Validate(tx *Connection) (*validate.Errors, error) {
 	validationLogs = append(validationLogs, "Validate")

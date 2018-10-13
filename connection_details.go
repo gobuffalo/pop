@@ -41,7 +41,7 @@ type ConnectionDetails struct {
 	Options  map[string]string
 }
 
-var dialectX = regexp.MustCompile(`\s+:\/\/`)
+var dialectX = regexp.MustCompile(`\s+://`)
 
 // Finalize cleans up the connection details by normalizing names,
 // filling in default values, etc...

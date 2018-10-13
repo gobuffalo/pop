@@ -113,7 +113,7 @@ func getModelDefinition(s interface{}) (reflect.Type, reflect.Value) {
 }
 
 func trimFields(fields []string) []string {
-	trimFields := []string{}
+	var trimFields []string
 	for _, f := range fields {
 		if strings.TrimSpace(f) != "" {
 			trimFields = append(trimFields, strings.TrimSpace(f))
