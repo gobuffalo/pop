@@ -91,7 +91,7 @@ type Associations []Association
 // AssociationsBeforeCreatable returns all associations that implement AssociationBeforeCreatable
 // interface. Belongs To association is an example of this implementation.
 func (a Associations) AssociationsBeforeCreatable() []AssociationBeforeCreatable {
-	before := []AssociationBeforeCreatable{}
+	var before []AssociationBeforeCreatable
 	for i := range a {
 		if _, ok := a[i].(AssociationBeforeCreatable); ok {
 			before = append(before, a[i].(AssociationBeforeCreatable))
@@ -103,7 +103,7 @@ func (a Associations) AssociationsBeforeCreatable() []AssociationBeforeCreatable
 // AssociationsAfterCreatable returns all associations that implement AssociationAfterCreatable
 // interface. Has Many and Has One associations are example of this implementation.
 func (a Associations) AssociationsAfterCreatable() []AssociationAfterCreatable {
-	after := []AssociationAfterCreatable{}
+	var after []AssociationAfterCreatable
 	for i := range a {
 		if _, ok := a[i].(AssociationAfterCreatable); ok {
 			after = append(after, a[i].(AssociationAfterCreatable))
@@ -115,7 +115,7 @@ func (a Associations) AssociationsAfterCreatable() []AssociationAfterCreatable {
 // AssociationsCreatableStatement returns all associations that implement AssociationCreatableStament
 // interface. Many To Many association is an example of this implementation.
 func (a Associations) AssociationsCreatableStatement() []AssociationCreatableStatement {
-	stm := []AssociationCreatableStatement{}
+	var stm []AssociationCreatableStatement
 	for i := range a {
 		if _, ok := a[i].(AssociationCreatableStatement); ok {
 			stm = append(stm, a[i].(AssociationCreatableStatement))
