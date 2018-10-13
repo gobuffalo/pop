@@ -157,7 +157,7 @@ func (m *mysql) LoadSchema(r io.Reader) error {
 
 // TruncateAll truncates all tables for the given connection.
 func (m *mysql) TruncateAll(tx *Connection) error {
-	stmts := []string{}
+	var stmts []string
 	err := tx.RawQuery(mysqlTruncate, m.Details().Database).All(&stmts)
 	if err != nil {
 		return err

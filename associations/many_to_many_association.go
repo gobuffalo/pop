@@ -113,7 +113,7 @@ func (m *manyToManyAssociation) BeforeSetup() error {
 }
 
 func (m *manyToManyAssociation) Statements() []AssociationStatement {
-	statements := []AssociationStatement{}
+	var statements []AssociationStatement
 
 	modelColumnID := fmt.Sprintf("%s%s", flect.Underscore(m.model.Type().Name()), "_id")
 	var columnFieldID string

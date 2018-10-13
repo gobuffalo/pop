@@ -17,7 +17,7 @@ type Columns struct {
 
 // Add a column to the list.
 func (c *Columns) Add(names ...string) []*Column {
-	ret := []*Column{}
+	var ret []*Column
 	c.lock.Lock()
 
 	tableAlias := c.TableAlias
@@ -119,7 +119,7 @@ func (c Columns) Readable() *ReadableColumns {
 }
 
 func (c Columns) String() string {
-	xs := []string{}
+	var xs []string
 	for _, t := range c.Cols {
 		xs = append(xs, t.Name)
 	}
@@ -130,7 +130,7 @@ func (c Columns) String() string {
 // SymbolizedString returns a list of tokens (:token) to bind
 // a value to an INSERT query.
 func (c Columns) SymbolizedString() string {
-	xs := []string{}
+	var xs []string
 	for _, t := range c.Cols {
 		xs = append(xs, ":"+t.Name)
 	}

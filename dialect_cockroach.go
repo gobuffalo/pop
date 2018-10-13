@@ -193,7 +193,7 @@ func (p *cockroach) TruncateAll(tx *Connection) error {
 		TableName string `db:"table_name"`
 	}
 
-	tables := []table{}
+	var tables []table
 	if err := tx.RawQuery("select table_name from information_schema.tables where table_schema = ?;", tx.Dialect.Details().Database).All(&tables); err != nil {
 		return err
 	}
