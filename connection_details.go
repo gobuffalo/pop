@@ -68,7 +68,6 @@ func (cd *ConnectionDetails) overrideWithURL() error {
 		log(logging.Warn, "One or more of connection parameters are specified in database.yml. Override them with values in URL.")
 	}
 
-	log(logging.Warn, "dialect: %v", cd.Dialect)
 	if strings.HasPrefix(cd.Dialect, "sqlite") {
 		cd.Database = u.Path
 		return nil
