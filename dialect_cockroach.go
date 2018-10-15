@@ -187,12 +187,12 @@ func (p *cockroach) Lock(fn func() error) error {
 }
 
 func (p *cockroach) DumpSchema(w io.Writer) error {
-	secure := ""
+	cmd := exec.Command("cockroach", "dump", p.Details().Database, "--dump-mode=schema")
+
 	c := p.ConnectionDetails
 	if defaults.String(c.Options["sslmode"], "disable") == "disable" {
-		secure = "--insecure"
+		cmd.Args = append(cmd.Args, "--insecure")
 	}
-	cmd := exec.Command("cockroach", "dump", p.Details().Database, "--dump-mode=schema", secure)
 	log(logging.SQL, strings.Join(cmd.Args, " "))
 	cmd.Stdout = w
 	cmd.Stderr = os.Stderr
