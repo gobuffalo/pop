@@ -135,18 +135,30 @@ func (p *cockroach) URL() string {
 	if c.URL != "" {
 		return c.URL
 	}
-	ssl := defaults.String(c.Options["sslmode"], "disable")
-
-	s := "postgres://%s:%s@%s:%s/%s?application_name=cockroach&sslmode=%s"
-	return fmt.Sprintf(s, c.User, c.Password, c.Host, c.Port, c.Database, ssl)
+	s := "postgres://%s:%s@%s:%s/%s?%s"
+	return fmt.Sprintf(s, c.User, c.Password, c.Host, c.Port, c.Database, p.optionString())
 }
 
 func (p *cockroach) urlWithoutDb() string {
 	c := p.ConnectionDetails
-	ssl := defaults.String(c.Options["sslmode"], "disable")
+	s := "postgres://%s:%s@%s:%s/?%s"
+	return fmt.Sprintf(s, c.User, c.Password, c.Host, c.Port, p.optionString())
+}
 
-	s := "postgres://%s:%s@%s:%s/?application_name=cockroach&sslmode=%s"
-	return fmt.Sprintf(s, c.User, c.Password, c.Host, c.Port, ssl)
+func (p *cockroach) optionString() string {
+	c := p.ConnectionDetails
+
+	if c.RawOptions != "" {
+		return c.RawOptions
+	}
+
+	s := "application_name=cockroach"
+	if c.Options != nil {
+		for k := range c.Options {
+			s = fmt.Sprintf("%s&%s=%s", s, k, c.Options[k])
+		}
+	}
+	return s
 }
 
 func (p *cockroach) MigrationURL() string {
