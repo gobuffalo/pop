@@ -1,11 +1,9 @@
-# github.com/gobuffalo/pop Stands on the Shoulders of Giants
+# Pop Stands on the Shoulders of Giants
 
-github.com/gobuffalo/pop does not try to reinvent the wheel! Instead, it uses the already great wheels developed by the Go community and puts them all together in the best way possible. Without these giants this project would not be possible. Please make sure to check them out and thank them for all of their hard work.
+Pop does not try to reinvent the wheel! Instead, it uses the already great wheels developed by the Go community and puts them all together in the best way possible. Without these giants this project would not be possible. Please make sure to check them out and thank them for all of their hard work.
 
 Thank you to the following **GIANTS**:
 
-
-* [github.com/blang/semver](https://godoc.org/github.com/blang/semver)
 
 * [github.com/cockroachdb/cockroach-go/crdb](https://godoc.org/github.com/cockroachdb/cockroach-go/crdb)
 
@@ -67,8 +65,6 @@ Thank you to the following **GIANTS**:
 
 * [github.com/gobuffalo/validate/validators](https://godoc.org/github.com/gobuffalo/validate/validators)
 
-* [github.com/gofrs/uuid](https://godoc.org/github.com/gofrs/uuid)
-
 * [github.com/jackc/pgx](https://godoc.org/github.com/jackc/pgx)
 
 * [github.com/jackc/pgx/chunkreader](https://godoc.org/github.com/jackc/pgx/chunkreader)
@@ -100,6 +96,10 @@ Thank you to the following **GIANTS**:
 * [github.com/markbates/inflect](https://godoc.org/github.com/markbates/inflect)
 
 * [github.com/markbates/oncer](https://godoc.org/github.com/markbates/oncer)
+
+* [github.com/mattn/go-colorable](https://godoc.org/github.com/mattn/go-colorable)
+
+* [github.com/mattn/go-isatty](https://godoc.org/github.com/mattn/go-isatty)
 
 * [github.com/microcosm-cc/bluemonday](https://godoc.org/github.com/microcosm-cc/bluemonday)
 
