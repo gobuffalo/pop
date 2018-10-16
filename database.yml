@@ -29,6 +29,10 @@ cockroach:
   user: {{ envOr "COCKROACH_USER" "root"  }}
   password: {{ envOr "COCKROACH_PASSWORD" ""  }}
 
+cockroach_ssl:
+  dialect: "cockroach"
+  url: "postgres://root@localhost:26257/pop_test?sslmode=require&sslrootcert=./certs/ca.crt&sslkey=./certs/client.root.key&sslcert=./certs/client.root.crt"
+
 sqlite:
   dialect: "sqlite3"
   database: "./sql_scripts/sqlite/test.sqlite"
