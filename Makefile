@@ -40,7 +40,7 @@ ifeq ($(GO111MODULE),on)
 endif
 
 release-test:
-	$(GO_BIN) test -tags ${TAGS} -race ./...
+	./test.sh
 
 release:
 	release -y -f soda/cmd/version.go
