@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"fmt"
 	"io"
-	"os"
 	"os/exec"
 	"strings"
 	"sync"
@@ -181,17 +180,7 @@ func (p *cockroach) DumpSchema(w io.Writer) error {
 		secure = "--insecure"
 	}
 	cmd := exec.Command("cockroach", "dump", p.Details().Database, "--dump-mode=schema", secure)
-	log(logging.SQL, strings.Join(cmd.Args, " "))
-	cmd.Stdout = w
-	cmd.Stderr = os.Stderr
-
-	err := cmd.Run()
-	if err != nil {
-		return err
-	}
-
-	log(logging.Info, "dumped schema for %s", p.Details().Database)
-	return nil
+	return genericDumpSchema(p.Details(), cmd, w)
 }
 
 func (p *cockroach) LoadSchema(r io.Reader) error {
