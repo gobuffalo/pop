@@ -17,6 +17,7 @@ import (
 	"github.com/gobuffalo/pop/columns"
 	"github.com/gobuffalo/pop/logging"
 	"github.com/markbates/going/defaults"
+
 	// Load SQLite3 CGo driver
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/pkg/errors"
@@ -133,17 +134,7 @@ func (m *sqlite) FizzTranslator() fizz.Translator {
 
 func (m *sqlite) DumpSchema(w io.Writer) error {
 	cmd := exec.Command("sqlite3", m.Details().Database, ".schema")
-	log(logging.SQL, strings.Join(cmd.Args, " "))
-	cmd.Stdout = w
-	cmd.Stderr = os.Stderr
-
-	err := cmd.Run()
-	if err != nil {
-		return err
-	}
-
-	log(logging.Info, "dumped schema for %s", m.Details().Database)
-	return nil
+	return genericDumpSchema(m.Details(), cmd, w)
 }
 
 func (m *sqlite) LoadSchema(r io.Reader) error {
