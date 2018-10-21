@@ -6,8 +6,6 @@ import (
 
 	"github.com/gobuffalo/flect"
 	"github.com/gobuffalo/pop/nulls"
-	"github.com/gobuffalo/uuid"
-	"github.com/markbates/inflect"
 )
 
 type hasOneAssociation struct {
@@ -37,7 +35,7 @@ func hasOneAssociationBuilder(p associationParams) (Association, error) {
 	fval := p.modelValue.FieldByName(p.field.Name)
 	return &hasOneAssociation{
 		owner:          p.model,
-		ownedTableName: p.popTags.Find("has_one").Value + "s",
+		ownedTableName: flect.Pluralize(p.popTags.Find("has_one").Value),
 		ownedModel:     fval,
 		ownedType:      fval.Type(),
 		ownerID:        ownerID.Interface(),
@@ -107,20 +105,14 @@ func (h *hasOneAssociation) AfterSetup() error {
 
 func (h *hasOneAssociation) AfterProcess() AssociationStatement {
 	otherIDField := "ID"
-	fval := h.ownedModel.FieldByName(otherIDField)
+	id := h.ownedModel.FieldByName(otherIDField).Interface()
 
 	ownerIDField := "ID"
 	ownerID := reflect.Indirect(reflect.ValueOf(h.owner)).FieldByName(ownerIDField).Interface()
 
 	ids := []interface{}{ownerID}
 
-	id := ""
-	if fval.Type().Name() == "UUID" {
-		id = fval.Interface().(uuid.UUID).String()
-	} else {
-		id = fmt.Sprint(fval.Interface())
-	}
-	if id != "0" && id != emptyUUID {
+	if !IsZeroOfUnderlyingType(id) {
 		ids = append(ids, id)
 	} else {
 		return AssociationStatement{
@@ -131,7 +123,7 @@ func (h *hasOneAssociation) AfterProcess() AssociationStatement {
 
 	fk := h.fkID
 	if fk == "" {
-		fk = inflect.Underscore(h.ownerName) + "_id"
+		fk = flect.Underscore(h.ownerName) + "_id"
 	}
 
 	ret := fmt.Sprintf("UPDATE %s SET %s = ? WHERE %s = ?", h.ownedTableName, fk, otherIDField)

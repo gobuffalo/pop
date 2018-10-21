@@ -6,9 +6,6 @@ import (
 
 	"github.com/gobuffalo/flect"
 	"github.com/gobuffalo/pop/nulls"
-
-	"github.com/gobuffalo/uuid"
-	"github.com/markbates/inflect"
 )
 
 // hasManyAssociation is the implementation for the has_many
@@ -137,15 +134,8 @@ func (a *hasManyAssociation) AfterProcess() AssociationStatement {
 	ids := []interface{}{ownerID}
 
 	for i := 0; i < v.Len(); i++ {
-		fval := v.Index(i).FieldByName(otherIDField)
-
-		id := ""
-		if fval.Type().Name() == "UUID" {
-			id = fval.Interface().(uuid.UUID).String()
-		} else {
-			id = fmt.Sprint(fval.Interface())
-		}
-		if id != "0" && id != emptyUUID {
+		id := v.Index(i).FieldByName(otherIDField).Interface()
+		if !IsZeroOfUnderlyingType(id) {
 			ids = append(ids, id)
 		}
 	}
@@ -158,7 +148,7 @@ func (a *hasManyAssociation) AfterProcess() AssociationStatement {
 
 	fk := a.fkID
 	if fk == "" {
-		fk = inflect.Underscore(a.ownerName) + "_id"
+		fk = flect.Underscore(a.ownerName) + "_id"
 	}
 
 	ret := fmt.Sprintf("UPDATE %s SET %s = ? WHERE %s in (?", a.tableName, fk, otherIDField)
