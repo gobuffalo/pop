@@ -8,6 +8,7 @@ import (
 var generateCmd = &cobra.Command{
 	Use:     "generate",
 	Aliases: []string{"g"},
+	Short:   "Generates config, model, and migrations files.",
 }
 
 func init() {

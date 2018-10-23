@@ -37,7 +37,7 @@ func (q *Query) Find(model interface{}, id interface{}) error {
 			break
 		}
 	}
-	idq := fmt.Sprintf("%s.id = ?", tn)
+	idq := m.whereID()
 	switch t := id.(type) {
 	case uuid.UUID:
 		return q.Where(idq, t.String()).First(model)
@@ -178,7 +178,7 @@ func (q *Query) paginateModel(models interface{}) error {
 	q.Paginator.TotalEntriesSize = ct
 	st := reflect.ValueOf(models).Elem()
 	q.Paginator.CurrentEntriesSize = st.Len()
-	q.Paginator.TotalPages = (q.Paginator.TotalEntriesSize / q.Paginator.PerPage)
+	q.Paginator.TotalPages = q.Paginator.TotalEntriesSize / q.Paginator.PerPage
 	if q.Paginator.TotalEntriesSize%q.Paginator.PerPage > 0 {
 		q.Paginator.TotalPages = q.Paginator.TotalPages + 1
 	}
@@ -220,7 +220,7 @@ func (q *Query) eagerAssociations(model interface{}) error {
 		return err
 	}
 
-	//disable eager mode for current connection.
+	// disable eager mode for current connection.
 	q.eager = false
 	q.Connection.eager = false
 

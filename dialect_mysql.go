@@ -2,6 +2,7 @@ package pop
 
 import (
 	"bytes"
+	"database/sql"
 	"fmt"
 	"io"
 	"os"
@@ -14,10 +15,13 @@ import (
 	"github.com/gobuffalo/fizz/translators"
 	"github.com/gobuffalo/pop/columns"
 	"github.com/gobuffalo/pop/logging"
-	"github.com/jmoiron/sqlx"
 	"github.com/markbates/going/defaults"
 	"github.com/pkg/errors"
 )
+
+func init() {
+	AvailableDialects = append(AvailableDialects, "mysql")
+}
 
 var _ dialect = &mysql{}
 
@@ -36,6 +40,11 @@ func (m *mysql) Details() *ConnectionDetails {
 func (m *mysql) URL() string {
 	deets := m.ConnectionDetails
 	if deets.URL != "" {
+		// Force multiStatements=true, migrations can fail otherwise.
+		if !strings.Contains(deets.URL, "multiStatements=true") {
+			log(logging.Warn, "multiStatements=true option is required to work with pop migrations. Please add it to the database URL in the config")
+			deets.URL += "&multiStatements=true"
+		}
 		return strings.TrimPrefix(deets.URL, "mysql://")
 	}
 	encoding := defaults.String(deets.Encoding, "utf8mb4_general_ci")
@@ -82,7 +91,7 @@ func (m *mysql) SelectMany(s store, models *Model, query Query) error {
 // CreateDB creates a new database, from the given connection credentials
 func (m *mysql) CreateDB() error {
 	deets := m.ConnectionDetails
-	db, err := sqlx.Open(deets.Dialect, m.urlWithoutDb())
+	db, err := sql.Open(deets.Dialect, m.urlWithoutDb())
 	if err != nil {
 		return errors.Wrapf(err, "error creating MySQL database %s", deets.Database)
 	}
@@ -103,7 +112,7 @@ func (m *mysql) CreateDB() error {
 // DropDB drops an existing database, from the given connection credentials
 func (m *mysql) DropDB() error {
 	deets := m.ConnectionDetails
-	db, err := sqlx.Open(deets.Dialect, m.urlWithoutDb())
+	db, err := sql.Open(deets.Dialect, m.urlWithoutDb())
 	if err != nil {
 		return errors.Wrapf(err, "error dropping MySQL database %s", deets.Database)
 	}
@@ -159,7 +168,7 @@ func (m *mysql) LoadSchema(r io.Reader) error {
 
 // TruncateAll truncates all tables for the given connection.
 func (m *mysql) TruncateAll(tx *Connection) error {
-	stmts := []string{}
+	var stmts []string
 	err := tx.RawQuery(mysqlTruncate, m.Details().Database).All(&stmts)
 	if err != nil {
 		return err

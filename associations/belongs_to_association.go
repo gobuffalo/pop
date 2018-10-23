@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"reflect"
 
+	"github.com/gobuffalo/flect"
 	"github.com/gobuffalo/pop/columns"
 	"github.com/gobuffalo/pop/nulls"
-	"github.com/markbates/inflect"
 )
 
 // belongsToAssociation is the implementation for the belongs_to
@@ -60,7 +60,7 @@ func belongsToAssociationBuilder(p associationParams) (Association, error) {
 		}
 		ownerPrimaryTags := columns.TagsFor(ownerPrimaryField)
 		if dbField := ownerPrimaryTags.Find("db").Value; dbField == "" {
-			ownerPrimaryTableField = inflect.Underscore(ownerPrimaryField.Name) //autodetect without db tag
+			ownerPrimaryTableField = flect.Underscore(ownerPrimaryField.Name) //autodetect without db tag
 		} else {
 			ownerPrimaryTableField = dbField
 		}

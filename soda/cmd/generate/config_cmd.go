@@ -1,14 +1,17 @@
 package generate
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 
-	"github.com/gobuffalo/makr"
+	"github.com/gobuffalo/genny"
 	"github.com/gobuffalo/pop"
+	"github.com/gobuffalo/pop/genny/config"
 	"github.com/markbates/going/defaults"
+	"github.com/markbates/oncer"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -26,41 +29,45 @@ var ConfigCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		cflag := cmd.Flag("config")
 		cfgFile := defaults.String(cflag.Value.String(), "database.yml")
-		pwd, err := os.Getwd()
+
+		run := genny.WetRunner(context.Background())
+
+		pwd, _ := os.Getwd()
+		g, err := config.New(&config.Options{
+			Root:     pwd,
+			Prefix:   filepath.Base(pwd),
+			FileName: cfgFile,
+			Dialect:  dialect,
+		})
 		if err != nil {
-			return errors.Wrap(err, "couldn't get the current directory")
+			return errors.WithStack(err)
 		}
-		data := map[string]interface{}{
-			"dialect": dialect,
-			"name":    filepath.Base(pwd),
-		}
-		return Config(cfgFile, data)
+		run.With(g)
+
+		return run.Run()
 	},
 }
 
-// GenerateConfig generates pop configuration files.
-//
-// Deprecated: use Config instead.
-func GenerateConfig(cfgFile string, data map[string]interface{}) error {
-	fmt.Println(`Warning: GenerateConfig is deprecated, and will be removed in a future version. Please use Config instead.`)
-	return Config(cfgFile, data)
-}
-
 // Config generates pop configuration files.
+// Deprecated: use github.com/gobuffalo/pop/genny/config instead.
 func Config(cfgFile string, data map[string]interface{}) error {
+	oncer.Deprecate(0, "generate.Config", "Use github.com/gobuffalo/pop/genny/config instead.")
 	pwd, _ := os.Getwd()
-	if data["appPath"] == nil {
-		data["appPath"] = pwd
-	}
-	if data["sqlitePath"] == nil {
-		data["sqlitePath"] = pwd
-	}
 
-	dialect = strings.ToLower(data["dialect"].(string))
-	if t, ok := configTemplates[dialect]; ok {
-		g := makr.New()
-		g.Add(makr.NewFile(cfgFile, t))
-		return g.Run(".", data)
+	run := genny.WetRunner(context.Background())
+
+	d, _ := data["dialect"].(string)
+	g, err := config.New(&config.Options{
+		Root:     pwd,
+		Prefix:   filepath.Base(pwd),
+		FileName: cfgFile,
+		Dialect:  d,
+	})
+
+	if err != nil {
+		return errors.WithStack(err)
 	}
-	return errors.Errorf("Could not initialize %s!", dialect)
+	run.With(g)
+
+	return run.Run()
 }

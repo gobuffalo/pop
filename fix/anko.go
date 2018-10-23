@@ -2,6 +2,8 @@ package fix
 
 import (
 	"bytes"
+	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/gobuffalo/plush"
@@ -12,30 +14,41 @@ func Anko(content string) (string, error) {
 	bb := &bytes.Buffer{}
 
 	lines := strings.Split(content, "\n")
+	l := len(lines)
+	fre := regexp.MustCompile(`,\s*func\(t\)\s*{`)
 
-	// fix create_table
-	inCreateTable := false
-	for i := 0; i < len(lines); i++ {
+	for i := 0; i < l; i++ {
 		line := lines[i]
 		tl := strings.TrimSpace(line)
 		if strings.HasPrefix(tl, "create_table") {
-			line = strings.Replace(line, ", func(t) {", ") {", -1)
-			inCreateTable = true
-		}
-		if strings.HasPrefix(tl, "}") && inCreateTable {
-			inCreateTable = false
-		}
-		if strings.HasPrefix(tl, "})") && inCreateTable {
-			line = "}"
-			inCreateTable = false
-		}
-		lines[i] = line
-	}
-
-	// fix raw
-	for i, line := range lines {
-		tl := strings.TrimSpace(line)
-		if strings.HasPrefix(tl, "raw(") {
+			// skip already converted create_table
+			if fre.MatchString(line) {
+				// fix create_table
+				line = fre.ReplaceAllString(line, ") {")
+				ll := i
+				lines[i] = line
+				waitParen := false
+				for {
+					if strings.HasPrefix(tl, "})") {
+						line = "}" + tl[2:]
+						break
+					} else if strings.HasPrefix(tl, "}") {
+						// Now, we have to make sure to match the missing ")"
+						waitParen = true
+					} else if waitParen && strings.HasPrefix(tl, ")") {
+						line = tl[1:]
+						break
+					}
+					i++
+					if l == i {
+						return "", fmt.Errorf("unclosed create_table statement line %d", ll+1)
+					}
+					line = lines[i]
+					tl = strings.TrimSpace(line)
+				}
+			}
+		} else if strings.HasPrefix(tl, "raw(") {
+			// fix raw
 			line = strings.Replace(line, "raw(", "sql(", -1)
 		}
 		lines[i] = line

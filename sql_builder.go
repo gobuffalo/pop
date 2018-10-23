@@ -88,9 +88,10 @@ func (sq *sqlBuilder) compile() {
 		}
 
 		if inRegex.MatchString(sq.sql) {
-			s, _, err := sqlx.In(sq.sql, sq.Args())
+			s, args, err := sqlx.In(sq.sql, sq.Args()...)
 			if err == nil {
 				sq.sql = s
+				sq.args = args
 			}
 		}
 		sq.sql = sq.Query.Connection.Dialect.TranslateSQL(sq.sql)
@@ -209,8 +210,9 @@ func (sq *sqlBuilder) buildPaginationClauses(sql string) string {
 	return sql
 }
 
+// columnCache is used to prevent columns rebuilding.
 var columnCache = map[string]columns.Columns{}
-var columnCacheMutex = sync.Mutex{}
+var columnCacheMutex = sync.RWMutex{}
 
 func (sq *sqlBuilder) buildColumns() columns.Columns {
 	tableName := sq.Model.TableName()
@@ -219,11 +221,11 @@ func (sq *sqlBuilder) buildColumns() columns.Columns {
 		asName = strings.Replace(tableName, ".", "_", -1)
 	}
 	acl := len(sq.AddColumns)
-	if acl <= 0 {
-		columnCacheMutex.Lock()
+	if acl == 0 {
+		columnCacheMutex.RLock()
 		cols, ok := columnCache[tableName]
-		columnCacheMutex.Unlock()
-		//if alias is different, remake columns
+		columnCacheMutex.RUnlock()
+		// if alias is the same, don't remake columns
 		if ok && cols.TableAlias == asName {
 			return cols
 		}

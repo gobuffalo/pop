@@ -110,9 +110,10 @@ func (c *Connection) Create(model interface{}, excludeColumns ...string) error {
 				return err
 			}
 
-			cols := columns.ForStructWithAlias(m.Value, m.TableName(), m.As)
+			tn := m.TableName()
+			cols := columns.ForStructWithAlias(m.Value, tn, m.As)
 
-			if sm.TableName() == m.TableName() {
+			if tn == sm.TableName() {
 				cols.Remove(excludeColumns...)
 			}
 
@@ -161,10 +162,11 @@ func (c *Connection) Update(model interface{}, excludeColumns ...string) error {
 				return err
 			}
 
-			cols := columns.ForStructWithAlias(model, m.TableName(), m.As)
+			tn := m.TableName()
+			cols := columns.ForStructWithAlias(model, tn, m.As)
 			cols.Remove("id", "created_at")
 
-			if m.TableName() == sm.TableName() {
+			if tn == sm.TableName() {
 				cols.Remove(excludeColumns...)
 			}
 
