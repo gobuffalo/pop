@@ -1,8 +1,6 @@
 package pop
 
 import (
-	"fmt"
-
 	"github.com/gobuffalo/pop/associations"
 	"github.com/gobuffalo/validate"
 )
@@ -29,7 +27,7 @@ func (c *Connection) eagerCreate(model interface{}, excludeColumns ...string) er
 		sm := &Model{Value: i}
 		err = sm.iterate(func(m *Model) error {
 			id := m.ID()
-			if fmt.Sprint(id) == "0" || fmt.Sprint(id) == emptyUUID {
+			if IsZeroOfUnderlyingType(id) {
 				return c.Create(m.Value)
 			}
 			return nil
@@ -63,13 +61,13 @@ func (c *Connection) eagerCreate(model interface{}, excludeColumns ...string) er
 		}
 
 		sm := &Model{Value: i}
-		ids := []string{}
-		addToIds := func(id string) {
+		ids := []interface{}{}
+		addToIds := func(id interface{}) {
 			ids = append(ids, id)
 		}
 		err = sm.iterate(func(m *Model) error {
-			id := fmt.Sprint(m.ID())
-			if id == "0" || id == emptyUUID {
+			id := m.ID()
+			if IsZeroOfUnderlyingType(id) {
 				return c.Create(m.Value)
 			}
 			addToIds(id)

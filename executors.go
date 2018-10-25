@@ -1,7 +1,7 @@
 package pop
 
 import (
-	"fmt"
+	"reflect"
 
 	"github.com/gobuffalo/pop/associations"
 	"github.com/gobuffalo/pop/columns"
@@ -61,13 +61,17 @@ func (c *Connection) ValidateAndSave(model interface{}, excludeColumns ...string
 
 var emptyUUID = uuid.Nil.String()
 
+func IsZeroOfUnderlyingType(x interface{}) bool {
+	return x == reflect.Zero(reflect.TypeOf(x)).Interface()
+}
+
 // Save wraps the Create and Update methods. It executes a Create if no ID is provided with the entry;
 // or issues an Update otherwise.
 func (c *Connection) Save(model interface{}, excludeColumns ...string) error {
 	sm := &Model{Value: model}
 	return sm.iterate(func(m *Model) error {
 		id := m.ID()
-		if fmt.Sprint(id) == "0" || fmt.Sprint(id) == emptyUUID {
+		if IsZeroOfUnderlyingType(id) {
 			return c.Create(m.Value, excludeColumns...)
 		}
 		return c.Update(m.Value, excludeColumns...)

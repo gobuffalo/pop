@@ -1,7 +1,6 @@
 package pop
 
 import (
-	"fmt"
 	"reflect"
 
 	"github.com/gobuffalo/validate"
@@ -57,7 +56,7 @@ func (m *Model) validateCreate(c *Connection) (*validate.Errors, error) {
 func (m *Model) validateAndOnlyCreate(c *Connection) (*validate.Errors, error) {
 	return m.iterateAndValidate(func(model *Model) (*validate.Errors, error) {
 		id := model.ID()
-		if fmt.Sprint(id) != "0" && fmt.Sprint(id) != emptyUUID {
+		if !IsZeroOfUnderlyingType(id) {
 			return validate.NewErrors(), nil
 		}
 
