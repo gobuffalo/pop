@@ -1,5 +1,7 @@
 package pop
 
+import "strings"
+
 // AvailableDialects lists the available database dialects
 var AvailableDialects = []string{}
 
@@ -13,4 +15,12 @@ func DialectSupported(d string) bool {
 		}
 	}
 	return false
+}
+
+func normalizeSynonyms(dialect string) string {
+	d := strings.ToLower(dialect)
+	if syn, ok := dialectSynonyms[d]; ok {
+		d = syn
+	}
+	return d
 }

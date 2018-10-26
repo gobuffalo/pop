@@ -46,11 +46,7 @@ var dialectX = regexp.MustCompile(`\s+:\/\/`)
 // Finalize cleans up the connection details by normalizing names,
 // filling in default values, etc...
 func (cd *ConnectionDetails) Finalize() error {
-	d := strings.ToLower(cd.Dialect)
-	if syn, ok := dialectSynonyms[d]; ok {
-		d = syn
-	}
-	cd.Dialect = d
+	cd.Dialect = normalizeSynonyms(cd.Dialect)
 	if cd.URL != "" {
 		ul := cd.URL
 		if cd.Dialect != "" {
@@ -59,7 +55,7 @@ func (cd *ConnectionDetails) Finalize() error {
 			}
 		}
 		cd.Database = cd.URL
-		if d != "sqlite3" {
+		if cd.Dialect != "sqlite3" {
 			u, err := url.Parse(ul)
 			if err != nil {
 				return errors.Wrapf(err, "couldn't parse %s", ul)
@@ -118,6 +114,7 @@ func (cd *ConnectionDetails) Finalize() error {
 			cd.Database = strings.TrimPrefix(cd.Database, "/")
 		}
 	case "sqlite3":
+		// Nothing more to do here
 	default:
 		return errors.Errorf("unknown dialect %s", cd.Dialect)
 	}
