@@ -45,7 +45,7 @@ func (fm *MigrationBox) findMigrations() error {
 		if m[3] == "" {
 			dbType = "all"
 		} else {
-			dbType = m[3][1:]
+			dbType = normalizeSynonyms(m[3][1:])
 			if !DialectSupported(dbType) {
 				return fmt.Errorf("unsupported dialect %s", dbType)
 			}
