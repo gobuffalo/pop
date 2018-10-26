@@ -8,21 +8,21 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/jmoiron/sqlx"
-	// Load CockroachdbQL/postgres Go driver
-	// also loads github.com/lib/pq
 	_ "github.com/cockroachdb/cockroach-go/crdb"
-
 	"github.com/gobuffalo/fizz"
 	"github.com/gobuffalo/fizz/translators"
 	"github.com/gobuffalo/pop/columns"
 	"github.com/gobuffalo/pop/logging"
+	"github.com/jmoiron/sqlx" // Load CockroachdbQL/postgres Go driver
+	// also loads github.com/lib/pq
 	"github.com/markbates/going/defaults"
 	"github.com/pkg/errors"
 )
 
 func init() {
 	AvailableDialects = append(AvailableDialects, "cockroach")
+	dialectSynonyms["cockroachdb"] = "cockroach"
+	dialectSynonyms["crdb"] = "cockroach"
 }
 
 var _ dialect = &cockroach{}

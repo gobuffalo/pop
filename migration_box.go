@@ -2,6 +2,7 @@ package pop
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/gobuffalo/packr"
 	"github.com/pkg/errors"
@@ -45,7 +46,10 @@ func (fm *MigrationBox) findMigrations() error {
 		if m[3] == "" {
 			dbType = "all"
 		} else {
-			dbType = m[3][1:]
+			dbType := strings.ToLower(m[3][1:])
+			if syn, ok := dialectSynonyms[dbType]; ok {
+				dbType = syn
+			}
 			if !DialectSupported(dbType) {
 				return fmt.Errorf("unsupported dialect %s", dbType)
 			}

@@ -3,6 +3,8 @@ package pop
 // AvailableDialects lists the available database dialects
 var AvailableDialects = []string{}
 
+var dialectSynonyms = make(map[string]string)
+
 // DialectSupported checks support for the given database dialect
 func DialectSupported(d string) bool {
 	for _, ad := range AvailableDialects {
