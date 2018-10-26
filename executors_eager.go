@@ -61,16 +61,11 @@ func (c *Connection) eagerCreate(model interface{}, excludeColumns ...string) er
 		}
 
 		sm := &Model{Value: i}
-		ids := []interface{}{}
-		addToIds := func(id interface{}) {
-			ids = append(ids, id)
-		}
 		err = sm.iterate(func(m *Model) error {
 			id := m.ID()
 			if IsZeroOfUnderlyingType(id) {
 				return c.Create(m.Value)
 			}
-			addToIds(id)
 			return nil
 		})
 

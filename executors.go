@@ -61,8 +61,10 @@ func (c *Connection) ValidateAndSave(model interface{}, excludeColumns ...string
 
 var emptyUUID = uuid.Nil.String()
 
+// IsZeroOfUnderlyingType will check if the value of anything is the equal to the Zero value of that type
+// using reflect.
 func IsZeroOfUnderlyingType(x interface{}) bool {
-	return x == reflect.Zero(reflect.TypeOf(x)).Interface()
+	return reflect.DeepEqual(x, reflect.Zero(reflect.TypeOf(x)).Interface())
 }
 
 // Save wraps the Create and Update methods. It executes a Create if no ID is provided with the entry;

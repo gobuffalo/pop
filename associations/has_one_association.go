@@ -78,9 +78,7 @@ func (h *hasOneAssociation) AfterInterface() interface{} {
 		return h.ownedModel.Interface()
 	}
 
-	currentVal := h.ownedModel.Interface()
-	zeroVal := reflect.Zero(h.ownedModel.Type()).Interface()
-	if reflect.DeepEqual(zeroVal, currentVal) {
+	if IsZeroOfUnderlyingType(h.ownedModel.Interface()) {
 		return nil
 	}
 

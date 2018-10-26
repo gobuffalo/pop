@@ -112,9 +112,7 @@ func (b *belongsToAssociation) BeforeInterface() interface{} {
 		return b.ownerModel.Interface()
 	}
 
-	currentVal := b.ownerModel.Interface()
-	zeroVal := reflect.Zero(b.ownerModel.Type()).Interface()
-	if reflect.DeepEqual(zeroVal, currentVal) {
+	if IsZeroOfUnderlyingType(b.ownerModel.Interface()) {
 		return nil
 	}
 
