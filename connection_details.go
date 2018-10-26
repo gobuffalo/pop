@@ -50,15 +50,16 @@ func (cd *ConnectionDetails) Finalize() error {
 	if syn, ok := dialectSynonyms[d]; ok {
 		d = syn
 	}
+	cd.Dialect = d
 	if cd.URL != "" {
 		ul := cd.URL
 		if cd.Dialect != "" {
 			if !dialectX.MatchString(ul) {
-				ul = d + "://" + ul
+				ul = cd.Dialect + "://" + ul
 			}
 		}
 		cd.Database = cd.URL
-		if cd.Dialect != "sqlite3" {
+		if d != "sqlite3" {
 			u, err := url.Parse(ul)
 			if err != nil {
 				return errors.Wrapf(err, "couldn't parse %s", ul)
@@ -79,13 +80,11 @@ func (cd *ConnectionDetails) Finalize() error {
 		}
 
 	}
-	switch d {
+	switch cd.Dialect {
 	case "postgres":
-		cd.Dialect = "postgres"
 		cd.Port = defaults.String(cd.Port, "5432")
 		cd.Database = strings.TrimPrefix(cd.Database, "/")
 	case "cockroach":
-		cd.Dialect = "cockroach"
 		cd.Port = defaults.String(cd.Port, "26257")
 		cd.Database = strings.TrimPrefix(cd.Database, "/")
 	case "mysql":
@@ -119,7 +118,6 @@ func (cd *ConnectionDetails) Finalize() error {
 			cd.Database = strings.TrimPrefix(cd.Database, "/")
 		}
 	case "sqlite3":
-		cd.Dialect = "sqlite3"
 	default:
 		return errors.Errorf("unknown dialect %s", cd.Dialect)
 	}
