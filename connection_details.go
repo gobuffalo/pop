@@ -79,7 +79,7 @@ func (cd *ConnectionDetails) Finalize() error {
 		}
 
 	}
-	switch strings.ToLower(cd.Dialect) {
+	switch d {
 	case "postgres":
 		cd.Dialect = "postgres"
 		cd.Port = defaults.String(cd.Port, "5432")
