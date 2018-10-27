@@ -8,6 +8,36 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func Test_IsZeroOfUnderlyingType(t *testing.T) {
+	r := require.New(t)
+	transaction(func(tx *Connection) {
+		car := &ValidatableCar{Name: "VW"}
+		r.True(IsZeroOfUnderlyingType(car.ID))
+		err := tx.Save(car)
+		r.NoError(err)
+		r.NotZero(car.ID)
+		r.NotZero(car.CreatedAt)
+
+		r.False(IsZeroOfUnderlyingType(car.ID))
+
+		var i int
+		r.True(IsZeroOfUnderlyingType(i))
+		i = 32
+		r.False(IsZeroOfUnderlyingType(i))
+
+		var s string
+		r.True(IsZeroOfUnderlyingType(s))
+		s = "42"
+		r.False(IsZeroOfUnderlyingType(s))
+
+		var u uuid.UUID
+		r.True(IsZeroOfUnderlyingType(u))
+		u, err = uuid.NewV1()
+		r.NoError(err)
+		r.False(IsZeroOfUnderlyingType(u))
+	})
+}
+
 func Test_ValidateAndSave(t *testing.T) {
 	r := require.New(t)
 	validationLogs = []string{}

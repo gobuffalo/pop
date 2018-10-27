@@ -62,7 +62,11 @@ func (c *Connection) eagerCreate(model interface{}, excludeColumns ...string) er
 
 		sm := &Model{Value: i}
 		err = sm.iterate(func(m *Model) error {
-			id := m.ID()
+			fbn, err := m.fieldByName("ID")
+			if err != nil {
+				return err
+			}
+			id := fbn.Interface()
 			if IsZeroOfUnderlyingType(id) {
 				return c.Create(m.Value)
 			}
