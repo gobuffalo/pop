@@ -9,15 +9,14 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/jmoiron/sqlx"
 	// Load CockroachdbQL/postgres Go driver
 	// also loads github.com/lib/pq
 	_ "github.com/cockroachdb/cockroach-go/crdb"
-
 	"github.com/gobuffalo/fizz"
 	"github.com/gobuffalo/fizz/translators"
 	"github.com/gobuffalo/pop/columns"
 	"github.com/gobuffalo/pop/logging"
+	"github.com/jmoiron/sqlx"
 	"github.com/markbates/going/defaults"
 	"github.com/pkg/errors"
 )
@@ -151,7 +150,7 @@ func (p *cockroach) optionString() string {
 	if c.RawOptions != "" {
 		return c.RawOptions
 	}
-
+  
 	s := "application_name=cockroach"
 	if c.Options != nil {
 		for k := range c.Options {

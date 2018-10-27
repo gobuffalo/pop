@@ -36,7 +36,12 @@ func init() {
 		AddLookupPaths(ap)
 	}
 	if err := LoadConfigFile(); err != nil {
-		log(logging.Error, "Unable to load config file: %v", err)
+		// this is debug because there are a lot of cases where
+		// this being logged as an error is causes problems
+		// buffalo plugins, for one
+		// also, it's ok to not always have a config file, like
+		// in a new project where one hasn't be generated
+		log(logging.Debug, "Unable to load config file: %v", err)
 	}
 }
 

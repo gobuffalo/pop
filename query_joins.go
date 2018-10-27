@@ -1,6 +1,9 @@
 package pop
 
-import "github.com/gobuffalo/pop/logging"
+import (
+	"github.com/gobuffalo/pop/logging"
+	"github.com/markbates/oncer"
+)
 
 // Join will append a JOIN clause to the query
 func (q *Query) Join(table string, on string, args ...interface{}) *Query {
@@ -52,22 +55,28 @@ func (q *Query) RightOuterJoin(table string, on string, args ...interface{}) *Qu
 	return q
 }
 
-// LeftInnerJoin will append a LEFT INNER JOIN clause to the query
+// LeftInnerJoin will append an INNER JOIN clause to the query
+//
+// Deprecated: Use InnerJoin instead
 func (q *Query) LeftInnerJoin(table string, on string, args ...interface{}) *Query {
-	if q.RawSQL.Fragment != "" {
-		log(logging.Warn, "Query is setup to use raw SQL")
-		return q
-	}
-	q.joinClauses = append(q.joinClauses, joinClause{"LEFT INNER JOIN", table, on, args})
-	return q
+	oncer.Deprecate(0, "pop.Query#LeftInnerJoin", "Use pop.Query#InnerJoin instead.")
+	return q.InnerJoin(table, on, args...)
 }
 
-// RightInnerJoin will append a RIGHT INNER JOIN clause to the query
+// RightInnerJoin will append an INNER JOIN clause to the query
+//
+// Deprecated: Use InnerJoin instead
 func (q *Query) RightInnerJoin(table string, on string, args ...interface{}) *Query {
+	oncer.Deprecate(0, "pop.Query#RightInnerJoin", "Use pop.Query#InnerJoin instead.")
+	return q.InnerJoin(table, on, args...)
+}
+
+// InnerJoin will append an INNER JOIN clause to the query
+func (q *Query) InnerJoin(table string, on string, args ...interface{}) *Query {
 	if q.RawSQL.Fragment != "" {
 		log(logging.Warn, "Query is setup to use raw SQL")
 		return q
 	}
-	q.joinClauses = append(q.joinClauses, joinClause{"RIGHT INNER JOIN", table, on, args})
+	q.joinClauses = append(q.joinClauses, joinClause{"INNER JOIN", table, on, args})
 	return q
 }

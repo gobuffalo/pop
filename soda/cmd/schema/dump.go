@@ -30,6 +30,7 @@ var DumpCmd = &cobra.Command{
 			return err
 		}
 		var out io.Writer
+		rollback := func() {}
 		if dumpOptions.output == "-" {
 			out = os.Stdout
 		} else {
@@ -41,8 +42,15 @@ var DumpCmd = &cobra.Command{
 			if err != nil {
 				return err
 			}
+			rollback = func() {
+				os.RemoveAll(dumpOptions.output)
+			}
 		}
-		return c.Dialect.DumpSchema(out)
+		if err := c.Dialect.DumpSchema(out); err != nil {
+			rollback()
+			return err
+		}
+		return nil
 	},
 }
 
