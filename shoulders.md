@@ -5,6 +5,8 @@ github.com/gobuffalo/pop does not try to reinvent the wheel! Instead, it uses th
 Thank you to the following **GIANTS**:
 
 
+* [github.com/blang/semver](https://godoc.org/github.com/blang/semver)
+
 * [github.com/cockroachdb/cockroach-go/crdb](https://godoc.org/github.com/cockroachdb/cockroach-go/crdb)
 
 * [github.com/fatih/color](https://godoc.org/github.com/fatih/color)
