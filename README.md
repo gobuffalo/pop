@@ -266,9 +266,6 @@ development:
   options:
     migration_table_name: migrations
 ```
-## Datatypes
-
-Pop supports all built-in datatypes. For advance datatypes please refer [nulls](https://github.com/gobuffalo/pop/blob/master/nulls/README.md) and [slices](https://github.com/gobuffalo/pop/blob/master/slices/README.md) 
 ## Querying
 
 ### Find By ID
