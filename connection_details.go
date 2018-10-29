@@ -55,7 +55,11 @@ func (cd *ConnectionDetails) Finalize() error {
 			}
 		}
 		cd.Database = cd.URL
-		if cd.Dialect != "sqlite3" {
+		// PostgreSQL connection string can't be parsed as URL, so let's skip finallization.
+		// Example string: "user=pqgotest dbname=pqgotest sslmode=verify-full"
+		// More information about the format: https://godoc.org/github.com/lib/pq#hdr-Connection_String_Parameters
+		// TODO: When pg connection string recognized, parse it and fill in the data.
+		if cd.Dialect != "sqlite3" && !strings.Contains(cd.URL, "dbname=") {
 			u, err := url.Parse(ul)
 			if err != nil {
 				return errors.Wrapf(err, "couldn't parse %s", ul)
