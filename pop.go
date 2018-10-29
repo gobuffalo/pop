@@ -3,7 +3,7 @@ package pop
 import "strings"
 
 // AvailableDialects lists the available database dialects
-var AvailableDialects = []string{}
+var AvailableDialects []string
 
 var dialectSynonyms = make(map[string]string)
 

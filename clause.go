@@ -39,7 +39,7 @@ func (c fromClause) String() string {
 }
 
 func (c fromClauses) String() string {
-	cs := []string{}
+	var cs []string
 	for _, cl := range c {
 		cs = append(cs, cl.String())
 	}

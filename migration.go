@@ -16,10 +16,10 @@ func MigrationCreate(path, name, ext string, up, down []byte) error {
 	n := time.Now().UTC()
 	s := n.Format("20060102150405")
 
-	upf := filepath.Join(path, (fmt.Sprintf("%s_%s.up.%s", s, name, ext)))
+	upf := filepath.Join(path, fmt.Sprintf("%s_%s.up.%s", s, name, ext))
 	g.Add(makr.NewFile(upf, string(up)))
 
-	downf := filepath.Join(path, (fmt.Sprintf("%s_%s.down.%s", s, name, ext)))
+	downf := filepath.Join(path, fmt.Sprintf("%s_%s.down.%s", s, name, ext))
 	g.Add(makr.NewFile(downf, string(down)))
 
 	return g.Run(".", makr.Data{})

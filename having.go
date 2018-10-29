@@ -21,7 +21,7 @@ func (c havingClauses) String() string {
 		return ""
 	}
 
-	cs := []string{}
+	var cs []string
 	for _, cl := range c {
 		cs = append(cs, cl.String())
 	}

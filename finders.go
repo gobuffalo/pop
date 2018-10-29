@@ -178,7 +178,7 @@ func (q *Query) paginateModel(models interface{}) error {
 	q.Paginator.TotalEntriesSize = ct
 	st := reflect.ValueOf(models).Elem()
 	q.Paginator.CurrentEntriesSize = st.Len()
-	q.Paginator.TotalPages = (q.Paginator.TotalEntriesSize / q.Paginator.PerPage)
+	q.Paginator.TotalPages = q.Paginator.TotalEntriesSize / q.Paginator.PerPage
 	if q.Paginator.TotalEntriesSize%q.Paginator.PerPage > 0 {
 		q.Paginator.TotalPages = q.Paginator.TotalPages + 1
 	}
