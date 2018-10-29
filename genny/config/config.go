@@ -20,7 +20,7 @@ func New(opts *Options) (*genny.Generator, error) {
 
 	f, err := templates.Open(opts.Dialect + ".yml.tmpl")
 	if err != nil {
-		return g, errors.Errorf("unknown dialect %s", opts.Dialect)
+		return g, errors.Errorf("unable to find database.yml template for dialect %s", opts.Dialect)
 	}
 
 	name := filepath.Join(opts.Root, opts.FileName+".tmpl")
