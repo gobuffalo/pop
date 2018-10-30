@@ -7,18 +7,19 @@ import (
 	"os/exec"
 	"sync"
 
-	"github.com/jmoiron/sqlx"
-
 	"github.com/gobuffalo/fizz"
 	"github.com/gobuffalo/fizz/translators"
 	"github.com/gobuffalo/pop/columns"
 	"github.com/gobuffalo/pop/logging"
+	"github.com/jmoiron/sqlx"
 	"github.com/markbates/going/defaults"
 	"github.com/pkg/errors"
 )
 
 func init() {
 	AvailableDialects = append(AvailableDialects, "postgres")
+	dialectSynonyms["postgresql"] = "postgres"
+	dialectSynonyms["pg"] = "postgres"
 }
 
 var _ dialect = &postgresql{}
@@ -30,7 +31,7 @@ type postgresql struct {
 }
 
 func (p *postgresql) Name() string {
-	return "postgresql"
+	return "postgres"
 }
 
 func (p *postgresql) Details() *ConnectionDetails {

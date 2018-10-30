@@ -44,100 +44,79 @@ type ConnectionDetails struct {
 	RawOptions string
 }
 
-var dialectX = regexp.MustCompile(`\S+://`)
-
-// overrideWithURL parses and overrides all connection details
-// with values form URL except Dialect.
-func (cd *ConnectionDetails) overrideWithURL() error {
-	ul := cd.URL
-	if cd.Dialect != "" && !dialectX.MatchString(ul) {
-		ul = cd.Dialect + "://" + ul
-	}
-
-	u, err := url.Parse(ul)
-	if err != nil {
-		return errors.Wrapf(err, "couldn't parse %s", ul)
-	}
-	//! dialect should not be overrided here (especially for cockroach)
-	if cd.Dialect == "" {
-		cd.Dialect = u.Scheme
-	}
-	// warning message is required to prevent confusion
-	// even though this behavior was documented.
-	if cd.Database+cd.Host+cd.Port+cd.User+cd.Password != "" {
-		log(logging.Warn, "One or more of connection parameters are specified in database.yml. Override them with values in URL.")
-	}
-
-	if strings.HasPrefix(cd.Dialect, "sqlite") {
-		cd.Database = u.Path
-		return nil
-	} else if strings.HasPrefix(cd.Dialect, "mysql") {
-		return cd.overrideWithMySQLURL()
-	}
-
-	cd.Database = strings.TrimPrefix(u.Path, "/")
-
-	hp := strings.Split(u.Host, ":")
-	cd.Host = hp[0]
-	if len(hp) > 1 {
-		cd.Port = hp[1]
-	}
-
-	if u.User != nil {
-		cd.User = u.User.Username()
-		cd.Password, _ = u.User.Password()
-	}
-	cd.RawOptions = u.RawQuery
-
-	return nil
-}
-
-func (cd *ConnectionDetails) overrideWithMySQLURL() error {
-	// parse and verify whether URL is supported by underlying driver or not.
-	cfg, err := _mysql.ParseDSN(strings.TrimPrefix(cd.URL, "mysql://"))
-	if err != nil {
-		return errors.Errorf("The URL '%s' is not supported by MySQL driver.", cd.URL)
-	}
-
-	cd.User = cfg.User
-	cd.Password = cfg.Passwd
-	cd.Database = cfg.DBName
-	cd.Encoding = defaults.String(cfg.Collation, "utf8_general_ci")
-	addr := strings.TrimSuffix(strings.TrimPrefix(cfg.Addr, "("), ")")
-	if cfg.Net == "unix" {
-		cd.Port = "socket"
-		cd.Host = addr
-	} else {
-		tmp := strings.Split(addr, ":")
-		cd.Host = tmp[0]
-		if len(tmp) > 1 {
-			cd.Port = tmp[1]
-		}
-	}
-	return nil
-}
+var dialectX = regexp.MustCompile(`\s+://`)
 
 // Finalize cleans up the connection details by normalizing names,
 // filling in default values, etc...
 func (cd *ConnectionDetails) Finalize() error {
+	cd.Dialect = normalizeSynonyms(cd.Dialect)
 	if cd.URL != "" {
-		if err := cd.overrideWithURL(); err != nil {
-			return err
+		ul := cd.URL
+		if cd.Dialect != "" {
+			if !dialectX.MatchString(ul) {
+				ul = cd.Dialect + "://" + ul
+			}
+		}
+		cd.Database = cd.URL
+		if cd.Dialect != "sqlite3" {
+			u, err := url.Parse(ul)
+			if err != nil {
+				return errors.Wrapf(err, "couldn't parse %s", ul)
+			}
+			cd.Dialect = u.Scheme
+			cd.Database = u.Path
+
+			hp := strings.Split(u.Host, ":")
+			cd.Host = hp[0]
+			if len(hp) > 1 {
+				cd.Port = hp[1]
+			}
+
+			if u.User != nil {
+				cd.User = u.User.Username()
+				cd.Password, _ = u.User.Password()
+			}
 		}
 	}
 
-	// then fill with default values
-	switch strings.ToLower(cd.Dialect) {
-	case "postgres", "postgresql", "pg":
-		cd.Dialect = "postgres"
+	switch cd.Dialect {
+	case "postgres":
 		cd.Port = defaults.String(cd.Port, "5432")
-	case "cockroach", "cockroachdb", "crdb":
-		cd.Dialect = "cockroach"
+		cd.Database = strings.TrimPrefix(cd.Database, "/")
+	case "cockroach":
 		cd.Port = defaults.String(cd.Port, "26257")
 	case "mysql":
-		cd.Port = defaults.String(cd.Port, "3306")
-	case "sqlite", "sqlite3":
-		cd.Dialect = "sqlite3"
+		// parse and verify whether URL is supported by underlying driver or not.
+		if cd.URL != "" {
+			cfg, err := _mysql.ParseDSN(strings.TrimPrefix(cd.URL, "mysql://"))
+			if err != nil {
+				return errors.Wrap(err, "the URL is not supported by MySQL driver")
+			}
+			cd.User = cfg.User
+			cd.Password = cfg.Passwd
+			cd.Database = cfg.DBName
+			cd.Encoding = defaults.String(cfg.Collation, "utf8_general_ci")
+			addr := strings.TrimSuffix(strings.TrimPrefix(cfg.Addr, "("), ")")
+			if cfg.Net == "unix" {
+				cd.Port = "socket"
+				cd.Host = addr
+			} else {
+				tmp := strings.Split(addr, ":")
+				switch len(tmp) {
+				case 1:
+					cd.Host = tmp[0]
+					cd.Port = "3306"
+				case 2:
+					cd.Host = tmp[0]
+					cd.Port = tmp[1]
+				}
+			}
+		} else {
+			cd.Port = defaults.String(cd.Port, "3306")
+			cd.Database = strings.TrimPrefix(cd.Database, "/")
+		}
+	case "sqlite3":
+		// Nothing more to do here
 	default:
 		return errors.Errorf("unknown dialect %s", cd.Dialect)
 	}

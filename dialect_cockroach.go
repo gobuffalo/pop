@@ -7,7 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"strings"
-	"sync"
+	"sync" 
 
 	// Load CockroachdbQL/postgres Go driver
 	// also loads github.com/lib/pq
@@ -23,6 +23,8 @@ import (
 
 func init() {
 	AvailableDialects = append(AvailableDialects, "cockroach")
+	dialectSynonyms["cockroachdb"] = "cockroach"
+	dialectSynonyms["crdb"] = "cockroach"
 }
 
 var _ dialect = &cockroach{}
