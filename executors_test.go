@@ -757,15 +757,11 @@ func Test_TruncateAll(t *testing.T) {
 		ctx, err := tx.Count("users")
 		r.NoError(err)
 		r.Equal(count+1, ctx)
-	})
 
-	transaction(func(tx *Connection) {
-		r := require.New(t)
-
-		err := tx.TruncateAll()
+		err = tx.TruncateAll()
 		r.NoError(err)
 
-		ctx, _ := tx.Count("users")
+		ctx, _ = tx.Count("users")
 		r.Equal(count, ctx)
 	})
 }

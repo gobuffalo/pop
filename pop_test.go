@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/gobuffalo/pop/logging"
 	"github.com/gobuffalo/pop/nulls"
 	"github.com/gobuffalo/uuid"
 	"github.com/gobuffalo/validate"
@@ -46,6 +47,7 @@ func init() {
 
 	var err error
 	PDB, err = Connect(dialect)
+	log(logging.Info, "Run test with dialect %v", dialect)
 	if err != nil {
 		stdlog.Panic(err)
 	}
