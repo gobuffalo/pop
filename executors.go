@@ -72,8 +72,11 @@ func IsZeroOfUnderlyingType(x interface{}) bool {
 func (c *Connection) Save(model interface{}, excludeColumns ...string) error {
 	sm := &Model{Value: model}
 	return sm.iterate(func(m *Model) error {
-		id := m.ID()
-		if IsZeroOfUnderlyingType(id) {
+		id, err := m.fieldByName("ID")
+		if err != nil {
+			return err
+		}
+		if IsZeroOfUnderlyingType(id.Interface()) {
 			return c.Create(m.Value, excludeColumns...)
 		}
 		return c.Update(m.Value, excludeColumns...)

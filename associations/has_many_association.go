@@ -140,7 +140,7 @@ func (a *hasManyAssociation) AfterProcess() AssociationStatement {
 			ids = append(ids, id)
 		}
 	}
-	if len(ids) <= 1 {
+	if len(ids) <= 0 {
 		return AssociationStatement{
 			Statement: "",
 			Args:      []interface{}{},
