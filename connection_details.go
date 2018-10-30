@@ -8,7 +8,6 @@ import (
 	"time"
 
 	_mysql "github.com/go-sql-driver/mysql"
-	"github.com/gobuffalo/pop/logging"
 	"github.com/markbates/going/defaults"
 	"github.com/markbates/oncer"
 	"github.com/pkg/errors"
