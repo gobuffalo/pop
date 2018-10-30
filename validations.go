@@ -55,8 +55,11 @@ func (m *Model) validateCreate(c *Connection) (*validate.Errors, error) {
 
 func (m *Model) validateAndOnlyCreate(c *Connection) (*validate.Errors, error) {
 	return m.iterateAndValidate(func(model *Model) (*validate.Errors, error) {
-		id := model.ID()
-		if !IsZeroOfUnderlyingType(id) {
+		id, err := m.fieldByName("ID")
+		if err != nil {
+			return nil, err
+		}
+		if !IsZeroOfUnderlyingType(id.Interface()) {
 			return validate.NewErrors(), nil
 		}
 
