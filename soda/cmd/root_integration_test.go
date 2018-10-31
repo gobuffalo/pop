@@ -8,6 +8,9 @@ import (
 )
 
 func Test_RootCmd_NoArg(t *testing.T) {
+	oldEnv := os.Getenv("GO_ENV")
+	defer os.Setenv("GO_ENV", oldEnv)
+
 	// Fallback on default env
 	r := require.New(t)
 	c := RootCmd
@@ -18,8 +21,6 @@ func Test_RootCmd_NoArg(t *testing.T) {
 
 	// Override with GO_ENV
 	c.SetArgs([]string{})
-	oldEnv := os.Getenv("GO_ENV")
-	defer os.Setenv("GO_ENV", oldEnv)
 	os.Setenv("GO_ENV", "test")
 	err = c.Execute()
 	r.NoError(err)
@@ -30,8 +31,6 @@ func Test_RootCmd_NoArg(t *testing.T) {
 		"--env",
 		"production",
 	})
-	oldEnv = os.Getenv("GO_ENV")
-	defer os.Setenv("GO_ENV", oldEnv)
 	os.Setenv("GO_ENV", "test")
 	err = c.Execute()
 	r.NoError(err)
