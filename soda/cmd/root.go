@@ -19,7 +19,10 @@ var RootCmd = &cobra.Command{
 	Short: "A tasty treat for all your database needs",
 	PersistentPreRun: func(c *cobra.Command, args []string) {
 		fmt.Printf("%s\n\n", Version)
-		env = defaults.String(os.Getenv("GO_ENV"), env)
+		// CLI flag has priority
+		if !c.PersistentFlags().Changed("env") {
+			env = defaults.String(os.Getenv("GO_ENV"), env)
+		}
 		setConfigLocation()
 	},
 	Run: func(cmd *cobra.Command, args []string) {
