@@ -6,7 +6,7 @@ import (
 	"io"
 	"os/exec"
 	"strings"
-	"sync" 
+	"sync"
 
 	// Load CockroachdbQL/postgres Go driver
 	// also loads github.com/lib/pq
@@ -28,10 +28,20 @@ func init() {
 
 var _ dialect = &cockroach{}
 
+// ServerInfo holds informational data about connected database server.
+type ServerInfo struct {
+	VersionString string `db:"version"`
+	Product       string `db:"-"`
+	License       string `db:"-"`
+	Version       string `db:"-"`
+	BuildInfo     string `db:"-"`
+}
+
 type cockroach struct {
 	translateCache    map[string]string
 	mu                sync.Mutex
 	ConnectionDetails *ConnectionDetails
+	Server            ServerInfo
 }
 
 func (p *cockroach) Name() string {
@@ -130,23 +140,35 @@ func (p *cockroach) DropDB() error {
 	return nil
 }
 
+func (p *cockroach) optionString() string {
+	c := p.ConnectionDetails
+
+	if c.RawOptions != "" {
+		return c.RawOptions
+	}
+
+	s := "application_name=cockroach"
+	if c.Options != nil {
+		for k := range c.Options {
+			s = fmt.Sprintf("%s&%s=%s", s, k, c.Options[k])
+		}
+	}
+	return s
+}
+
 func (p *cockroach) URL() string {
 	c := p.ConnectionDetails
 	if c.URL != "" {
 		return c.URL
 	}
-	ssl := defaults.String(c.Options["sslmode"], "disable")
-
-	s := "postgres://%s:%s@%s:%s/%s?application_name=cockroach&sslmode=%s"
-	return fmt.Sprintf(s, c.User, c.Password, c.Host, c.Port, c.Database, ssl)
+	s := "postgres://%s:%s@%s:%s/%s?%s"
+	return fmt.Sprintf(s, c.User, c.Password, c.Host, c.Port, c.Database, p.optionString())
 }
 
 func (p *cockroach) urlWithoutDb() string {
 	c := p.ConnectionDetails
-	ssl := defaults.String(c.Options["sslmode"], "disable")
-
-	s := "postgres://%s:%s@%s:%s/?application_name=cockroach&sslmode=%s"
-	return fmt.Sprintf(s, c.User, c.Password, c.Host, c.Port, ssl)
+	s := "postgres://%s:%s@%s:%s/?%s"
+	return fmt.Sprintf(s, c.User, c.Password, c.Host, c.Port, p.optionString())
 }
 
 func (p *cockroach) MigrationURL() string {
@@ -175,12 +197,11 @@ func (p *cockroach) Lock(fn func() error) error {
 }
 
 func (p *cockroach) DumpSchema(w io.Writer) error {
-	secure := ""
+	cmd := exec.Command("cockroach", "dump", p.Details().Database, "--dump-mode=schema")
 	c := p.ConnectionDetails
-	if defaults.String(c.Options["sslmode"], "disable") == "disable" {
-		secure = "--insecure"
+	if defaults.String(c.Options["sslmode"], "disable") == "disable" || strings.Contains(c.RawOptions, "sslmode=disable") {
+		cmd.Args = append(cmd.Args, "--insecure")
 	}
-	cmd := exec.Command("cockroach", "dump", p.Details().Database, "--dump-mode=schema", secure)
 	return genericDumpSchema(p.Details(), cmd, w)
 }
 
@@ -188,16 +209,42 @@ func (p *cockroach) LoadSchema(r io.Reader) error {
 	return genericLoadSchema(p.ConnectionDetails, p.MigrationURL(), r)
 }
 
+func (p *cockroach) FillServerInfo(tx *Connection) error {
+	if err := tx.RawQuery("select version()").First(&p.Server); err != nil {
+		return err
+	}
+	if s := strings.Split(p.Server.VersionString, " "); len(s) > 3 {
+		p.Server.Product = s[0]
+		p.Server.License = s[1]
+		p.Server.Version = s[2]
+		p.Server.BuildInfo = s[3]
+	}
+	log(logging.Info, "server: %v %v %v", p.Server.Product, p.Server.License, p.Server.Version)
+
+	return nil
+}
+
 func (p *cockroach) TruncateAll(tx *Connection) error {
 	type table struct {
 		TableName string `db:"table_name"`
 	}
 
-	var tables []table
-	if err := tx.RawQuery("select table_name from information_schema.tables where table_schema = ?;", tx.Dialect.Details().Database).All(&tables); err != nil {
+	// move it to `newCockroach()` if it need more
+	if err := p.FillServerInfo(tx); err != nil {
 		return err
 	}
 
+	tableQuery := "select table_name from information_schema.tables where table_schema = 'public' and table_type = 'BASE TABLE' and table_catalog = ?"
+	if strings.HasPrefix(p.Server.Version, "v1") {
+		tableQuery = "select table_name from information_schema.tables where table_schema = ?"
+	}
+
+	var tables []table
+	if err := tx.RawQuery(tableQuery, tx.Dialect.Details().Database).All(&tables); err != nil {
+		return err
+	}
+
+	tx.NewTransaction()
 	if len(tables) == 0 {
 		return nil
 	}
@@ -205,9 +252,15 @@ func (p *cockroach) TruncateAll(tx *Connection) error {
 	tableNames := make([]string, len(tables))
 	for i, t := range tables {
 		tableNames[i] = t.TableName
+		//! work around for current limitation of DDL and DML at the same transaction.
+		//  it should be fixed when cockroach support it or with other approach.
+		//  https://www.cockroachlabs.com/docs/stable/known-limitations.html#schema-changes-within-transactions
+		if err := tx.RawQuery(fmt.Sprintf("delete from %s", t.TableName)).Exec(); err != nil {
+			return err
+		}
 	}
-
-	return tx.RawQuery(fmt.Sprintf("truncate %s cascade;", strings.Join(tableNames, ", "))).Exec()
+	return nil
+	// return tx3.RawQuery(fmt.Sprintf("truncate %s cascade;", strings.Join(tableNames, ", "))).Exec()
 }
 
 func newCockroach(deets *ConnectionDetails) dialect {

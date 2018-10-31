@@ -42,6 +42,22 @@ func Test_ConnectionDetails_Finalize_MySQL_DSN(t *testing.T) {
 	r.Equal("database", cd.Database)
 }
 
+func Test_ConnectionDetails_Finalize_Cockroach(t *testing.T) {
+	r := require.New(t)
+	cd := &ConnectionDetails{
+		Dialect: "cockroach",
+		URL:     "postgres://user:pass@host:port/database?sslmode=require&sslrootcert=certs/ca.crt&sslkey=certs/client.key&sslcert=certs/client.crt",
+	}
+	err := cd.Finalize()
+	r.NoError(err)
+	r.Equal("cockroach", cd.Dialect)
+	r.Equal("database", cd.Database)
+	r.Equal("host", cd.Host)
+	r.Equal("port", cd.Port)
+	r.Equal("user", cd.User)
+	r.Equal("pass", cd.Password)
+}
+
 func Test_ConnectionDetails_Finalize_MySQL_DSN_collation(t *testing.T) {
 	r := require.New(t)
 
@@ -131,4 +147,35 @@ func Test_ConnectionDetails_Finalize_SQLite(t *testing.T) {
 	r.Equal(cd.Password, "")
 	r.Equal(cd.Port, "")
 	r.Equal(cd.User, "")
+}
+
+func Test_ConnectionDetails_Finalize_SQLite_with_Dialect(t *testing.T) {
+	r := require.New(t)
+	cd := &ConnectionDetails{
+		Dialect: "sqlite",
+		URL:     "sqlite3:///tmp/foo.db",
+	}
+	err := cd.Finalize()
+	r.NoError(err)
+	r.Equal("/tmp/foo.db", cd.Database)
+	r.Equal("sqlite3", cd.Dialect)
+	r.Equal("", cd.Host)
+	r.Equal("", cd.Password)
+	r.Equal("", cd.Port)
+	r.Equal("", cd.User)
+}
+func Test_ConnectionDetails_Finalize_SQLite_without_URL(t *testing.T) {
+	r := require.New(t)
+	cd := &ConnectionDetails{
+		Dialect:  "sqlite",
+		Database: "./foo.db",
+	}
+	err := cd.Finalize()
+	r.NoError(err)
+	r.Equal("./foo.db", cd.Database)
+	r.Equal("sqlite3", cd.Dialect)
+	r.Equal("", cd.Host)
+	r.Equal("", cd.Password)
+	r.Equal("", cd.Port)
+	r.Equal("", cd.User)
 }
