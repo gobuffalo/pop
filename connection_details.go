@@ -8,6 +8,7 @@ import (
 	"time"
 
 	_mysql "github.com/go-sql-driver/mysql"
+	"github.com/gobuffalo/pop/logging"
 	"github.com/markbates/going/defaults"
 	"github.com/markbates/oncer"
 	"github.com/pkg/errors"
@@ -39,84 +40,107 @@ type ConnectionDetails struct {
 	// Defaults to 0 "unlimited". See https://golang.org/pkg/database/sql/#DB.SetMaxIdleConns
 	IdlePool int
 	Options  map[string]string
+	// Query string encoded options from URL. Example: "sslmode=disable"
+	RawOptions string
 }
 
-var dialectX = regexp.MustCompile(`\s+://`)
+var dialectX = regexp.MustCompile(`\S+://`)
+
+// overrideWithURL parses and overrides all connection details
+// with values form URL except Dialect.
+func (cd *ConnectionDetails) overrideWithURL() error {
+	ul := cd.URL
+	if cd.Dialect != "" && !dialectX.MatchString(ul) {
+		ul = cd.Dialect + "://" + ul
+	}
+
+	u, err := url.Parse(ul)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't parse %s", ul)
+	}
+
+	//! dialect should not be overrided here (especially for cockroach)
+	if cd.Dialect == "" {
+		cd.Dialect = u.Scheme
+	}
+
+	// warning message is required to prevent confusion
+	// even though this behavior was documented.
+	if cd.Database+cd.Host+cd.Port+cd.User+cd.Password != "" {
+		log(logging.Warn, "One or more of connection parameters are specified in database.yml. Override them with values in URL.")
+	}
+
+	if strings.HasPrefix(cd.Dialect, "sqlite") {
+		cd.Database = u.Path
+		return nil
+	} else if strings.HasPrefix(cd.Dialect, "mysql") {
+		return cd.overrideWithMySQLURL()
+	}
+
+	cd.Database = strings.TrimPrefix(u.Path, "/")
+
+	hp := strings.Split(u.Host, ":")
+	cd.Host = hp[0]
+	if len(hp) > 1 {
+		cd.Port = hp[1]
+	}
+
+	if u.User != nil {
+		cd.User = u.User.Username()
+		cd.Password, _ = u.User.Password()
+	}
+	cd.RawOptions = u.RawQuery
+
+	return nil
+}
+
+func (cd *ConnectionDetails) overrideWithMySQLURL() error {
+	// parse and verify whether URL is supported by underlying driver or not.
+	cfg, err := _mysql.ParseDSN(strings.TrimPrefix(cd.URL, "mysql://"))
+	if err != nil {
+		return errors.Wrapf(err, "the URL '%s' is not supported by MySQL driver", cd.URL)
+	}
+
+	cd.User = cfg.User
+	cd.Password = cfg.Passwd
+	cd.Database = cfg.DBName
+	cd.Encoding = defaults.String(cfg.Collation, "utf8_general_ci")
+	addr := strings.TrimSuffix(strings.TrimPrefix(cfg.Addr, "("), ")")
+	if cfg.Net == "unix" {
+		cd.Port = "socket"
+		cd.Host = addr
+	} else {
+		tmp := strings.Split(addr, ":")
+		cd.Host = tmp[0]
+		if len(tmp) > 1 {
+			cd.Port = tmp[1]
+		}
+	}
+
+	return nil
+}
 
 // Finalize cleans up the connection details by normalizing names,
 // filling in default values, etc...
 func (cd *ConnectionDetails) Finalize() error {
 	cd.Dialect = normalizeSynonyms(cd.Dialect)
-	if cd.URL != "" {
-		ul := cd.URL
-		if cd.Dialect != "" {
-			if !dialectX.MatchString(ul) {
-				ul = cd.Dialect + "://" + ul
-			}
+	// PostgreSQL connection string can't be parsed as URL, so let's skip finallization.
+	// Example string: "user=pqgotest dbname=pqgotest sslmode=verify-full"
+	// More information about the format: https://godoc.org/github.com/lib/pq#hdr-Connection_String_Parameters
+	// TODO: When pg connection string recognized, parse it and fill in the data.
+	if cd.URL != "" && !strings.Contains(cd.URL, "dbname=") {
+		if err := cd.overrideWithURL(); err != nil {
+			return err
 		}
-		cd.Database = cd.URL
-		// PostgreSQL connection string can't be parsed as URL, so let's skip finallization.
-		// Example string: "user=pqgotest dbname=pqgotest sslmode=verify-full"
-		// More information about the format: https://godoc.org/github.com/lib/pq#hdr-Connection_String_Parameters
-		// TODO: When pg connection string recognized, parse it and fill in the data.
-		if cd.Dialect != "sqlite3" && !strings.Contains(cd.URL, "dbname=") {
-			u, err := url.Parse(ul)
-			if err != nil {
-				return errors.Wrapf(err, "couldn't parse %s", ul)
-			}
-			cd.Dialect = u.Scheme
-			cd.Database = u.Path
-
-			hp := strings.Split(u.Host, ":")
-			cd.Host = hp[0]
-			if len(hp) > 1 {
-				cd.Port = hp[1]
-			}
-
-			if u.User != nil {
-				cd.User = u.User.Username()
-				cd.Password, _ = u.User.Password()
-			}
-		}
-
 	}
+
 	switch cd.Dialect {
 	case "postgres":
 		cd.Port = defaults.String(cd.Port, "5432")
-		cd.Database = strings.TrimPrefix(cd.Database, "/")
 	case "cockroach":
 		cd.Port = defaults.String(cd.Port, "26257")
-		cd.Database = strings.TrimPrefix(cd.Database, "/")
 	case "mysql":
-		// parse and verify whether URL is supported by underlying driver or not.
-		if cd.URL != "" {
-			cfg, err := _mysql.ParseDSN(strings.TrimPrefix(cd.URL, "mysql://"))
-			if err != nil {
-				return errors.Wrap(err, "the URL is not supported by MySQL driver")
-			}
-			cd.User = cfg.User
-			cd.Password = cfg.Passwd
-			cd.Database = cfg.DBName
-			cd.Encoding = defaults.String(cfg.Collation, "utf8_general_ci")
-			addr := strings.TrimSuffix(strings.TrimPrefix(cfg.Addr, "("), ")")
-			if cfg.Net == "unix" {
-				cd.Port = "socket"
-				cd.Host = addr
-			} else {
-				tmp := strings.Split(addr, ":")
-				switch len(tmp) {
-				case 1:
-					cd.Host = tmp[0]
-					cd.Port = "3306"
-				case 2:
-					cd.Host = tmp[0]
-					cd.Port = tmp[1]
-				}
-			}
-		} else {
-			cd.Port = defaults.String(cd.Port, "3306")
-			cd.Database = strings.TrimPrefix(cd.Database, "/")
-		}
+		cd.Port = defaults.String(cd.Port, "3306")
 	case "sqlite3":
 		// Nothing more to do here
 	default:
