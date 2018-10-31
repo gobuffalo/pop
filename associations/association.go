@@ -86,7 +86,7 @@ type AssociationStatement struct {
 	Args      []interface{}
 }
 
-// Empty true if the containing Statement is empty.
+// Empty is true if the containing Statement is empty.
 func (as AssociationStatement) Empty() bool {
 	return as.Statement == ""
 }
@@ -160,8 +160,7 @@ func isZero(i interface{}) bool {
 	return v.Interface() == reflect.Zero(v.Type()).Interface()
 }
 
-// IsZeroOfUnderlyingType will check if the value of anything is the equal to the Zero value of that type
-// using reflect.
+// IsZeroOfUnderlyingType will check if the value of anything is the equal to the Zero value of that type.
 func IsZeroOfUnderlyingType(x interface{}) bool {
 	return reflect.DeepEqual(x, reflect.Zero(reflect.TypeOf(x)).Interface())
 }

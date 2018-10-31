@@ -127,20 +127,20 @@ func (a *hasManyAssociation) AfterProcess() AssociationStatement {
 		v = v.Elem()
 	}
 
-	otherIDField := "ID"
+	belongingIDFieldName := "ID"
 
-	ownerIDField := "ID"
-	ownerID := reflect.Indirect(reflect.ValueOf(a.owner)).FieldByName(ownerIDField).Interface()
+	ownerIDFieldName := "ID"
+	ownerID := reflect.Indirect(reflect.ValueOf(a.owner)).FieldByName(ownerIDFieldName).Interface()
 
 	ids := []interface{}{}
 
 	for i := 0; i < v.Len(); i++ {
-		id := v.Index(i).FieldByName(otherIDField).Interface()
+		id := v.Index(i).FieldByName(belongingIDFieldName).Interface()
 		if !IsZeroOfUnderlyingType(id) {
 			ids = append(ids, id)
 		}
 	}
-	if len(ids) <= 0 {
+	if len(ids) == 0 {
 		return AssociationStatement{
 			Statement: "",
 			Args:      []interface{}{},
@@ -152,8 +152,8 @@ func (a *hasManyAssociation) AfterProcess() AssociationStatement {
 		fk = flect.Underscore(a.ownerName) + "_id"
 	}
 
-	// This will be used to update all of our owned models' forign keys to our ID.
-	ret := fmt.Sprintf("UPDATE %s SET %s = ? WHERE %s in (?);", a.tableName, fk, otherIDField)
+	// This will be used to update all of our owned models' foreign keys to our ID.
+	ret := fmt.Sprintf("UPDATE %s SET %s = ? WHERE %s in (?);", a.tableName, fk, belongingIDFieldName)
 
 	update, args, err := sqlx.In(ret, ownerID, ids)
 	if err != nil {

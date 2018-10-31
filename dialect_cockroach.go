@@ -6,10 +6,9 @@ import (
 	"io"
 	"os/exec"
 	"strings"
-	"sync" // Load CockroachdbQL/postgres Go driver
-	// also loads github.com/lib/pq
+	"sync"
 
-	_ "github.com/cockroachdb/cockroach-go/crdb"
+	_ "github.com/cockroachdb/cockroach-go/crdb" // Load CockroachdbQL/postgres Go driver which also loads github.com/lib/pq
 	"github.com/gobuffalo/fizz"
 	"github.com/gobuffalo/fizz/translators"
 	"github.com/gobuffalo/pop/columns"

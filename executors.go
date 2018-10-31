@@ -61,8 +61,7 @@ func (c *Connection) ValidateAndSave(model interface{}, excludeColumns ...string
 
 var emptyUUID = uuid.Nil.String()
 
-// IsZeroOfUnderlyingType will check if the value of anything is the equal to the Zero value of that type
-// using reflect.
+// IsZeroOfUnderlyingType will check if the value of anything is the equal to the Zero value of that type.
 func IsZeroOfUnderlyingType(x interface{}) bool {
 	return reflect.DeepEqual(x, reflect.Zero(reflect.TypeOf(x)).Interface())
 }
@@ -124,10 +123,7 @@ func (c *Connection) Create(model interface{}, excludeColumns ...string) error {
 				return err
 			}
 
-			processAssoc := false
-			if len(asos) != 0 {
-				processAssoc = true
-			}
+			processAssoc := len(asos) > 0
 
 			if processAssoc {
 				before := asos.AssociationsBeforeCreatable()
@@ -167,7 +163,6 @@ func (c *Connection) Create(model interface{}, excludeColumns ...string) error {
 						if err != nil {
 							return err
 						}
-						continue
 					}
 				}
 

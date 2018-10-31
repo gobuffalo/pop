@@ -102,29 +102,28 @@ func (h *hasOneAssociation) AfterSetup() error {
 }
 
 func (h *hasOneAssociation) AfterProcess() AssociationStatement {
-	otherIDField := "ID"
-	id := h.ownedModel.FieldByName(otherIDField).Interface()
+	belongingIDFieldName := "ID"
+	id := h.ownedModel.FieldByName(belongingIDFieldName).Interface()
 
-	ownerIDField := "ID"
-	ownerID := reflect.Indirect(reflect.ValueOf(h.owner)).FieldByName(ownerIDField).Interface()
+	ownerIDFieldName := "ID"
+	ownerID := reflect.Indirect(reflect.ValueOf(h.owner)).FieldByName(ownerIDFieldName).Interface()
 
 	ids := []interface{}{ownerID}
 
-	if !IsZeroOfUnderlyingType(id) {
-		ids = append(ids, id)
-	} else {
+	if IsZeroOfUnderlyingType(id) {
 		return AssociationStatement{
 			Statement: "",
 			Args:      []interface{}{},
 		}
 	}
+	ids = append(ids, id)
 
 	fk := h.fkID
 	if fk == "" {
 		fk = flect.Underscore(h.ownerName) + "_id"
 	}
 
-	ret := fmt.Sprintf("UPDATE %s SET %s = ? WHERE %s = ?", h.ownedTableName, fk, otherIDField)
+	ret := fmt.Sprintf("UPDATE %s SET %s = ? WHERE %s = ?", h.ownedTableName, fk, belongingIDFieldName)
 
 	return AssociationStatement{
 		Statement: ret,
