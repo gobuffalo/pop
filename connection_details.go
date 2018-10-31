@@ -128,26 +128,6 @@ func (cd *ConnectionDetails) Finalize() error {
 		if err := cd.overrideWithURL(); err != nil {
 			return err
 		}
-		cd.Database = cd.URL
-		if cd.Dialect != "sqlite3" {
-			u, err := url.Parse(ul)
-			if err != nil {
-				return errors.Wrapf(err, "couldn't parse %s", ul)
-			}
-			cd.Dialect = u.Scheme
-			cd.Database = u.Path
-
-			hp := strings.Split(u.Host, ":")
-			cd.Host = hp[0]
-			if len(hp) > 1 {
-				cd.Port = hp[1]
-			}
-
-			if u.User != nil {
-				cd.User = u.User.Username()
-				cd.Password, _ = u.User.Password()
-			}
-		}
 	}
 
 	switch cd.Dialect {

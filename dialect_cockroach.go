@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"fmt"
 	"io"
-	"os"
 	"os/exec"
 	"strings"
 	"sync" // Load CockroachdbQL/postgres Go driver
@@ -171,22 +170,6 @@ func (p *cockroach) urlWithoutDb() string {
 	return fmt.Sprintf(s, c.User, c.Password, c.Host, c.Port, p.optionString())
 }
 
-func (p *cockroach) optionString() string {
-	c := p.ConnectionDetails
-
-	if c.RawOptions != "" {
-		return c.RawOptions
-	}
-
-	s := "application_name=cockroach"
-	if c.Options != nil {
-		for k := range c.Options {
-			s = fmt.Sprintf("%s&%s=%s", s, k, c.Options[k])
-		}
-	}
-	return s
-}
-
 func (p *cockroach) MigrationURL() string {
 	return p.URL()
 }
@@ -216,20 +199,10 @@ func (p *cockroach) DumpSchema(w io.Writer) error {
 	cmd := exec.Command("cockroach", "dump", p.Details().Database, "--dump-mode=schema")
 
 	c := p.ConnectionDetails
-	if defaults.String(c.Options["sslmode"], "disable") == "disable" {
+	if defaults.String(c.Options["sslmode"], "disable") == "disable" || strings.Contains(c.RawOptions, "sslmode=disable") {
 		cmd.Args = append(cmd.Args, "--insecure")
 	}
-	log(logging.SQL, strings.Join(cmd.Args, " "))
-	cmd.Stdout = w
-	cmd.Stderr = os.Stderr
-
-	err := cmd.Run()
-	if err != nil {
-		return err
-	}
-
-	log(logging.Info, "dumped schema for %s", p.Details().Database)
-	return nil
+	return genericDumpSchema(p.Details(), cmd, w)
 }
 
 func (p *cockroach) LoadSchema(r io.Reader) error {
