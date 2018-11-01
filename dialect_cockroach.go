@@ -18,10 +18,14 @@ import (
 	"github.com/pkg/errors"
 )
 
+const nameCockroach = "cockroach"
+const portCockroach = "26257"
+
 func init() {
-	AvailableDialects = append(AvailableDialects, "cockroach")
-	dialectSynonyms["cockroachdb"] = "cockroach"
-	dialectSynonyms["crdb"] = "cockroach"
+	AvailableDialects = append(AvailableDialects, nameCockroach)
+	dialectSynonyms["cockroachdb"] = nameCockroach
+	dialectSynonyms["crdb"] = nameCockroach
+	finalizer[nameCockroach] = finalizerCockroach
 }
 
 var _ dialect = &cockroach{}
@@ -43,7 +47,7 @@ type cockroach struct {
 }
 
 func (p *cockroach) Name() string {
-	return "cockroach"
+	return nameCockroach
 }
 
 func (p *cockroach) Details() *ConnectionDetails {
@@ -270,4 +274,8 @@ func newCockroach(deets *ConnectionDetails) dialect {
 		mu:                sync.Mutex{},
 	}
 	return cd
+}
+
+func finalizerCockroach(cd *ConnectionDetails) {
+	cd.Port = defaults.String(cd.Port, portCockroach)
 }

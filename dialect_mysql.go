@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	// Load MySQL Go driver
-	_ "github.com/go-sql-driver/mysql"
+	_mysql "github.com/go-sql-driver/mysql"
 	"github.com/gobuffalo/fizz"
 	"github.com/gobuffalo/fizz/translators"
 	"github.com/gobuffalo/pop/columns"
@@ -18,8 +18,13 @@ import (
 	"github.com/pkg/errors"
 )
 
+const nameMySQL = "mysql"
+const portMySQL = "3306"
+
 func init() {
-	AvailableDialects = append(AvailableDialects, "mysql")
+	AvailableDialects = append(AvailableDialects, nameMySQL)
+	urlParser[nameMySQL] = urlParserMySQL
+	finalizer[nameMySQL] = finalizerMySQL
 }
 
 var _ dialect = &mysql{}
@@ -29,7 +34,7 @@ type mysql struct {
 }
 
 func (m *mysql) Name() string {
-	return "mysql"
+	return nameMySQL
 }
 
 func (m *mysql) Details() *ConnectionDetails {
@@ -182,6 +187,35 @@ func newMySQL(deets *ConnectionDetails) dialect {
 	}
 
 	return cd
+}
+
+func urlParserMySQL(cd *ConnectionDetails) error {
+	cfg, err := _mysql.ParseDSN(strings.TrimPrefix(cd.URL, "mysql://"))
+	if err != nil {
+		return errors.Wrapf(err, "the URL '%s' is not supported by MySQL driver", cd.URL)
+	}
+
+	cd.User = cfg.User
+	cd.Password = cfg.Passwd
+	cd.Database = cfg.DBName
+	cd.Encoding = defaults.String(cfg.Collation, "utf8_general_ci")
+	addr := strings.TrimSuffix(strings.TrimPrefix(cfg.Addr, "("), ")")
+	if cfg.Net == "unix" {
+		cd.Port = "socket"
+		cd.Host = addr
+	} else {
+		tmp := strings.Split(addr, ":")
+		cd.Host = tmp[0]
+		if len(tmp) > 1 {
+			cd.Port = tmp[1]
+		}
+	}
+
+	return nil
+}
+
+func finalizerMySQL(cd *ConnectionDetails) {
+	cd.Port = defaults.String(cd.Port, portMySQL)
 }
 
 const mysqlTruncate = "SELECT concat('TRUNCATE TABLE `', TABLE_NAME, '`;') as stmt FROM INFORMATION_SCHEMA.TABLES WHERE table_schema = ? AND table_type <> 'VIEW'"
