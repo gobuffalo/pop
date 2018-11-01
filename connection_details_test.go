@@ -15,12 +15,12 @@ func Test_ConnectionDetails_Finalize(t *testing.T) {
 	err := cd.Finalize()
 	r.NoError(err)
 
-	r.Equal(cd.Database, "database")
-	r.Equal(cd.Dialect, "postgres")
-	r.Equal(cd.Host, "host")
-	r.Equal(cd.Password, "pass")
-	r.Equal(cd.Port, "port")
-	r.Equal(cd.User, "user")
+	r.Equal("database", cd.Database)
+	r.Equal("postgres", cd.Dialect)
+	r.Equal("host", cd.Host)
+	r.Equal("pass", cd.Password)
+	r.Equal("port", cd.Port)
+	r.Equal("user", cd.User)
 }
 
 func Test_ConnectionDetails_Finalize_MySQL_DSN(t *testing.T) {
@@ -81,7 +81,7 @@ func Test_ConnectionDetails_Finalize_MySQL_DSN_collation(t *testing.T) {
 		r.Equal("host", cd.Host)
 		r.Equal("port", cd.Port)
 		r.Equal("database", cd.Database)
-		r.Equal("utf8mb4_general_ci", cd.Encoding)
+		r.Equal("utf8mb4_general_ci", cd.Options["collation"])
 	}
 }
 

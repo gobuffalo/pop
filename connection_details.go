@@ -1,6 +1,7 @@
 package pop
 
 import (
+	"fmt"
 	"net/url"
 	"regexp"
 	"strconv"
@@ -97,6 +98,11 @@ func (cd *ConnectionDetails) withURL() error {
 // filling in default values, etc...
 func (cd *ConnectionDetails) Finalize() error {
 	cd.Dialect = normalizeSynonyms(cd.Dialect)
+
+	if cd.Options == nil { // for safety
+		cd.Options = make(map[string]string)
+	}
+
 	if cd.URL != "" {
 		if err := cd.withURL(); err != nil {
 			return err
@@ -138,4 +144,17 @@ func (cd *ConnectionDetails) RetryLimit() int {
 // MigrationTableName returns the name of the table to track migrations
 func (cd *ConnectionDetails) MigrationTableName() string {
 	return defaults.String(cd.Options["migration_table_name"], "schema_migration")
+}
+
+// OptionsString returns URL parameter encoded string from options.
+func (cd *ConnectionDetails) OptionsString(s string) string {
+	if cd.RawOptions != "" {
+		return cd.RawOptions
+	}
+	if cd.Options != nil {
+		for k, v := range cd.Options {
+			s = fmt.Sprintf("%s&%s=%s", s, k, v)
+		}
+	}
+	return strings.TrimLeft(s, "&")
 }

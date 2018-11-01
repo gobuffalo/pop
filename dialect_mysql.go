@@ -15,6 +15,7 @@ import (
 	"github.com/gobuffalo/pop/columns"
 	"github.com/gobuffalo/pop/logging"
 	"github.com/markbates/going/defaults"
+	"github.com/markbates/oncer"
 	"github.com/pkg/errors"
 )
 
@@ -42,30 +43,23 @@ func (m *mysql) Details() *ConnectionDetails {
 }
 
 func (m *mysql) URL() string {
-	deets := m.ConnectionDetails
-	if deets.URL != "" {
-		// Force multiStatements=true, migrations can fail otherwise.
-		if !strings.Contains(deets.URL, "multiStatements=true") {
-			log(logging.Warn, "multiStatements=true option is required to work with pop migrations. Please add it to the database URL in the config")
-			deets.URL += "&multiStatements=true"
-		}
-		return strings.TrimPrefix(deets.URL, "mysql://")
+	cd := m.ConnectionDetails
+	if cd.URL != "" {
+		return strings.TrimPrefix(cd.URL, "mysql://")
 	}
-	encoding := defaults.String(deets.Encoding, "utf8mb4_general_ci")
-	s := "%s:%s@(%s:%s)/%s?parseTime=true&multiStatements=true&readTimeout=1s&collation=%s"
-	return fmt.Sprintf(s, deets.User, deets.Password, deets.Host, deets.Port, deets.Database, encoding)
+	s := "%s:%s@(%s:%s)/%s?%s"
+	return fmt.Sprintf(s, cd.User, cd.Password, cd.Host, cd.Port, cd.Database, cd.OptionsString(""))
 }
 
 func (m *mysql) urlWithoutDb() string {
-	deets := m.ConnectionDetails
-	if deets.URL != "" {
+	cd := m.ConnectionDetails
+	if cd.URL != "" {
 		// respect user's own URL definition (with options).
-		url := strings.TrimPrefix(deets.URL, "mysql://")
-		return strings.Replace(url, "/"+deets.Database+"?", "/?", 1)
+		url := strings.TrimPrefix(cd.URL, "mysql://")
+		return strings.Replace(url, "/"+cd.Database+"?", "/?", 1)
 	}
-	encoding := defaults.String(deets.Encoding, "utf8mb4_general_ci")
-	s := "%s:%s@(%s:%s)/?parseTime=true&multiStatements=true&readTimeout=1s&collation=%s"
-	return fmt.Sprintf(s, deets.User, deets.Password, deets.Host, deets.Port, encoding)
+	s := "%s:%s@(%s:%s)/?%s"
+	return fmt.Sprintf(s, cd.User, cd.Password, cd.Host, cd.Port, cd.OptionsString(""))
 }
 
 func (m *mysql) MigrationURL() string {
@@ -100,7 +94,7 @@ func (m *mysql) CreateDB() error {
 		return errors.Wrapf(err, "error creating MySQL database %s", deets.Database)
 	}
 	defer db.Close()
-	encoding := defaults.String(deets.Encoding, "utf8mb4_general_ci")
+	encoding := defaults.String(deets.Options["collation"], "utf8mb4_general_ci")
 	query := fmt.Sprintf("CREATE DATABASE `%s` DEFAULT COLLATE `%s`", deets.Database, encoding)
 	log(logging.SQL, query)
 
@@ -198,7 +192,8 @@ func urlParserMySQL(cd *ConnectionDetails) error {
 	cd.User = cfg.User
 	cd.Password = cfg.Passwd
 	cd.Database = cfg.DBName
-	cd.Encoding = defaults.String(cfg.Collation, "utf8_general_ci")
+	// NOTE: use cfg.Params if want to fill options with full parameters
+	cd.Options["collation"] = cfg.Collation
 	addr := strings.TrimSuffix(strings.TrimPrefix(cfg.Addr, "("), ")")
 	if cfg.Net == "unix" {
 		cd.Port = "socket"
@@ -216,6 +211,31 @@ func urlParserMySQL(cd *ConnectionDetails) error {
 
 func finalizerMySQL(cd *ConnectionDetails) {
 	cd.Port = defaults.String(cd.Port, portMySQL)
+	defs := map[string]string{
+		"parseTime":   "true",
+		"readTimeout": "1s",
+		"collation":   "utf8mb4_general_ci",
+	}
+	forced := map[string]string{
+		"multiStatements": "true",
+	}
+
+	for k, v := range defs {
+		cd.Options[k] = defaults.String(cd.Options[k], v)
+	}
+
+	for k, v := range forced {
+		cd.Options[k] = defaults.String(cd.Options[k], v)
+		if !strings.Contains(cd.RawOptions, k+"="+v) {
+			log(logging.Warn, "IMPORTANT! %s=%s option is required to work properly. Please add it to the database URL in the config!", k, v)
+		} // or fix user specified url?
+	}
+
+	if cd.Encoding != "" {
+		// when user still uses `encoding:` in database.yml
+		oncer.Deprecate(0, "Encoding", "use options.collation")
+		cd.Options["collation"] = cd.Encoding
+	}
 }
 
 const mysqlTruncate = "SELECT concat('TRUNCATE TABLE `', TABLE_NAME, '`;') as stmt FROM INFORMATION_SCHEMA.TABLES WHERE table_schema = ? AND table_type <> 'VIEW'"
