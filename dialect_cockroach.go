@@ -257,6 +257,8 @@ func (p *cockroach) TruncateAll(tx *Connection) error {
 		}
 	}
 	return nil
+	// TODO!
+	// return tx3.RawQuery(fmt.Sprintf("truncate %s cascade;", strings.Join(tableNames, ", "))).Exec()
 }
 
 func newCockroach(deets *ConnectionDetails) dialect {
