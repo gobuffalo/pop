@@ -80,7 +80,7 @@ matrix:
       <<: *mysql
     - dist: trusty
       go: "1.11"
-      env: SODA_DIALECT="cockroach
+      env: SODA_DIALECT="cockroach"
       <<: *cockroach
     - dist: trusty
       go: "1.11"
@@ -95,7 +95,7 @@ matrix:
       <<: *mysql
     - dist: trusty
       go: "tip"
-      env: SODA_DIALECT="cockroach
+      env: SODA_DIALECT="cockroach"
       <<: *cockroach
     - dist: trusty
       go: "tip"
