@@ -209,7 +209,7 @@ func (p *cockroach) LoadSchema(r io.Reader) error {
 }
 
 func (p *cockroach) FillServerInfo(tx *Connection) error {
-	if err := tx.RawQuery("select version()").First(&p.Server); err != nil {
+	if err := tx.RawQuery(`select version() AS "version"`).First(&p.Server); err != nil {
 		return err
 	}
 	if s := strings.Split(p.Server.VersionString, " "); len(s) > 3 {
@@ -218,7 +218,7 @@ func (p *cockroach) FillServerInfo(tx *Connection) error {
 		p.Server.Version = s[2]
 		p.Server.BuildInfo = s[3]
 	}
-	log(logging.Info, "server: %v %v %v", p.Server.Product, p.Server.License, p.Server.Version)
+	log(logging.Debug, "server: %v %v %v", p.Server.Product, p.Server.License, p.Server.Version)
 
 	return nil
 }
@@ -243,7 +243,6 @@ func (p *cockroach) TruncateAll(tx *Connection) error {
 		return err
 	}
 
-	tx.NewTransaction()
 	if len(tables) == 0 {
 		return nil
 	}
@@ -259,6 +258,7 @@ func (p *cockroach) TruncateAll(tx *Connection) error {
 		}
 	}
 	return nil
+	// TODO!
 	// return tx3.RawQuery(fmt.Sprintf("truncate %s cascade;", strings.Join(tableNames, ", "))).Exec()
 }
 
