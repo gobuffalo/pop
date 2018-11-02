@@ -244,7 +244,6 @@ func (p *cockroach) TruncateAll(tx *Connection) error {
 		return err
 	}
 
-	tx.NewTransaction()
 	if len(tables) == 0 {
 		return nil
 	}
