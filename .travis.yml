@@ -32,6 +32,16 @@ global_env:
   addons:
     postgresql: "9.5"
 
+.cockroach: &cockroach
+  services:
+    - docker
+  before_install:
+    - docker pull cockroachdb/cockroach:v1.1.1
+    - docker run -d -p 26257:26257 --name=cockroachdb cockroachdb/cockroach:v1.1.1 start --insecure
+    - sleep 4 # Wait for cockroach to be online
+  after_script:
+    - docker rm -f cockroachdb
+
 # TODO: MariaDB builds
 .mariadb: &mariadb
   addons:
@@ -44,13 +54,6 @@ matrix:
       env: SODA_DIALECT="postgres"
       <<: *postgres
     - dist: trusty
-      go: 1.9
-      env: SODA_DIALECT="mysql_travis"
-      <<: *mysql
-    - dist: trusty
-      go: 1.9
-      env: SODA_DIALECT="sqlite"
-    - dist: trusty
       go: "1.10"
       env: SODA_DIALECT="postgres"
       <<: *postgres
@@ -58,6 +61,10 @@ matrix:
       go: "1.10"
       env: SODA_DIALECT="mysql_travis"
       <<: *mysql
+    - dist: trusty
+      go: "1.10"
+      env: SODA_DIALECT="cockroach"
+      <<: *cockroach
     - dist: trusty
       go: "1.10"
       env: SODA_DIALECT="sqlite"
@@ -69,6 +76,10 @@ matrix:
       go: "1.11"
       env: SODA_DIALECT="mysql_travis"
       <<: *mysql
+    - dist: trusty
+      go: "1.11"
+      env: SODA_DIALECT="cockroach"
+      <<: *cockroach
     - dist: trusty
       go: "1.11"
       env: SODA_DIALECT="sqlite"
@@ -80,6 +91,10 @@ matrix:
       go: "tip"
       env: SODA_DIALECT="mysql_travis"
       <<: *mysql
+    - dist: trusty
+      go: "tip"
+      env: SODA_DIALECT="cockroach"
+      <<: *cockroach
     - dist: trusty
       go: "tip"
       env: SODA_DIALECT="sqlite"
