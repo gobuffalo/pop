@@ -63,6 +63,10 @@ matrix:
       <<: *mysql
     - dist: trusty
       go: "1.10"
+      env: SODA_DIALECT="cockroach"
+      <<: *cockroach
+    - dist: trusty
+      go: "1.10"
       env: SODA_DIALECT="sqlite"
     - dist: trusty
       go: "1.11"
