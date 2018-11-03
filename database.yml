@@ -33,7 +33,7 @@ cockroach:
 
 cockroach_ssl:
   dialect: "cockroach"
-  url: "postgres://root@localhost:26257/pop_test?sslmode=require&sslrootcert=./certs/ca.crt&sslkey=./certs/client.root.key&sslcert=./certs/client.root.crt"
+  url: "postgres://root@localhost:26259/pop_test?sslmode=require&sslrootcert=./crdb/certs/ca.crt&sslkey=./crdb/certs/client.root.key&sslcert=./crdb/certs/client.root.crt"
 
 sqlite:
   dialect: "sqlite3"
