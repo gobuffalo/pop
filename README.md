@@ -1,9 +1,11 @@
+<p align="center"><img src="logo.png" width="150" height="150"></p>
+
 <p align="center">
-<a href="https://godoc.org/github.com/gobuffalo/pop"><img src="https://godoc.org/github.com/gobuffalo/pop?status.svg" alt="GoDoc" /></a>
-<a href="https://travis-ci.org/gobuffalo/pop"><img src="https://travis-ci.org/gobuffalo/pop.svg?branch=master" alt="Build Status" /></a>
+    <a href="https://godoc.org/github.com/gobuffalo/pop"><img src="https://godoc.org/github.com/gobuffalo/pop?status.svg" alt="GoDoc" /></a>
+    <a href="https://travis-ci.org/gobuffalo/pop"><img src="https://travis-ci.org/gobuffalo/pop.svg?branch=master" alt="Build Status" /></a>
 </p>
 
-# POP 
+# POP
 
 ## A Tasty Treat For All Your Database Needs
 
