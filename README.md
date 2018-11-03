@@ -1,3 +1,5 @@
+<img src="logo.png" width="150" height="150">
+
 # POP [![GoDoc](https://godoc.org/github.com/gobuffalo/pop?status.svg)](https://godoc.org/github.com/gobuffalo/pop) [![Build Status](https://travis-ci.org/gobuffalo/pop.svg)](https://travis-ci.org/gobuffalo/pop)
 
 ## A Tasty Treat For All Your Database Needs
