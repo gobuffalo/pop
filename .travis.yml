@@ -42,6 +42,18 @@ global_env:
   after_script:
     - docker rm -f cockroachdb
 
+.crdb210ssl: &crdb210ssl
+  before_install:
+    - mkdir -p crdb/certs
+    - pushd crdb
+    - wget -qO- https://binaries.cockroachdb.com/cockroach-v2.1.0.linux-amd64.tgz | tar  zxv
+    - mv cockroach-v2.1.0.linux-amd64/cockroach .
+    - ./cockroach cert create-ca --certs-dir certs --ca-key key
+    - ./cockroach cert create-client root --certs-dir certs --ca-key key
+    - ./cockroach cert create-node localhost 127.0.0.1 `hostname -s` `hostname -f` --certs-dir certs --ca-key key
+    - ./cockroach start --certs-dir certs --listen-addr localhost --port 26259 --http-port 8089 --background
+    - popd
+
 # TODO: MariaDB builds
 .mariadb: &mariadb
   addons:
@@ -66,6 +78,10 @@ matrix:
       env: SODA_DIALECT="cockroach"
       <<: *cockroach
     - dist: trusty
+      do: "1.10"
+      env: SODA_DIALECT="cockroach_ssl"
+      <<: *crdb210ssl
+    - dist: trusty
       go: "1.10"
       env: SODA_DIALECT="sqlite"
     - dist: trusty
@@ -81,6 +97,10 @@ matrix:
       env: SODA_DIALECT="cockroach"
       <<: *cockroach
     - dist: trusty
+      do: "1.11"
+      env: SODA_DIALECT="cockroach_ssl"
+      <<: *crdb210ssl
+    - dist: trusty
       go: "1.11"
       env: SODA_DIALECT="sqlite"
     - dist: trusty
@@ -95,6 +115,10 @@ matrix:
       go: "tip"
       env: SODA_DIALECT="cockroach"
       <<: *cockroach
+    - dist: trusty
+      do: "tip"
+      env: SODA_DIALECT="cockroach_ssl"
+      <<: *crdb210ssl
     - dist: trusty
       go: "tip"
       env: SODA_DIALECT="sqlite"
