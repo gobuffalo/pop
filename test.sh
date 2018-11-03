@@ -37,6 +37,17 @@ function test {
   go test -race -tags sqlite $verbose $(go list ./... | grep -v /vendor/)
 }
 
+function debug_test {
+    echo "!!! Debug Testing $1"
+    export SODA_DIALECT=$1
+    echo ./tsoda -v
+    ./tsoda drop -e $SODA_DIALECT -c ./database.yml
+    ./tsoda create -e $SODA_DIALECT -c ./database.yml
+    ./tsoda migrate -e $SODA_DIALECT -c ./database.yml
+    dlv test github.com/gobuffalo/pop
+}
+
+# debug_test "postgres"
 test "postgres"
 test "cockroach"
 test "mysql"

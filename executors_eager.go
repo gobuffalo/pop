@@ -24,7 +24,18 @@ func (c *Connection) eagerCreate(model interface{}, excludeColumns ...string) er
 			continue
 		}
 
-		err = c.Create(i)
+		sm := &Model{Value: i}
+		err = sm.iterate(func(m *Model) error {
+			id, err := m.fieldByName("ID")
+			if err != nil {
+				return err
+			}
+			if IsZeroOfUnderlyingType(id.Interface()) {
+				return c.Create(m.Value)
+			}
+			return nil
+		})
+
 		if err != nil {
 			return err
 		}
@@ -52,7 +63,19 @@ func (c *Connection) eagerCreate(model interface{}, excludeColumns ...string) er
 			continue
 		}
 
-		err = c.Create(i)
+		sm := &Model{Value: i}
+		err = sm.iterate(func(m *Model) error {
+			fbn, err := m.fieldByName("ID")
+			if err != nil {
+				return err
+			}
+			id := fbn.Interface()
+			if IsZeroOfUnderlyingType(id) {
+				return c.Create(m.Value)
+			}
+			return nil
+		})
+
 		if err != nil {
 			return err
 		}
@@ -100,7 +123,7 @@ func (c *Connection) eagerValidateAndCreate(model interface{}, excludeColumns ..
 		}
 
 		sm := &Model{Value: i}
-		verrs, err := sm.validateCreate(c)
+		verrs, err := sm.validateAndOnlyCreate(c)
 		if err != nil || verrs.HasAny() {
 			return verrs, err
 		}
@@ -114,7 +137,7 @@ func (c *Connection) eagerValidateAndCreate(model interface{}, excludeColumns ..
 		}
 
 		sm := &Model{Value: i}
-		verrs, err := sm.validateCreate(c)
+		verrs, err := sm.validateAndOnlyCreate(c)
 		if err != nil || verrs.HasAny() {
 			return verrs, err
 		}

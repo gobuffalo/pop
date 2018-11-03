@@ -164,8 +164,10 @@ func Test_ConnectionDetails_Finalize_SQLite_with_Dialect(t *testing.T) {
 	r.Equal("", cd.Port)
 	r.Equal("", cd.User)
 }
+
 func Test_ConnectionDetails_Finalize_SQLite_without_URL(t *testing.T) {
 	r := require.New(t)
+
 	cd := &ConnectionDetails{
 		Dialect:  "sqlite",
 		Database: "./foo.db",

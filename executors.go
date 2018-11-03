@@ -1,8 +1,9 @@
 package pop
 
 import (
-	"fmt"
+	"reflect"
 
+	"github.com/gobuffalo/pop/associations"
 	"github.com/gobuffalo/pop/columns"
 	"github.com/gobuffalo/pop/logging"
 	"github.com/gobuffalo/uuid"
@@ -60,13 +61,21 @@ func (c *Connection) ValidateAndSave(model interface{}, excludeColumns ...string
 
 var emptyUUID = uuid.Nil.String()
 
+// IsZeroOfUnderlyingType will check if the value of anything is the equal to the Zero value of that type.
+func IsZeroOfUnderlyingType(x interface{}) bool {
+	return reflect.DeepEqual(x, reflect.Zero(reflect.TypeOf(x)).Interface())
+}
+
 // Save wraps the Create and Update methods. It executes a Create if no ID is provided with the entry;
 // or issues an Update otherwise.
 func (c *Connection) Save(model interface{}, excludeColumns ...string) error {
 	sm := &Model{Value: model}
 	return sm.iterate(func(m *Model) error {
-		id := m.ID()
-		if fmt.Sprint(id) == "0" || fmt.Sprint(id) == emptyUUID {
+		id, err := m.fieldByName("ID")
+		if err != nil {
+			return err
+		}
+		if IsZeroOfUnderlyingType(id.Interface()) {
 			return c.Create(m.Value, excludeColumns...)
 		}
 		return c.Update(m.Value, excludeColumns...)
@@ -101,13 +110,34 @@ func (c *Connection) Create(model interface{}, excludeColumns ...string) error {
 	sm := &Model{Value: model}
 	return sm.iterate(func(m *Model) error {
 		return c.timeFunc("Create", func() error {
-			var err error
+			asos, err := associations.ForStruct(m.Value)
+			if err != nil {
+				return err
+			}
+
 			if err = m.beforeSave(c); err != nil {
 				return err
 			}
 
 			if err = m.beforeCreate(c); err != nil {
 				return err
+			}
+
+			processAssoc := len(asos) > 0
+
+			if processAssoc {
+				before := asos.AssociationsBeforeCreatable()
+				for index := range before {
+					i := before[index].BeforeInterface()
+					if i == nil {
+						continue
+					}
+
+					err = before[index].BeforeSetup()
+					if err != nil {
+						return err
+					}
+				}
 			}
 
 			tn := m.TableName()
@@ -122,6 +152,37 @@ func (c *Connection) Create(model interface{}, excludeColumns ...string) error {
 
 			if err = c.Dialect.Create(c.Store, m, cols); err != nil {
 				return err
+			}
+
+			if processAssoc {
+				after := asos.AssociationsAfterCreatable()
+				for index := range after {
+					stm := after[index].AfterProcess()
+					if c.TX != nil && !stm.Empty() {
+						_, err := c.TX.Exec(c.Dialect.TranslateSQL(stm.Statement), stm.Args...)
+						if err != nil {
+							return err
+						}
+					}
+				}
+
+				stms := asos.AssociationsCreatableStatement()
+				for index := range stms {
+					statements := stms[index].Statements()
+					for _, stm := range statements {
+						if c.TX != nil {
+							_, err := c.TX.Exec(c.Dialect.TranslateSQL(stm.Statement), stm.Args...)
+							if err != nil {
+								return err
+							}
+							continue
+						}
+						_, err = c.Store.Exec(c.Dialect.TranslateSQL(stm.Statement), stm.Args...)
+						if err != nil {
+							return err
+						}
+					}
+				}
 			}
 
 			if err = m.afterCreate(c); err != nil {

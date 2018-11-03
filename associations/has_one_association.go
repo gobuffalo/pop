@@ -9,12 +9,13 @@ import (
 )
 
 type hasOneAssociation struct {
-	ownedModel reflect.Value
-	ownedType  reflect.Type
-	ownerID    interface{}
-	ownerName  string
-	owner      interface{}
-	fkID       string
+	ownedTableName string
+	ownedModel     reflect.Value
+	ownedType      reflect.Type
+	ownerID        interface{}
+	ownerName      string
+	owner          interface{}
+	fkID           string
 	*associationSkipable
 	*associationComposite
 }
@@ -33,12 +34,13 @@ func hasOneAssociationBuilder(p associationParams) (Association, error) {
 
 	fval := p.modelValue.FieldByName(p.field.Name)
 	return &hasOneAssociation{
-		owner:      p.model,
-		ownedModel: fval,
-		ownedType:  fval.Type(),
-		ownerID:    ownerID.Interface(),
-		ownerName:  p.modelType.Name(),
-		fkID:       p.popTags.Find("fk_id").Value,
+		owner:          p.model,
+		ownedTableName: flect.Pluralize(p.popTags.Find("has_one").Value),
+		ownedModel:     fval,
+		ownedType:      fval.Type(),
+		ownerID:        ownerID.Interface(),
+		ownerName:      p.modelType.Name(),
+		fkID:           p.popTags.Find("fk_id").Value,
 		associationSkipable: &associationSkipable{
 			skipped: skipped,
 		},
@@ -76,9 +78,7 @@ func (h *hasOneAssociation) AfterInterface() interface{} {
 		return h.ownedModel.Interface()
 	}
 
-	currentVal := h.ownedModel.Interface()
-	zeroVal := reflect.Zero(h.ownedModel.Type()).Interface()
-	if reflect.DeepEqual(zeroVal, currentVal) {
+	if IsZeroOfUnderlyingType(h.ownedModel.Interface()) {
 		return nil
 	}
 
@@ -99,4 +99,34 @@ func (h *hasOneAssociation) AfterSetup() error {
 	}
 
 	return fmt.Errorf("could not set '%s' to '%s'", ownerID, fval)
+}
+
+func (h *hasOneAssociation) AfterProcess() AssociationStatement {
+	belongingIDFieldName := "ID"
+	id := h.ownedModel.FieldByName(belongingIDFieldName).Interface()
+
+	ownerIDFieldName := "ID"
+	ownerID := reflect.Indirect(reflect.ValueOf(h.owner)).FieldByName(ownerIDFieldName).Interface()
+
+	ids := []interface{}{ownerID}
+
+	if IsZeroOfUnderlyingType(id) {
+		return AssociationStatement{
+			Statement: "",
+			Args:      []interface{}{},
+		}
+	}
+	ids = append(ids, id)
+
+	fk := h.fkID
+	if fk == "" {
+		fk = flect.Underscore(h.ownerName) + "_id"
+	}
+
+	ret := fmt.Sprintf("UPDATE %s SET %s = ? WHERE %s = ?", h.ownedTableName, fk, belongingIDFieldName)
+
+	return AssociationStatement{
+		Statement: ret,
+		Args:      ids,
+	}
 }

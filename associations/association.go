@@ -68,6 +68,7 @@ type AssociationBeforeCreatable interface {
 type AssociationAfterCreatable interface {
 	AfterInterface() interface{}
 	AfterSetup() error
+	AfterProcess() AssociationStatement
 	Association
 }
 
@@ -83,6 +84,11 @@ type AssociationCreatableStatement interface {
 type AssociationStatement struct {
 	Statement string
 	Args      []interface{}
+}
+
+// Empty is true if the containing Statement is empty.
+func (as AssociationStatement) Empty() bool {
+	return as.Statement == ""
 }
 
 // Associations a group of model associations.
@@ -152,4 +158,9 @@ func fieldIsNil(f reflect.Value) bool {
 func isZero(i interface{}) bool {
 	v := reflect.ValueOf(i)
 	return v.Interface() == reflect.Zero(v.Type()).Interface()
+}
+
+// IsZeroOfUnderlyingType will check if the value of anything is the equal to the Zero value of that type.
+func IsZeroOfUnderlyingType(x interface{}) bool {
+	return reflect.DeepEqual(x, reflect.Zero(reflect.TypeOf(x)).Interface())
 }

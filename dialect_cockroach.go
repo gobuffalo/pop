@@ -8,7 +8,7 @@ import (
 	"strings"
 	"sync"
 
-	_ "github.com/cockroachdb/cockroach-go/crdb" // Load CockroachdbQL/postgres Go driver. Also loads github.com/lib/pq
+	_ "github.com/cockroachdb/cockroach-go/crdb" // Load CockroachdbQL/postgres Go driver which also loads github.com/lib/pq
 	"github.com/gobuffalo/fizz"
 	"github.com/gobuffalo/fizz/translators"
 	"github.com/gobuffalo/pop/columns"
@@ -196,6 +196,7 @@ func (p *cockroach) Lock(fn func() error) error {
 
 func (p *cockroach) DumpSchema(w io.Writer) error {
 	cmd := exec.Command("cockroach", "dump", p.Details().Database, "--dump-mode=schema")
+
 	c := p.ConnectionDetails
 	if defaults.String(c.Options["sslmode"], "disable") == "disable" || strings.Contains(c.RawOptions, "sslmode=disable") {
 		cmd.Args = append(cmd.Args, "--insecure")

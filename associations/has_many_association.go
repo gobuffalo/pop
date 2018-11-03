@@ -6,6 +6,7 @@ import (
 
 	"github.com/gobuffalo/flect"
 	"github.com/gobuffalo/pop/nulls"
+	"github.com/jmoiron/sqlx"
 )
 
 // hasManyAssociation is the implementation for the has_many
@@ -118,4 +119,52 @@ func (a *hasManyAssociation) AfterSetup() error {
 		}
 	}
 	return nil
+}
+
+func (a *hasManyAssociation) AfterProcess() AssociationStatement {
+	v := a.value
+	if v.Kind() == reflect.Ptr {
+		v = v.Elem()
+	}
+
+	belongingIDFieldName := "ID"
+
+	ownerIDFieldName := "ID"
+	ownerID := reflect.Indirect(reflect.ValueOf(a.owner)).FieldByName(ownerIDFieldName).Interface()
+
+	ids := []interface{}{}
+
+	for i := 0; i < v.Len(); i++ {
+		id := v.Index(i).FieldByName(belongingIDFieldName).Interface()
+		if !IsZeroOfUnderlyingType(id) {
+			ids = append(ids, id)
+		}
+	}
+	if len(ids) == 0 {
+		return AssociationStatement{
+			Statement: "",
+			Args:      []interface{}{},
+		}
+	}
+
+	fk := a.fkID
+	if fk == "" {
+		fk = flect.Underscore(a.ownerName) + "_id"
+	}
+
+	// This will be used to update all of our owned models' foreign keys to our ID.
+	ret := fmt.Sprintf("UPDATE %s SET %s = ? WHERE %s in (?);", a.tableName, fk, belongingIDFieldName)
+
+	update, args, err := sqlx.In(ret, ownerID, ids)
+	if err != nil {
+		return AssociationStatement{
+			Statement: "",
+			Args:      []interface{}{},
+		}
+	}
+
+	return AssociationStatement{
+		Statement: update,
+		Args:      args,
+	}
 }

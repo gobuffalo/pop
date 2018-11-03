@@ -18,8 +18,10 @@ func Test_Cockroach_URL_Raw(t *testing.T) {
 	r.Equal("scheme://user:pass@host:port/database?option1=value1", m.URL())
 	r.Equal("postgres://user:pass@host:port/?option1=value1", m.urlWithoutDb())
 }
+
 func Test_Cockroach_URL_Build(t *testing.T) {
 	r := require.New(t)
+
 	cd := &ConnectionDetails{
 		Dialect:  "cockroach",
 		Database: "database",
