@@ -78,7 +78,7 @@ matrix:
       env: SODA_DIALECT="cockroach"
       <<: *cockroach
     - dist: trusty
-      do: "1.10"
+      go: "1.10"
       env: SODA_DIALECT="cockroach_ssl"
       <<: *crdb210ssl
     - dist: trusty
@@ -97,7 +97,7 @@ matrix:
       env: SODA_DIALECT="cockroach"
       <<: *cockroach
     - dist: trusty
-      do: "1.11"
+      go: "1.11"
       env: SODA_DIALECT="cockroach_ssl"
       <<: *crdb210ssl
     - dist: trusty
@@ -116,7 +116,7 @@ matrix:
       env: SODA_DIALECT="cockroach"
       <<: *cockroach
     - dist: trusty
-      do: "tip"
+      go: "tip"
       env: SODA_DIALECT="cockroach_ssl"
       <<: *crdb210ssl
     - dist: trusty
