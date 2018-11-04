@@ -11,7 +11,6 @@ import (
 	"github.com/gobuffalo/envy"
 	"github.com/gobuffalo/pop/logging"
 	"github.com/pkg/errors"
-
 	"gopkg.in/yaml.v2"
 )
 
@@ -34,14 +33,6 @@ func init() {
 	ap = os.Getenv("POP_PATH")
 	if ap != "" {
 		AddLookupPaths(ap)
-	}
-	if err := LoadConfigFile(); err != nil {
-		// this is debug because there are a lot of cases where
-		// this being logged as an error is causes problems
-		// buffalo plugins, for one
-		// also, it's ok to not always have a config file, like
-		// in a new project where one hasn't be generated
-		log(logging.Debug, "Unable to load config file: %v", err)
 	}
 }
 
@@ -68,7 +59,7 @@ func LookupPaths() []string {
 // AddLookupPaths add paths to the current lookup paths list
 func AddLookupPaths(paths ...string) error {
 	lookupPaths = append(paths, lookupPaths...)
-	return LoadConfigFile()
+	return nil
 }
 
 func findConfigPath() (string, error) {
