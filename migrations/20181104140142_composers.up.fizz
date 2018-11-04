@@ -1,0 +1,4 @@
+create_table("composers") {
+  t.Column("id", "int", {primary: true})
+  t.Column("name", "string", {})
+}

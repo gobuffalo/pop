@@ -1,0 +1,4 @@
+create_table("validatable_cars") {
+  t.Column("id", "int", {primary: true})
+  t.Column("name", "string", {})
+}

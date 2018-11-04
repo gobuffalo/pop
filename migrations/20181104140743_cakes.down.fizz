@@ -1,0 +1,3 @@
+{{ if eq .Dialect "postgres" }}
+drop_table("cakes")
+{{ end }}
