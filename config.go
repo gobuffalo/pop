@@ -59,7 +59,7 @@ func LookupPaths() []string {
 // AddLookupPaths add paths to the current lookup paths list
 func AddLookupPaths(paths ...string) error {
 	lookupPaths = append(paths, lookupPaths...)
-	return LoadConfigFile()
+	return nil
 }
 
 func findConfigPath() (string, error) {
