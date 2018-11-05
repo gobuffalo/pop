@@ -123,10 +123,28 @@ func Test_ConnectionDetails_Finalize_MySQL_DSN_Socket(t *testing.T) {
 	r.Equal("socket", cd.Database)
 }
 
-func Test_ConnectionDetails_Finalize_UnknownDialect(t *testing.T) {
+func Test_ConnectionDetails_Finalize_UnknownSchemeURL(t *testing.T) {
 	r := require.New(t)
 	cd := &ConnectionDetails{
 		URL: "unknown://user:pass@host:port/database",
+	}
+	err := cd.Finalize()
+	r.Error(err)
+}
+
+func Test_ConnectionDetails_Finalize_UnknownDialect(t *testing.T) {
+	r := require.New(t)
+	cd := &ConnectionDetails{
+		Dialect: "unknown",
+	}
+	err := cd.Finalize()
+	r.Error(err)
+}
+
+func Test_ConnectionDetails_Finalize_NoDB_NoURL(t *testing.T) {
+	r := require.New(t)
+	cd := &ConnectionDetails{
+		Dialect: "sqlite3",
 	}
 	err := cd.Finalize()
 	r.Error(err)

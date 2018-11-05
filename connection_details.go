@@ -112,7 +112,14 @@ func (cd *ConnectionDetails) Finalize() error {
 	if fin, ok := finalizer[cd.Dialect]; ok {
 		fin(cd)
 	}
-	return nil
+
+	if DialectSupported(cd.Dialect) {
+		if cd.Database != "" || cd.URL != "" {
+			return nil
+		}
+		return errors.New("no database or URL specified")
+	}
+	return errors.Errorf("unsupported dialect '%v'", cd.Dialect)
 }
 
 // Parse cleans up the connection details by normalizing names,
