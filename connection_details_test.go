@@ -15,12 +15,12 @@ func Test_ConnectionDetails_Finalize(t *testing.T) {
 	err := cd.Finalize()
 	r.NoError(err)
 
-	r.Equal(cd.Database, "database")
-	r.Equal(cd.Dialect, "postgres")
-	r.Equal(cd.Host, "host")
-	r.Equal(cd.Password, "pass")
-	r.Equal(cd.Port, "port")
-	r.Equal(cd.User, "user")
+	r.Equal("database", cd.Database)
+	r.Equal("postgres", cd.Dialect)
+	r.Equal("host", cd.Host)
+	r.Equal("pass", cd.Password)
+	r.Equal("port", cd.Port)
+	r.Equal("user", cd.User)
 }
 
 func Test_ConnectionDetails_Finalize_MySQL_DSN(t *testing.T) {
@@ -123,7 +123,7 @@ func Test_ConnectionDetails_Finalize_MySQL_DSN_Socket(t *testing.T) {
 	r.Equal("socket", cd.Database)
 }
 
-func Test_ConnectionDetails_Finalize_UnknownDialect(t *testing.T) {
+func Test_ConnectionDetails_Finalize_UnknownSchemeURL(t *testing.T) {
 	r := require.New(t)
 	cd := &ConnectionDetails{
 		URL: "unknown://user:pass@host:port/database",
@@ -132,7 +132,25 @@ func Test_ConnectionDetails_Finalize_UnknownDialect(t *testing.T) {
 	r.Error(err)
 }
 
-func Test_ConnectionDetails_Finalize_SQLite(t *testing.T) {
+func Test_ConnectionDetails_Finalize_UnknownDialect(t *testing.T) {
+	r := require.New(t)
+	cd := &ConnectionDetails{
+		Dialect: "unknown",
+	}
+	err := cd.Finalize()
+	r.Error(err)
+}
+
+func Test_ConnectionDetails_Finalize_NoDB_NoURL(t *testing.T) {
+	r := require.New(t)
+	cd := &ConnectionDetails{
+		Dialect: "sqlite3",
+	}
+	err := cd.Finalize()
+	r.Error(err)
+}
+
+func Test_ConnectionDetails_Finalize_SQLite_URL_Only(t *testing.T) {
 	r := require.New(t)
 
 	cd := &ConnectionDetails{
@@ -140,16 +158,63 @@ func Test_ConnectionDetails_Finalize_SQLite(t *testing.T) {
 	}
 	err := cd.Finalize()
 	r.NoError(err)
-
-	r.Equal(cd.Database, "/tmp/foo.db")
-	r.Equal(cd.Dialect, "sqlite3")
-	r.Equal(cd.Host, "")
-	r.Equal(cd.Password, "")
-	r.Equal(cd.Port, "")
-	r.Equal(cd.User, "")
+	r.Equal("sqlite3", cd.Dialect, "given dialect: N/A")
+	r.Equal("/tmp/foo.db", cd.Database, "given url: sqlite3:///tmp/foo.db")
+	r.Equal("", cd.Host)
+	r.Equal("", cd.Password)
+	r.Equal("", cd.Port)
+	r.Equal("", cd.User)
 }
 
-func Test_ConnectionDetails_Finalize_SQLite_with_Dialect(t *testing.T) {
+func Test_ConnectionDetails_Finalize_SQLite_SynURL_Only(t *testing.T) {
+	r := require.New(t)
+
+	cd := &ConnectionDetails{
+		URL: "sqlite:///tmp/foo.db",
+	}
+	err := cd.Finalize()
+	r.NoError(err)
+	r.Equal("sqlite3", cd.Dialect, "given dialect: N/A")
+	r.Equal("/tmp/foo.db", cd.Database, "given url: sqlite:///tmp/foo.db")
+	r.Equal("", cd.Host)
+	r.Equal("", cd.Password)
+	r.Equal("", cd.Port)
+	r.Equal("", cd.User)
+}
+
+func Test_ConnectionDetails_Finalize_SQLite_Dialect_URL(t *testing.T) {
+	r := require.New(t)
+	cd := &ConnectionDetails{
+		Dialect: "sqlite3",
+		URL:     "sqlite3:///tmp/foo.db",
+	}
+	err := cd.Finalize()
+	r.NoError(err)
+	r.Equal("sqlite3", cd.Dialect, "given dialect: sqlite3")
+	r.Equal("/tmp/foo.db", cd.Database, "given url: sqlite3:///tmp/foo.db")
+	r.Equal("", cd.Host)
+	r.Equal("", cd.Password)
+	r.Equal("", cd.Port)
+	r.Equal("", cd.User)
+}
+
+func Test_ConnectionDetails_Finalize_SQLite_Dialect_SynURL(t *testing.T) {
+	r := require.New(t)
+	cd := &ConnectionDetails{
+		Dialect: "sqlite3",
+		URL:     "sqlite:///tmp/foo.db",
+	}
+	err := cd.Finalize()
+	r.NoError(err)
+	r.Equal("sqlite3", cd.Dialect, "given dialect: sqlite3")
+	r.Equal("/tmp/foo.db", cd.Database, "given url: sqlite:///tmp/foo.db")
+	r.Equal("", cd.Host)
+	r.Equal("", cd.Password)
+	r.Equal("", cd.Port)
+	r.Equal("", cd.User)
+}
+
+func Test_ConnectionDetails_Finalize_SQLite_Synonym_URL(t *testing.T) {
 	r := require.New(t)
 	cd := &ConnectionDetails{
 		Dialect: "sqlite",
@@ -157,25 +222,40 @@ func Test_ConnectionDetails_Finalize_SQLite_with_Dialect(t *testing.T) {
 	}
 	err := cd.Finalize()
 	r.NoError(err)
-	r.Equal("/tmp/foo.db", cd.Database)
-	r.Equal("sqlite3", cd.Dialect)
+	r.Equal("sqlite3", cd.Dialect, "given dialect: sqlite")
+	r.Equal("/tmp/foo.db", cd.Database, "given url: sqlite3:///tmp/foo.db")
 	r.Equal("", cd.Host)
 	r.Equal("", cd.Password)
 	r.Equal("", cd.Port)
 	r.Equal("", cd.User)
 }
 
-func Test_ConnectionDetails_Finalize_SQLite_without_URL(t *testing.T) {
+func Test_ConnectionDetails_Finalize_SQLite_Synonym_SynURL(t *testing.T) {
 	r := require.New(t)
+	cd := &ConnectionDetails{
+		Dialect: "sqlite",
+		URL:     "sqlite:///tmp/foo.db",
+	}
+	err := cd.Finalize()
+	r.NoError(err)
+	r.Equal("sqlite3", cd.Dialect, "given dialect: sqlite")
+	r.Equal("/tmp/foo.db", cd.Database, "given url: sqlite:///tmp/foo.db")
+	r.Equal("", cd.Host)
+	r.Equal("", cd.Password)
+	r.Equal("", cd.Port)
+	r.Equal("", cd.User)
+}
 
+func Test_ConnectionDetails_Finalize_SQLite_Synonym_Path(t *testing.T) {
+	r := require.New(t)
 	cd := &ConnectionDetails{
 		Dialect:  "sqlite",
 		Database: "./foo.db",
 	}
 	err := cd.Finalize()
 	r.NoError(err)
-	r.Equal("./foo.db", cd.Database)
-	r.Equal("sqlite3", cd.Dialect)
+	r.Equal("sqlite3", cd.Dialect, "given dialect: sqlite")
+	r.Equal("./foo.db", cd.Database, "given database: ./foo.db")
 	r.Equal("", cd.Host)
 	r.Equal("", cd.Password)
 	r.Equal("", cd.Port)
