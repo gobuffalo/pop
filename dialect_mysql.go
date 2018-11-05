@@ -15,7 +15,6 @@ import (
 	"github.com/gobuffalo/pop/columns"
 	"github.com/gobuffalo/pop/logging"
 	"github.com/markbates/going/defaults"
-	"github.com/markbates/oncer"
 	"github.com/pkg/errors"
 )
 
@@ -48,7 +47,8 @@ func (m *mysql) URL() string {
 		return strings.TrimPrefix(cd.URL, "mysql://")
 	}
 	s := "%s:%s@(%s:%s)/%s?%s"
-	return fmt.Sprintf(s, cd.User, cd.Password, cd.Host, cd.Port, cd.Database, cd.OptionsString(""))
+	encOption := fmt.Sprintf("collation=%s", defaults.String(cd.Encoding, "utf8mb4_general_ci"))
+	return fmt.Sprintf(s, cd.User, cd.Password, cd.Host, cd.Port, cd.Database, cd.OptionsString(encOption))
 }
 
 func (m *mysql) urlWithoutDb() string {
@@ -59,7 +59,8 @@ func (m *mysql) urlWithoutDb() string {
 		return strings.Replace(url, "/"+cd.Database+"?", "/?", 1)
 	}
 	s := "%s:%s@(%s:%s)/?%s"
-	return fmt.Sprintf(s, cd.User, cd.Password, cd.Host, cd.Port, cd.OptionsString(""))
+	encOption := fmt.Sprintf("collation=%s", defaults.String(cd.Encoding, "utf8mb4_general_ci"))
+	return fmt.Sprintf(s, cd.User, cd.Password, cd.Host, cd.Port, cd.OptionsString(encOption))
 }
 
 func (m *mysql) MigrationURL() string {
@@ -94,7 +95,7 @@ func (m *mysql) CreateDB() error {
 		return errors.Wrapf(err, "error creating MySQL database %s", deets.Database)
 	}
 	defer db.Close()
-	encoding := defaults.String(deets.Options["collation"], "utf8mb4_general_ci")
+	encoding := defaults.String(deets.Encoding, "utf8mb4_general_ci")
 	query := fmt.Sprintf("CREATE DATABASE `%s` DEFAULT COLLATE `%s`", deets.Database, encoding)
 	log(logging.SQL, query)
 
@@ -192,8 +193,7 @@ func urlParserMySQL(cd *ConnectionDetails) error {
 	cd.User = cfg.User
 	cd.Password = cfg.Passwd
 	cd.Database = cfg.DBName
-	// NOTE: use cfg.Params if want to fill options with full parameters
-	cd.Options["collation"] = cfg.Collation
+	cd.Encoding = cfg.Collation
 	addr := strings.TrimSuffix(strings.TrimPrefix(cfg.Addr, "("), ")")
 	if cfg.Net == "unix" {
 		cd.Port = "socket"
@@ -229,12 +229,6 @@ func finalizerMySQL(cd *ConnectionDetails) {
 		if !strings.Contains(cd.RawOptions, k+"="+v) {
 			log(logging.Warn, "IMPORTANT! %s=%s option is required to work properly. Please add it to the database URL in the config!", k, v)
 		} // or fix user specified url?
-	}
-
-	if cd.Encoding != "" {
-		// when user still uses `encoding:` in database.yml
-		oncer.Deprecate(0, "Encoding", "use options.collation")
-		cd.Options["collation"] = cd.Encoding
 	}
 }
 

@@ -81,7 +81,7 @@ func Test_ConnectionDetails_Finalize_MySQL_DSN_collation(t *testing.T) {
 		r.Equal("host", cd.Host)
 		r.Equal("port", cd.Port)
 		r.Equal("database", cd.Database)
-		r.Equal("utf8mb4_general_ci", cd.Options["collation"])
+		r.Equal("utf8mb4_general_ci", cd.Encoding)
 	}
 }
 

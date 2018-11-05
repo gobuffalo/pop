@@ -99,22 +99,3 @@ func Test_MySQL_User_Defined_Options(t *testing.T) {
 	r.Contains(m.urlWithoutDb(), "readTimeout=1h")
 	r.Contains(m.urlWithoutDb(), "collation=utf8")
 }
-
-// preserve this test case while deprecated code alives
-func Test_MySQL_Deprecated(t *testing.T) {
-	r := require.New(t)
-
-	cd := &ConnectionDetails{
-		Dialect:  "mysql",
-		Database: "base",
-		Host:     "host",
-		Port:     "port",
-		User:     "user",
-		Password: "pass",
-		Encoding: "myEncoding",
-	}
-	err := cd.Finalize()
-	r.NoError(err)
-	r.NotNil(cd.Options)
-	r.Equal("myEncoding", cd.Options["collation"])
-}
