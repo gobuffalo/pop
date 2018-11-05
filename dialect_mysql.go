@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	// Load MySQL Go driver
-	_ "github.com/go-sql-driver/mysql"
+	_mysql "github.com/go-sql-driver/mysql"
 	"github.com/gobuffalo/fizz"
 	"github.com/gobuffalo/fizz/translators"
 	"github.com/gobuffalo/pop/columns"
@@ -18,8 +18,13 @@ import (
 	"github.com/pkg/errors"
 )
 
+const nameMySQL = "mysql"
+const portMySQL = "3306"
+
 func init() {
-	AvailableDialects = append(AvailableDialects, "mysql")
+	AvailableDialects = append(AvailableDialects, nameMySQL)
+	urlParser[nameMySQL] = urlParserMySQL
+	finalizer[nameMySQL] = finalizerMySQL
 }
 
 var _ dialect = &mysql{}
@@ -29,7 +34,7 @@ type mysql struct {
 }
 
 func (m *mysql) Name() string {
-	return "mysql"
+	return nameMySQL
 }
 
 func (m *mysql) Details() *ConnectionDetails {
@@ -37,30 +42,25 @@ func (m *mysql) Details() *ConnectionDetails {
 }
 
 func (m *mysql) URL() string {
-	deets := m.ConnectionDetails
-	if deets.URL != "" {
-		// Force multiStatements=true, migrations can fail otherwise.
-		if !strings.Contains(deets.URL, "multiStatements=true") {
-			log(logging.Warn, "multiStatements=true option is required to work with pop migrations. Please add it to the database URL in the config")
-			deets.URL += "&multiStatements=true"
-		}
-		return strings.TrimPrefix(deets.URL, "mysql://")
+	cd := m.ConnectionDetails
+	if cd.URL != "" {
+		return strings.TrimPrefix(cd.URL, "mysql://")
 	}
-	encoding := defaults.String(deets.Encoding, "utf8mb4_general_ci")
-	s := "%s:%s@(%s:%s)/%s?parseTime=true&multiStatements=true&readTimeout=1s&collation=%s"
-	return fmt.Sprintf(s, deets.User, deets.Password, deets.Host, deets.Port, deets.Database, encoding)
+	s := "%s:%s@(%s:%s)/%s?%s"
+	encOption := fmt.Sprintf("collation=%s", defaults.String(cd.Encoding, "utf8mb4_general_ci"))
+	return fmt.Sprintf(s, cd.User, cd.Password, cd.Host, cd.Port, cd.Database, cd.OptionsString(encOption))
 }
 
 func (m *mysql) urlWithoutDb() string {
-	deets := m.ConnectionDetails
-	if deets.URL != "" {
+	cd := m.ConnectionDetails
+	if cd.URL != "" {
 		// respect user's own URL definition (with options).
-		url := strings.TrimPrefix(deets.URL, "mysql://")
-		return strings.Replace(url, "/"+deets.Database+"?", "/?", 1)
+		url := strings.TrimPrefix(cd.URL, "mysql://")
+		return strings.Replace(url, "/"+cd.Database+"?", "/?", 1)
 	}
-	encoding := defaults.String(deets.Encoding, "utf8mb4_general_ci")
-	s := "%s:%s@(%s:%s)/?parseTime=true&multiStatements=true&readTimeout=1s&collation=%s"
-	return fmt.Sprintf(s, deets.User, deets.Password, deets.Host, deets.Port, encoding)
+	s := "%s:%s@(%s:%s)/?%s"
+	encOption := fmt.Sprintf("collation=%s", defaults.String(cd.Encoding, "utf8mb4_general_ci"))
+	return fmt.Sprintf(s, cd.User, cd.Password, cd.Host, cd.Port, cd.OptionsString(encOption))
 }
 
 func (m *mysql) MigrationURL() string {
@@ -182,6 +182,54 @@ func newMySQL(deets *ConnectionDetails) dialect {
 	}
 
 	return cd
+}
+
+func urlParserMySQL(cd *ConnectionDetails) error {
+	cfg, err := _mysql.ParseDSN(strings.TrimPrefix(cd.URL, "mysql://"))
+	if err != nil {
+		return errors.Wrapf(err, "the URL '%s' is not supported by MySQL driver", cd.URL)
+	}
+
+	cd.User = cfg.User
+	cd.Password = cfg.Passwd
+	cd.Database = cfg.DBName
+	cd.Encoding = cfg.Collation
+	addr := strings.TrimSuffix(strings.TrimPrefix(cfg.Addr, "("), ")")
+	if cfg.Net == "unix" {
+		cd.Port = "socket"
+		cd.Host = addr
+	} else {
+		tmp := strings.Split(addr, ":")
+		cd.Host = tmp[0]
+		if len(tmp) > 1 {
+			cd.Port = tmp[1]
+		}
+	}
+
+	return nil
+}
+
+func finalizerMySQL(cd *ConnectionDetails) {
+	cd.Port = defaults.String(cd.Port, portMySQL)
+	defs := map[string]string{
+		"parseTime":   "true",
+		"readTimeout": "1s",
+		"collation":   "utf8mb4_general_ci",
+	}
+	forced := map[string]string{
+		"multiStatements": "true",
+	}
+
+	for k, v := range defs {
+		cd.Options[k] = defaults.String(cd.Options[k], v)
+	}
+
+	for k, v := range forced {
+		cd.Options[k] = defaults.String(cd.Options[k], v)
+		if !strings.Contains(cd.RawOptions, k+"="+v) {
+			log(logging.Warn, "IMPORTANT! %s=%s option is required to work properly. Please add it to the database URL in the config!", k, v)
+		} // or fix user specified url?
+	}
 }
 
 const mysqlTruncate = "SELECT concat('TRUNCATE TABLE `', TABLE_NAME, '`;') as stmt FROM INFORMATION_SCHEMA.TABLES WHERE table_schema = ? AND table_type <> 'VIEW'"

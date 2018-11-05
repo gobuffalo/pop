@@ -1,13 +1,13 @@
 package pop
 
 import (
+	"fmt"
 	"net/url"
 	"regexp"
 	"strconv"
 	"strings"
 	"time"
 
-	_mysql "github.com/go-sql-driver/mysql"
 	"github.com/gobuffalo/pop/logging"
 	"github.com/markbates/going/defaults"
 	"github.com/markbates/oncer"
@@ -46,14 +46,14 @@ type ConnectionDetails struct {
 
 var dialectX = regexp.MustCompile(`\S+://`)
 
-// overrideWithURL parses and overrides all connection details
-// with values form URL except Dialect.
-func (cd *ConnectionDetails) overrideWithURL() error {
+// withURL parses and overrides all connection details with values
+// from standard URL except Dialect. It also calls dialect specific
+// URL parser if exists.
+func (cd *ConnectionDetails) withURL() error {
 	ul := cd.URL
 	if cd.Dialect != "" && !dialectX.MatchString(ul) {
 		ul = cd.Dialect + "://" + ul
 	}
-
 	u, err := url.Parse(ul)
 	if err != nil {
 		return errors.Wrapf(err, "couldn't parse %s", ul)
@@ -61,20 +61,20 @@ func (cd *ConnectionDetails) overrideWithURL() error {
 
 	//! dialect should not be overrided here (especially for cockroach)
 	if cd.Dialect == "" {
-		cd.Dialect = u.Scheme
+		cd.Dialect = normalizeSynonyms(u.Scheme)
+	}
+	if !DialectSupported(cd.Dialect) {
+		return errors.Errorf("unsupported dialect '%v'", cd.Dialect)
 	}
 
 	// warning message is required to prevent confusion
 	// even though this behavior was documented.
 	if cd.Database+cd.Host+cd.Port+cd.User+cd.Password != "" {
-		log(logging.Warn, "One or more of connection parameters are specified in database.yml. Override them with values in URL.")
+		log(logging.Warn, "One or more of connection details are specified in database.yml. Override them with values in URL.")
 	}
 
-	if strings.HasPrefix(cd.Dialect, "sqlite") {
-		cd.Database = u.Path
-		return nil
-	} else if strings.HasPrefix(cd.Dialect, "mysql") {
-		return cd.overrideWithMySQLURL()
+	if up, ok := urlParser[cd.Dialect]; ok {
+		return up(cd)
 	}
 
 	cd.Database = strings.TrimPrefix(u.Path, "/")
@@ -94,55 +94,32 @@ func (cd *ConnectionDetails) overrideWithURL() error {
 	return nil
 }
 
-func (cd *ConnectionDetails) overrideWithMySQLURL() error {
-	// parse and verify whether URL is supported by underlying driver or not.
-	cfg, err := _mysql.ParseDSN(strings.TrimPrefix(cd.URL, "mysql://"))
-	if err != nil {
-		return errors.Wrapf(err, "the URL '%s' is not supported by MySQL driver", cd.URL)
-	}
-
-	cd.User = cfg.User
-	cd.Password = cfg.Passwd
-	cd.Database = cfg.DBName
-	cd.Encoding = defaults.String(cfg.Collation, "utf8_general_ci")
-	addr := strings.TrimSuffix(strings.TrimPrefix(cfg.Addr, "("), ")")
-	if cfg.Net == "unix" {
-		cd.Port = "socket"
-		cd.Host = addr
-	} else {
-		tmp := strings.Split(addr, ":")
-		cd.Host = tmp[0]
-		if len(tmp) > 1 {
-			cd.Port = tmp[1]
-		}
-	}
-
-	return nil
-}
-
 // Finalize cleans up the connection details by normalizing names,
 // filling in default values, etc...
 func (cd *ConnectionDetails) Finalize() error {
 	cd.Dialect = normalizeSynonyms(cd.Dialect)
+
+	if cd.Options == nil { // for safety
+		cd.Options = make(map[string]string)
+	}
+
 	if cd.URL != "" {
-		if err := cd.overrideWithURL(); err != nil {
+		if err := cd.withURL(); err != nil {
 			return err
 		}
 	}
 
-	switch cd.Dialect {
-	case "postgres":
-		cd.Port = defaults.String(cd.Port, "5432")
-	case "cockroach":
-		cd.Port = defaults.String(cd.Port, "26257")
-	case "mysql":
-		cd.Port = defaults.String(cd.Port, "3306")
-	case "sqlite3":
-		// Nothing more to do here
-	default:
-		return errors.Errorf("unknown dialect %s", cd.Dialect)
+	if fin, ok := finalizer[cd.Dialect]; ok {
+		fin(cd)
 	}
-	return nil
+
+	if DialectSupported(cd.Dialect) {
+		if cd.Database != "" || cd.URL != "" {
+			return nil
+		}
+		return errors.New("no database or URL specified")
+	}
+	return errors.Errorf("unsupported dialect '%v'", cd.Dialect)
 }
 
 // Parse cleans up the connection details by normalizing names,
@@ -174,4 +151,17 @@ func (cd *ConnectionDetails) RetryLimit() int {
 // MigrationTableName returns the name of the table to track migrations
 func (cd *ConnectionDetails) MigrationTableName() string {
 	return defaults.String(cd.Options["migration_table_name"], "schema_migration")
+}
+
+// OptionsString returns URL parameter encoded string from options.
+func (cd *ConnectionDetails) OptionsString(s string) string {
+	if cd.RawOptions != "" {
+		return cd.RawOptions
+	}
+	if cd.Options != nil {
+		for k, v := range cd.Options {
+			s = fmt.Sprintf("%s&%s=%s", s, k, v)
+		}
+	}
+	return strings.TrimLeft(s, "&")
 }

@@ -5,6 +5,7 @@ package pop
 import (
 	"fmt"
 	"io"
+	"net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -17,14 +18,18 @@ import (
 	"github.com/gobuffalo/pop/columns"
 	"github.com/gobuffalo/pop/logging"
 	"github.com/markbates/going/defaults"
+
 	// Load SQLite3 CGo driver
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/pkg/errors"
 )
 
+const nameSQLite3 = "sqlite3"
+
 func init() {
-	AvailableDialects = append(AvailableDialects, "sqlite3")
-	dialectSynonyms["sqlite"] = "sqlite3"
+	AvailableDialects = append(AvailableDialects, nameSQLite3)
+	dialectSynonyms["sqlite"] = nameSQLite3
+	urlParser[nameSQLite3] = urlParserSQLite3
 }
 
 var _ dialect = &sqlite{}
@@ -36,7 +41,7 @@ type sqlite struct {
 }
 
 func (m *sqlite) Name() string {
-	return "sqlite3"
+	return nameSQLite3
 }
 
 func (m *sqlite) Details() *ConnectionDetails {
@@ -191,4 +196,14 @@ func newSQLite(deets *ConnectionDetails) (dialect, error) {
 	}
 
 	return cd, nil
+}
+
+func urlParserSQLite3(cd *ConnectionDetails) error {
+	u, err := url.Parse(cd.URL)
+	if err != nil {
+		return errors.Wrapf(err, "could not parse url '%v'", cd.URL)
+	}
+	cd.Database = u.Path
+
+	return nil
 }

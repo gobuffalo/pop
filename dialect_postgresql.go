@@ -16,10 +16,14 @@ import (
 	"github.com/pkg/errors"
 )
 
+const namePostgreSQL = "postgres"
+const portPostgreSQL = "5432"
+
 func init() {
-	AvailableDialects = append(AvailableDialects, "postgres")
-	dialectSynonyms["postgresql"] = "postgres"
-	dialectSynonyms["pg"] = "postgres"
+	AvailableDialects = append(AvailableDialects, namePostgreSQL)
+	dialectSynonyms["postgresql"] = namePostgreSQL
+	dialectSynonyms["pg"] = namePostgreSQL
+	finalizer[namePostgreSQL] = finalizerPostgreSQL
 }
 
 var _ dialect = &postgresql{}
@@ -31,7 +35,7 @@ type postgresql struct {
 }
 
 func (p *postgresql) Name() string {
-	return "postgres"
+	return namePostgreSQL
 }
 
 func (p *postgresql) Details() *ConnectionDetails {
@@ -196,6 +200,10 @@ func newPostgreSQL(deets *ConnectionDetails) dialect {
 		mu:                sync.Mutex{},
 	}
 	return cd
+}
+
+func finalizerPostgreSQL(cd *ConnectionDetails) {
+	cd.Port = defaults.String(cd.Port, portPostgreSQL)
 }
 
 const pgTruncate = `DO
