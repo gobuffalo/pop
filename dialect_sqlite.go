@@ -18,9 +18,7 @@ import (
 	"github.com/gobuffalo/pop/columns"
 	"github.com/gobuffalo/pop/logging"
 	"github.com/markbates/going/defaults"
-
-	// Load SQLite3 CGo driver
-	_ "github.com/mattn/go-sqlite3"
+	_ "github.com/mattn/go-sqlite3" // Load SQLite3 CGo driver
 	"github.com/pkg/errors"
 )
 
@@ -58,6 +56,31 @@ func (m *sqlite) MigrationURL() string {
 
 func (m *sqlite) Create(s store, model *Model, cols columns.Columns) error {
 	return m.locker(m.smGil, func() error {
+		keyType := model.PrimaryKeyType()
+		switch keyType {
+		case "int", "int64":
+			var id int64
+			w := cols.Writeable()
+			var query string
+			if len(w.Cols) > 0 {
+				query = fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s)", model.TableName(), w.String(), w.SymbolizedString())
+			} else {
+				query = fmt.Sprintf("INSERT INTO %s DEFAULT VALUES", model.TableName())
+			}
+			log(logging.SQL, query)
+			res, err := s.NamedExec(query, model.Value)
+			if err != nil {
+				return errors.WithStack(err)
+			}
+			id, err = res.LastInsertId()
+			if err == nil {
+				model.setID(id)
+			}
+			if err != nil {
+				return errors.WithStack(err)
+			}
+			return nil
+		}
 		return errors.Wrap(genericCreate(s, model, cols), "sqlite create")
 	})
 }

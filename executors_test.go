@@ -143,6 +143,17 @@ func Test_ValidateAndCreate(t *testing.T) {
 	})
 }
 
+func Test_Create_Single_Incremental_ID(t *testing.T) {
+	r := require.New(t)
+	validationLogs = []string{}
+	transaction(func(tx *Connection) {
+		singleID := &SingleID{}
+		err := tx.Create(singleID)
+		r.NoError(err)
+		r.NotZero(singleID.ID)
+	})
+}
+
 func Test_ValidateAndCreate_With_Slice(t *testing.T) {
 	r := require.New(t)
 	validationLogs = []string{}

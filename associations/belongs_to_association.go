@@ -15,7 +15,6 @@ type belongsToAssociation struct {
 	ownerModel reflect.Value
 	ownerType  reflect.Type
 	ownerID    reflect.Value
-	fkID       string
 	primaryID  string
 	ownedModel interface{}
 	*associationSkipable
@@ -47,7 +46,7 @@ func belongsToAssociationBuilder(p associationParams) (Association, error) {
 	// Validates if ownerIDField is nil, this association will be skipped.
 	var skipped bool
 	f := p.modelValue.FieldByName(ownerIDField)
-	if fieldIsNil(f) || isZero(f.Interface()) {
+	if fieldIsNil(f) || IsZeroOfUnderlyingType(f.Interface()) {
 		skipped = true
 	}
 	//associated model
@@ -70,7 +69,6 @@ func belongsToAssociationBuilder(p associationParams) (Association, error) {
 		ownerModel: fval,
 		ownerType:  fval.Type(),
 		ownerID:    f,
-		fkID:       ownerIDField,
 		primaryID:  primaryIDField,
 		ownedModel: p.model,
 		associationSkipable: &associationSkipable{

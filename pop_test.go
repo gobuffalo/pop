@@ -339,3 +339,7 @@ func (u *CallbacksUser) AfterFind(tx *Connection) error {
 type Label struct {
 	ID string `db:"id"`
 }
+
+type SingleID struct {
+	ID int `db:"id"`
+}
