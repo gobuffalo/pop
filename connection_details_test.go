@@ -23,7 +23,7 @@ func Test_ConnectionDetails_Finalize(t *testing.T) {
 	r.Equal("user", cd.User)
 }
 
-func Test_ConnectionDetails_Finalize_MySQL_DSN(t *testing.T) {
+func Test_ConnectionDetails_Finalize_MySQL_Standard(t *testing.T) {
 	r := require.New(t)
 
 	url := "mysql://user:pass@(host:port)/database?param1=value1&param2=value2"
@@ -56,71 +56,6 @@ func Test_ConnectionDetails_Finalize_Cockroach(t *testing.T) {
 	r.Equal("port", cd.Port)
 	r.Equal("user", cd.User)
 	r.Equal("pass", cd.Password)
-}
-
-func Test_ConnectionDetails_Finalize_MySQL_DSN_collation(t *testing.T) {
-	r := require.New(t)
-
-	urls := []string{
-		"mysql://user:pass@(host:port)/database?collation=utf8mb4_general_ci",
-		"mysql://user:pass@(host:port)/database?collation=utf8mb4_general_ci&readTimeout=10s",
-		"mysql://user:pass@(host:port)/database?readTimeout=10s&collation=utf8mb4_general_ci",
-	}
-
-	for _, url := range urls {
-		cd := &ConnectionDetails{
-			URL: url,
-		}
-		err := cd.Finalize()
-		r.NoError(err)
-
-		r.Equal(url, cd.URL)
-		r.Equal("mysql", cd.Dialect)
-		r.Equal("user", cd.User)
-		r.Equal("pass", cd.Password)
-		r.Equal("host", cd.Host)
-		r.Equal("port", cd.Port)
-		r.Equal("database", cd.Database)
-		r.Equal("utf8mb4_general_ci", cd.Encoding)
-	}
-}
-
-func Test_ConnectionDetails_Finalize_MySQL_DSN_Protocol(t *testing.T) {
-	r := require.New(t)
-
-	url := "mysql://user:pass@tcp(host:port)/protocol"
-	cd := &ConnectionDetails{
-		URL: url,
-	}
-	err := cd.Finalize()
-	r.NoError(err)
-
-	r.Equal(url, cd.URL)
-	r.Equal("mysql", cd.Dialect)
-	r.Equal("user", cd.User)
-	r.Equal("pass", cd.Password)
-	r.Equal("host", cd.Host)
-	r.Equal("port", cd.Port)
-	r.Equal("protocol", cd.Database)
-}
-
-func Test_ConnectionDetails_Finalize_MySQL_DSN_Socket(t *testing.T) {
-	r := require.New(t)
-
-	url := "mysql://user:pass@unix(/path/to/socket)/socket"
-	cd := &ConnectionDetails{
-		URL: url,
-	}
-	err := cd.Finalize()
-	r.NoError(err)
-
-	r.Equal(url, cd.URL)
-	r.Equal("mysql", cd.Dialect)
-	r.Equal("user", cd.User)
-	r.Equal("pass", cd.Password)
-	r.Equal("/path/to/socket", cd.Host)
-	r.Equal("socket", cd.Port)
-	r.Equal("socket", cd.Database)
 }
 
 func Test_ConnectionDetails_Finalize_UnknownSchemeURL(t *testing.T) {
