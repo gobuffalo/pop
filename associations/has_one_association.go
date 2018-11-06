@@ -8,6 +8,10 @@ import (
 	"github.com/gobuffalo/pop/nulls"
 )
 
+// hasOneAssociation is a 1 to 1 kind of association. It's used on
+// the side the association foreign key is not defined.
+//
+// See the belongsToAssociation for the other side of the relation.
 type hasOneAssociation struct {
 	ownedTableName string
 	ownedModel     reflect.Value
@@ -61,7 +65,7 @@ func (h *hasOneAssociation) Interface() interface{} {
 	return h.ownedModel.Addr().Interface()
 }
 
-// Constraint returns the content for a where clause, and the args
+// Constraint returns the content for the WHERE clause, and the args
 // needed to execute it.
 func (h *hasOneAssociation) Constraint() (string, []interface{}) {
 	tn := flect.Underscore(h.ownerName)
@@ -73,6 +77,9 @@ func (h *hasOneAssociation) Constraint() (string, []interface{}) {
 	return condition, []interface{}{h.ownerID}
 }
 
+// AfterInterface gets the value of the model to create after
+// creating the parent model. It returns nil if the its value is
+// not set.
 func (h *hasOneAssociation) AfterInterface() interface{} {
 	if h.ownedModel.Kind() == reflect.Ptr {
 		return h.ownedModel.Interface()
@@ -87,8 +94,11 @@ func (h *hasOneAssociation) AfterInterface() interface{} {
 
 func (h *hasOneAssociation) AfterSetup() error {
 	ownerID := reflect.Indirect(reflect.ValueOf(h.owner)).FieldByName("ID").Interface()
-
-	fval := h.ownedModel.FieldByName(h.ownerName + "ID")
+	om := h.ownedModel
+	if om.Kind() == reflect.Ptr {
+		om = om.Elem()
+	}
+	fval := om.FieldByName(h.ownerName + "ID")
 	if fval.CanSet() {
 		if n := nulls.New(fval.Interface()); n != nil {
 			fval.Set(reflect.ValueOf(n.Parse(ownerID)))
@@ -103,19 +113,29 @@ func (h *hasOneAssociation) AfterSetup() error {
 
 func (h *hasOneAssociation) AfterProcess() AssociationStatement {
 	belongingIDFieldName := "ID"
-	id := h.ownedModel.FieldByName(belongingIDFieldName).Interface()
-
-	ownerIDFieldName := "ID"
-	ownerID := reflect.Indirect(reflect.ValueOf(h.owner)).FieldByName(ownerIDFieldName).Interface()
-
-	ids := []interface{}{ownerID}
-
+	om := h.ownedModel
+	if om.Kind() == reflect.Ptr {
+		om = om.Elem()
+	}
+	// Skip if the related model is not set
+	if IsZeroOfUnderlyingType(om) {
+		return AssociationStatement{
+			Statement: "",
+			Args:      []interface{}{},
+		}
+	}
+	id := om.FieldByName(belongingIDFieldName).Interface()
 	if IsZeroOfUnderlyingType(id) {
 		return AssociationStatement{
 			Statement: "",
 			Args:      []interface{}{},
 		}
 	}
+
+	ownerIDFieldName := "ID"
+	ownerID := reflect.Indirect(reflect.ValueOf(h.owner)).FieldByName(ownerIDFieldName).Interface()
+
+	ids := []interface{}{ownerID}
 	ids = append(ids, id)
 
 	fk := h.fkID

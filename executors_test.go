@@ -881,6 +881,24 @@ func Test_Eager_Create_Belongs_To(t *testing.T) {
 	})
 }
 
+func Test_Eager_Create_Belongs_To_Pointers(t *testing.T) {
+	transaction(func(tx *Connection) {
+		r := require.New(t)
+		body := Body{
+			Head: &Head{},
+		}
+
+		err := tx.Eager().Create(&body)
+		r.NoError(err)
+
+		ctx, _ := tx.Count(&Body{})
+		r.Equal(1, ctx)
+
+		ctx, _ = tx.Count(&Head{})
+		r.Equal(1, ctx)
+	})
+}
+
 func Test_Flat_Create_Belongs_To(t *testing.T) {
 	transaction(func(tx *Connection) {
 		r := require.New(t)
