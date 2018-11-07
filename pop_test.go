@@ -343,3 +343,14 @@ type Label struct {
 type SingleID struct {
 	ID int `db:"id"`
 }
+
+type Body struct {
+	ID   int   `json:"id" db:"id"`
+	Head *Head `json:"head" has_one:"head"`
+}
+
+type Head struct {
+	ID     int   `json:"id,omitempty" db:"id"`
+	BodyID int   `json:"-" db:"body_id"`
+	Body   *Body `json:"body,omitempty" belongs_to:"body"`
+}

@@ -189,6 +189,24 @@ func Test_Find_Eager_Belongs_To_Nulls(t *testing.T) {
 	})
 }
 
+func Test_Find_Eager_Belongs_To_Pointers(t *testing.T) {
+	transaction(func(tx *Connection) {
+		r := require.New(t)
+
+		body := Body{}
+		err := tx.Create(&body)
+		r.NoError(err)
+
+		head := Head{BodyID: body.ID}
+		err = tx.Create(&head)
+		r.NoError(err)
+
+		b := Body{}
+		err = tx.Eager().Find(&b, body.ID)
+		r.NoError(err)
+	})
+}
+
 func Test_Find_Eager_Has_One(t *testing.T) {
 	transaction(func(tx *Connection) {
 		r := require.New(t)

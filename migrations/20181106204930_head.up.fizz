@@ -1,0 +1,6 @@
+create_table("heads") {
+ t.Column("id", "integer", {"primary": true})
+ t.Column("body_id", "integer", {})
+ t.ForeignKey("body_id", {"bodies": ["id"]}, {})
+ t.DisableTimestamps()
+}
