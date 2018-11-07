@@ -78,7 +78,7 @@ func (h *hasOneAssociation) Constraint() (string, []interface{}) {
 }
 
 // AfterInterface gets the value of the model to create after
-// creating the parent model. It returns nil if the its value is
+// creating the parent model. It returns nil if its value is
 // not set.
 func (h *hasOneAssociation) AfterInterface() interface{} {
 	if h.ownedModel.Kind() == reflect.Ptr {
