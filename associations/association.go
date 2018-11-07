@@ -107,7 +107,7 @@ func (a Associations) AssociationsBeforeCreatable() []AssociationBeforeCreatable
 }
 
 // AssociationsAfterCreatable returns all associations that implement AssociationAfterCreatable
-// interface. Has Many and Has One associations are example of this implementation.
+// interface. Has Many and Has One associations are examples of this implementation.
 func (a Associations) AssociationsAfterCreatable() []AssociationAfterCreatable {
 	var after []AssociationAfterCreatable
 	for i := range a {

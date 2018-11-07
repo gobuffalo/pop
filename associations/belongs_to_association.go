@@ -7,10 +7,10 @@ import (
 	"github.com/gobuffalo/flect"
 	"github.com/gobuffalo/pop/columns"
 	"github.com/gobuffalo/pop/nulls"
+	"github.com/gobuffalo/x/defaults"
 )
 
-// belongsToAssociation is the implementation for the belongs_to
-// association type in a model.
+// belongsToAssociation is the implementation for the belongs_to association type in a model.
 type belongsToAssociation struct {
 	ownerModel reflect.Value
 	ownerType  reflect.Type
@@ -28,46 +28,37 @@ func init() {
 }
 
 func belongsToAssociationBuilder(p associationParams) (Association, error) {
-	fval := p.modelValue.FieldByName(p.field.Name)
-	primaryIDField := "ID"
-	if p.popTags.Find("primary_id").Value != "" {
-		primaryIDField = p.popTags.Find("primary_id").Value
-	}
+	ownerVal := p.modelValue.FieldByName(p.field.Name)
+	tags := p.popTags
+	primaryIDField := defaults.String(tags.Find("primary_id").Value, "ID")
+	ownerIDField := defaults.String(tags.Find("fk_id").Value, fmt.Sprintf("%s%s", p.field.Name, "ID"))
 
-	ownerIDField := fmt.Sprintf("%s%s", p.field.Name, "ID")
-	if p.popTags.Find("fk_id").Value != "" {
-		ownerIDField = p.popTags.Find("fk_id").Value
-	}
-
+	// belongs_to requires an holding field for the foreign model ID.
 	if _, found := p.modelType.FieldByName(ownerIDField); !found {
 		return nil, fmt.Errorf("there is no '%s' defined in model '%s'", ownerIDField, p.modelType.Name())
 	}
 
-	// Validates if ownerIDField is nil, this association will be skipped.
+	// If ownerIDField is nil, this association will be skipped.
 	var skipped bool
 	f := p.modelValue.FieldByName(ownerIDField)
 	if fieldIsNil(f) || IsZeroOfUnderlyingType(f.Interface()) {
 		skipped = true
 	}
-	//associated model
-	ownerPrimaryTableField := "id"
+	// associated model
+	ownerPk := "id"
 	if primaryIDField != "ID" {
-		ownerModel := reflect.Indirect(fval)
+		ownerModel := reflect.Indirect(ownerVal)
 		ownerPrimaryField, found := ownerModel.Type().FieldByName(primaryIDField)
 		if !found {
 			return nil, fmt.Errorf("there is no primary field '%s' defined in model '%s'", primaryIDField, ownerModel.Type())
 		}
-		ownerPrimaryTags := columns.TagsFor(ownerPrimaryField)
-		if dbField := ownerPrimaryTags.Find("db").Value; dbField == "" {
-			ownerPrimaryTableField = flect.Underscore(ownerPrimaryField.Name) //autodetect without db tag
-		} else {
-			ownerPrimaryTableField = dbField
-		}
+		ownerPTags := columns.TagsFor(ownerPrimaryField)
+		ownerPk = defaults.String(ownerPTags.Find("db").Value, flect.Underscore(ownerPrimaryField.Name))
 	}
 
 	return &belongsToAssociation{
-		ownerModel: fval,
-		ownerType:  fval.Type(),
+		ownerModel: ownerVal,
+		ownerType:  ownerVal.Type(),
 		ownerID:    f,
 		primaryID:  primaryIDField,
 		ownedModel: p.model,
@@ -75,7 +66,7 @@ func belongsToAssociationBuilder(p associationParams) (Association, error) {
 			skipped: skipped,
 		},
 		associationComposite: &associationComposite{innerAssociations: p.innerAssociations},
-		primaryTableID:       ownerPrimaryTableField,
+		primaryTableID:       ownerPk,
 	}, nil
 }
 
