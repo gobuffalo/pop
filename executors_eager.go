@@ -6,18 +6,20 @@ import (
 )
 
 func (c *Connection) eagerCreate(model interface{}, excludeColumns ...string) error {
-	asos, err := associations.ForStruct(model, c.eagerFields...)
+	assos, err := associations.ForStruct(model, c.eagerFields...)
 	if err != nil {
 		return err
 	}
 
 	c.disableEager()
 
-	if len(asos) == 0 {
+	// No association, fallback to non-eager mode.
+	if len(assos) == 0 {
 		return c.Create(model, excludeColumns...)
 	}
 
-	before := asos.AssociationsBeforeCreatable()
+	// Try to create the associations the root model depends on.
+	before := assos.AssociationsBeforeCreatable()
 	for index := range before {
 		i := before[index].BeforeInterface()
 		if i == nil {
@@ -46,12 +48,14 @@ func (c *Connection) eagerCreate(model interface{}, excludeColumns ...string) er
 		}
 	}
 
+	// Create the root model
 	err = c.Create(model, excludeColumns...)
 	if err != nil {
 		return err
 	}
 
-	after := asos.AssociationsAfterCreatable()
+	// Try to create the associations depending on the root model.
+	after := assos.AssociationsAfterCreatable()
 	for index := range after {
 		err = after[index].AfterSetup()
 		if err != nil {
@@ -81,7 +85,7 @@ func (c *Connection) eagerCreate(model interface{}, excludeColumns ...string) er
 		}
 	}
 
-	stms := asos.AssociationsCreatableStatement()
+	stms := assos.AssociationsCreatableStatement()
 	for index := range stms {
 		statements := stms[index].Statements()
 		for _, stm := range statements {
