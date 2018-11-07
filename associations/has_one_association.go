@@ -6,6 +6,7 @@ import (
 
 	"github.com/gobuffalo/flect"
 	"github.com/gobuffalo/pop/nulls"
+	"github.com/gobuffalo/x/defaults"
 )
 
 // hasOneAssociation is a 1 to 1 kind of association. It's used on
@@ -36,6 +37,9 @@ func hasOneAssociationBuilder(p associationParams) (Association, error) {
 		skipped = true
 	}
 
+	ownerName := p.modelType.Name()
+	fk := defaults.String(p.popTags.Find("fk_id").Value, flect.Underscore(ownerName)+"_id")
+
 	fval := p.modelValue.FieldByName(p.field.Name)
 	return &hasOneAssociation{
 		owner:          p.model,
@@ -43,8 +47,8 @@ func hasOneAssociationBuilder(p associationParams) (Association, error) {
 		ownedModel:     fval,
 		ownedType:      fval.Type(),
 		ownerID:        ownerID.Interface(),
-		ownerName:      p.modelType.Name(),
-		fkID:           p.popTags.Find("fk_id").Value,
+		ownerName:      ownerName,
+		fkID:           fk,
 		associationSkipable: &associationSkipable{
 			skipped: skipped,
 		},
@@ -68,13 +72,7 @@ func (h *hasOneAssociation) Interface() interface{} {
 // Constraint returns the content for the WHERE clause, and the args
 // needed to execute it.
 func (h *hasOneAssociation) Constraint() (string, []interface{}) {
-	tn := flect.Underscore(h.ownerName)
-	condition := fmt.Sprintf("%s_id = ?", tn)
-	if h.fkID != "" {
-		condition = fmt.Sprintf("%s = ?", h.fkID)
-	}
-
-	return condition, []interface{}{h.ownerID}
+	return fmt.Sprintf("%s = ?", h.fkID), []interface{}{h.ownerID}
 }
 
 // AfterInterface gets the value of the model to create after
@@ -138,12 +136,7 @@ func (h *hasOneAssociation) AfterProcess() AssociationStatement {
 	ids := []interface{}{ownerID}
 	ids = append(ids, id)
 
-	fk := h.fkID
-	if fk == "" {
-		fk = flect.Underscore(h.ownerName) + "_id"
-	}
-
-	ret := fmt.Sprintf("UPDATE %s SET %s = ? WHERE %s = ?", h.ownedTableName, fk, belongingIDFieldName)
+	ret := fmt.Sprintf("UPDATE %s SET %s = ? WHERE %s = ?", h.ownedTableName, h.fkID, belongingIDFieldName)
 
 	return AssociationStatement{
 		Statement: ret,
