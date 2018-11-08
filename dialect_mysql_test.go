@@ -194,57 +194,46 @@ func Test_MySQL_Finalizer_Preserve_User_Defined_Options(t *testing.T) {
 }
 
 //*** extra test for DLL operations
-func getConnectionForExtraTest(t *testing.T, dialect string) *Connection {
-	r := require.New(t)
-	err := LoadConfigFile()
-	r.NoError(err)
-
-	testFor := os.Getenv("SODA_DIALECT")
-	if dialect != testFor {
-		return nil // not my turn
+func isExtraTestOnFor(t *testing.T, dialect string) bool {
+	if PDB.Dialect.Details().Dialect != dialect {
+		return false
 	}
 	if "on" != os.Getenv("POP_EXTRA_TEST") {
-		t.Logf("Skip extra DDL tests for %v.", dialect)
-		t.Log("POP_EXTRA_TEST=on if you want to run extra tests.")
-		return nil
+		t.Log("Skip extra DDL tests. Set POP_EXTRA_TEST=on if you want to run extra tests.")
+		return false
 	}
-	t.Logf("Current SODA_DIALECT is %v. Test more...\n", testFor)
-
-	connection := Connections[testFor]
-	r.NotNil(connection, "oops! doing extra tests but could not found connection!")
-	t.Logf("Use connection: %v\n", connection)
-
-	return connection
+	t.Logf("extra test for %v permmitted", dialect)
+	return true
 }
 
 func Test_MySQL_DDL_Operations(t *testing.T) {
 	r := require.New(t)
-	c := getConnectionForExtraTest(t, "mysql")
-	if c == nil {
+	if !isExtraTestOnFor(t, "mysql") {
 		return
 	}
 
-	d := c.Dialect
-	cd := d.Details()
-	cd.Database = "pop_test_mysql_extra"
+	origDatabase := PDB.Dialect.Details().Database
+	PDB.Dialect.Details().Database = "pop_test_mysql_extra"
+	defer func() {
+		PDB.Dialect.Details().Database = origDatabase
+	}()
 
-	d.DropDB()
-	err := d.CreateDB()
+	PDB.Dialect.DropDB() // clean up
+	err := PDB.Dialect.CreateDB()
 	r.NoError(err)
-	err = d.CreateDB()
+	err = PDB.Dialect.CreateDB()
 	r.Error(err)
-	err = d.DropDB()
+	err = PDB.Dialect.DropDB()
 	r.NoError(err)
+	err = PDB.Dialect.DropDB()
+	r.Error(err)
 }
 
 func Test_MySQL_DDL_Schema(t *testing.T) {
 	r := require.New(t)
-	c := getConnectionForExtraTest(t, "mysql")
-	if c == nil {
+	if !isExtraTestOnFor(t, "mysql") {
 		return
 	}
-
-	d := c.Dialect
 
 	f, err := ioutil.TempFile(os.TempDir(), "pop_test_mysql_dump")
 	r.NoError(err)
@@ -253,17 +242,24 @@ func Test_MySQL_DDL_Schema(t *testing.T) {
 		os.Remove(f.Name())
 	}()
 
-	err = d.DumpSchema(f)
+	// do it against "pop_test"
+	err = PDB.Dialect.DumpSchema(f)
 	r.NoError(err)
 	f.Seek(0, 0)
-	err = d.LoadSchema(f)
+	err = PDB.Dialect.LoadSchema(f)
 	r.NoError(err)
 
-	d.Details().Database = "notExistingDatabase"
+	origDatabase := PDB.Dialect.Details().Database
+	PDB.Dialect.Details().Database = "pop_test_not_exist"
+	defer func() {
+		PDB.Dialect.Details().Database = origDatabase
+	}()
+
+	// do it against "pop_test_not_exist"
 	f.Seek(0, 0)
-	err = d.LoadSchema(f)
+	err = PDB.Dialect.LoadSchema(f)
 	r.Error(err)
-	err = d.DumpSchema(f)
+	err = PDB.Dialect.DumpSchema(f)
 	r.Error(err)
 }
 
