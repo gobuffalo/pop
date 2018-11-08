@@ -6,8 +6,7 @@ mysql:
   user: {{ envOr "MYSQL_USER"  "root"  }}
   password: {{ envOr "MYSQL_PASSWORD"  "root"  }}
   options:
-    collation: utf8mb4_general_ci
-    multiStatements: true
+    readTimeout: 5s
 
 mysql_travis:
   dialect: "mysql"
@@ -17,8 +16,7 @@ mysql_travis:
   user: {{ envOr "MYSQL_USER"  "root"  }}
   password: {{ envOr "MYSQL_PASSWORD"  ""  }}
   options:
-    collation: utf8mb4_general_ci
-    multiStatements: true
+    readTimeout: 10s
 
 postgres:
   url: "postgres://postgres:postgres@localhost:5432/pop_test?sslmode=disable"

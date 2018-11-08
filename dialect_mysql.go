@@ -225,11 +225,11 @@ func finalizerMySQL(cd *ConnectionDetails) {
 	cd.Port = defaults.String(cd.Port, portMySQL)
 
 	defs := map[string]string{
-		"parseTime":   "true",
 		"readTimeout": "1s",
 		"collation":   "utf8mb4_general_ci",
 	}
 	forced := map[string]string{
+		"parseTime":       "true",
 		"multiStatements": "true",
 	}
 
@@ -242,9 +242,14 @@ func finalizerMySQL(cd *ConnectionDetails) {
 	}
 
 	for k, v := range forced {
+		// respect user specified options but print warning!
 		cd.Options[k] = defaults.String(cd.Options[k], v)
+		if cd.Options[k] != v { // when user-defined option exists
+			log(logging.Warn, "IMPORTANT! '%s: %s' option is required to work properly but your current setting is '%v: %v'.", k, v, k, cd.Options[k])
+			log(logging.Warn, "It is highly recommended to remove '%v: %v' option from your config!", k, cd.Options[k])
+		} // or override with `cd.Options[k] = v`?
 		if cd.URL != "" && !strings.Contains(cd.URL, k+"="+v) {
-			log(logging.Warn, "IMPORTANT! %s=%s option is required to work properly. Please add it to the database URL in the config!", k, v)
+			log(logging.Warn, "IMPORTANT! '%s=%s' option is required to work properly. Please add it to the database URL in the config!", k, v)
 		} // or fix user specified url?
 	}
 
