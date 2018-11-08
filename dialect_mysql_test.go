@@ -193,24 +193,8 @@ func Test_MySQL_Finalizer_Preserve_User_Defined_Options(t *testing.T) {
 	r.Contains(m.URL(), "collation=utf8")
 }
 
-//*** extra test for DLL operations
-func isExtraTestOnFor(t *testing.T, dialect string) bool {
-	if PDB.Dialect.Details().Dialect != dialect {
-		return false
-	}
-	if "on" != os.Getenv("POP_EXTRA_TEST") {
-		t.Log("Skip extra DDL tests. Set POP_EXTRA_TEST=on if you want to run extra tests.")
-		return false
-	}
-	t.Logf("extra test for %v permmitted", dialect)
-	return true
-}
-
-func Test_MySQL_DDL_Operations(t *testing.T) {
-	r := require.New(t)
-	if !isExtraTestOnFor(t, "mysql") {
-		return
-	}
+func (s *MySQLSuite) Test_MySQL_DDL_Operations() {
+	r := s.Require()
 
 	origDatabase := PDB.Dialect.Details().Database
 	PDB.Dialect.Details().Database = "pop_test_mysql_extra"
@@ -229,11 +213,8 @@ func Test_MySQL_DDL_Operations(t *testing.T) {
 	r.Error(err)
 }
 
-func Test_MySQL_DDL_Schema(t *testing.T) {
-	r := require.New(t)
-	if !isExtraTestOnFor(t, "mysql") {
-		return
-	}
+func (s *MySQLSuite) Test_MySQL_DDL_Schema() {
+	r := s.Require()
 
 	f, err := ioutil.TempFile(os.TempDir(), "pop_test_mysql_dump")
 	r.NoError(err)
