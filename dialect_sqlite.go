@@ -28,6 +28,7 @@ func init() {
 	AvailableDialects = append(AvailableDialects, nameSQLite3)
 	dialectSynonyms["sqlite"] = nameSQLite3
 	urlParser[nameSQLite3] = urlParserSQLite3
+	newConnection[nameSQLite3] = newSQLite
 }
 
 var _ dialect = &sqlite{}

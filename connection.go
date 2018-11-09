@@ -53,20 +53,15 @@ func NewConnection(deets *ConnectionDetails) (*Connection, error) {
 	c := &Connection{
 		ID: randx.String(30),
 	}
-	switch deets.Dialect {
-	case "postgres":
-		c.Dialect = newPostgreSQL(deets)
-	case "cockroach":
-		c.Dialect = newCockroach(deets)
-	case "mysql":
-		c.Dialect = newMySQL(deets)
-	case "sqlite3":
-		c.Dialect, err = newSQLite(deets)
+
+	if nc, ok := newConnection[deets.Dialect]; ok {
+		c.Dialect, err = nc(deets)
 		if err != nil {
-			return c, errors.WithStack(err)
+			return c, errors.Wrap(err, "could not create new connection")
 		}
+		return c, nil
 	}
-	return c, nil
+	return nil, errors.Errorf("could not found connection creator for %v", deets.Dialect)
 }
 
 // Connect takes the name of a connection, default is "development", and will
