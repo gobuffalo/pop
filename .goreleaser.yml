@@ -29,6 +29,3 @@ brew:
   github:
     owner: gobuffalo
     name: homebrew-tap
-
-release:
-  draft: true
