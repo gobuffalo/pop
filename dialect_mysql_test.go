@@ -172,7 +172,7 @@ func Test_MySQL_Finalizer_Default_Options(t *testing.T) {
 	finalizerMySQL(m.ConnectionDetails)
 	r.Contains(m.URL(), "multiStatements=true")
 	r.Contains(m.URL(), "parseTime=true")
-	r.Contains(m.URL(), "readTimeout=1s")
+	r.Contains(m.URL(), "readTimeout=3s")
 	r.Contains(m.URL(), "collation=utf8mb4_general_ci")
 }
 
