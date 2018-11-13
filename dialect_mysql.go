@@ -225,7 +225,7 @@ func finalizerMySQL(cd *ConnectionDetails) {
 	cd.Port = defaults.String(cd.Port, portMySQL)
 
 	defs := map[string]string{
-		"readTimeout": "1s",
+		"readTimeout": "3s",
 		"collation":   "utf8mb4_general_ci",
 	}
 	forced := map[string]string{
