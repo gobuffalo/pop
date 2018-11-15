@@ -155,3 +155,21 @@ func (c *Connection) eagerValidateAndCreate(model interface{}, excludeColumns ..
 
 	return verrs, c.eagerCreate(model, excludeColumns...)
 }
+
+//Eager Update
+
+func (c *Connection) eagerValidateAndUpdate(model interface{}, excludeColumns ...string) (*validate.Errors, error) {
+	// Get all the associations for the struct
+
+	asos, err := associations.ForStruct(model, c.eagerFields...)
+	verrs := validate.NewErrors()
+
+	if err != nil {
+		return verrs, err
+	}
+
+	if len(asos) == 0 {
+		c.disableEager()
+		return c.ValidateAndCreate(model, excludeColumns...)
+	}
+}
