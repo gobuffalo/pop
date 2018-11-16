@@ -74,7 +74,6 @@ func (c *Connection) eagerCreate(model interface{}, excludeColumns ...string) er
 				return err
 			}
 			id := fbn.Interface()
-			// Matt TODO: also check if exists!
 			if IsZeroOfUnderlyingType(id) {
 				return c.Create(m.Value)
 			}
