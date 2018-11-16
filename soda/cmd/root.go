@@ -23,12 +23,15 @@ var RootCmd = &cobra.Command{
 		if !c.PersistentFlags().Changed("env") {
 			env = defaults.String(os.Getenv("GO_ENV"), env)
 		}
+		// TODO! Only do this when the command needs it.
 		setConfigLocation()
+		pop.LoadConfigFile()
 	},
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		if !version {
-			cmd.Help()
+			return cmd.Help()
 		}
+		return nil
 	},
 }
 
@@ -56,7 +59,6 @@ func setConfigLocation() {
 		pop.AddLookupPaths(dir)
 		pop.ConfigName = file
 	}
-	pop.LoadConfigFile()
 }
 
 func getConn() *pop.Connection {
