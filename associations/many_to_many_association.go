@@ -129,19 +129,23 @@ func (m *manyToManyAssociation) Statements() []AssociationStatement {
 		v := m.fieldValue.Index(i)
 		manyIDValue := v.FieldByName("ID").Interface()
 		modelIDValue := m.model.FieldByName("ID").Interface()
-		stm := "INSERT INTO %s (%s,%s,%s,%s) VALUES(?,?,?,?)"
+		stm := "INSERT INTO %s (%s,%s,%s,%s) SELECT ?,?,?,? WHERE NOT EXISTS (SELECT * FROM %s WHERE %s = ? AND %s = ?)"
+
+		if IsZeroOfUnderlyingType(manyIDValue) || IsZeroOfUnderlyingType(modelIDValue) {
+			continue
+		}
 
 		associationStm := AssociationStatement{
-			Statement: fmt.Sprintf(stm, m.manyToManyTableName, modelColumnID, columnFieldID, "created_at", "updated_at"),
-			Args:      []interface{}{modelIDValue, manyIDValue, time.Now(), time.Now()},
+			Statement: fmt.Sprintf(stm, m.manyToManyTableName, modelColumnID, columnFieldID, "created_at", "updated_at", m.manyToManyTableName, modelColumnID, columnFieldID),
+			Args:      []interface{}{modelIDValue, manyIDValue, time.Now(), time.Now(), modelIDValue, manyIDValue},
 		}
 
 		if m.model.FieldByName("ID").Type().Name() == "UUID" {
-			stm = "INSERT INTO %s (%s,%s,%s,%s,%s) VALUES(?,?,?,?,?)"
+			stm = "INSERT INTO %s (%s,%s,%s,%s,%s) SELECT ?,?,?,?,? WHERE NOT EXISTS (SELECT * FROM %s WHERE %s = ? AND %s = ?)"
 			id, _ := uuid.NewV4()
 			associationStm = AssociationStatement{
-				Statement: fmt.Sprintf(stm, m.manyToManyTableName, "id", modelColumnID, columnFieldID, "created_at", "updated_at"),
-				Args:      []interface{}{id, modelIDValue, manyIDValue, time.Now(), time.Now()},
+				Statement: fmt.Sprintf(stm, m.manyToManyTableName, "id", modelColumnID, columnFieldID, "created_at", "updated_at", m.manyToManyTableName, modelColumnID, columnFieldID),
+				Args:      []interface{}{id, modelIDValue, manyIDValue, time.Now(), time.Now(), modelIDValue, manyIDValue},
 			}
 		}
 
