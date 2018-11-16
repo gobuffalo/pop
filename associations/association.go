@@ -63,9 +63,23 @@ type AssociationBeforeCreatable interface {
 	Association
 }
 
+type AssociationBeforeUpdatable interface {
+	BeforeInterface() interface{}
+	BeforeSetup() error
+	Association
+}
+
 // AssociationAfterCreatable allows an association to be created after
 // the parent structure.
 type AssociationAfterCreatable interface {
+	AfterInterface() interface{}
+	AfterSetup() error
+	AfterProcess() AssociationStatement
+	Association
+}
+
+
+type AssociationAfterUpdatable interface {
 	AfterInterface() interface{}
 	AfterSetup() error
 	AfterProcess() AssociationStatement
@@ -106,6 +120,18 @@ func (a Associations) AssociationsBeforeCreatable() []AssociationBeforeCreatable
 	return before
 }
 
+// AssociationsAfterCreateable returns all associations the implement the AssociationBeforeUpdatable
+// interface. Belongs To association is an example of this implementation.
+func (a Associations)AssociationsBeforeUpdatable() []AssociationBeforeUpdatable {
+	var before []AssociationBeforeUpdatable
+	for i := range a {
+		if _, ok := a[i].(AssociationBeforeUpdatable); ok {
+			before = append(before, a[i].(AssociationBeforeUpdatable))
+		}
+	}
+	return before
+}
+
 // AssociationsAfterCreatable returns all associations that implement AssociationAfterCreatable
 // interface. Has Many and Has One associations are examples of this implementation.
 func (a Associations) AssociationsAfterCreatable() []AssociationAfterCreatable {
@@ -113,6 +139,16 @@ func (a Associations) AssociationsAfterCreatable() []AssociationAfterCreatable {
 	for i := range a {
 		if _, ok := a[i].(AssociationAfterCreatable); ok {
 			after = append(after, a[i].(AssociationAfterCreatable))
+		}
+	}
+	return after
+}
+
+func (a Associations) AssociationsAfterUpdatable() []AssociationAfterUpdatable {
+	var after []AssociationAfterUpdatable
+	for i := range a {
+		if _, ok := a[i].(AssociationAfterUpdatable); ok {
+			after = append(after, a[i].(AssociationAfterUpdatable))
 		}
 	}
 	return after
