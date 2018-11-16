@@ -722,6 +722,11 @@ func Test_Flat_Validate_And_Create_Parental_With_Existing(t *testing.T) {
 		r.Equal(1, songCount)
 		r.NotZero(song.ID)
 
+		m2mQuery := tx.RawQuery("select * from users_addresses")
+		m2mCount, m2mErr := m2mQuery.ExecWithCount()
+		r.NoError(m2mErr)
+		r.Zero(m2mCount)
+
 		user := User{
 			Name:         nulls.NewString("Mark 'Awesome' Bates"),
 			Books:        Books{book, book2},
@@ -749,6 +754,10 @@ func Test_Flat_Validate_And_Create_Parental_With_Existing(t *testing.T) {
 
 		ctx, _ = tx.Count(&Song{})
 		r.Equal(songCount, ctx)
+
+		m2mCount, m2mErr = m2mQuery.ExecWithCount()
+		r.NoError(m2mErr)
+		r.Equal(1, m2mCount)
 
 		u := User{}
 		q := tx.Eager().Where("name = ?", "Mark 'Awesome' Bates")
