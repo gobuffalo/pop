@@ -13,14 +13,13 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/gobuffalo/flect"
-	"github.com/gobuffalo/makr"
-	"github.com/pkg/errors"
-
 	"github.com/gobuffalo/fizz"
+	"github.com/gobuffalo/flect"
 	nflect "github.com/gobuffalo/flect/name"
+	"github.com/gobuffalo/makr"
 	"github.com/gobuffalo/pop"
 	"github.com/markbates/going/defaults"
+	"github.com/pkg/errors"
 )
 
 type model struct {
@@ -235,8 +234,8 @@ func newModel(name string, structTag string) (model, error) {
 		return model{}, errors.New("invalid struct tags (use xml or json)")
 	}
 
-	m.addAttribute(attribute{Name: flect.New("created_at"), OriginalType: "time.Time", GoType: "time.Time", PreventValidation: true, StructTag: structTag})
-	m.addAttribute(attribute{Name: flect.New("updated_at"), OriginalType: "time.Time", GoType: "time.Time", PreventValidation: true, StructTag: structTag})
+	_ = m.addAttribute(attribute{Name: flect.New("created_at"), OriginalType: "time.Time", GoType: "time.Time", PreventValidation: true, StructTag: structTag})
+	_ = m.addAttribute(attribute{Name: flect.New("updated_at"), OriginalType: "time.Time", GoType: "time.Time", PreventValidation: true, StructTag: structTag})
 
 	return m, nil
 }
