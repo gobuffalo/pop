@@ -28,11 +28,11 @@ func init() {
 
 	ap := os.Getenv("APP_PATH")
 	if ap != "" {
-		AddLookupPaths(ap)
+		_ = AddLookupPaths(ap)
 	}
 	ap = os.Getenv("POP_PATH")
 	if ap != "" {
-		AddLookupPaths(ap)
+		_ = AddLookupPaths(ap)
 	}
 }
 

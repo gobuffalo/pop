@@ -325,12 +325,12 @@ func Test_Save(t *testing.T) {
 	transaction(func(tx *Connection) {
 		u := &User{Name: nulls.NewString("Mark")}
 		r.Zero(u.ID)
-		tx.Save(u)
+		r.NoError(tx.Save(u))
 		r.NotZero(u.ID)
 
 		uat := u.UpdatedAt.UnixNano()
 
-		tx.Save(u)
+		r.NoError(tx.Save(u))
 		r.NotEqual(uat, u.UpdatedAt.UnixNano())
 	})
 }
@@ -345,13 +345,13 @@ func Test_Save_With_Slice(t *testing.T) {
 		r.Zero(u[0].ID)
 		r.Zero(u[1].ID)
 
-		tx.Save(&u)
+		r.NoError(tx.Save(&u))
 		r.NotZero(u[0].ID)
 		r.NotZero(u[1].ID)
 
 		uat := u[0].UpdatedAt.UnixNano()
 
-		tx.Save(u)
+		r.NoError(tx.Save(u))
 		r.NotEqual(uat, u[0].UpdatedAt.UnixNano())
 	})
 }
@@ -1071,7 +1071,7 @@ func Test_Update(t *testing.T) {
 		err := tx.Update(&user)
 		r.NoError(err)
 
-		tx.Reload(&user)
+		r.NoError(tx.Reload(&user))
 		r.Equal(user.Name.String, "Marky")
 	})
 }
@@ -1098,7 +1098,7 @@ func Test_Update_With_Slice(t *testing.T) {
 		err := tx.Update(&user)
 		r.NoError(err)
 
-		tx.Reload(&user)
+		r.NoError(tx.Reload(&user))
 		r.Equal(user[0].Name.String, "Marky")
 		r.Equal(user[1].Name.String, "Lawrence")
 	})
