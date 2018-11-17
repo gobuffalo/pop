@@ -25,7 +25,7 @@ ci-test:
 	$(GO_BIN) test -tags ${TAGS} -race ./...
 
 lint:
-	gometalinter --vendor ./... --deadline=1m --skip=internal
+	golangci-lint run
 
 update:
 	$(GO_BIN) get -u -tags ${TAGS}
