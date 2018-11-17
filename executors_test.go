@@ -593,6 +593,10 @@ func Test_Eager_Validate_And_Create_Parental_With_Existing(t *testing.T) {
 		r.Equal(1, addrCount)
 		r.NotZero(addr.ID)
 
+		m2mCount, m2mErr := tx.Count(&UsersAddress{})
+		r.NoError(m2mErr)
+		r.Zero(m2mCount)
+
 		user := User{
 			Name:         nulls.NewString("Mark 'Awesome' Bates"),
 			Books:        Books{{Title: "Pop Book", Isbn: "PB1", Description: "Awesome Book!"}},
@@ -614,6 +618,10 @@ func Test_Eager_Validate_And_Create_Parental_With_Existing(t *testing.T) {
 
 		ctx, _ = tx.Count(&Address{})
 		r.Equal(addrCount+1, ctx)
+
+		m2mCount, m2mErr = tx.Count(&UsersAddress{})
+		r.NoError(m2mErr)
+		r.Equal(2, m2mCount)
 
 		u := User{}
 		q := tx.Eager().Where("name = ?", "Mark 'Awesome' Bates")
@@ -646,6 +654,10 @@ func Test_Eager_Validate_And_Create_Parental_With_Partial_Existing(t *testing.T)
 		r.Equal(1, addrCount)
 		r.NotZero(addr.ID)
 
+		m2mCount, m2mErr := tx.Count(&UsersAddress{})
+		r.NoError(m2mErr)
+		r.Zero(m2mCount)
+
 		user := User{
 			Name:         nulls.NewString("Mark 'Awesome' Bates"),
 			Books:        Books{{Title: "Pop Book", Isbn: "PB1", Description: "Awesome Book!"}},
@@ -667,6 +679,10 @@ func Test_Eager_Validate_And_Create_Parental_With_Partial_Existing(t *testing.T)
 
 		ctx, _ = tx.Count(&Address{})
 		r.Equal(addrCount+1, ctx)
+
+		m2mCount, m2mErr = tx.Count(&UsersAddress{})
+		r.NoError(m2mErr)
+		r.Equal(2, m2mCount)
 
 		u := User{}
 		q := tx.Eager().Where("name = ?", "Mark 'Awesome' Bates")
@@ -722,6 +738,10 @@ func Test_Flat_Validate_And_Create_Parental_With_Existing(t *testing.T) {
 		r.Equal(1, songCount)
 		r.NotZero(song.ID)
 
+		m2mCount, m2mErr := tx.Count(&UsersAddress{})
+		r.NoError(m2mErr)
+		r.Zero(m2mCount)
+
 		user := User{
 			Name:         nulls.NewString("Mark 'Awesome' Bates"),
 			Books:        Books{book, book2},
@@ -749,6 +769,10 @@ func Test_Flat_Validate_And_Create_Parental_With_Existing(t *testing.T) {
 
 		ctx, _ = tx.Count(&Song{})
 		r.Equal(songCount, ctx)
+
+		m2mCount, m2mErr = tx.Count(&UsersAddress{})
+		r.NoError(m2mErr)
+		r.Equal(1, m2mCount)
 
 		u := User{}
 		q := tx.Eager().Where("name = ?", "Mark 'Awesome' Bates")
@@ -797,6 +821,10 @@ func Test_Flat_Validate_And_Create_Parental_With_Partial_Existing(t *testing.T) 
 		r.Equal(1, songCount)
 		r.NotZero(song.ID)
 
+		m2mCount, m2mErr := tx.Count(&UsersAddress{})
+		r.NoError(m2mErr)
+		r.Zero(m2mCount)
+
 		user := User{
 			Name: nulls.NewString("Mark 'Awesome' Bates"),
 			//TODO: add another existing here and test for it to make sure this works with multiples (books)
@@ -825,6 +853,10 @@ func Test_Flat_Validate_And_Create_Parental_With_Partial_Existing(t *testing.T) 
 
 		ctx, _ = tx.Count(&Song{})
 		r.Equal(songCount, ctx)
+
+		m2mCount, m2mErr = tx.Count(&UsersAddress{})
+		r.NoError(m2mErr)
+		r.Equal(1, m2mCount)
 
 		u := User{}
 		q := tx.Eager().Where("name = ?", "Mark 'Awesome' Bates")
