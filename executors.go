@@ -85,8 +85,6 @@ func (c *Connection) Save(model interface{}, excludeColumns ...string) error {
 // ValidateAndCreate applies validation rules on the given entry, then creates it
 // if the validation succeed, excluding the given columns.
 func (c *Connection) ValidateAndCreate(model interface{}, excludeColumns ...string) (*validate.Errors, error) {
-	var isEager = c.eager
-
 	sm := &Model{Value: model}
 	verrs, err := sm.validateCreate(c)
 	if err != nil {
@@ -96,7 +94,7 @@ func (c *Connection) ValidateAndCreate(model interface{}, excludeColumns ...stri
 		return verrs, nil
 	}
 
-	if isEager {
+	if c.eager {
 		asos, err2 := associations.ForStruct(model, c.eagerFields...)
 
 		if err2 != nil {
