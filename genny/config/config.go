@@ -5,11 +5,11 @@ import (
 
 	"github.com/gobuffalo/genny"
 	"github.com/gobuffalo/genny/movinglater/gotools"
-	"github.com/gobuffalo/packr"
+	"github.com/gobuffalo/packr/v2"
 	"github.com/pkg/errors"
 )
 
-var templates = packr.NewBox("../config/templates")
+var templates = packr.New("pop:genny:config", "../config/templates")
 
 // New generator to create a database.yml file
 func New(opts *Options) (*genny.Generator, error) {
