@@ -152,6 +152,9 @@ func fieldIsNil(f reflect.Value) bool {
 	if n := nulls.New(f.Interface()); n != nil {
 		return n.Interface() == nil
 	}
+	if f.Kind() == reflect.Interface || f.Kind() == reflect.Ptr {
+		return f.IsNil()
+	}
 	return f.Interface() == nil
 }
 

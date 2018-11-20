@@ -8,7 +8,6 @@ import (
 
 	"github.com/gobuffalo/fizz"
 	"github.com/gobuffalo/fizz/translators"
-
 	"github.com/stretchr/testify/require"
 )
 
@@ -226,7 +225,8 @@ func (s *MySQLSuite) Test_MySQL_DDL_Schema() {
 	// do it against "pop_test"
 	err = PDB.Dialect.DumpSchema(f)
 	r.NoError(err)
-	f.Seek(0, 0)
+	_, err = f.Seek(0, 0)
+	r.NoError(err)
 	err = PDB.Dialect.LoadSchema(f)
 	r.NoError(err)
 
@@ -237,7 +237,8 @@ func (s *MySQLSuite) Test_MySQL_DDL_Schema() {
 	}()
 
 	// do it against "pop_test_not_exist"
-	f.Seek(0, 0)
+	_, err = f.Seek(0, 0)
+	r.NoError(err)
 	err = PDB.Dialect.LoadSchema(f)
 	r.Error(err)
 	err = PDB.Dialect.DumpSchema(f)

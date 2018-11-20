@@ -93,19 +93,21 @@ func (b *belongsToAssociation) Constraint() (string, []interface{}) {
 }
 
 func (b *belongsToAssociation) BeforeInterface() interface{} {
+	// if the owner field is set, don't try to create the association to prevent conflicts.
 	if !b.skipped {
 		return nil
 	}
 
-	if b.ownerModel.Kind() == reflect.Ptr {
-		return b.ownerModel.Interface()
+	m := b.ownerModel
+	if m.Kind() == reflect.Ptr {
+		m = b.ownerModel.Elem()
 	}
 
-	if IsZeroOfUnderlyingType(b.ownerModel.Interface()) {
+	if IsZeroOfUnderlyingType(m.Interface()) {
 		return nil
 	}
 
-	return b.ownerModel.Addr().Interface()
+	return m.Addr().Interface()
 }
 
 func (b *belongsToAssociation) BeforeSetup() error {

@@ -48,6 +48,6 @@ func Test_Has_Many_SetValue(t *testing.T) {
 	ca, ok := as[0].(associations.AssociationAfterCreatable)
 	a.True(ok)
 
-	ca.AfterSetup()
+	a.NoError(ca.AfterSetup())
 	a.Equal(foo.ID, (*foo.BarHasManies)[0].FooHasManyID.Interface().(int))
 }
