@@ -131,6 +131,7 @@ func (m *manyToManyAssociation) Statements() []AssociationStatement {
 		modelIDValue := m.model.FieldByName("ID").Interface()
 		stm := "INSERT INTO %s (%s,%s,%s,%s) SELECT ?,?,?,? WHERE NOT EXISTS (SELECT * FROM %s WHERE %s = ? AND %s = ?)"
 
+		// Matt TODO: also check if exists
 		if IsZeroOfUnderlyingType(manyIDValue) || IsZeroOfUnderlyingType(modelIDValue) {
 			continue
 		}

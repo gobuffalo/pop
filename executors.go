@@ -3,6 +3,7 @@ package pop
 import (
 	"reflect"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/gobuffalo/pop/associations"
 	"github.com/gobuffalo/pop/columns"
 	"github.com/gobuffalo/pop/logging"
@@ -248,6 +249,12 @@ func (c *Connection) Create(model interface{}, excludeColumns ...string) error {
 							// Matt TODO: also check if exists! (&& !Q(c).Exists(i)?)
 							if IsZeroOfUnderlyingType(id) {
 								return c.Create(m.Value)
+							} else {
+								exists, errE := Q(c).Exists(i)
+								if errE != nil || !exists {
+									spew.Printf("error?:%v\n", errE)
+									return c.Create(m.Value)
+								}
 							}
 							return nil
 						})
