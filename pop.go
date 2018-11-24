@@ -13,6 +13,9 @@ var urlParser = make(map[string]func(*ConnectionDetails) error)
 // map of dialect specific connection details finalizers
 var finalizer = make(map[string]func(*ConnectionDetails))
 
+// map of connection creators
+var newConnection = make(map[string]func(*ConnectionDetails) (dialect, error))
+
 // DialectSupported checks support for the given database dialect
 func DialectSupported(d string) bool {
 	for _, ad := range AvailableDialects {
