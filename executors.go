@@ -216,6 +216,11 @@ func (c *Connection) ValidateAndUpdate(model interface{}, excludeColumns ...stri
 // Update writes changes from an entry to the database, excluding the given columns.
 // It updates the `updated_at` column automatically.
 func (c *Connection) Update(model interface{}, excludeColumns ...string) error {
+
+	if c.eager {
+		return c.eagerUpdate(model, excludeColumns...)
+	}
+
 	sm := &Model{Value: model}
 	return sm.iterate(func(m *Model) error {
 		return c.timeFunc("Update", func() error {

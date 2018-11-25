@@ -197,6 +197,7 @@ func (c *Connection) eagerUpdate(model interface{}, excludeColumns ...string) er
 		statements := stms[index].Statements()
 
 		// Create Associations
+		// TODO need to check the existing associations for deletions
 		for _, stm := range statements {
 			if c.TX != nil {
 				_, err := c.TX.Exec(c.Dialect.TranslateSQL(stm.Statement), stm.Args...)

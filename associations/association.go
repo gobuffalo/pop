@@ -120,7 +120,7 @@ func (a Associations) AssociationsBeforeCreatable() []AssociationBeforeCreatable
 	return before
 }
 
-// AssociationsAfterCreateable returns all associations the implement the AssociationBeforeUpdatable
+// AssociationsAfterUpdateable returns all associations the implement the AssociationBeforeUpdatable
 // interface. Belongs To association is an example of this implementation.
 func (a Associations)AssociationsBeforeUpdatable() []AssociationBeforeUpdatable {
 	var before []AssociationBeforeUpdatable
