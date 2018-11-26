@@ -143,3 +143,28 @@ func (h *hasOneAssociation) AfterProcess() AssociationStatement {
 		Args:      ids,
 	}
 }
+
+// returns a statement to unset all other has one relationships for that type of model
+func (h *hasOneAssociation) AfterFixRelationships() AssociationStatement {
+	ownerIDFieldName := "ID"
+	belongingIDFieldName := "ID"
+	om := h.ownedModel
+
+	// get the owner ID
+	ownerID := reflect.Indirect(reflect.ValueOf(h.owner)).FieldByName(ownerIDFieldName).Interface()
+
+	// Get the current Id  of the recently created association
+	currentId := om.FieldByName(belongingIDFieldName).Interface()
+
+	ids := []interface{}{ownerID}
+	ids = append(ids, currentId)
+
+
+	// create a statement that unset the the owner id from the referenceing ID Field
+	ret := fmt.Sprintf("UPDATE %s SET %s = null WHERE %s NOT IN (?)", h.ownedTableName, h.fkID, belongingIDFieldName)
+
+	return AssociationStatement{
+		Statement: ret,
+		Args:      ids,
+	}
+}

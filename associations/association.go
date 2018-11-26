@@ -82,7 +82,8 @@ type AssociationAfterCreatable interface {
 type AssociationAfterUpdatable interface {
 	AfterInterface() interface{}
 	AfterSetup() error
-	AfterProcess() AssociationStatement
+	AfterFixRelationships() AssociationStatement
+	//AfterProcess() AssociationStatement
 	Association
 }
 

@@ -127,7 +127,7 @@ func (c *Connection) eagerUpdate(model interface{}, excludeColumns ...string) er
 		}
 
 		sm := &Model{Value: i}
-		err = sm.iterate(func(m * Model) error {
+		err = sm.iterate(func(m *Model) error {
 			id, err := m.fieldByName("ID")
 			if err != nil {
 				return err
@@ -180,17 +180,42 @@ func (c *Connection) eagerUpdate(model interface{}, excludeColumns ...string) er
 			}
 			id := fbn.Interface()
 			if IsZeroOfUnderlyingType(id) {
-				return c.Create(m.Value)
+				err = c.Create(m.Value)
+
+				if err != nil {
+					return err
+				}
 			} else {
-				return c.Update(m.Value)
+				err = c.Update(m.Value)
+				if err != nil {
+					return err
+				}
 			}
+
 			return nil
 		})
+
+		 stm := after[index].AfterFixRelationships()
+
+		if c.TX != nil {
+			_, err := c.TX.Exec(c.Dialect.TranslateSQL(stm.Statement), stm.Args...)
+			if err != nil {
+				return err
+			}
+			continue
+		}
+		_, err = c.Store.Exec(c.Dialect.TranslateSQL(stm.Statement), stm.Args...)
+		if err != nil {
+			return err
+		}
 
 		if err != nil {
 			return err
 		}
 	}
+
+	// TODO  Should I fire Process relationships? or something like that?
+	// TODO Need to clean up the has one when I update a has one then I need to
 
 	stms := assos.AssociationsCreatableStatement()
 	for index := range stms {
@@ -211,11 +236,10 @@ func (c *Connection) eagerUpdate(model interface{}, excludeColumns ...string) er
 				return err
 			}
 		}
-	//	Delete Associations.µ
+		//	Delete Associations.µ
 	}
 
 	return err
-
 
 }
 
