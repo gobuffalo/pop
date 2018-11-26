@@ -24,11 +24,16 @@ var dialect string
 
 // ConfigCmd is the command to generate pop config files
 var ConfigCmd = &cobra.Command{
-	Use:   "config",
-	Short: "Generates a database.yml file for your project.",
+	Use:              "config",
+	Short:            "Generates a database.yml file for your project.",
+	PersistentPreRun: func(c *cobra.Command, args []string) {},
 	RunE: func(cmd *cobra.Command, args []string) error {
 		cflag := cmd.Flag("config")
-		cfgFile := defaults.String(cflag.Value.String(), "database.yml")
+		cflagVal := ""
+		if cflag != nil {
+			cflagVal = cflag.Value.String()
+		}
+		cfgFile := defaults.String(cflagVal, "database.yml")
 
 		run := genny.WetRunner(context.Background())
 

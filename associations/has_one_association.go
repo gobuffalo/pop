@@ -75,24 +75,12 @@ func (h *hasOneAssociation) Constraint() (string, []interface{}) {
 	return fmt.Sprintf("%s = ?", h.fkID), []interface{}{h.ownerID}
 }
 
-// AfterInterface gets the value of the model to create after
-// creating the parent model. It returns nil if its value is
-// not set.
-func (h *hasOneAssociation) AfterInterface() interface{} {
-	if h.ownedModel.Kind() == reflect.Ptr {
-		return h.ownedModel.Interface()
-	}
-
-	if IsZeroOfUnderlyingType(h.ownedModel.Interface()) {
+func (h *hasOneAssociation) AfterSetup() error {
+	om := h.ownedModel
+	if fieldIsNil(om) {
 		return nil
 	}
-
-	return h.ownedModel.Addr().Interface()
-}
-
-func (h *hasOneAssociation) AfterSetup() error {
 	ownerID := reflect.Indirect(reflect.ValueOf(h.owner)).FieldByName("ID").Interface()
-	om := h.ownedModel
 	if om.Kind() == reflect.Ptr {
 		om = om.Elem()
 	}
@@ -107,6 +95,24 @@ func (h *hasOneAssociation) AfterSetup() error {
 	}
 
 	return fmt.Errorf("could not set '%s' to '%s'", ownerID, fval)
+}
+
+// AfterInterface gets the value of the model to create after
+// creating the parent model. It returns nil if its value is
+// not set.
+func (h *hasOneAssociation) AfterInterface() interface{} {
+	m := h.ownedModel
+	if fieldIsNil(m) {
+		return nil
+	}
+	if m.Kind() == reflect.Ptr {
+		return m.Interface()
+	}
+	if IsZeroOfUnderlyingType(m.Interface()) {
+		return nil
+	}
+
+	return m.Addr().Interface()
 }
 
 func (h *hasOneAssociation) AfterProcess() AssociationStatement {

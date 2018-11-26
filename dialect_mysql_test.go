@@ -8,7 +8,6 @@ import (
 
 	"github.com/gobuffalo/fizz"
 	"github.com/gobuffalo/fizz/translators"
-
 	"github.com/stretchr/testify/require"
 )
 
@@ -172,7 +171,7 @@ func Test_MySQL_Finalizer_Default_Options(t *testing.T) {
 	finalizerMySQL(m.ConnectionDetails)
 	r.Contains(m.URL(), "multiStatements=true")
 	r.Contains(m.URL(), "parseTime=true")
-	r.Contains(m.URL(), "readTimeout=1s")
+	r.Contains(m.URL(), "readTimeout=3s")
 	r.Contains(m.URL(), "collation=utf8mb4_general_ci")
 }
 
@@ -226,7 +225,8 @@ func (s *MySQLSuite) Test_MySQL_DDL_Schema() {
 	// do it against "pop_test"
 	err = PDB.Dialect.DumpSchema(f)
 	r.NoError(err)
-	f.Seek(0, 0)
+	_, err = f.Seek(0, 0)
+	r.NoError(err)
 	err = PDB.Dialect.LoadSchema(f)
 	r.NoError(err)
 
@@ -237,7 +237,8 @@ func (s *MySQLSuite) Test_MySQL_DDL_Schema() {
 	}()
 
 	// do it against "pop_test_not_exist"
-	f.Seek(0, 0)
+	_, err = f.Seek(0, 0)
+	r.NoError(err)
 	err = PDB.Dialect.LoadSchema(f)
 	r.Error(err)
 	err = PDB.Dialect.DumpSchema(f)

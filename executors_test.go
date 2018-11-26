@@ -325,12 +325,12 @@ func Test_Save(t *testing.T) {
 	transaction(func(tx *Connection) {
 		u := &User{Name: nulls.NewString("Mark")}
 		r.Zero(u.ID)
-		tx.Save(u)
+		r.NoError(tx.Save(u))
 		r.NotZero(u.ID)
 
 		uat := u.UpdatedAt.UnixNano()
 
-		tx.Save(u)
+		r.NoError(tx.Save(u))
 		r.NotEqual(uat, u.UpdatedAt.UnixNano())
 	})
 }
@@ -345,13 +345,13 @@ func Test_Save_With_Slice(t *testing.T) {
 		r.Zero(u[0].ID)
 		r.Zero(u[1].ID)
 
-		tx.Save(&u)
+		r.NoError(tx.Save(&u))
 		r.NotZero(u[0].ID)
 		r.NotZero(u[1].ID)
 
 		uat := u[0].UpdatedAt.UnixNano()
 
-		tx.Save(u)
+		r.NoError(tx.Save(u))
 		r.NotEqual(uat, u[0].UpdatedAt.UnixNano())
 	})
 }
@@ -593,6 +593,10 @@ func Test_Eager_Validate_And_Create_Parental_With_Existing(t *testing.T) {
 		r.Equal(1, addrCount)
 		r.NotZero(addr.ID)
 
+		m2mCount, m2mErr := tx.Count(&UsersAddress{})
+		r.NoError(m2mErr)
+		r.Zero(m2mCount)
+
 		user := User{
 			Name:         nulls.NewString("Mark 'Awesome' Bates"),
 			Books:        Books{{Title: "Pop Book", Isbn: "PB1", Description: "Awesome Book!"}},
@@ -614,6 +618,10 @@ func Test_Eager_Validate_And_Create_Parental_With_Existing(t *testing.T) {
 
 		ctx, _ = tx.Count(&Address{})
 		r.Equal(addrCount+1, ctx)
+
+		m2mCount, m2mErr = tx.Count(&UsersAddress{})
+		r.NoError(m2mErr)
+		r.Equal(2, m2mCount)
 
 		u := User{}
 		q := tx.Eager().Where("name = ?", "Mark 'Awesome' Bates")
@@ -646,6 +654,10 @@ func Test_Eager_Validate_And_Create_Parental_With_Partial_Existing(t *testing.T)
 		r.Equal(1, addrCount)
 		r.NotZero(addr.ID)
 
+		m2mCount, m2mErr := tx.Count(&UsersAddress{})
+		r.NoError(m2mErr)
+		r.Zero(m2mCount)
+
 		user := User{
 			Name:         nulls.NewString("Mark 'Awesome' Bates"),
 			Books:        Books{{Title: "Pop Book", Isbn: "PB1", Description: "Awesome Book!"}},
@@ -667,6 +679,10 @@ func Test_Eager_Validate_And_Create_Parental_With_Partial_Existing(t *testing.T)
 
 		ctx, _ = tx.Count(&Address{})
 		r.Equal(addrCount+1, ctx)
+
+		m2mCount, m2mErr = tx.Count(&UsersAddress{})
+		r.NoError(m2mErr)
+		r.Equal(2, m2mCount)
 
 		u := User{}
 		q := tx.Eager().Where("name = ?", "Mark 'Awesome' Bates")
@@ -722,6 +738,10 @@ func Test_Flat_Validate_And_Create_Parental_With_Existing(t *testing.T) {
 		r.Equal(1, songCount)
 		r.NotZero(song.ID)
 
+		m2mCount, m2mErr := tx.Count(&UsersAddress{})
+		r.NoError(m2mErr)
+		r.Zero(m2mCount)
+
 		user := User{
 			Name:         nulls.NewString("Mark 'Awesome' Bates"),
 			Books:        Books{book, book2},
@@ -749,6 +769,10 @@ func Test_Flat_Validate_And_Create_Parental_With_Existing(t *testing.T) {
 
 		ctx, _ = tx.Count(&Song{})
 		r.Equal(songCount, ctx)
+
+		m2mCount, m2mErr = tx.Count(&UsersAddress{})
+		r.NoError(m2mErr)
+		r.Equal(1, m2mCount)
 
 		u := User{}
 		q := tx.Eager().Where("name = ?", "Mark 'Awesome' Bates")
@@ -797,6 +821,10 @@ func Test_Flat_Validate_And_Create_Parental_With_Partial_Existing(t *testing.T) 
 		r.Equal(1, songCount)
 		r.NotZero(song.ID)
 
+		m2mCount, m2mErr := tx.Count(&UsersAddress{})
+		r.NoError(m2mErr)
+		r.Zero(m2mCount)
+
 		user := User{
 			Name: nulls.NewString("Mark 'Awesome' Bates"),
 			//TODO: add another existing here and test for it to make sure this works with multiples (books)
@@ -825,6 +853,10 @@ func Test_Flat_Validate_And_Create_Parental_With_Partial_Existing(t *testing.T) 
 
 		ctx, _ = tx.Count(&Song{})
 		r.Equal(songCount, ctx)
+
+		m2mCount, m2mErr = tx.Count(&UsersAddress{})
+		r.NoError(m2mErr)
+		r.Equal(1, m2mCount)
 
 		u := User{}
 		q := tx.Eager().Where("name = ?", "Mark 'Awesome' Bates")
@@ -884,15 +916,34 @@ func Test_Eager_Create_Belongs_To(t *testing.T) {
 func Test_Eager_Create_Belongs_To_Pointers(t *testing.T) {
 	transaction(func(tx *Connection) {
 		r := require.New(t)
+		// Create a body with a head
 		body := Body{
 			Head: &Head{},
 		}
 
 		err := tx.Eager().Create(&body)
 		r.NoError(err)
+		r.NotZero(body.ID)
+		r.NotZero(body.Head.ID)
 
 		ctx, _ := tx.Count(&Body{})
 		r.Equal(1, ctx)
+
+		ctx, _ = tx.Count(&Head{})
+		r.Equal(1, ctx)
+
+		// Create a body without a head:
+		body = Body{
+			Head: nil,
+		}
+
+		err = tx.Eager().Create(&body)
+		r.NoError(err)
+		r.NotZero(body.ID)
+		r.Nil(body.Head)
+
+		ctx, _ = tx.Count(&Body{})
+		r.Equal(2, ctx)
 
 		ctx, _ = tx.Count(&Head{})
 		r.Equal(1, ctx)
@@ -1039,7 +1090,7 @@ func Test_Update(t *testing.T) {
 		err := tx.Update(&user)
 		r.NoError(err)
 
-		tx.Reload(&user)
+		r.NoError(tx.Reload(&user))
 		r.Equal(user.Name.String, "Marky")
 	})
 }
@@ -1066,7 +1117,7 @@ func Test_Update_With_Slice(t *testing.T) {
 		err := tx.Update(&user)
 		r.NoError(err)
 
-		tx.Reload(&user)
+		r.NoError(tx.Reload(&user))
 		r.Equal(user[0].Name.String, "Marky")
 		r.Equal(user[1].Name.String, "Lawrence")
 	})
