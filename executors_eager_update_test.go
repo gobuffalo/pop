@@ -224,7 +224,7 @@ func Test_Eager_Update_Has_One(t *testing.T) {
 
 		// update Song
 
-		u.FavoriteSong =  Song{Title: "Body - Brando "}
+		u.FavoriteSong =  Song{Title: "Body - Brando"}
 
 		// Update user
 		tx.Eager().Update(&u)
@@ -242,23 +242,6 @@ func Test_Eager_Update_Has_One(t *testing.T) {
 
 		// Favorite Song should equal "Body - Brando"
 		r.Equal( "Body - Brando", u2.FavoriteSong.Title)
-
-		// Get all songs an make sure that only one of them has the user id set to the user we just created
-
-		err = tx.All(&songs)
-
-		r.NoError(err)
-
-		var found []Song
-
-		for _, value := range songs {
-			if value.UserID == user.ID {
-				found = append(found, value)
-			}
-		}
-
-		r.Equal( len(found), 1)
-
-
+		
 	})
 }
