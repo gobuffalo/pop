@@ -1,9 +1,11 @@
 package associations
 
 import (
+	"bytes"
 	"fmt"
 	"reflect"
-
+	"text/template"
+	
 	"github.com/gobuffalo/flect"
 	"github.com/gobuffalo/pop/nulls"
 	"github.com/gobuffalo/x/defaults"
@@ -36,10 +38,10 @@ func hasOneAssociationBuilder(p associationParams) (Association, error) {
 	if fieldIsNil(ownerID) {
 		skipped = true
 	}
-
+	
 	ownerName := p.modelType.Name()
 	fk := defaults.String(p.popTags.Find("fk_id").Value, flect.Underscore(ownerName)+"_id")
-
+	
 	fval := p.modelValue.FieldByName(p.field.Name)
 	return &hasOneAssociation{
 		owner:          p.model,
@@ -93,7 +95,7 @@ func (h *hasOneAssociation) AfterSetup() error {
 		}
 		return nil
 	}
-
+	
 	return fmt.Errorf("could not set '%s' to '%s'", ownerID, fval)
 }
 
@@ -111,7 +113,7 @@ func (h *hasOneAssociation) AfterInterface() interface{} {
 	if IsZeroOfUnderlyingType(m.Interface()) {
 		return nil
 	}
-
+	
 	return m.Addr().Interface()
 }
 
@@ -135,15 +137,15 @@ func (h *hasOneAssociation) AfterProcess() AssociationStatement {
 			Args:      []interface{}{},
 		}
 	}
-
+	
 	ownerIDFieldName := "ID"
 	ownerID := reflect.Indirect(reflect.ValueOf(h.owner)).FieldByName(ownerIDFieldName).Interface()
-
+	
 	ids := []interface{}{ownerID}
 	ids = append(ids, id)
-
+	
 	ret := fmt.Sprintf("UPDATE %s SET %s = ? WHERE %s = ?", h.ownedTableName, h.fkID, belongingIDFieldName)
-
+	
 	return AssociationStatement{
 		Statement: ret,
 		Args:      ids,
@@ -155,22 +157,59 @@ func (h *hasOneAssociation) AfterFixRelationships() AssociationStatement {
 	ownerIDFieldName := "ID"
 	belongingIDFieldName := "ID"
 	om := h.ownedModel
-
+	
 	// get the owner ID
 	ownerID := reflect.Indirect(reflect.ValueOf(h.owner)).FieldByName(ownerIDFieldName).Interface()
-
+	
 	// Get the current Id  of the recently created association
 	currentId := om.FieldByName(belongingIDFieldName).Interface()
-
+	
 	ids := []interface{}{ownerID}
 	ids = append(ids, currentId)
-
-
+	
 	// create a statement that unset the the owner id from the referenceing ID Field
-	ret := fmt.Sprintf("UPDATE %s SET %s = null WHERE %s NOT IN (?)", h.ownedTableName, h.fkID, belongingIDFieldName)
-
+	//ret := fmt.Sprintf(
+	//	"UPDATE %s SET %s = null WHERE %s NOT IN (?)",
+	//	h.ownedTableName,
+	//	h.fkID,
+	//	belongingIDFieldName,
+	//)
+	
+	queryData := struct {
+		Table       string
+		OwnerColumn string
+		QueryColumn string
+	}{
+		h.ownedTableName,
+		h.fkID,
+		belongingIDFieldName,
+	}
+	
+	tmpl, err := template.New("query").Parse(
+		`
+			UPDATE {{.Table}}
+			SET {{.OwnerColumn}} = null
+			WHERE
+			{{.OwnerColumn}} = ?
+			AND
+			{{.QueryColumn}} NOT IN  (?)
+		`,
+	)
+	
+	if err != nil {
+		panic(err)
+	}
+	
+	buf := bytes.Buffer{}
+	
+	err = tmpl.Execute(&buf, queryData)
+	
+	if err != nil {
+		panic(err)
+	}
+	
 	return AssociationStatement{
-		Statement: ret,
+		Statement: buf.String(),
 		Args:      ids,
 	}
 }

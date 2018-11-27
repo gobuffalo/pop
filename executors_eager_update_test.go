@@ -125,9 +125,7 @@ func Test_Eager_Update_Has_Many_Update_Existing(t *testing.T) {
 		u := User{}
 		q := tx.Eager().Where("name = ?", "Carl Lewis")
 		err = q.First(&u)
-
-		count, _ := tx.Count(&Book{})
-
+		
 		// update Address
 
 		address := u.Houses[0]
@@ -144,7 +142,6 @@ func Test_Eager_Update_Has_Many_Update_Existing(t *testing.T) {
 		err = q2.First(&u2)
 
 		r.NoError(err)
-		r.Equal(count, len(u2.Books))
 		r.Equal(u2.Houses[0].HouseNumber, 43)
 
 	})
