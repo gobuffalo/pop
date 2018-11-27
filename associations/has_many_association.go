@@ -1,9 +1,11 @@
 package associations
 
 import (
+	"bytes"
 	"fmt"
 	"reflect"
-
+	"text/template"
+	
 	"github.com/gobuffalo/flect"
 	"github.com/gobuffalo/pop/nulls"
 	"github.com/jmoiron/sqlx"
@@ -35,7 +37,7 @@ func hasManyAssociationBuilder(p associationParams) (Association, error) {
 	if fieldIsNil(ownerID) {
 		skipped = true
 	}
-
+	
 	return &hasManyAssociation{
 		owner:     p.model,
 		tableName: p.popTags.Find("has_many").Value,
@@ -65,14 +67,14 @@ func (a *hasManyAssociation) Interface() interface{} {
 		a.value.Set(val)
 		return a.value.Interface()
 	}
-
+	
 	// This piece of code clears a slice in case it is filled with elements.
 	if a.value.Kind() == reflect.Slice || a.value.Kind() == reflect.Array {
 		valPointer := a.value.Addr()
 		valPointer.Elem().Set(reflect.MakeSlice(valPointer.Type().Elem(), 0, valPointer.Elem().Cap()))
 		return valPointer.Interface()
 	}
-
+	
 	return a.value.Addr().Interface()
 }
 
@@ -100,12 +102,12 @@ func (a *hasManyAssociation) AfterInterface() interface{} {
 
 func (a *hasManyAssociation) AfterSetup() error {
 	ownerID := reflect.Indirect(reflect.ValueOf(a.owner)).FieldByName("ID").Interface()
-
+	
 	v := a.value
 	if v.Kind() == reflect.Ptr {
 		v = v.Elem()
 	}
-
+	
 	for i := 0; i < v.Len(); i++ {
 		fval := v.Index(i).FieldByName(a.ownerName + "ID")
 		if fval.CanSet() {
@@ -126,14 +128,14 @@ func (a *hasManyAssociation) AfterProcess() AssociationStatement {
 	if v.Kind() == reflect.Ptr {
 		v = v.Elem()
 	}
-
+	
 	belongingIDFieldName := "ID"
-
+	
 	ownerIDFieldName := "ID"
 	ownerID := reflect.Indirect(reflect.ValueOf(a.owner)).FieldByName(ownerIDFieldName).Interface()
-
+	
 	ids := []interface{}{}
-
+	
 	for i := 0; i < v.Len(); i++ {
 		id := v.Index(i).FieldByName(belongingIDFieldName).Interface()
 		if !IsZeroOfUnderlyingType(id) {
@@ -146,15 +148,15 @@ func (a *hasManyAssociation) AfterProcess() AssociationStatement {
 			Args:      []interface{}{},
 		}
 	}
-
+	
 	fk := a.fkID
 	if fk == "" {
 		fk = flect.Underscore(a.ownerName) + "_id"
 	}
-
+	
 	// This will be used to update all of our owned models' foreign keys to our ID.
 	ret := fmt.Sprintf("UPDATE %s SET %s = ? WHERE %s in (?);", a.tableName, fk, belongingIDFieldName)
-
+	
 	update, args, err := sqlx.In(ret, ownerID, ids)
 	if err != nil {
 		return AssociationStatement{
@@ -162,7 +164,7 @@ func (a *hasManyAssociation) AfterProcess() AssociationStatement {
 			Args:      []interface{}{},
 		}
 	}
-
+	
 	return AssociationStatement{
 		Statement: update,
 		Args:      args,
@@ -170,7 +172,7 @@ func (a *hasManyAssociation) AfterProcess() AssociationStatement {
 }
 
 func (a *hasManyAssociation) AfterFixRelationships() AssociationStatement {
-	v:= a.value
+	v := a.value
 	if v.Kind() == reflect.Ptr {
 		v = v.Elem()
 	}
@@ -202,6 +204,41 @@ func (a *hasManyAssociation) AfterFixRelationships() AssociationStatement {
 	
 	// This will be used to update all of our owned models' foreign keys to our ID.
 	ret := fmt.Sprintf("UPDATE %s SET %s = ? WHERE %s in (?);", a.tableName, fk, belongingIDFieldName)
+	
+	queryData := struct {
+		Table       string
+		OwnerColumn string
+		QueryColumn string
+	}{
+		a.tableName,
+		fk,
+		belongingIDFieldName,
+	}
+	
+	tmpl, err := template.New("query").Parse(
+		`
+			UPDATE {{.Table}}
+			SET {{.OwnerColumn}} = null
+			WHERE
+			{{.OwnerColumn}} = ?
+			AND
+			{{.QueryColumn}} NOT IN  (?)
+		`,
+	)
+	
+	if err != nil {
+		panic(err)
+	}
+	
+	buf := bytes.Buffer{}
+	
+	err = tmpl.Execute(&buf, queryData)
+	
+	if err != nil {
+		panic(err)
+	}
+	
+	ret = buf.String()
 	
 	update, args, err := sqlx.In(ret, ownerID, ids)
 	if err != nil {
