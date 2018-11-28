@@ -220,7 +220,7 @@ func (c *Connection) ValidateAndUpdate(model interface{}, excludeColumns ...stri
 
 		before := asos.AssociationsBeforeUpdatable()
 		for index := range before {
-			i := before[index].BeforeInterface()
+			i := before[index].EagerBeforeInterface()
 			if i == nil {
 				continue
 			}
@@ -292,7 +292,7 @@ func (c *Connection) Update(model interface{}, excludeColumns ...string) error {
 			if processAssociations {
 				before := asos.AssociationsBeforeUpdatable()
 				for index := range before {
-					i := before[index].BeforeInterface()
+					i := before[index].EagerBeforeInterface()
 					if i == nil {
 						continue
 					}

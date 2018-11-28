@@ -103,6 +103,9 @@ func (m *manyToManyAssociation) Constraint() (string, []interface{}) {
 func (m *manyToManyAssociation) OrderBy() string {
 	return m.orderBy
 }
+func (m* manyToManyAssociation) EagerBeforeInterface() interface{}{
+	return m.BeforeInterface()
+}
 
 func (m *manyToManyAssociation) BeforeInterface() interface{} {
 	if m.fieldValue.Kind() == reflect.Ptr {

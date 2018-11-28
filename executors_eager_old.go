@@ -121,7 +121,7 @@ func (c *Connection) eagerUpdate(model interface{}, excludeColumns ...string) er
 	// Try to update/create the associations the root model depends on.
 	before := assos.AssociationsBeforeUpdatable()
 	for index := range before {
-		i := before[index].BeforeInterface()
+		i := before[index].EagerBeforeInterface()
 		if i == nil {
 			continue
 		}
@@ -312,7 +312,7 @@ func (c *Connection) eagerValidateAndUpdate(model interface{}, excludeColumns ..
 
 	before := asos.AssociationsBeforeUpdatable()
 	for index := range before {
-		i := before[index].BeforeInterface()
+		i := before[index].EagerBeforeInterface()
 		if i == nil {
 			continue
 		}

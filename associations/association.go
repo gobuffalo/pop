@@ -67,7 +67,7 @@ type AssociationBeforeCreatable interface {
   // AssociationBeforeUpdatable allows an association to be updated before
   // the parent structure.
 type AssociationBeforeUpdatable interface {
-	BeforeInterface() interface{}
+	EagerBeforeInterface() interface{}
 	BeforeSetup() error
 	Association
 }

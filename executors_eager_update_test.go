@@ -382,10 +382,10 @@ func Test_Eager_Update_Belongs_To(t *testing.T) {
 		r.NoError(err)
 		
 		// Change Attribute of  book owner
+		book.User = user
 		book.User.Alive = nulls.NewBool(true)
 		
 		// Update book
-		
 		tx.Eager().Update(&book)
 		
 		
@@ -396,6 +396,5 @@ func Test_Eager_Update_Belongs_To(t *testing.T) {
 		
 		r.Equal(true, u2.Alive.Bool)
 		
-		//	Book UserID should equal u3.ID
 	})
 }
