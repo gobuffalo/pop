@@ -288,7 +288,7 @@ func Test_Eager_Update_Many_To_Many(t *testing.T) {
 		err = q2.First(&u2)
 		
 		r.NoError(err)
-		r.Equal(count+1, len(u2.Houses))
+    		r.Equal(count+1, len(u2.Houses))
 		
 		
 	})

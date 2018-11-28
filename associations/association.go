@@ -2,7 +2,7 @@ package associations
 
 import (
 	"reflect"
-
+	
 	"github.com/gobuffalo/pop/columns"
 	"github.com/gobuffalo/pop/nulls"
 )
@@ -78,7 +78,6 @@ type AssociationAfterCreatable interface {
 	Association
 }
 
-
 type AssociationAfterUpdatable interface {
 	AfterInterface() interface{}
 	AfterSetup() error
@@ -91,6 +90,13 @@ type AssociationAfterUpdatable interface {
 // create statements on database.
 type AssociationCreatableStatement interface {
 	Statements() []AssociationStatement
+	Association
+}
+
+// AssociationDeletableStatement a association that defines
+// delete statement on datqbase. Delete statement for Many to Many relationships.
+type AssociationDeletableStatement interface {
+	DeleteStatements() AssociationStatement
 	Association
 }
 
@@ -123,7 +129,7 @@ func (a Associations) AssociationsBeforeCreatable() []AssociationBeforeCreatable
 
 // AssociationsAfterUpdateable returns all associations the implement the AssociationBeforeUpdatable
 // interface. Belongs To association is an example of this implementation.
-func (a Associations)AssociationsBeforeUpdatable() []AssociationBeforeUpdatable {
+func (a Associations) AssociationsBeforeUpdatable() []AssociationBeforeUpdatable {
 	var before []AssociationBeforeUpdatable
 	for i := range a {
 		if _, ok := a[i].(AssociationBeforeUpdatable); ok {
@@ -162,6 +168,16 @@ func (a Associations) AssociationsCreatableStatement() []AssociationCreatableSta
 	for i := range a {
 		if _, ok := a[i].(AssociationCreatableStatement); ok {
 			stm = append(stm, a[i].(AssociationCreatableStatement))
+		}
+	}
+	return stm
+}
+
+func (a Associations) AssociationsDeletableStatement() []AssociationDeletableStatement {
+	var stm []AssociationDeletableStatement
+	for i := range a {
+		if _, ok := a[i].(AssociationDeletableStatement); ok {
+			stm = append(stm, a[i].(AssociationDeletableStatement))
 		}
 	}
 	return stm

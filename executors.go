@@ -2,7 +2,7 @@ package pop
 
 import (
 	"reflect"
-
+	
 	"github.com/gobuffalo/pop/associations"
 	"github.com/gobuffalo/pop/columns"
 	"github.com/gobuffalo/pop/logging"
@@ -39,7 +39,7 @@ func (q *Query) ExecWithCount() (int, error) {
 		if err != nil {
 			return err
 		}
-
+		
 		count, err = result.RowsAffected()
 		return err
 	})
@@ -88,7 +88,7 @@ func (c *Connection) ValidateAndCreate(model interface{}, excludeColumns ...stri
 	if c.eager {
 		return c.eagerValidateAndCreate(model, excludeColumns...)
 	}
-
+	
 	sm := &Model{Value: model}
 	verrs, err := sm.validateCreate(c)
 	if err != nil {
@@ -106,7 +106,7 @@ func (c *Connection) Create(model interface{}, excludeColumns ...string) error {
 	if c.eager {
 		return c.eagerCreate(model, excludeColumns...)
 	}
-
+	
 	sm := &Model{Value: model}
 	return sm.iterate(func(m *Model) error {
 		return c.timeFunc("Create", func() error {
@@ -114,17 +114,17 @@ func (c *Connection) Create(model interface{}, excludeColumns ...string) error {
 			if err != nil {
 				return err
 			}
-
+			
 			if err = m.beforeSave(c); err != nil {
 				return err
 			}
-
+			
 			if err = m.beforeCreate(c); err != nil {
 				return err
 			}
-
+			
 			processAssoc := len(asos) > 0
-
+			
 			if processAssoc {
 				before := asos.AssociationsBeforeCreatable()
 				for index := range before {
@@ -132,28 +132,28 @@ func (c *Connection) Create(model interface{}, excludeColumns ...string) error {
 					if i == nil {
 						continue
 					}
-
+					
 					err = before[index].BeforeSetup()
 					if err != nil {
 						return err
 					}
 				}
 			}
-
+			
 			tn := m.TableName()
 			cols := columns.ForStructWithAlias(m.Value, tn, m.As)
-
+			
 			if tn == sm.TableName() {
 				cols.Remove(excludeColumns...)
 			}
-
+			
 			m.touchCreatedAt()
 			m.touchUpdatedAt()
-
+			
 			if err = c.Dialect.Create(c.Store, m, cols); err != nil {
 				return err
 			}
-
+			
 			if processAssoc {
 				after := asos.AssociationsAfterCreatable()
 				for index := range after {
@@ -165,7 +165,7 @@ func (c *Connection) Create(model interface{}, excludeColumns ...string) error {
 						}
 					}
 				}
-
+				
 				stms := asos.AssociationsCreatableStatement()
 				for index := range stms {
 					statements := stms[index].Statements()
@@ -184,11 +184,11 @@ func (c *Connection) Create(model interface{}, excludeColumns ...string) error {
 					}
 				}
 			}
-
+			
 			if err = m.afterCreate(c); err != nil {
 				return err
 			}
-
+			
 			return m.afterSave(c)
 		})
 	})
@@ -205,53 +205,53 @@ func (c *Connection) ValidateAndUpdate(model interface{}, excludeColumns ...stri
 	if verrs.HasAny() {
 		return verrs, nil
 	}
-
+	
 	if c.eager {
 		asos, err2 := associations.ForStruct(model, c.eagerFields...)
-
+		
 		if err2 != nil {
 			return verrs, err2
 		}
-
+		
 		if len(asos) == 0 {
 			c.disableEager()
 			return c.ValidateAndCreate(model, excludeColumns...)
 		}
-
+		
 		before := asos.AssociationsBeforeUpdatable()
 		for index := range before {
 			i := before[index].BeforeInterface()
 			if i == nil {
 				continue
 			}
-
+			
 			sm := &Model{Value: i}
 			verrs, err := sm.validateAndOnlyUpdate(c)
 			if err != nil || verrs.HasAny() {
 				return verrs, err
 			}
 		}
-
+		
 		after := asos.AssociationsAfterUpdatable()
 		for index := range after {
 			i := after[index].AfterInterface()
 			if i == nil {
 				continue
 			}
-
+			
 			sm := &Model{Value: i}
 			verrs, err := sm.validateAndOnlyUpdate(c)
 			if err != nil || verrs.HasAny() {
 				return verrs, err
 			}
 		}
-
+		
 		sm := &Model{Value: model}
 		verrs, err = sm.validateUpdate(c)
 		if err != nil || verrs.HasAny() {
 			return verrs, err
 		}
-
+		
 	}
 	return verrs, c.Update(model, excludeColumns...)
 }
@@ -259,36 +259,36 @@ func (c *Connection) ValidateAndUpdate(model interface{}, excludeColumns ...stri
 // Update writes changes from an entry to the database, excluding the given columns.
 // It updates the `updated_at` column automatically.
 func (c *Connection) Update(model interface{}, excludeColumns ...string) error {
-
+	
 	var isEager = c.eager
-
+	
 	c.disableEager()
-
+	
 	sm := &Model{Value: model}
 	return sm.iterate(func(m *Model) error {
 		return c.timeFunc("Update", func() error {
 			var innerIsEager = isEager
 			asos, err := associations.ForStruct(model, c.eagerFields...)
-
+			
 			if err != nil {
 				return err
 			}
-
+			
 			if innerIsEager {
 				if len(asos) == 0 {
 					innerIsEager = false
 				}
 			}
-
+			
 			if err = m.beforeSave(c); err != nil {
 				return err
 			}
 			if err = m.beforeUpdate(c); err != nil {
 				return err
 			}
-
+			
 			processAssociations := len(asos) > 0
-
+			
 			if processAssociations {
 				before := asos.AssociationsBeforeUpdatable()
 				for index := range before {
@@ -297,14 +297,14 @@ func (c *Connection) Update(model interface{}, excludeColumns ...string) error {
 						continue
 					}
 					if innerIsEager {
-
+						
 						sm := &Model{Value: i}
 						err = sm.iterate(func(m *Model) error {
 							id, err := m.fieldByName("ID")
 							if err != nil {
 								return err
 							}
-
+							
 							if IsZeroOfUnderlyingType(id.Interface()) {
 								return c.Create(m.Value)
 							} else {
@@ -312,49 +312,50 @@ func (c *Connection) Update(model interface{}, excludeColumns ...string) error {
 							}
 							return nil
 						})
-
+						
 						if err != nil {
 							return err
 						}
-
+						
 					}
 					err = before[index].BeforeSetup()
 					if err != nil {
 						return err
 					}
-
+					
 				}
+				
 			}
-
+			
 			tn := m.TableName()
 			cols := columns.ForStructWithAlias(model, tn, m.As)
 			cols.Remove("id", "created_at")
-
+			
 			if tn == sm.TableName() {
 				cols.Remove(excludeColumns...)
 			}
-
+			
 			m.touchUpdatedAt()
-
+			
 			if err = c.Dialect.Update(c.Store, m, cols); err != nil {
 				return err
 			}
-
+			
 			if processAssociations {
 				after := asos.AssociationsAfterUpdatable()
 				for index := range after {
 					if innerIsEager {
-
+						
 						err = after[index].AfterSetup()
 						if err != nil {
 							return err
 						}
-
+						
 						i := after[index].AfterInterface()
 						if i == nil {
 							continue
 						}
-
+						
 						sm := &Model{Value: i}
 						err = sm.iterate(func(m *Model) error {
 							fbn, err := m.fieldByName("ID")
@@ -364,7 +365,7 @@ func (c *Connection) Update(model interface{}, excludeColumns ...string) error {
 							id := fbn.Interface()
 							if IsZeroOfUnderlyingType(id) {
 								err = c.Create(m.Value)
-
+								
 								if err != nil {
 									return err
 								}
@@ -374,12 +375,12 @@ func (c *Connection) Update(model interface{}, excludeColumns ...string) error {
 									return err
 								}
 							}
-
+							
 							return nil
 						})
-
+						
 						stm := after[index].AfterFixRelationships()
-
+						
 						if c.TX != nil {
 							_, err := c.TX.Exec(c.Dialect.TranslateSQL(stm.Statement), stm.Args...)
 							if err != nil {
@@ -391,19 +392,18 @@ func (c *Connection) Update(model interface{}, excludeColumns ...string) error {
 						if err != nil {
 							return err
 						}
-
+						
 						if err != nil {
 							return err
 						}
 					}
 				}
-
+				
 				stms := asos.AssociationsCreatableStatement()
 				for index := range stms {
 					statements := stms[index].Statements()
-
+					
 					// Create Associations
-					// TODO need to check the existing associations for deletions
 					for _, stm := range statements {
 						if c.TX != nil {
 							_, err := c.TX.Exec(c.Dialect.TranslateSQL(stm.Statement), stm.Args...)
@@ -419,12 +419,26 @@ func (c *Connection) Update(model interface{}, excludeColumns ...string) error {
 					}
 					//	Delete Associations.µ
 				}
+				
+				dStms := asos.AssociationsDeletableStatement()
+				for index := range dStms {
+					stm := dStms[index].DeleteStatements()
+					
+					//	Delete Associations
+					if c.TX != nil {
+						_, err := c.TX.Exec(c.Dialect.TranslateSQL(stm.Statement), stm.Args...)
+						if err != nil {
+							return err
+						}
+						 continue
+					}
+				}
 			}
-
+			
 			if err = m.afterUpdate(c); err != nil {
 				return err
 			}
-
+			
 			return m.afterSave(c)
 		})
 	})
@@ -436,14 +450,14 @@ func (c *Connection) Destroy(model interface{}) error {
 	return sm.iterate(func(m *Model) error {
 		return c.timeFunc("Destroy", func() error {
 			var err error
-
+			
 			if err = m.beforeDestroy(c); err != nil {
 				return err
 			}
 			if err = c.Dialect.Destroy(c.Store, m); err != nil {
 				return err
 			}
-
+			
 			return m.afterDestroy(c)
 		})
 	})
