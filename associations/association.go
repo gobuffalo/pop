@@ -63,6 +63,10 @@ type AssociationBeforeCreatable interface {
 	Association
 }
 
+/*
+  AssociationBeforeUpdatable allows an association to be updated before
+  the parent structure. 
+*/
 type AssociationBeforeUpdatable interface {
 	BeforeInterface() interface{}
 	BeforeSetup() error
@@ -78,6 +82,10 @@ type AssociationAfterCreatable interface {
 	Association
 }
 
+/*
+ AssociationAfterUpdatable allows an association to be updated after
+ the parent structure.
+*/
 type AssociationAfterUpdatable interface {
 	AfterInterface() interface{}
 	AfterSetup() error
@@ -127,7 +135,7 @@ func (a Associations) AssociationsBeforeCreatable() []AssociationBeforeCreatable
 	return before
 }
 
-// AssociationsAfterUpdateable returns all associations the implement the AssociationBeforeUpdatable
+// AssociationsBeforeUpdateable returns all associations the implement the AssociationBeforeUpdatable
 // interface. Belongs To association is an example of this implementation.
 func (a Associations) AssociationsBeforeUpdatable() []AssociationBeforeUpdatable {
 	var before []AssociationBeforeUpdatable
