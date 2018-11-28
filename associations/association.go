@@ -2,7 +2,7 @@ package associations
 
 import (
 	"reflect"
-	
+
 	"github.com/gobuffalo/pop/columns"
 	"github.com/gobuffalo/pop/nulls"
 )
@@ -63,10 +63,9 @@ type AssociationBeforeCreatable interface {
 	Association
 }
 
-/*
-  AssociationBeforeUpdatable allows an association to be updated before
-  the parent structure.
-*/
+
+  // AssociationBeforeUpdatable allows an association to be updated before
+  // the parent structure.
 type AssociationBeforeUpdatable interface {
 	BeforeInterface() interface{}
 	BeforeSetup() error

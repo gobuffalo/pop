@@ -7,7 +7,7 @@ import (
 	"reflect"
 	"text/template"
 	"time"
-	
+
 	"github.com/gobuffalo/flect"
 	"github.com/gobuffalo/uuid"
 )
@@ -33,7 +33,7 @@ func init() {
 		if fieldIsNil(model.FieldByName("ID")) {
 			skipped = true
 		}
-		
+
 		return &manyToManyAssociation{
 			fieldType:           p.modelValue.FieldByName(p.field.Name).Type(),
 			fieldValue:          p.modelValue.FieldByName(p.field.Name),
@@ -61,14 +61,14 @@ func (m *manyToManyAssociation) Interface() interface{} {
 		m.fieldValue.Set(val)
 		return m.fieldValue.Interface()
 	}
-	
+
 	// This piece of code clears a slice in case it is filled with elements.
 	if m.fieldValue.Kind() == reflect.Slice || m.fieldValue.Kind() == reflect.Array {
 		valPointer := m.fieldValue.Addr()
 		valPointer.Elem().Set(reflect.MakeSlice(valPointer.Type().Elem(), 0, valPointer.Elem().Cap()))
 		return valPointer.Interface()
 	}
-	
+
 	return m.fieldValue.Addr().Interface()
 }
 
@@ -76,7 +76,7 @@ func (m *manyToManyAssociation) Interface() interface{} {
 // needed to execute it.
 func (m *manyToManyAssociation) Constraint() (string, []interface{}) {
 	modelColumnID := fmt.Sprintf("%s%s", flect.Underscore(m.model.Type().Name()), "_id")
-	
+
 	var columnFieldID string
 	i := reflect.Indirect(m.fieldValue)
 	if i.Kind() == reflect.Slice || i.Kind() == reflect.Array {
@@ -85,18 +85,18 @@ func (m *manyToManyAssociation) Constraint() (string, []interface{}) {
 	} else {
 		columnFieldID = fmt.Sprintf("%s%s", flect.Underscore(i.Type().Name()), "_id")
 	}
-	
+
 	if m.fkID != "" {
 		columnFieldID = m.fkID
 	}
-	
+
 	if m.primaryID != "" {
 		modelColumnID = m.primaryID
 	}
-	
+
 	subQuery := fmt.Sprintf("select %s from %s where %s = ?", columnFieldID, m.manyToManyTableName, modelColumnID)
 	modelIDValue := m.model.FieldByName("ID").Interface()
-	
+
 	return fmt.Sprintf("id in (%s)", subQuery), []interface{}{modelIDValue}
 }
 
@@ -111,13 +111,14 @@ func (m *manyToManyAssociation) BeforeInterface() interface{} {
 	return m.fieldValue.Addr().Interface()
 }
 
+
 func (m *manyToManyAssociation) BeforeSetup() error {
 	return nil
 }
 
 func (m *manyToManyAssociation) Statements() []AssociationStatement {
 	var statements []AssociationStatement
-	
+
 	modelColumnID := fmt.Sprintf("%s%s", flect.Underscore(m.model.Type().Name()), "_id")
 	var columnFieldID string
 	i := reflect.Indirect(m.fieldValue)
@@ -127,22 +128,22 @@ func (m *manyToManyAssociation) Statements() []AssociationStatement {
 	} else {
 		columnFieldID = fmt.Sprintf("%s%s", flect.Underscore(i.Type().Name()), "_id")
 	}
-	
+
 	for i := 0; i < m.fieldValue.Len(); i++ {
 		v := m.fieldValue.Index(i)
 		manyIDValue := v.FieldByName("ID").Interface()
 		modelIDValue := m.model.FieldByName("ID").Interface()
 		stm := "INSERT INTO %s (%s,%s,%s,%s) SELECT ?,?,?,? WHERE NOT EXISTS (SELECT * FROM %s WHERE %s = ? AND %s = ?)"
-		
+
 		if IsZeroOfUnderlyingType(manyIDValue) || IsZeroOfUnderlyingType(modelIDValue) {
 			continue
 		}
-		
+
 		associationStm := AssociationStatement{
 			Statement: fmt.Sprintf(stm, m.manyToManyTableName, modelColumnID, columnFieldID, "created_at", "updated_at", m.manyToManyTableName, modelColumnID, columnFieldID),
 			Args:      []interface{}{modelIDValue, manyIDValue, time.Now(), time.Now(), modelIDValue, manyIDValue},
 		}
-		
+
 		if m.model.FieldByName("ID").Type().Name() == "UUID" {
 			stm = "INSERT INTO %s (%s,%s,%s,%s,%s) SELECT ?,?,?,?,? WHERE NOT EXISTS (SELECT * FROM %s WHERE %s = ? AND %s = ?)"
 			id, _ := uuid.NewV4()
@@ -151,41 +152,41 @@ func (m *manyToManyAssociation) Statements() []AssociationStatement {
 				Args:      []interface{}{id, modelIDValue, manyIDValue, time.Now(), time.Now(), modelIDValue, manyIDValue},
 			}
 		}
-		
+
 		statements = append(statements, associationStm)
 	}
-	
+
 	return statements
 }
 
 func (m *manyToManyAssociation) DeleteStatements() AssociationStatement {
-	
+
 	modelColumnID := fmt.Sprintf("%s%s", flect.Underscore(m.model.Type().Name()), "_id")
 	var columnFieldID string
 	i := reflect.Indirect(m.fieldValue)
-	
+
 	if i.Kind() == reflect.Slice || i.Kind() == reflect.Array {
 		t := i.Type().Elem()
 		columnFieldID = fmt.Sprintf("%s%s", flect.Underscore(t.Name()), "_id")
 	} else {
 		columnFieldID = fmt.Sprintf("%s%s", flect.Underscore(i.Type().Name()), "_id")
 	}
-	
+
 	// Get Current many_to_many IDs for related objects
 	var currentManyToManyIDs []interface{}
-	for i := 0; i < m.fieldValue.Len(); i ++ {
+	for i := 0; i < m.fieldValue.Len(); i++ {
 		v := m.fieldValue.Index(i)
 		manyIDValue := v.FieldByName("ID").Interface()
-		
+
 		if IsZeroOfUnderlyingType(manyIDValue) {
 			continue
 		}
 		currentManyToManyIDs = append(currentManyToManyIDs, manyIDValue)
 	}
-	
+
 	//	Get the subject ID
 	modelIDValue := m.model.FieldByName("ID").Interface()
-	
+
 	queryData := struct {
 		Table       string
 		OwnerColumn string
@@ -195,7 +196,7 @@ func (m *manyToManyAssociation) DeleteStatements() AssociationStatement {
 		modelColumnID,
 		columnFieldID,
 	}
-	
+
 	tmpl, err := template.New("delete statement").Parse(
 		`
 			DELETE FROM {{.Table}}
@@ -205,22 +206,22 @@ func (m *manyToManyAssociation) DeleteStatements() AssociationStatement {
 			{{.QueryColumn}} NOT IN  (?)
 		`,
 	)
-	
+
 	if err != nil {
 		panic(err)
 	}
-	
+
 	buf := bytes.Buffer{}
-	
+
 	err = tmpl.Execute(&buf, queryData)
-	
+
 	if err != nil {
 		panic(err)
-		
+
 	}
-	
+
 	ret := buf.String()
-	
+
 	update, args, err := sqlx.In(ret, modelIDValue, currentManyToManyIDs)
 	if err != nil {
 		return AssociationStatement{
@@ -228,7 +229,7 @@ func (m *manyToManyAssociation) DeleteStatements() AssociationStatement {
 			Args:      []interface{}{},
 		}
 	}
-	
+
 	return AssociationStatement{
 		Statement: update,
 		Args:      args,

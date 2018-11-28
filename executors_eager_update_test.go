@@ -286,3 +286,116 @@ func Test_Eager_Update_Many_To_Many(t *testing.T) {
 		
 	})
 }
+
+func Test_Eager_Update_Has_Many_Transfer(t *testing.T) {
+	transaction(func(tx *Connection) {
+		r := require.New(t)
+		
+		// Create Users
+		user := User{
+			Name: nulls.NewString("Carl Lewis"),
+			Books: Books{
+				{Title: "Pop Book", Description: "Pop Book", Isbn: "PB1"},
+			},
+			FavoriteSong: Song{Title: "Hook - Blues Traveler"},
+			Houses: Addresses{
+				Address{HouseNumber: 86, Street: "Modelo"},
+			},
+		}
+		
+		user2 := User{
+			Name:         nulls.NewString("Carl McKinney"),
+			FavoriteSong: Song{Title: "Anything - Goldlink"},
+			Houses: Addresses{
+				{HouseNumber: 105, Street: "Jump Street"},
+			},
+		}
+		
+		err := tx.Eager().Create(&user)
+		r.NoError(err)
+		
+		err = tx.Eager().Create(&user2)
+		r.NoError(err)
+		
+		// Change book owner
+		
+		// Find user
+		u := User{}
+		q := tx.Eager().Where("name = ?", "Carl McKinney")
+		err = q.First(&u)
+		
+		u.Books = user.Books
+		
+		// Update user
+		tx.Eager().Update(&u)
+		
+		u2 := User{}
+		q2 := tx.Eager().Where("name = ?", "Carl Lewis")
+		err = q2.First(&u2)
+		r.NoError(err)
+		
+		u3 := User{}
+		q3 := tx.Eager().Where("name = ?", "Carl McKinney")
+		err = q3.First(&u3)
+		r.NoError(err)
+		
+		r.Equal(0, len(u2.Books))
+		r.Equal(1, len(u3.Books))
+		
+		//	Book UserID should equal u3.ID
+		
+		book := Book{}
+		
+		err =  tx.Where("title = ?", "Pop Book").First(&book)
+		
+		r.NoError(err)
+		
+		r.Equal(u3.ID, book.UserID.Int)
+		
+	})
+}
+
+func Test_Eager_Update_Belongs_To(t *testing.T) {
+	transaction(func(tx *Connection) {
+		r := require.New(t)
+		
+		// Create Users
+		user := User{
+			Name: nulls.NewString("Carl Lewis"),
+			Books: Books{
+				{Title: "Pop Book", Description: "Pop Book", Isbn: "PB1"},
+			},
+			FavoriteSong: Song{Title: "Hook - Blues Traveler"},
+			Houses: Addresses{
+				Address{HouseNumber: 86, Street: "Modelo"},
+			},
+		}
+		
+		
+		err := tx.Eager().Create(&user)
+		r.NoError(err)
+		
+		
+		// Find Book
+		book := Book{}
+		err =  tx.Where("title = ?", "Pop Book").First(&book)
+		r.NoError(err)
+		
+		// Change Attribute of  book owner
+		book.User.Alive = nulls.NewBool(true)
+		
+		// Update book
+		
+		tx.Eager().Update(&book)
+		
+		
+		u2 := User{}
+		q2 := tx.Eager().Where("name = ?", "Carl Lewis")
+		err = q2.First(&u2)
+		r.NoError(err)
+		
+		r.Equal(true, u2.Alive.Bool)
+		
+		//	Book UserID should equal u3.ID
+	})
+}

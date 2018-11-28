@@ -2,7 +2,7 @@ package pop
 
 import (
 	"reflect"
-	
+
 	"github.com/gobuffalo/validate"
 	"github.com/pkg/errors"
 )
@@ -48,7 +48,7 @@ func (m *Model) validateCreate(c *Connection) (*validate.Errors, error) {
 				return verrs, errors.WithStack(err)
 			}
 		}
-		
+
 		return verrs, err
 	})
 }
@@ -62,7 +62,7 @@ func (m *Model) validateAndOnlyCreate(c *Connection) (*validate.Errors, error) {
 		if !IsZeroOfUnderlyingType(id.Interface()) {
 			return validate.NewErrors(), nil
 		}
-		
+
 		verrs, err := model.validate(c)
 		if err != nil {
 			return verrs, errors.WithStack(err)
@@ -76,7 +76,7 @@ func (m *Model) validateAndOnlyCreate(c *Connection) (*validate.Errors, error) {
 				return verrs, errors.WithStack(err)
 			}
 		}
-		
+
 		return verrs, err
 	})
 }
@@ -87,27 +87,27 @@ func (m *Model) validateAndOnlyUpdate(c *Connection) (*validate.Errors, error) {
 		if err != nil {
 			return nil, err
 		}
-		
+
 		if !IsZeroOfUnderlyingType(id.Interface()) {
 			return validate.NewErrors(), nil
 		}
-		
+
 		verrs, err := model.validate(c)
 		if err != nil {
 			return verrs, errors.WithStack(err)
 		}
-		
+
 		if x, ok := model.Value.(validateUpdateable); ok {
 			vs, err := x.ValidateUpdate(c)
 			if vs != nil {
 				verrs.Append(vs)
 			}
-			
+
 			if err != nil {
 				return verrs, errors.WithStack(err)
 			}
 		}
-		
+
 		return verrs, err
 	})
 }
@@ -131,7 +131,7 @@ func (m *Model) validateSave(c *Connection) (*validate.Errors, error) {
 				return verrs, errors.WithStack(err)
 			}
 		}
-		
+
 		return verrs, err
 	})
 }
@@ -155,7 +155,7 @@ func (m *Model) validateUpdate(c *Connection) (*validate.Errors, error) {
 				return verrs, errors.WithStack(err)
 			}
 		}
-		
+
 		return verrs, err
 	})
 }
@@ -167,13 +167,13 @@ func (m *Model) iterateAndValidate(fn modelIterableValidator) (*validate.Errors,
 			val := v.Index(i)
 			newModel := &Model{Value: val.Addr().Interface()}
 			verrs, err := fn(newModel)
-			
+
 			if err != nil || verrs.HasAny() {
 				return verrs, err
 			}
 		}
 		return validate.NewErrors(), nil
 	}
-	
+
 	return fn(m)
 }
