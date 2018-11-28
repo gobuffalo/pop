@@ -65,7 +65,7 @@ type AssociationBeforeCreatable interface {
 
 /*
   AssociationBeforeUpdatable allows an association to be updated before
-  the parent structure. 
+  the parent structure.
 */
 type AssociationBeforeUpdatable interface {
 	BeforeInterface() interface{}
@@ -82,10 +82,8 @@ type AssociationAfterCreatable interface {
 	Association
 }
 
-/*
- AssociationAfterUpdatable allows an association to be updated after
- the parent structure.
-*/
+// AssociationAfterUpdatable allows an association to be updated after
+// the parent structure.
 type AssociationAfterUpdatable interface {
 	AfterInterface() interface{}
 	AfterSetup() error
@@ -147,7 +145,7 @@ func (a Associations) AssociationsBeforeUpdatable() []AssociationBeforeUpdatable
 	return before
 }
 
-// AssociationsAfterCreatable returns all associations that implement AssociationAfterCreatable
+// AssociationsAfterCreatable returns all associations that implement the AssociationAfterCreatable
 // interface. Has Many and Has One associations are examples of this implementation.
 func (a Associations) AssociationsAfterCreatable() []AssociationAfterCreatable {
 	var after []AssociationAfterCreatable
@@ -159,6 +157,8 @@ func (a Associations) AssociationsAfterCreatable() []AssociationAfterCreatable {
 	return after
 }
 
+// AssociationsAfterUpdatable returns all associations that implement the AssociationAfterUpdatable
+// interface. Has Many and Has One associations are examples of this implementation.
 func (a Associations) AssociationsAfterUpdatable() []AssociationAfterUpdatable {
 	var after []AssociationAfterUpdatable
 	for i := range a {
