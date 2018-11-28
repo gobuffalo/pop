@@ -91,7 +91,7 @@ func (b *belongsToAssociation) Interface() interface{} {
 func (b *belongsToAssociation) Constraint() (string, []interface{}) {
 	return fmt.Sprintf("%s = ?", b.primaryTableID), []interface{}{b.ownerID.Interface()}
 }
-
+// Wraps BeforeInterface
 func (b *belongsToAssociation) EagerBeforeInterface() interface {} {
 	b.skipped = true
 	return b.BeforeInterface()
