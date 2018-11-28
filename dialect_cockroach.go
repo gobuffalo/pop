@@ -26,6 +26,7 @@ func init() {
 	dialectSynonyms["cockroachdb"] = nameCockroach
 	dialectSynonyms["crdb"] = nameCockroach
 	finalizer[nameCockroach] = finalizerCockroach
+	newConnection[nameCockroach] = newCockroach
 }
 
 var _ dialect = &cockroach{}
@@ -271,14 +272,14 @@ func (p *cockroach) TruncateAll(tx *Connection) error {
 	// return tx3.RawQuery(fmt.Sprintf("truncate %s cascade;", strings.Join(tableNames, ", "))).Exec()
 }
 
-func newCockroach(deets *ConnectionDetails) dialect {
+func newCockroach(deets *ConnectionDetails) (dialect, error) {
 	deets.Dialect = "postgres"
 	cd := &cockroach{
 		ConnectionDetails: deets,
 		translateCache:    map[string]string{},
 		mu:                sync.Mutex{},
 	}
-	return cd
+	return cd, nil
 }
 
 func finalizerCockroach(cd *ConnectionDetails) {

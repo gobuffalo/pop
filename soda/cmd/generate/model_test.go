@@ -127,3 +127,31 @@ func Test_testPkgName(t *testing.T) {
 
 	r.Equal("models_test", m.testPkgName())
 }
+
+func Test_model_Fizz(t *testing.T) {
+	r := require.New(t)
+
+	m, err := newModel("car", "json")
+
+	a, err := newAttribute("id:int", &m)
+	r.NoError(err)
+	err = m.addAttribute(a)
+	r.NoError(err)
+
+	a, err = newAttribute("brand:string", &m)
+	r.NoError(err)
+	err = m.addAttribute(a)
+	r.NoError(err)
+
+	a, err = newAttribute("owner:nulls.String", &m)
+	r.NoError(err)
+	err = m.addAttribute(a)
+	r.NoError(err)
+
+	expected := `create_table("cars") {
+	t.Column("id", "integer", {primary: true})
+	t.Column("brand", "string", {})
+	t.Column("owner", "string", {null: true})
+}`
+	r.Equal(expected, m.Fizz())
+}
