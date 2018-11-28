@@ -27,6 +27,7 @@ func init() {
 	AvailableDialects = append(AvailableDialects, nameMySQL)
 	urlParser[nameMySQL] = urlParserMySQL
 	finalizer[nameMySQL] = finalizerMySQL
+	newConnection[nameMySQL] = newMySQL
 }
 
 var _ dialect = &mysql{}
@@ -184,12 +185,11 @@ func (m *mysql) TruncateAll(tx *Connection) error {
 	return tx.RawQuery(qb.String()).Exec()
 }
 
-func newMySQL(deets *ConnectionDetails) dialect {
+func newMySQL(deets *ConnectionDetails) (dialect, error) {
 	cd := &mysql{
 		ConnectionDetails: deets,
 	}
-
-	return cd
+	return cd, nil
 }
 
 func urlParserMySQL(cd *ConnectionDetails) error {

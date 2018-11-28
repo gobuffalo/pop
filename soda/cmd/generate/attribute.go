@@ -15,6 +15,7 @@ type attribute struct {
 	OriginalType      string
 	GoType            string
 	Nullable          bool
+	Primary           bool
 	PreventValidation bool
 	StructTag         string
 }
@@ -56,12 +57,18 @@ func newAttribute(base string, model *model) (attribute, error) {
 	if len(col) > 2 {
 		got = col[2]
 	}
+	name := flect.New(col[0])
+	primary := false
+	if name.String() == "id" {
+		primary = true
+	}
 	a := attribute{
-		Name:         flect.New(col[0]),
+		Name:         name,
 		OriginalType: col[1],
 		GoType:       got,
 		Nullable:     nullable,
 		StructTag:    model.StructTag,
+		Primary:      primary,
 	}
 
 	return a, nil

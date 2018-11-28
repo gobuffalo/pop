@@ -24,6 +24,7 @@ func init() {
 	dialectSynonyms["postgresql"] = namePostgreSQL
 	dialectSynonyms["pg"] = namePostgreSQL
 	finalizer[namePostgreSQL] = finalizerPostgreSQL
+	newConnection[namePostgreSQL] = newPostgreSQL
 }
 
 var _ dialect = &postgresql{}
@@ -198,13 +199,13 @@ func (p *postgresql) TruncateAll(tx *Connection) error {
 	return tx.RawQuery(fmt.Sprintf(pgTruncate, tx.MigrationTableName())).Exec()
 }
 
-func newPostgreSQL(deets *ConnectionDetails) dialect {
+func newPostgreSQL(deets *ConnectionDetails) (dialect, error) {
 	cd := &postgresql{
 		ConnectionDetails: deets,
 		translateCache:    map[string]string{},
 		mu:                sync.Mutex{},
 	}
-	return cd
+	return cd, nil
 }
 
 func finalizerPostgreSQL(cd *ConnectionDetails) {
