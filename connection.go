@@ -96,12 +96,17 @@ func (c *Connection) Open() error {
 	details := c.Dialect.Details()
 	db, err := sqlx.Open(details.Dialect, c.Dialect.URL())
 	if err != nil {
-		return errors.Wrap(err, "couldn't connect to database")
+		return errors.Wrap(err, "could not open database connection")
 	}
 	db.SetMaxOpenConns(details.Pool)
 	db.SetMaxIdleConns(details.IdlePool)
 	c.Store = &dB{db}
-	return nil
+
+	err = c.Dialect.afterOpen(c)
+	if err != nil {
+		c.Store = nil
+	}
+	return errors.Wrap(err, "could not open database connection")
 }
 
 // Close destroys an active datasource connection

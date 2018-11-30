@@ -185,6 +185,10 @@ func (m *mysql) TruncateAll(tx *Connection) error {
 	return tx.RawQuery(qb.String()).Exec()
 }
 
+func (m *mysql) afterOpen(c *Connection) error {
+	return nil
+}
+
 func newMySQL(deets *ConnectionDetails) (dialect, error) {
 	cd := &mysql{
 		ConnectionDetails: deets,
