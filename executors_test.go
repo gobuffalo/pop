@@ -976,10 +976,10 @@ func Test_Create_Belongs_To_Pointers(t *testing.T) {
 		err = tx.Create(&created)
 		r.NoError(err)
 
-		new := HeadPtr{}
-		err = tx.Find(&new, created.ID)
+		found := HeadPtr{}
+		err = tx.Find(&found, created.ID)
 		r.NoError(err)
-		r.Equal(body.ID, *new.BodyID)
+		r.Equal(body.ID, *found.BodyID)
 	})
 }
 
