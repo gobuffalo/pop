@@ -99,7 +99,7 @@ func (b *belongsToAssociation) BeforeInterface() interface{} {
 	}
 
 	m := b.ownerModel
-	if m.Kind() == reflect.Ptr {
+	if m.Kind() == reflect.Ptr && !m.IsNil() {
 		m = b.ownerModel.Elem()
 	}
 
@@ -111,12 +111,14 @@ func (b *belongsToAssociation) BeforeInterface() interface{} {
 }
 
 func (b *belongsToAssociation) BeforeSetup() error {
-	ownerID := reflect.Indirect(reflect.ValueOf(b.ownerModel.Interface())).FieldByName("ID").Interface()
+	ownerID := reflect.Indirect(reflect.ValueOf(b.ownerModel.Interface())).FieldByName("ID")
 	if b.ownerID.CanSet() {
 		if n := nulls.New(b.ownerID.Interface()); n != nil {
-			b.ownerID.Set(reflect.ValueOf(n.Parse(ownerID)))
+			b.ownerID.Set(reflect.ValueOf(n.Parse(ownerID.Interface())))
+		} else if b.ownerID.Kind() == reflect.Ptr {
+			b.ownerID.Set(ownerID.Addr())
 		} else {
-			b.ownerID.Set(reflect.ValueOf(ownerID))
+			b.ownerID.Set(ownerID)
 		}
 		return nil
 	}

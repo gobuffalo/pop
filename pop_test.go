@@ -354,3 +354,9 @@ type Head struct {
 	BodyID int   `json:"-" db:"body_id"`
 	Body   *Body `json:"body,omitempty" belongs_to:"body"`
 }
+
+type HeadPtr struct {
+	ID     int   `json:"id,omitempty" db:"id"`
+	BodyID *int  `json:"-" db:"body_id"`
+	Body   *Body `json:"body,omitempty" belongs_to:"body"`
+}
