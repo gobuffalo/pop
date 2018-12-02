@@ -199,6 +199,10 @@ func (p *postgresql) TruncateAll(tx *Connection) error {
 	return tx.RawQuery(fmt.Sprintf(pgTruncate, tx.MigrationTableName())).Exec()
 }
 
+func (p *postgresql) afterOpen(c *Connection) error {
+	return nil
+}
+
 func newPostgreSQL(deets *ConnectionDetails) (dialect, error) {
 	cd := &postgresql{
 		ConnectionDetails: deets,

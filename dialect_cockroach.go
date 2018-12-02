@@ -32,19 +32,19 @@ func init() {
 var _ dialect = &cockroach{}
 
 // ServerInfo holds informational data about connected database server.
-type ServerInfo struct {
+type cockroachInfo struct {
 	VersionString string `db:"version"`
-	Product       string `db:"-"`
-	License       string `db:"-"`
-	Version       string `db:"-"`
-	BuildInfo     string `db:"-"`
+	product       string `db:"-"`
+	license       string `db:"-"`
+	version       string `db:"-"`
+	buildInfo     string `db:"-"`
 }
 
 type cockroach struct {
 	translateCache    map[string]string
 	mu                sync.Mutex
 	ConnectionDetails *ConnectionDetails
-	Server            ServerInfo
+	info              cockroachInfo
 }
 
 func (p *cockroach) Name() string {
@@ -218,33 +218,13 @@ func (p *cockroach) LoadSchema(r io.Reader) error {
 	return genericLoadSchema(p.ConnectionDetails, p.MigrationURL(), r)
 }
 
-func (p *cockroach) FillServerInfo(tx *Connection) error {
-	if err := tx.RawQuery(`select version() AS "version"`).First(&p.Server); err != nil {
-		return err
-	}
-	if s := strings.Split(p.Server.VersionString, " "); len(s) > 3 {
-		p.Server.Product = s[0]
-		p.Server.License = s[1]
-		p.Server.Version = s[2]
-		p.Server.BuildInfo = s[3]
-	}
-	log(logging.Debug, "server: %v %v %v", p.Server.Product, p.Server.License, p.Server.Version)
-
-	return nil
-}
-
 func (p *cockroach) TruncateAll(tx *Connection) error {
 	type table struct {
 		TableName string `db:"table_name"`
 	}
 
-	// move it to `newCockroach()` if it need more
-	if err := p.FillServerInfo(tx); err != nil {
-		return err
-	}
-
 	tableQuery := "select table_name from information_schema.tables where table_schema = 'public' and table_type = 'BASE TABLE' and table_catalog = ?"
-	if strings.HasPrefix(p.Server.Version, "v1") {
+	if strings.HasPrefix(p.info.version, "v1") {
 		tableQuery = "select table_name from information_schema.tables where table_schema = ?"
 	}
 
@@ -270,6 +250,21 @@ func (p *cockroach) TruncateAll(tx *Connection) error {
 	return nil
 	// TODO!
 	// return tx3.RawQuery(fmt.Sprintf("truncate %s cascade;", strings.Join(tableNames, ", "))).Exec()
+}
+
+func (p *cockroach) afterOpen(c *Connection) error {
+	if err := c.RawQuery(`select version() AS "version"`).First(&p.info); err != nil {
+		return err
+	}
+	if s := strings.Split(p.info.VersionString, " "); len(s) > 3 {
+		p.info.product = s[0]
+		p.info.license = s[1]
+		p.info.version = s[2]
+		p.info.buildInfo = s[3]
+	}
+	log(logging.Debug, "server: %v %v %v", p.info.product, p.info.license, p.info.version)
+
+	return nil
 }
 
 func newCockroach(deets *ConnectionDetails) (dialect, error) {
