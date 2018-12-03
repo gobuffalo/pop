@@ -141,7 +141,7 @@ func (p *postgresql) URL() string {
 	if c.URL != "" {
 		return c.URL
 	}
-	s := "postgres://%s:%s@%s:%s/%s?sslmode=%s"
+	s := "postgres://%s:%s@%s:%s/%s?%s"
 	return fmt.Sprintf(s, c.User, c.Password, c.Host, c.Port, c.Database, c.OptionsString(""))
 }
 
@@ -151,7 +151,7 @@ func (p *postgresql) urlWithoutDb() string {
 	// If the db is not precised, postgresql takes the username as the database to connect on.
 	// To avoid a connection problem if the user db is not here, we use the default "postgres"
 	// db, just like the other client tools do.
-	s := "postgres://%s:%s@%s:%s/postgres?sslmode=%s"
+	s := "postgres://%s:%s@%s:%s/postgres?%s"
 	return fmt.Sprintf(s, c.User, c.Password, c.Host, c.Port, c.OptionsString(""))
 }
 
