@@ -4,7 +4,9 @@ import (
 	"database/sql"
 	"fmt"
 	"io"
+	"os"
 	"os/exec"
+	"path"
 	"strings"
 	"sync"
 
@@ -38,6 +40,7 @@ type cockroachInfo struct {
 	license       string `db:"-"`
 	version       string `db:"-"`
 	buildInfo     string `db:"-"`
+	client        string `db:"-"`
 }
 
 type cockroach struct {
@@ -148,35 +151,19 @@ func (p *cockroach) DropDB() error {
 	return nil
 }
 
-func (p *cockroach) optionString() string {
-	c := p.ConnectionDetails
-
-	if c.RawOptions != "" {
-		return c.RawOptions
-	}
-
-	s := "application_name=cockroach"
-	if c.Options != nil {
-		for k := range c.Options {
-			s = fmt.Sprintf("%s&%s=%s", s, k, c.Options[k])
-		}
-	}
-	return s
-}
-
 func (p *cockroach) URL() string {
 	c := p.ConnectionDetails
 	if c.URL != "" {
 		return c.URL
 	}
 	s := "postgres://%s:%s@%s:%s/%s?%s"
-	return fmt.Sprintf(s, c.User, c.Password, c.Host, c.Port, c.Database, p.optionString())
+	return fmt.Sprintf(s, c.User, c.Password, c.Host, c.Port, c.Database, c.OptionsString(""))
 }
 
 func (p *cockroach) urlWithoutDb() string {
 	c := p.ConnectionDetails
 	s := "postgres://%s:%s@%s:%s/?%s"
-	return fmt.Sprintf(s, c.User, c.Password, c.Host, c.Port, p.optionString())
+	return fmt.Sprintf(s, c.User, c.Password, c.Host, c.Port, c.OptionsString(""))
 }
 
 func (p *cockroach) MigrationURL() string {
@@ -269,14 +256,17 @@ func (p *cockroach) afterOpen(c *Connection) error {
 
 func newCockroach(deets *ConnectionDetails) (dialect, error) {
 	deets.Dialect = "postgres"
-	cd := &cockroach{
+	d := &cockroach{
 		ConnectionDetails: deets,
 		translateCache:    map[string]string{},
 		mu:                sync.Mutex{},
 	}
-	return cd, nil
+	d.info.client = deets.Options["application_name"]
+	return d, nil
 }
 
 func finalizerCockroach(cd *ConnectionDetails) {
+	appName := path.Base(os.Args[0])
+	cd.Options["application_name"] = defaults.String(cd.Options["application_name"], appName)
 	cd.Port = defaults.String(cd.Port, portCockroach)
 }

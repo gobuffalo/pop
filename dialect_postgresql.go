@@ -141,22 +141,18 @@ func (p *postgresql) URL() string {
 	if c.URL != "" {
 		return c.URL
 	}
-	ssl := defaults.String(c.Options["sslmode"], "disable")
-
-	s := "postgres://%s:%s@%s:%s/%s?sslmode=%s"
-	return fmt.Sprintf(s, c.User, c.Password, c.Host, c.Port, c.Database, ssl)
+	s := "postgres://%s:%s@%s:%s/%s?%s"
+	return fmt.Sprintf(s, c.User, c.Password, c.Host, c.Port, c.Database, c.OptionsString(""))
 }
 
 func (p *postgresql) urlWithoutDb() string {
 	c := p.ConnectionDetails
-	ssl := defaults.String(c.Options["sslmode"], "disable")
-
 	// https://github.com/gobuffalo/buffalo/issues/836
 	// If the db is not precised, postgresql takes the username as the database to connect on.
 	// To avoid a connection problem if the user db is not here, we use the default "postgres"
 	// db, just like the other client tools do.
-	s := "postgres://%s:%s@%s:%s/postgres?sslmode=%s"
-	return fmt.Sprintf(s, c.User, c.Password, c.Host, c.Port, ssl)
+	s := "postgres://%s:%s@%s:%s/postgres?%s"
+	return fmt.Sprintf(s, c.User, c.Password, c.Host, c.Port, c.OptionsString(""))
 }
 
 func (p *postgresql) MigrationURL() string {
@@ -213,6 +209,7 @@ func newPostgreSQL(deets *ConnectionDetails) (dialect, error) {
 }
 
 func finalizerPostgreSQL(cd *ConnectionDetails) {
+	cd.Options["sslmode"] = defaults.String(cd.Options["sslmode"], "disable")
 	cd.Port = defaults.String(cd.Port, portPostgreSQL)
 }
 
