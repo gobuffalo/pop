@@ -21,7 +21,7 @@ builds:
   goos:
     - windows
   goarch:
-    - amd64
+    - 386
 
 - binary: soda
   main: soda/main.go
