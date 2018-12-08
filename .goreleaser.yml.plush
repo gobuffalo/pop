@@ -1,13 +1,47 @@
 builds:
--
+- binary: soda
   goos:
     - darwin
     - linux
-    - windows
   env:
     - CGO_ENABLED=0
   main: soda/main.go
-  binary: soda
+
+- binary: soda
+  ldflags:
+    - "-extldflags '-static'"
+  env:
+    - CGO_ENABLED=1
+    - CC=i686-w64-mingw32-gcc
+    - CXX=i686-w64-mingw32-g++
+  flags:
+    - -tags
+    - sqlite
+  goos:
+    - windows
+  goarch:
+    - amd64
+
+- binary: soda
+  ldflags:
+    - "-extldflags '-static'"
+  env:
+    - CGO_ENABLED=1
+    - CC=x86_64-w64-mingw32-gcc
+    - CXX=x86_64-w64-mingw32-g++
+  flags:
+    - -tags
+    - sqlite
+  goos:
+    - windows
+  goarch:
+    - amd64
+
+archive:
+  format: tar.gz
+  format_overrides:
+    - goos: windows
+      format: zip
 
 checksum:
   name_template: 'checksums.txt'
