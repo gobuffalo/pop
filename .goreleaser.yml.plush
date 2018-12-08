@@ -1,13 +1,14 @@
 builds:
 - binary: soda
+  main: soda/main.go
   goos:
     - darwin
     - linux
   env:
     - CGO_ENABLED=0
-  main: soda/main.go
 
 - binary: soda
+  main: soda/main.go
   ldflags:
     - "-extldflags '-static'"
   env:
@@ -23,6 +24,7 @@ builds:
     - amd64
 
 - binary: soda
+  main: soda/main.go
   ldflags:
     - "-extldflags '-static'"
   env:
