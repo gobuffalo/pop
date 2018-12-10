@@ -16,7 +16,8 @@ var version bool
 
 // RootCmd is the entry point of soda CLI.
 var RootCmd = &cobra.Command{
-	Short: "A tasty treat for all your database needs",
+	SilenceUsage: true,
+	Short:        "A tasty treat for all your database needs",
 	PersistentPreRun: func(c *cobra.Command, args []string) {
 		fmt.Printf("%s\n\n", Version)
 		// CLI flag has priority

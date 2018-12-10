@@ -40,6 +40,7 @@ type dialect interface {
 	FizzTranslator() fizz.Translator
 	Lock(func() error) error
 	TruncateAll(*Connection) error
+	afterOpen(*Connection) error
 }
 
 func genericCreate(s store, model *Model, cols columns.Columns) error {
