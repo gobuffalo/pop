@@ -1,6 +1,8 @@
 package pop
 
-import "fmt"
+import (
+	"fmt"
+)
 
 // BelongsTo adds a "where" clause based on the "ID" of the
 // "model" passed into it.

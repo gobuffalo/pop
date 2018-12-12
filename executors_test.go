@@ -947,6 +947,39 @@ func Test_Eager_Create_Belongs_To_Pointers(t *testing.T) {
 
 		ctx, _ = tx.Count(&Head{})
 		r.Equal(1, ctx)
+
+		err = tx.Eager().Create(&Head{
+			BodyID: body.ID,
+			Body:   nil,
+		})
+		r.NoError(err)
+	})
+}
+
+func Test_Create_Belongs_To_Pointers(t *testing.T) {
+	transaction(func(tx *Connection) {
+		r := require.New(t)
+		// Create a body without a head:
+		body := Body{
+			Head: nil,
+		}
+
+		err := tx.Create(&body)
+		r.NoError(err)
+		r.NotZero(body.ID)
+		r.Nil(body.Head)
+
+		// Create a head with the associated model set but not the ID
+		created := HeadPtr{
+			Body: &body,
+		}
+		err = tx.Create(&created)
+		r.NoError(err)
+
+		found := HeadPtr{}
+		err = tx.Find(&found, created.ID)
+		r.NoError(err)
+		r.Equal(body.ID, *found.BodyID)
 	})
 }
 
