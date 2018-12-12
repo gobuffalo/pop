@@ -122,7 +122,6 @@ func (h *hasOneAssociation) AfterProcess() AssociationStatement {
 		om = om.Elem()
 	}
 	// Skip if the related model is not set
-	// Matt TODO: also check if exists
 	if IsZeroOfUnderlyingType(om) {
 		return AssociationStatement{
 			Statement: "",

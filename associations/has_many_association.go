@@ -136,7 +136,6 @@ func (a *hasManyAssociation) AfterProcess() AssociationStatement {
 
 	for i := 0; i < v.Len(); i++ {
 		id := v.Index(i).FieldByName(belongingIDFieldName).Interface()
-		// Matt TODO: also check if exists
 		if !IsZeroOfUnderlyingType(id) {
 			ids = append(ids, id)
 		}
