@@ -160,11 +160,9 @@ func (c *Connection) Create(model interface{}, excludeColumns ...string) error {
 				return err
 			}
 
-			if localIsEager {
+			if localIsEager && len(asos) == 0 {
 				// No association, fallback to non-eager mode.
-				if len(asos) == 0 {
-					localIsEager = false
-				}
+				localIsEager = false
 			}
 
 			if err = m.beforeSave(c); err != nil {
