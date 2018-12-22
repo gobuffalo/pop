@@ -113,6 +113,10 @@ Thank you to the following **GIANTS**:
 
 * [github.com/markbates/oncer](https://godoc.org/github.com/markbates/oncer)
 
+* [github.com/mattn/go-colorable](https://godoc.org/github.com/mattn/go-colorable)
+
+* [github.com/mattn/go-isatty](https://godoc.org/github.com/mattn/go-isatty)
+
 * [github.com/microcosm-cc/bluemonday](https://godoc.org/github.com/microcosm-cc/bluemonday)
 
 * [github.com/pkg/errors](https://godoc.org/github.com/pkg/errors)
