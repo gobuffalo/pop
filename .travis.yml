@@ -103,6 +103,9 @@ matrix:
     - dist: trusty
       go: "1.11"
       env: SODA_DIALECT="sqlite"
+    - os: windows
+      go: "1.11"
+      env: SODA_DIALECT="sqlite"
     - dist: trusty
       go: "tip"
       env: SODA_DIALECT="postgres"
