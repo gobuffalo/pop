@@ -117,6 +117,7 @@ func (m *model) addAttribute(a attribute) error {
 	if a.Name.String() == "id" {
 		// No need to create a default ID
 		m.HasID = true
+		a.Primary = true
 		// Ensure ID is the first attribute
 		m.Attributes = append([]attribute{a}, m.Attributes...)
 	} else {
