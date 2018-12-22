@@ -6,7 +6,7 @@ import (
 	"io"
 	"os"
 	"os/exec"
-	"path"
+	"path/filepath"
 	"strings"
 	"sync"
 
@@ -266,7 +266,7 @@ func newCockroach(deets *ConnectionDetails) (dialect, error) {
 }
 
 func finalizerCockroach(cd *ConnectionDetails) {
-	appName := path.Base(os.Args[0])
+	appName := filepath.Base(os.Args[0])
 	cd.Options["application_name"] = defaults.String(cd.Options["application_name"], appName)
 	cd.Port = defaults.String(cd.Port, portCockroach)
 }
