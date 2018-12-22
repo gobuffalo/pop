@@ -6,9 +6,21 @@ builds:
   main: soda/main.go
   goos:
     - darwin
-    - linux
   env:
     - CGO_ENABLED=0
+
+- binary: soda
+  main: soda/main.go
+  env:
+    - CGO_ENABLED=1
+  flags:
+    - -tags
+    - sqlite
+  goos:
+    - linux
+  goarch:
+    - amd64
+    - 386
 
 - binary: soda
   main: soda/main.go
