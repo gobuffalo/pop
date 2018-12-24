@@ -19,7 +19,7 @@ type barHasMany struct {
 	FooHasManyID nulls.Int `db:"foo_has_many_id"`
 }
 
-type barHasManies []barHasMany
+type barHasManies []*barHasMany
 
 func Test_Has_Many_Association(t *testing.T) {
 	a := require.New(t)

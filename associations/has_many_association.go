@@ -107,8 +107,7 @@ func (a *hasManyAssociation) AfterSetup() error {
 	}
 
 	for i := 0; i < v.Len(); i++ {
-		v := reflect.Indirect(v.Index(i))
-		fval := v.FieldByName(a.ownerName + "ID")
+		fval := reflect.Indirect(v.Index(i)).FieldByName(a.ownerName + "ID")
 		if fval.CanSet() {
 			if n := nulls.New(fval.Interface()); n != nil {
 				fval.Set(reflect.ValueOf(n.Parse(ownerID)))
@@ -136,8 +135,7 @@ func (a *hasManyAssociation) AfterProcess() AssociationStatement {
 	ids := []interface{}{}
 
 	for i := 0; i < v.Len(); i++ {
-		v := reflect.Indirect(v.Index(i))
-		id := v.FieldByName(belongingIDFieldName).Interface()
+		id := reflect.Indirect(v.Index(i)).FieldByName(belongingIDFieldName).Interface()
 		if !IsZeroOfUnderlyingType(id) {
 			ids = append(ids, id)
 		}
