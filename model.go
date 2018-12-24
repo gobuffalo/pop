@@ -114,7 +114,7 @@ func (m *Model) typeName(t reflect.Type) string {
 }
 
 func (m *Model) fieldByName(s string) (reflect.Value, error) {
-	el := reflect.ValueOf(m.Value).Elem()
+	el := reflect.Indirect(reflect.ValueOf(m.Value).Elem())
 	fbn := el.FieldByName(s)
 	if !fbn.IsValid() {
 		return fbn, errors.Errorf("Model does not have a field named %s", s)
@@ -183,7 +183,7 @@ func (m *Model) iterate(fn modelIterable) error {
 	if m.isSlice() {
 		v := reflect.Indirect(reflect.ValueOf(m.Value))
 		for i := 0; i < v.Len(); i++ {
-			val := v.Index(i)
+			val := reflect.Indirect(v.Index(i))
 			newModel := &Model{Value: val.Addr().Interface()}
 			err := fn(newModel)
 
