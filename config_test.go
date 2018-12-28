@@ -4,6 +4,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/gobuffalo/envy"
+
 	"github.com/stretchr/testify/require"
 )
 
@@ -40,6 +42,7 @@ mysql:
 	r.Equal("pop_test", conns["mysql"].Database)
 	r.Equal("127.0.0.1", conns["mysql"].Host)
 	r.Equal("3306", conns["mysql"].Port)
-	r.Equal("root", conns["mysql"].Password)
+	r.Equal(envy.Get("MYSQL_USER", "root"), conns["mysql"].User)
+	r.Equal(envy.Get("MYSQL_PASSWORD", "root"), conns["mysql"].Password)
 	r.Equal("5s", conns["mysql"].Options["readTimeout"])
 }
