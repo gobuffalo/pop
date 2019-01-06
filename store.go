@@ -8,7 +8,7 @@ import (
 
 // Store is an interface that must be implemented in order for Pop
 // to be able to use the value as a way of talking to a datastore.
-type store interface {
+type Store interface {
 	Select(interface{}, string, ...interface{}) error
 	Get(interface{}, string, ...interface{}) error
 	NamedExec(string, interface{}) (sql.Result, error)

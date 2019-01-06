@@ -16,8 +16,8 @@ var Connections = map[string]*Connection{}
 // Connection represents all necessary details to talk with a datastore
 type Connection struct {
 	ID          string
-	Store       store
-	Dialect     dialect
+	Store       Store
+	Dialect     Dialect
 	Elapsed     int64
 	TX          *Tx
 	eager       bool
@@ -54,7 +54,7 @@ func NewConnection(deets *ConnectionDetails) (*Connection, error) {
 		ID: randx.String(30),
 	}
 
-	if nc, ok := newConnection[deets.Dialect]; ok {
+	if nc, ok := NewConnectionHook[deets.Dialect]; ok {
 		c.Dialect, err = nc(deets)
 		if err != nil {
 			return c, errors.Wrap(err, "could not create new connection")
@@ -102,7 +102,7 @@ func (c *Connection) Open() error {
 	db.SetMaxIdleConns(details.IdlePool)
 	c.Store = &dB{db}
 
-	err = c.Dialect.afterOpen(c)
+	err = c.Dialect.AfterOpen(c)
 	if err != nil {
 		c.Store = nil
 	}

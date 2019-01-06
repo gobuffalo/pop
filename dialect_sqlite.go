@@ -28,10 +28,10 @@ func init() {
 	AvailableDialects = append(AvailableDialects, nameSQLite3)
 	dialectSynonyms["sqlite"] = nameSQLite3
 	urlParser[nameSQLite3] = urlParserSQLite3
-	newConnection[nameSQLite3] = newSQLite
+	NewConnectionHook[nameSQLite3] = newSQLite
 }
 
-var _ dialect = &sqlite{}
+var _ Dialect = &sqlite{}
 
 type sqlite struct {
 	gil               *sync.Mutex
@@ -55,7 +55,7 @@ func (m *sqlite) MigrationURL() string {
 	return m.ConnectionDetails.URL
 }
 
-func (m *sqlite) Create(s store, model *Model, cols columns.Columns) error {
+func (m *sqlite) Create(s Store, model *Model, cols columns.Columns) error {
 	return m.locker(m.smGil, func() error {
 		keyType := model.PrimaryKeyType()
 		switch keyType {
@@ -86,25 +86,25 @@ func (m *sqlite) Create(s store, model *Model, cols columns.Columns) error {
 	})
 }
 
-func (m *sqlite) Update(s store, model *Model, cols columns.Columns) error {
+func (m *sqlite) Update(s Store, model *Model, cols columns.Columns) error {
 	return m.locker(m.smGil, func() error {
 		return errors.Wrap(genericUpdate(s, model, cols), "sqlite update")
 	})
 }
 
-func (m *sqlite) Destroy(s store, model *Model) error {
+func (m *sqlite) Destroy(s Store, model *Model) error {
 	return m.locker(m.smGil, func() error {
 		return errors.Wrap(genericDestroy(s, model), "sqlite destroy")
 	})
 }
 
-func (m *sqlite) SelectOne(s store, model *Model, query Query) error {
+func (m *sqlite) SelectOne(s Store, model *Model, query Query) error {
 	return m.locker(m.smGil, func() error {
 		return errors.Wrap(genericSelectOne(s, model, query), "sqlite select one")
 	})
 }
 
-func (m *sqlite) SelectMany(s store, models *Model, query Query) error {
+func (m *sqlite) SelectMany(s Store, models *Model, query Query) error {
 	return m.locker(m.smGil, func() error {
 		return errors.Wrap(genericSelectMany(s, models, query), "sqlite select many")
 	})
@@ -211,7 +211,7 @@ func (m *sqlite) TruncateAll(tx *Connection) error {
 	return tx.RawQuery(strings.Join(stmts, "; ")).Exec()
 }
 
-func (m *sqlite) afterOpen(c *Connection) error {
+func (m *sqlite) AfterOpen(c *Connection) error {
 	return nil
 }
 

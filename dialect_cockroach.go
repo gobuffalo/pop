@@ -4,9 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"io"
-	"os"
 	"os/exec"
-	"path"
 	"strings"
 	"sync"
 
@@ -27,11 +25,11 @@ func init() {
 	AvailableDialects = append(AvailableDialects, nameCockroach)
 	dialectSynonyms["cockroachdb"] = nameCockroach
 	dialectSynonyms["crdb"] = nameCockroach
-	finalizer[nameCockroach] = finalizerCockroach
-	newConnection[nameCockroach] = newCockroach
+	FinalizerHook[nameCockroach] = finalizerCockroach
+	NewConnectionHook[nameCockroach] = newCockroach
 }
 
-var _ dialect = &cockroach{}
+var _ Dialect = &cockroach{}
 
 // ServerInfo holds informational data about connected database server.
 type cockroachInfo struct {
@@ -40,7 +38,6 @@ type cockroachInfo struct {
 	license       string `db:"-"`
 	version       string `db:"-"`
 	buildInfo     string `db:"-"`
-	client        string `db:"-"`
 }
 
 type cockroach struct {
@@ -58,7 +55,7 @@ func (p *cockroach) Details() *ConnectionDetails {
 	return p.ConnectionDetails
 }
 
-func (p *cockroach) Create(s store, model *Model, cols columns.Columns) error {
+func (p *cockroach) Create(s Store, model *Model, cols columns.Columns) error {
 	keyType := model.PrimaryKeyType()
 	switch keyType {
 	case "int", "int64":
@@ -91,11 +88,11 @@ func (p *cockroach) Create(s store, model *Model, cols columns.Columns) error {
 	return genericCreate(s, model, cols)
 }
 
-func (p *cockroach) Update(s store, model *Model, cols columns.Columns) error {
+func (p *cockroach) Update(s Store, model *Model, cols columns.Columns) error {
 	return genericUpdate(s, model, cols)
 }
 
-func (p *cockroach) Destroy(s store, model *Model) error {
+func (p *cockroach) Destroy(s Store, model *Model) error {
 	stmt := p.TranslateSQL(fmt.Sprintf("DELETE FROM %s WHERE %s", model.TableName(), model.whereID()))
 	err := genericExec(s, stmt, model.ID())
 	if err != nil {
@@ -104,11 +101,11 @@ func (p *cockroach) Destroy(s store, model *Model) error {
 	return nil
 }
 
-func (p *cockroach) SelectOne(s store, model *Model, query Query) error {
+func (p *cockroach) SelectOne(s Store, model *Model, query Query) error {
 	return genericSelectOne(s, model, query)
 }
 
-func (p *cockroach) SelectMany(s store, models *Model, query Query) error {
+func (p *cockroach) SelectMany(s Store, models *Model, query Query) error {
 	return genericSelectMany(s, models, query)
 }
 
@@ -151,19 +148,35 @@ func (p *cockroach) DropDB() error {
 	return nil
 }
 
+func (p *cockroach) optionString() string {
+	c := p.ConnectionDetails
+
+	if c.RawOptions != "" {
+		return c.RawOptions
+	}
+
+	s := "application_name=cockroach"
+	if c.Options != nil {
+		for k := range c.Options {
+			s = fmt.Sprintf("%s&%s=%s", s, k, c.Options[k])
+		}
+	}
+	return s
+}
+
 func (p *cockroach) URL() string {
 	c := p.ConnectionDetails
 	if c.URL != "" {
 		return c.URL
 	}
 	s := "postgres://%s:%s@%s:%s/%s?%s"
-	return fmt.Sprintf(s, c.User, c.Password, c.Host, c.Port, c.Database, c.OptionsString(""))
+	return fmt.Sprintf(s, c.User, c.Password, c.Host, c.Port, c.Database, p.optionString())
 }
 
 func (p *cockroach) urlWithoutDb() string {
 	c := p.ConnectionDetails
 	s := "postgres://%s:%s@%s:%s/?%s"
-	return fmt.Sprintf(s, c.User, c.Password, c.Host, c.Port, c.OptionsString(""))
+	return fmt.Sprintf(s, c.User, c.Password, c.Host, c.Port, p.optionString())
 }
 
 func (p *cockroach) MigrationURL() string {
@@ -239,7 +252,7 @@ func (p *cockroach) TruncateAll(tx *Connection) error {
 	// return tx3.RawQuery(fmt.Sprintf("truncate %s cascade;", strings.Join(tableNames, ", "))).Exec()
 }
 
-func (p *cockroach) afterOpen(c *Connection) error {
+func (p *cockroach) AfterOpen(c *Connection) error {
 	if err := c.RawQuery(`select version() AS "version"`).First(&p.info); err != nil {
 		return err
 	}
@@ -254,19 +267,16 @@ func (p *cockroach) afterOpen(c *Connection) error {
 	return nil
 }
 
-func newCockroach(deets *ConnectionDetails) (dialect, error) {
+func newCockroach(deets *ConnectionDetails) (Dialect, error) {
 	deets.Dialect = "postgres"
-	d := &cockroach{
+	cd := &cockroach{
 		ConnectionDetails: deets,
 		translateCache:    map[string]string{},
 		mu:                sync.Mutex{},
 	}
-	d.info.client = deets.Options["application_name"]
-	return d, nil
+	return cd, nil
 }
 
 func finalizerCockroach(cd *ConnectionDetails) {
-	appName := path.Base(os.Args[0])
-	cd.Options["application_name"] = defaults.String(cd.Options["application_name"], appName)
 	cd.Port = defaults.String(cd.Port, portCockroach)
 }

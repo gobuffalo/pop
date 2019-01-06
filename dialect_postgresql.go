@@ -23,11 +23,11 @@ func init() {
 	AvailableDialects = append(AvailableDialects, namePostgreSQL)
 	dialectSynonyms["postgresql"] = namePostgreSQL
 	dialectSynonyms["pg"] = namePostgreSQL
-	finalizer[namePostgreSQL] = finalizerPostgreSQL
-	newConnection[namePostgreSQL] = newPostgreSQL
+	FinalizerHook[namePostgreSQL] = finalizerPostgreSQL
+	NewConnectionHook[namePostgreSQL] = newPostgreSQL
 }
 
-var _ dialect = &postgresql{}
+var _ Dialect = &postgresql{}
 
 type postgresql struct {
 	translateCache    map[string]string
@@ -43,7 +43,7 @@ func (p *postgresql) Details() *ConnectionDetails {
 	return p.ConnectionDetails
 }
 
-func (p *postgresql) Create(s store, model *Model, cols columns.Columns) error {
+func (p *postgresql) Create(s Store, model *Model, cols columns.Columns) error {
 	keyType := model.PrimaryKeyType()
 	switch keyType {
 	case "int", "int64":
@@ -76,11 +76,11 @@ func (p *postgresql) Create(s store, model *Model, cols columns.Columns) error {
 	return genericCreate(s, model, cols)
 }
 
-func (p *postgresql) Update(s store, model *Model, cols columns.Columns) error {
+func (p *postgresql) Update(s Store, model *Model, cols columns.Columns) error {
 	return genericUpdate(s, model, cols)
 }
 
-func (p *postgresql) Destroy(s store, model *Model) error {
+func (p *postgresql) Destroy(s Store, model *Model) error {
 	stmt := p.TranslateSQL(fmt.Sprintf("DELETE FROM %s WHERE %s", model.TableName(), model.whereID()))
 	err := genericExec(s, stmt, model.ID())
 	if err != nil {
@@ -89,11 +89,11 @@ func (p *postgresql) Destroy(s store, model *Model) error {
 	return nil
 }
 
-func (p *postgresql) SelectOne(s store, model *Model, query Query) error {
+func (p *postgresql) SelectOne(s Store, model *Model, query Query) error {
 	return genericSelectOne(s, model, query)
 }
 
-func (p *postgresql) SelectMany(s store, models *Model, query Query) error {
+func (p *postgresql) SelectMany(s Store, models *Model, query Query) error {
 	return genericSelectMany(s, models, query)
 }
 
@@ -141,18 +141,22 @@ func (p *postgresql) URL() string {
 	if c.URL != "" {
 		return c.URL
 	}
-	s := "postgres://%s:%s@%s:%s/%s?%s"
-	return fmt.Sprintf(s, c.User, c.Password, c.Host, c.Port, c.Database, c.OptionsString(""))
+	ssl := defaults.String(c.Options["sslmode"], "disable")
+
+	s := "postgres://%s:%s@%s:%s/%s?sslmode=%s"
+	return fmt.Sprintf(s, c.User, c.Password, c.Host, c.Port, c.Database, ssl)
 }
 
 func (p *postgresql) urlWithoutDb() string {
 	c := p.ConnectionDetails
+	ssl := defaults.String(c.Options["sslmode"], "disable")
+
 	// https://github.com/gobuffalo/buffalo/issues/836
 	// If the db is not precised, postgresql takes the username as the database to connect on.
 	// To avoid a connection problem if the user db is not here, we use the default "postgres"
 	// db, just like the other client tools do.
-	s := "postgres://%s:%s@%s:%s/postgres?%s"
-	return fmt.Sprintf(s, c.User, c.Password, c.Host, c.Port, c.OptionsString(""))
+	s := "postgres://%s:%s@%s:%s/postgres?sslmode=%s"
+	return fmt.Sprintf(s, c.User, c.Password, c.Host, c.Port, ssl)
 }
 
 func (p *postgresql) MigrationURL() string {
@@ -195,11 +199,11 @@ func (p *postgresql) TruncateAll(tx *Connection) error {
 	return tx.RawQuery(fmt.Sprintf(pgTruncate, tx.MigrationTableName())).Exec()
 }
 
-func (p *postgresql) afterOpen(c *Connection) error {
+func (p *postgresql) AfterOpen(c *Connection) error {
 	return nil
 }
 
-func newPostgreSQL(deets *ConnectionDetails) (dialect, error) {
+func newPostgreSQL(deets *ConnectionDetails) (Dialect, error) {
 	cd := &postgresql{
 		ConnectionDetails: deets,
 		translateCache:    map[string]string{},
@@ -209,7 +213,6 @@ func newPostgreSQL(deets *ConnectionDetails) (dialect, error) {
 }
 
 func finalizerPostgreSQL(cd *ConnectionDetails) {
-	cd.Options["sslmode"] = defaults.String(cd.Options["sslmode"], "disable")
 	cd.Port = defaults.String(cd.Port, portPostgreSQL)
 }
 

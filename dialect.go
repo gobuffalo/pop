@@ -22,17 +22,17 @@ func init() {
 	gob.Register(uuid.UUID{})
 }
 
-type dialect interface {
+type Dialect interface {
 	Name() string
 	URL() string
 	MigrationURL() string
 	Details() *ConnectionDetails
 	TranslateSQL(string) string
-	Create(store, *Model, columns.Columns) error
-	Update(store, *Model, columns.Columns) error
-	Destroy(store, *Model) error
-	SelectOne(store, *Model, Query) error
-	SelectMany(store, *Model, Query) error
+	Create(Store, *Model, columns.Columns) error
+	Update(Store, *Model, columns.Columns) error
+	Destroy(Store, *Model) error
+	SelectOne(Store, *Model, Query) error
+	SelectMany(Store, *Model, Query) error
 	CreateDB() error
 	DropDB() error
 	DumpSchema(io.Writer) error
@@ -40,10 +40,10 @@ type dialect interface {
 	FizzTranslator() fizz.Translator
 	Lock(func() error) error
 	TruncateAll(*Connection) error
-	afterOpen(*Connection) error
+	AfterOpen(*Connection) error
 }
 
-func genericCreate(s store, model *Model, cols columns.Columns) error {
+func genericCreate(s Store, model *Model, cols columns.Columns) error {
 	keyType := model.PrimaryKeyType()
 	switch keyType {
 	case "int", "int64":
@@ -95,7 +95,7 @@ func genericCreate(s store, model *Model, cols columns.Columns) error {
 	return errors.Errorf("can not use %s as a primary key type!", keyType)
 }
 
-func genericUpdate(s store, model *Model, cols columns.Columns) error {
+func genericUpdate(s Store, model *Model, cols columns.Columns) error {
 	stmt := fmt.Sprintf("UPDATE %s SET %s WHERE %s", model.TableName(), cols.Writeable().UpdateString(), model.whereNamedID())
 	log(logging.SQL, stmt, model.ID())
 	_, err := s.NamedExec(stmt, model.Value)
@@ -105,7 +105,7 @@ func genericUpdate(s store, model *Model, cols columns.Columns) error {
 	return nil
 }
 
-func genericDestroy(s store, model *Model) error {
+func genericDestroy(s Store, model *Model) error {
 	stmt := fmt.Sprintf("DELETE FROM %s WHERE %s", model.TableName(), model.whereID())
 	err := genericExec(s, stmt, model.ID())
 	if err != nil {
@@ -114,7 +114,7 @@ func genericDestroy(s store, model *Model) error {
 	return nil
 }
 
-func genericExec(s store, stmt string, args ...interface{}) error {
+func genericExec(s Store, stmt string, args ...interface{}) error {
 	log(logging.SQL, stmt, args...)
 	_, err := s.Exec(stmt, args...)
 	if err != nil {
@@ -123,7 +123,7 @@ func genericExec(s store, stmt string, args ...interface{}) error {
 	return nil
 }
 
-func genericSelectOne(s store, model *Model, query Query) error {
+func genericSelectOne(s Store, model *Model, query Query) error {
 	sql, args := query.ToSQL(model)
 	log(logging.SQL, sql, args...)
 	err := s.Get(model.Value, sql, args...)
@@ -133,7 +133,7 @@ func genericSelectOne(s store, model *Model, query Query) error {
 	return nil
 }
 
-func genericSelectMany(s store, models *Model, query Query) error {
+func genericSelectMany(s Store, models *Model, query Query) error {
 	sql, args := query.ToSQL(models)
 	log(logging.SQL, sql, args...)
 	err := s.Select(models.Value, sql, args...)

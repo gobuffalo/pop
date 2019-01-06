@@ -11,10 +11,10 @@ var dialectSynonyms = make(map[string]string)
 var urlParser = make(map[string]func(*ConnectionDetails) error)
 
 // map of dialect specific connection details finalizers
-var finalizer = make(map[string]func(*ConnectionDetails))
+var FinalizerHook = make(map[string]func(*ConnectionDetails))
 
 // map of connection creators
-var newConnection = make(map[string]func(*ConnectionDetails) (dialect, error))
+var NewConnectionHook = make(map[string]func(*ConnectionDetails) (Dialect, error))
 
 // DialectSupported checks support for the given database dialect
 func DialectSupported(d string) bool {
