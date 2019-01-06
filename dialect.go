@@ -22,6 +22,7 @@ func init() {
 	gob.Register(uuid.UUID{})
 }
 
+// Dialect represent adapter for different database drivers.
 type Dialect interface {
 	Name() string
 	URL() string
