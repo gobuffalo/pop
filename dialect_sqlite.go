@@ -215,7 +215,7 @@ func (m *sqlite) AfterOpen(c *Connection) error {
 	return nil
 }
 
-func newSQLite(deets *ConnectionDetails) (dialect, error) {
+func newSQLite(deets *ConnectionDetails) (Dialect, error) {
 	deets.URL = fmt.Sprintf("sqlite3://%s", deets.Database)
 	cd := &sqlite{
 		gil:               &sync.Mutex{},
