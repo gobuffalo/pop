@@ -40,6 +40,7 @@ func ForStructWithAlias(s interface{}, tableName string, tableAlias string) (col
 			columns.Add("*")
 		}
 	}()
+
 	st := reflect.TypeOf(s)
 	if st.Kind() == reflect.Ptr {
 		st = st.Elem()
@@ -51,19 +52,42 @@ func ForStructWithAlias(s interface{}, tableName string, tableAlias string) (col
 		}
 	}
 
-	fieldCount := st.NumField()
+	do := func(reflect.Type) {}
+	do = func(v reflect.Type) {
+		fieldCount := v.NumField()
 
-	for i := 0; i < fieldCount; i++ {
-		field := st.Field(i)
+		for i := 0; i < fieldCount; i++ {
+			field := v.Field(i)
 
-		popTags := TagsFor(field)
-		tag := popTags.Find("db")
+			// Is bad approach fill for all structure data db tag,
+			// this not allow to us use composition at all as we fill not existen data
+			// from time.Time struct or others.
+			//
+			// For better we can support json tag withoud not filling db tag.
+			// if we want make restrict access to filed, we should use db tag with - value
+			popTags := TagsForReal(field)
+			tagDB := popTags.Find("db")
+			tagJSON := popTags.Find("json")
 
-		if !tag.Ignored() && !tag.Empty() {
+			tag := tagDB
+			if tagDB.Empty() {
+				tag = tagJSON
+			}
+
+			// support composition structures.
+			// If no tag json and db inside structures this run just ignor not important fields.
+			if field.Type.Kind() == reflect.Struct {
+				do(v.Field(i).Type)
+			}
+
+			if tag.Ignored() || tag.Empty() {
+				continue
+			}
+
 			col := tag.Value
 
 			// add writable or readable.
-			tag := popTags.Find("rw")
+			tag = popTags.Find("rw")
 			if !tag.Empty() {
 				col = col + "," + tag.Value
 			}
@@ -78,6 +102,7 @@ func ForStructWithAlias(s interface{}, tableName string, tableAlias string) (col
 			}
 		}
 	}
+	do(st)
 
 	return columns
 }

@@ -41,15 +41,21 @@ func (t Tags) Find(name string) Tag {
 // TagsFor is a function which returns all tags defined
 // in model field.
 func TagsFor(field reflect.StructField) Tags {
+	pTags := TagsForReal(field)
+
+	if len(pTags) == 0 {
+		pTags = append(pTags, Tag{field.Name, "db"})
+	}
+	return pTags
+}
+
+// TagsForReal only read tags, any hard-overwrition
+func TagsForReal(field reflect.StructField) Tags {
 	pTags := Tags{}
 	for _, tag := range strings.Fields(tags) {
 		if valTag := field.Tag.Get(tag); valTag != "" {
 			pTags = append(pTags, Tag{valTag, tag})
 		}
-	}
-
-	if len(pTags) == 0 {
-		pTags = append(pTags, Tag{field.Name, "db"})
 	}
 	return pTags
 }
