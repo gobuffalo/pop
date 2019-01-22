@@ -5,7 +5,6 @@ package pop
 import (
 	"fmt"
 	"io"
-	"net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -227,11 +226,7 @@ func newSQLite(deets *ConnectionDetails) (dialect, error) {
 }
 
 func urlParserSQLite3(cd *ConnectionDetails) error {
-	u, err := url.Parse(cd.URL)
-	if err != nil {
-		return errors.Wrapf(err, "could not parse url '%v'", cd.URL)
-	}
-	cd.Database = u.Path
-
+	db := strings.TrimPrefix(cd.URL, "sqlite://")
+	cd.Database = strings.TrimPrefix(db, "sqlite3://")
 	return nil
 }
