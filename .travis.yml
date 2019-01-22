@@ -27,6 +27,10 @@ global_env:
         - mysql-5.7-trusty
       packages:
         - mysql-server
+  before_install:
+    - sudo mysql -e "use mysql; update user set authentication_string=PASSWORD('root') where User='root'; update user set plugin='mysql_native_password';FLUSH PRIVILEGES;"
+    - sudo mysql_upgrade -u root -proot
+    - sudo service mysql restart
 
 .postgres: &postgres
   addons:
@@ -101,6 +105,9 @@ matrix:
       env: SODA_DIALECT="cockroach_ssl"
       <<: *crdb210ssl
     - dist: trusty
+      go: "1.11"
+      env: SODA_DIALECT="sqlite"
+    - os: windows
       go: "1.11"
       env: SODA_DIALECT="sqlite"
     - dist: trusty

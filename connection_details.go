@@ -51,20 +51,20 @@ var dialectX = regexp.MustCompile(`\S+://`)
 // URL parser if exists.
 func (cd *ConnectionDetails) withURL() error {
 	ul := cd.URL
-	if cd.Dialect != "" && !dialectX.MatchString(ul) {
+	if cd.Dialect == "" {
+		if dialectX.MatchString(ul) {
+			// Guess the dialect from the scheme
+			dialect := ul[:strings.Index(ul, ":")]
+			cd.Dialect = normalizeSynonyms(dialect)
+		} else {
+			return errors.New("no dialect provided, and could not guess it from URL")
+		}
+	} else if !dialectX.MatchString(ul) {
 		ul = cd.Dialect + "://" + ul
 	}
-	u, err := url.Parse(ul)
-	if err != nil {
-		return errors.Wrapf(err, "couldn't parse %s", ul)
-	}
 
-	//! dialect should not be overrided here (especially for cockroach)
-	if cd.Dialect == "" {
-		cd.Dialect = normalizeSynonyms(u.Scheme)
-	}
 	if !DialectSupported(cd.Dialect) {
-		return errors.Errorf("unsupported dialect '%v'", cd.Dialect)
+		return errors.Errorf("unsupported dialect '%s'", cd.Dialect)
 	}
 
 	// warning message is required to prevent confusion
@@ -77,6 +77,11 @@ func (cd *ConnectionDetails) withURL() error {
 		return up(cd)
 	}
 
+	// Fallback on generic parsing if no URL parser was found for the dialect.
+	u, err := url.Parse(ul)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't parse %s", ul)
+	}
 	cd.Database = strings.TrimPrefix(u.Path, "/")
 
 	hp := strings.Split(u.Host, ":")
@@ -103,6 +108,7 @@ func (cd *ConnectionDetails) Finalize() error {
 		cd.Options = make(map[string]string)
 	}
 
+	// Process the database connection string, if provided.
 	if cd.URL != "" {
 		if err := cd.withURL(); err != nil {
 			return err

@@ -11,7 +11,7 @@ import (
 	"github.com/gobuffalo/envy"
 	"github.com/gobuffalo/pop/logging"
 	"github.com/pkg/errors"
-	"gopkg.in/yaml.v2"
+	yaml "gopkg.in/yaml.v2"
 )
 
 // ErrConfigFileNotFound is returned when the pop config file can't be found,
@@ -75,6 +75,24 @@ func findConfigPath() (string, error) {
 // LoadFrom reads a configuration from the reader and sets up the connections
 func LoadFrom(r io.Reader) error {
 	envy.Load()
+	deets, err := ParseConfig(r)
+	if err != nil {
+		return err
+	}
+	for n, d := range deets {
+		con, err := NewConnection(d)
+		if err != nil {
+			log(logging.Warn, "unable to load connection %s: %v", n, err)
+			continue
+		}
+		Connections[n] = con
+	}
+	return nil
+}
+
+// ParseConfig reads the pop config from the given io.Reader and returns
+// the parsed ConnectionDetails map.
+func ParseConfig(r io.Reader) (map[string]*ConnectionDetails, error) {
 	tmpl := template.New("test")
 	tmpl.Funcs(map[string]interface{}{
 		"envOr": func(s1, s2 string) string {
@@ -86,31 +104,20 @@ func LoadFrom(r io.Reader) error {
 	})
 	b, err := ioutil.ReadAll(r)
 	if err != nil {
-		return errors.WithStack(err)
+		return nil, errors.WithStack(err)
 	}
 	t, err := tmpl.Parse(string(b))
 	if err != nil {
-		return errors.Wrap(err, "couldn't parse config template")
+		return nil, errors.Wrap(err, "couldn't parse config template")
 	}
 
 	var bb bytes.Buffer
 	err = t.Execute(&bb, nil)
 	if err != nil {
-		return errors.Wrap(err, "couldn't execute config template")
+		return nil, errors.Wrap(err, "couldn't execute config template")
 	}
 
 	deets := map[string]*ConnectionDetails{}
 	err = yaml.Unmarshal(bb.Bytes(), &deets)
-	if err != nil {
-		return errors.Wrap(err, "couldn't unmarshal config to yaml")
-	}
-	for n, d := range deets {
-		con, err := NewConnection(d)
-		if err != nil {
-			log(logging.Warn, "unable to load connection %s: %v", n, err)
-			continue
-		}
-		Connections[n] = con
-	}
-	return nil
+	return deets, errors.Wrap(err, "couldn't unmarshal config to yaml")
 }
