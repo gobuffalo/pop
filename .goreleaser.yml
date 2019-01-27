@@ -6,8 +6,15 @@ builds:
   main: soda/main.go
   goos:
     - darwin
+  goarch:
+    - amd64
   env:
-    - CGO_ENABLED=0
+    - CGO_ENABLED=1
+    - CC=o64-clang
+    - CXX=o64-clang++
+  flags:
+    - -tags
+    - sqlite
 
 - binary: soda
   main: soda/main.go
