@@ -5,7 +5,8 @@ mysql:
   port: {{ envOr "MYSQL_PORT" "3306"  }}
   user: {{ envOr "MYSQL_USER"  "root"  }}
   password: {{ envOr "MYSQL_PASSWORD"  "root"  }}
-  encoding: "utf8mb4_general_ci"
+  options:
+    readTimeout: 5s
 
 mysql_travis:
   dialect: "mysql"
@@ -14,7 +15,8 @@ mysql_travis:
   port: {{ envOr "MYSQL_PORT" "3306"  }}
   user: {{ envOr "MYSQL_USER"  "root"  }}
   password: {{ envOr "MYSQL_PASSWORD"  ""  }}
-  encoding: "utf8mb4_general_ci"
+  options:
+    readTimeout: 10s
 
 postgres:
   url: "postgres://postgres:postgres@localhost:5432/pop_test?sslmode=disable"
@@ -33,7 +35,7 @@ cockroach:
 
 cockroach_ssl:
   dialect: "cockroach"
-  url: "postgres://root@localhost:26257/pop_test?sslmode=require&sslrootcert=./certs/ca.crt&sslkey=./certs/client.root.key&sslcert=./certs/client.root.crt"
+  url: "postgres://root@localhost:26259/pop_test?sslmode=require&sslrootcert=./crdb/certs/ca.crt&sslkey=./crdb/certs/client.root.key&sslcert=./crdb/certs/client.root.crt"
 
 sqlite:
   dialect: "sqlite3"

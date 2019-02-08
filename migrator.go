@@ -77,6 +77,7 @@ func (m Migrator) Up() error {
 		mtn := c.MigrationTableName()
 		mfs := m.Migrations["up"]
 		sort.Sort(mfs)
+		applied := 0
 		for _, mi := range mfs {
 			if mi.DBType != "all" && mi.DBType != c.Dialect.Name() {
 				// Skip migration for non-matching dialect
@@ -101,6 +102,10 @@ func (m Migrator) Up() error {
 				return errors.WithStack(err)
 			}
 			log(logging.Info, "> %s", mi.Name)
+			applied++
+		}
+		if applied == 0 {
+			log(logging.Info, "Migrations already up to date, nothing to apply")
 		}
 		return nil
 	})
@@ -215,13 +220,14 @@ func (m Migrator) DumpMigrationSchema() error {
 		return nil
 	}
 	c := m.Connection
-	f, err := os.Create(filepath.Join(m.SchemaPath, "schema.sql"))
+	schema := filepath.Join(m.SchemaPath, "schema.sql")
+	f, err := os.Create(schema)
 	if err != nil {
 		return errors.WithStack(err)
 	}
 	err = c.Dialect.DumpSchema(f)
 	if err != nil {
-
+		os.RemoveAll(schema)
 		return errors.WithStack(err)
 	}
 	return nil
@@ -229,7 +235,12 @@ func (m Migrator) DumpMigrationSchema() error {
 
 func (m Migrator) exec(fn func() error) error {
 	now := time.Now()
-	defer m.DumpMigrationSchema()
+	defer func() {
+		err := m.DumpMigrationSchema()
+		if err != nil {
+			log(logging.Warn, "Migrator: unable to dump schema: %v", err)
+		}
+	}()
 	defer printTimer(now)
 
 	err := m.CreateSchemaMigrations()

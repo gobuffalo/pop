@@ -16,16 +16,23 @@ var version bool
 
 // RootCmd is the entry point of soda CLI.
 var RootCmd = &cobra.Command{
-	Short: "A tasty treat for all your database needs",
+	SilenceUsage: true,
+	Short:        "A tasty treat for all your database needs",
 	PersistentPreRun: func(c *cobra.Command, args []string) {
 		fmt.Printf("%s\n\n", Version)
-		env = defaults.String(os.Getenv("GO_ENV"), env)
-		setConfigLocation()
-	},
-	Run: func(cmd *cobra.Command, args []string) {
-		if !version {
-			cmd.Help()
+		// CLI flag has priority
+		if !c.PersistentFlags().Changed("env") {
+			env = defaults.String(os.Getenv("GO_ENV"), env)
 		}
+		// TODO! Only do this when the command needs it.
+		setConfigLocation()
+		pop.LoadConfigFile()
+	},
+	RunE: func(cmd *cobra.Command, args []string) error {
+		if !version {
+			return cmd.Help()
+		}
+		return nil
 	},
 }
 
@@ -53,7 +60,6 @@ func setConfigLocation() {
 		pop.AddLookupPaths(dir)
 		pop.ConfigName = file
 	}
-	pop.LoadConfigFile()
 }
 
 func getConn() *pop.Connection {

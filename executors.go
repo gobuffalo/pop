@@ -1,8 +1,9 @@
 package pop
 
 import (
-	"fmt"
+	"reflect"
 
+	"github.com/gobuffalo/pop/associations"
 	"github.com/gobuffalo/pop/columns"
 	"github.com/gobuffalo/pop/logging"
 	"github.com/gobuffalo/uuid"
@@ -60,13 +61,21 @@ func (c *Connection) ValidateAndSave(model interface{}, excludeColumns ...string
 
 var emptyUUID = uuid.Nil.String()
 
+// IsZeroOfUnderlyingType will check if the value of anything is the equal to the Zero value of that type.
+func IsZeroOfUnderlyingType(x interface{}) bool {
+	return reflect.DeepEqual(x, reflect.Zero(reflect.TypeOf(x)).Interface())
+}
+
 // Save wraps the Create and Update methods. It executes a Create if no ID is provided with the entry;
 // or issues an Update otherwise.
 func (c *Connection) Save(model interface{}, excludeColumns ...string) error {
 	sm := &Model{Value: model}
 	return sm.iterate(func(m *Model) error {
-		id := m.ID()
-		if fmt.Sprint(id) == "0" || fmt.Sprint(id) == emptyUUID {
+		id, err := m.fieldByName("ID")
+		if err != nil {
+			return err
+		}
+		if IsZeroOfUnderlyingType(id.Interface()) {
 			return c.Create(m.Value, excludeColumns...)
 		}
 		return c.Update(m.Value, excludeColumns...)
@@ -76,10 +85,6 @@ func (c *Connection) Save(model interface{}, excludeColumns ...string) error {
 // ValidateAndCreate applies validation rules on the given entry, then creates it
 // if the validation succeed, excluding the given columns.
 func (c *Connection) ValidateAndCreate(model interface{}, excludeColumns ...string) (*validate.Errors, error) {
-	if c.eager {
-		return c.eagerValidateAndCreate(model, excludeColumns...)
-	}
-
 	sm := &Model{Value: model}
 	verrs, err := sm.validateCreate(c)
 	if err != nil {
@@ -88,26 +93,119 @@ func (c *Connection) ValidateAndCreate(model interface{}, excludeColumns ...stri
 	if verrs.HasAny() {
 		return verrs, nil
 	}
+
+	if c.eager {
+		asos, err2 := associations.ForStruct(model, c.eagerFields...)
+
+		if err2 != nil {
+			return verrs, err2
+		}
+
+		if len(asos) == 0 {
+			c.disableEager()
+			return verrs, c.Create(model, excludeColumns...)
+		}
+
+		before := asos.AssociationsBeforeCreatable()
+		for index := range before {
+			i := before[index].BeforeInterface()
+			if i == nil {
+				continue
+			}
+
+			sm := &Model{Value: i}
+			verrs, err := sm.validateAndOnlyCreate(c)
+			if err != nil || verrs.HasAny() {
+				return verrs, err
+			}
+		}
+
+		after := asos.AssociationsAfterCreatable()
+		for index := range after {
+			i := after[index].AfterInterface()
+			if i == nil {
+				continue
+			}
+
+			sm := &Model{Value: i}
+			verrs, err := sm.validateAndOnlyCreate(c)
+			if err != nil || verrs.HasAny() {
+				return verrs, err
+			}
+		}
+
+		sm := &Model{Value: model}
+		verrs, err = sm.validateCreate(c)
+		if err != nil || verrs.HasAny() {
+			return verrs, err
+		}
+	}
+
 	return verrs, c.Create(model, excludeColumns...)
 }
 
 // Create add a new given entry to the database, excluding the given columns.
 // It updates `created_at` and `updated_at` columns automatically.
 func (c *Connection) Create(model interface{}, excludeColumns ...string) error {
-	if c.eager {
-		return c.eagerCreate(model, excludeColumns...)
-	}
+	var isEager = c.eager
+
+	c.disableEager()
 
 	sm := &Model{Value: model}
 	return sm.iterate(func(m *Model) error {
 		return c.timeFunc("Create", func() error {
-			var err error
+			var localIsEager = isEager
+			asos, err := associations.ForStruct(m.Value, c.eagerFields...)
+			if err != nil {
+				return err
+			}
+
+			if localIsEager && len(asos) == 0 {
+				// No association, fallback to non-eager mode.
+				localIsEager = false
+			}
+
 			if err = m.beforeSave(c); err != nil {
 				return err
 			}
 
 			if err = m.beforeCreate(c); err != nil {
 				return err
+			}
+
+			processAssoc := len(asos) > 0
+
+			if processAssoc {
+				before := asos.AssociationsBeforeCreatable()
+				for index := range before {
+					i := before[index].BeforeInterface()
+					if i == nil {
+						continue
+					}
+
+					if localIsEager {
+						sm := &Model{Value: i}
+						err = sm.iterate(func(m *Model) error {
+							id, err := m.fieldByName("ID")
+							if err != nil {
+								return err
+							}
+							if IsZeroOfUnderlyingType(id.Interface()) {
+								return c.Create(m.Value)
+							}
+							return nil
+						})
+
+						if err != nil {
+							return err
+						}
+					}
+
+					err = before[index].BeforeSetup()
+					if err != nil {
+						return err
+					}
+				}
 			}
 
 			tn := m.TableName()
@@ -122,6 +220,70 @@ func (c *Connection) Create(model interface{}, excludeColumns ...string) error {
 
 			if err = c.Dialect.Create(c.Store, m, cols); err != nil {
 				return err
+			}
+
+			if processAssoc {
+				after := asos.AssociationsAfterCreatable()
+				for index := range after {
+					if localIsEager {
+						err = after[index].AfterSetup()
+						if err != nil {
+							return err
+						}
+
+						i := after[index].AfterInterface()
+						if i == nil {
+							continue
+						}
+
+						sm := &Model{Value: i}
+						err = sm.iterate(func(m *Model) error {
+							fbn, err := m.fieldByName("ID")
+							if err != nil {
+								return err
+							}
+							id := fbn.Interface()
+							if IsZeroOfUnderlyingType(id) {
+								return c.Create(m.Value)
+							} else {
+								exists, errE := Q(c).Exists(i)
+								if errE != nil || !exists {
+									return c.Create(m.Value)
+								}
+							}
+							return nil
+						})
+
+						if err != nil {
+							return err
+						}
+					}
+					stm := after[index].AfterProcess()
+					if c.TX != nil && !stm.Empty() {
+						_, err := c.TX.Exec(c.Dialect.TranslateSQL(stm.Statement), stm.Args...)
+						if err != nil {
+							return err
+						}
+					}
+				}
+
+				stms := asos.AssociationsCreatableStatement()
+				for index := range stms {
+					statements := stms[index].Statements()
+					for _, stm := range statements {
+						if c.TX != nil {
+							_, err := c.TX.Exec(c.Dialect.TranslateSQL(stm.Statement), stm.Args...)
+							if err != nil {
+								return err
+							}
+							continue
+						}
+						_, err = c.Store.Exec(c.Dialect.TranslateSQL(stm.Statement), stm.Args...)
+						if err != nil {
+							return err
+						}
+					}
+				}
 			}
 
 			if err = m.afterCreate(c); err != nil {

@@ -53,20 +53,15 @@ func NewConnection(deets *ConnectionDetails) (*Connection, error) {
 	c := &Connection{
 		ID: randx.String(30),
 	}
-	switch deets.Dialect {
-	case "postgres":
-		c.Dialect = newPostgreSQL(deets)
-	case "cockroach":
-		c.Dialect = newCockroach(deets)
-	case "mysql":
-		c.Dialect = newMySQL(deets)
-	case "sqlite3":
-		c.Dialect, err = newSQLite(deets)
+
+	if nc, ok := newConnection[deets.Dialect]; ok {
+		c.Dialect, err = nc(deets)
 		if err != nil {
-			return c, errors.WithStack(err)
+			return c, errors.Wrap(err, "could not create new connection")
 		}
+		return c, nil
 	}
-	return c, nil
+	return nil, errors.Errorf("could not found connection creator for %v", deets.Dialect)
 }
 
 // Connect takes the name of a connection, default is "development", and will
@@ -95,14 +90,23 @@ func (c *Connection) Open() error {
 	if c.Store != nil {
 		return nil
 	}
+	if c.Dialect == nil {
+		return errors.New("invalid connection instance")
+	}
 	details := c.Dialect.Details()
 	db, err := sqlx.Open(details.Dialect, c.Dialect.URL())
+	if err != nil {
+		return errors.Wrap(err, "could not open database connection")
+	}
 	db.SetMaxOpenConns(details.Pool)
 	db.SetMaxIdleConns(details.IdlePool)
-	if err == nil {
-		c.Store = &dB{db}
+	c.Store = &dB{db}
+
+	err = c.Dialect.afterOpen(c)
+	if err != nil {
+		c.Store = nil
 	}
-	return errors.Wrap(err, "couldn't connect to database")
+	return errors.Wrap(err, "could not open database connection")
 }
 
 // Close destroys an active datasource connection
@@ -134,6 +138,17 @@ func (c *Connection) Transaction(fn func(tx *Connection) error) error {
 
 }
 
+// Rollback will open a new transaction and automatically rollback that transaction
+// when the inner function returns, regardless. This can be useful for tests, etc...
+func (c *Connection) Rollback(fn func(tx *Connection)) error {
+	cn, err := c.NewTransaction()
+	if err != nil {
+		return err
+	}
+	fn(cn)
+	return cn.TX.Rollback()
+}
+
 // NewTransaction starts a new transaction on the connection
 func (c *Connection) NewTransaction() (*Connection, error) {
 	var cn *Connection
@@ -161,28 +176,6 @@ func (c *Connection) copy() *Connection {
 		Dialect: c.Dialect,
 		TX:      c.TX,
 	}
-}
-
-// Rollback will open a new transaction and automatically rollback that transaction
-// when the inner function returns, regardless. This can be useful for tests, etc...
-func (c *Connection) Rollback(fn func(tx *Connection)) error {
-	var cn *Connection
-	if c.TX == nil {
-		tx, err := c.Store.Transaction()
-		if err != nil {
-			return errors.Wrap(err, "couldn't start a new transaction")
-		}
-		cn = &Connection{
-			ID:      randx.String(30),
-			Store:   tx,
-			Dialect: c.Dialect,
-			TX:      tx,
-		}
-	} else {
-		cn = c
-	}
-	fn(cn)
-	return cn.TX.Rollback()
 }
 
 // Q creates a new "empty" query for the current connection.

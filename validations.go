@@ -53,6 +53,34 @@ func (m *Model) validateCreate(c *Connection) (*validate.Errors, error) {
 	})
 }
 
+func (m *Model) validateAndOnlyCreate(c *Connection) (*validate.Errors, error) {
+	return m.iterateAndValidate(func(model *Model) (*validate.Errors, error) {
+		id, err := model.fieldByName("ID")
+		if err != nil {
+			return nil, err
+		}
+		if !IsZeroOfUnderlyingType(id.Interface()) {
+			return validate.NewErrors(), nil
+		}
+
+		verrs, err := model.validate(c)
+		if err != nil {
+			return verrs, errors.WithStack(err)
+		}
+		if x, ok := model.Value.(validateCreateable); ok {
+			vs, err := x.ValidateCreate(c)
+			if vs != nil {
+				verrs.Append(vs)
+			}
+			if err != nil {
+				return verrs, errors.WithStack(err)
+			}
+		}
+
+		return verrs, err
+	})
+}
+
 type validateSaveable interface {
 	ValidateSave(*Connection) (*validate.Errors, error)
 }

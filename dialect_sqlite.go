@@ -17,14 +17,17 @@ import (
 	"github.com/gobuffalo/pop/columns"
 	"github.com/gobuffalo/pop/logging"
 	"github.com/markbates/going/defaults"
-	// Load SQLite3 CGo driver
-	_ "github.com/mattn/go-sqlite3"
+	_ "github.com/mattn/go-sqlite3" // Load SQLite3 CGo driver
 	"github.com/pkg/errors"
 )
 
+const nameSQLite3 = "sqlite3"
+
 func init() {
-	AvailableDialects = append(AvailableDialects, "sqlite3")
-	dialectSynonyms["sqlite"] = "sqlite3"
+	AvailableDialects = append(AvailableDialects, nameSQLite3)
+	dialectSynonyms["sqlite"] = nameSQLite3
+	urlParser[nameSQLite3] = urlParserSQLite3
+	newConnection[nameSQLite3] = newSQLite
 }
 
 var _ dialect = &sqlite{}
@@ -36,7 +39,7 @@ type sqlite struct {
 }
 
 func (m *sqlite) Name() string {
-	return "sqlite3"
+	return nameSQLite3
 }
 
 func (m *sqlite) Details() *ConnectionDetails {
@@ -53,6 +56,31 @@ func (m *sqlite) MigrationURL() string {
 
 func (m *sqlite) Create(s store, model *Model, cols columns.Columns) error {
 	return m.locker(m.smGil, func() error {
+		keyType := model.PrimaryKeyType()
+		switch keyType {
+		case "int", "int64":
+			var id int64
+			w := cols.Writeable()
+			var query string
+			if len(w.Cols) > 0 {
+				query = fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s)", model.TableName(), w.String(), w.SymbolizedString())
+			} else {
+				query = fmt.Sprintf("INSERT INTO %s DEFAULT VALUES", model.TableName())
+			}
+			log(logging.SQL, query)
+			res, err := s.NamedExec(query, model.Value)
+			if err != nil {
+				return errors.WithStack(err)
+			}
+			id, err = res.LastInsertId()
+			if err == nil {
+				model.setID(id)
+			}
+			if err != nil {
+				return errors.WithStack(err)
+			}
+			return nil
+		}
 		return errors.Wrap(genericCreate(s, model, cols), "sqlite create")
 	})
 }
@@ -182,6 +210,10 @@ func (m *sqlite) TruncateAll(tx *Connection) error {
 	return tx.RawQuery(strings.Join(stmts, "; ")).Exec()
 }
 
+func (m *sqlite) afterOpen(c *Connection) error {
+	return nil
+}
+
 func newSQLite(deets *ConnectionDetails) (dialect, error) {
 	deets.URL = fmt.Sprintf("sqlite3://%s", deets.Database)
 	cd := &sqlite{
@@ -191,4 +223,10 @@ func newSQLite(deets *ConnectionDetails) (dialect, error) {
 	}
 
 	return cd, nil
+}
+
+func urlParserSQLite3(cd *ConnectionDetails) error {
+	db := strings.TrimPrefix(cd.URL, "sqlite://")
+	cd.Database = strings.TrimPrefix(db, "sqlite3://")
+	return nil
 }

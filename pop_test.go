@@ -32,7 +32,7 @@ func TestSpecificSuites(t *testing.T) {
 	switch os.Getenv("SODA_DIALECT") {
 	case "postgres":
 		suite.Run(t, &PostgreSQLSuite{})
-	case "mysql":
+	case "mysql", "mysql_travis":
 		suite.Run(t, &MySQLSuite{})
 	case "sqlite":
 		suite.Run(t, &SQLiteSuite{})
@@ -338,4 +338,25 @@ func (u *CallbacksUser) AfterFind(tx *Connection) error {
 
 type Label struct {
 	ID string `db:"id"`
+}
+
+type SingleID struct {
+	ID int `db:"id"`
+}
+
+type Body struct {
+	ID   int   `json:"id" db:"id"`
+	Head *Head `json:"head" has_one:"head"`
+}
+
+type Head struct {
+	ID     int   `json:"id,omitempty" db:"id"`
+	BodyID int   `json:"-" db:"body_id"`
+	Body   *Body `json:"body,omitempty" belongs_to:"body"`
+}
+
+type HeadPtr struct {
+	ID     int   `json:"id,omitempty" db:"id"`
+	BodyID *int  `json:"-" db:"body_id"`
+	Body   *Body `json:"body,omitempty" belongs_to:"body"`
 }

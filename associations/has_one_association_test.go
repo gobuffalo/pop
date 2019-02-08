@@ -35,6 +35,15 @@ func Test_Has_One_Association(t *testing.T) {
 	where, args := as[0].Constraint()
 	a.Equal("foo_has_one_id = ?", where)
 	a.Equal(id, args[0].(uuid.UUID))
+
+	foo2 := FooHasOne{}
+
+	as, err = associations.ForStruct(&foo2)
+	a.NoError(err)
+	after := as.AssociationsAfterCreatable()
+	for index := range after {
+		a.Equal(nil, after[index].AfterInterface())
+	}
 }
 
 func Test_Has_One_SetValue(t *testing.T) {
@@ -48,6 +57,6 @@ func Test_Has_One_SetValue(t *testing.T) {
 	ca, ok := as[0].(associations.AssociationAfterCreatable)
 	a.True(ok)
 
-	ca.AfterSetup()
+	a.NoError(ca.AfterSetup())
 	a.Equal(foo.ID, foo.BarHasOne.FooHasOneID.Interface().(uuid.UUID))
 }

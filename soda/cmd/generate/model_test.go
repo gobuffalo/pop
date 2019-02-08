@@ -30,7 +30,8 @@ func Test_addAttribute(t *testing.T) {
 			r.NoError(err)
 			a, err := newAttribute(tcase.AttrInput, &m)
 			r.NoError(err)
-			m.addAttribute(a)
+			err = m.addAttribute(a)
+			r.NoError(err)
 
 			r.Equal(tcase.HasID, m.HasID)
 			r.Equal(tcase.HasNulls, m.HasNulls)
@@ -102,7 +103,9 @@ func Test_testPkgName(t *testing.T) {
 
 	r.Equal("models", m.testPkgName())
 
-	os.Mkdir("./models", 0755)
+	err = os.Mkdir("./models", 0755)
+	r.NoError(err)
+
 	defer os.RemoveAll("./models")
 
 	r.Equal("models", m.testPkgName())
@@ -123,4 +126,32 @@ func Test_testPkgName(t *testing.T) {
 	r.NoError(err)
 
 	r.Equal("models_test", m.testPkgName())
+}
+
+func Test_model_Fizz(t *testing.T) {
+	r := require.New(t)
+
+	m, err := newModel("car", "json")
+
+	a, err := newAttribute("id:int", &m)
+	r.NoError(err)
+	err = m.addAttribute(a)
+	r.NoError(err)
+
+	a, err = newAttribute("brand:string", &m)
+	r.NoError(err)
+	err = m.addAttribute(a)
+	r.NoError(err)
+
+	a, err = newAttribute("owner:nulls.String", &m)
+	r.NoError(err)
+	err = m.addAttribute(a)
+	r.NoError(err)
+
+	expected := `create_table("cars") {
+	t.Column("id", "integer", {primary: true})
+	t.Column("brand", "string", {})
+	t.Column("owner", "string", {null: true})
+}`
+	r.Equal(expected, m.Fizz())
 }

@@ -9,17 +9,25 @@ import (
 	"strings"
 
 	// Load MySQL Go driver
-	_ "github.com/go-sql-driver/mysql"
+	_mysql "github.com/go-sql-driver/mysql"
 	"github.com/gobuffalo/fizz"
 	"github.com/gobuffalo/fizz/translators"
 	"github.com/gobuffalo/pop/columns"
 	"github.com/gobuffalo/pop/logging"
 	"github.com/markbates/going/defaults"
+	"github.com/markbates/oncer"
 	"github.com/pkg/errors"
 )
 
+const nameMySQL = "mysql"
+const hostMySQL = "localhost"
+const portMySQL = "3306"
+
 func init() {
-	AvailableDialects = append(AvailableDialects, "mysql")
+	AvailableDialects = append(AvailableDialects, nameMySQL)
+	urlParser[nameMySQL] = urlParserMySQL
+	finalizer[nameMySQL] = finalizerMySQL
+	newConnection[nameMySQL] = newMySQL
 }
 
 var _ dialect = &mysql{}
@@ -29,7 +37,7 @@ type mysql struct {
 }
 
 func (m *mysql) Name() string {
-	return "mysql"
+	return nameMySQL
 }
 
 func (m *mysql) Details() *ConnectionDetails {
@@ -37,30 +45,31 @@ func (m *mysql) Details() *ConnectionDetails {
 }
 
 func (m *mysql) URL() string {
-	deets := m.ConnectionDetails
-	if deets.URL != "" {
-		// Force multiStatements=true, migrations can fail otherwise.
-		if !strings.Contains(deets.URL, "multiStatements=true") {
-			log(logging.Warn, "multiStatements=true option is required to work with pop migrations. Please add it to the database URL in the config")
-			deets.URL += "&multiStatements=true"
-		}
-		return strings.TrimPrefix(deets.URL, "mysql://")
+	cd := m.ConnectionDetails
+	if cd.URL != "" {
+		return strings.TrimPrefix(cd.URL, "mysql://")
 	}
-	encoding := defaults.String(deets.Encoding, "utf8mb4_general_ci")
-	s := "%s:%s@(%s:%s)/%s?parseTime=true&multiStatements=true&readTimeout=1s&collation=%s"
-	return fmt.Sprintf(s, deets.User, deets.Password, deets.Host, deets.Port, deets.Database, encoding)
+
+	user := fmt.Sprintf("%s:%s@", cd.User, cd.Password)
+	user = strings.Replace(user, ":@", "@", 1)
+	if user == "@" || strings.HasPrefix(user, ":") {
+		user = ""
+	}
+
+	addr := fmt.Sprintf("(%s:%s)", cd.Host, cd.Port)
+	// in case of unix domain socket, tricky.
+	// it is better to check Host is not valid inet address or has '/'.
+	if cd.Port == "socket" {
+		addr = fmt.Sprintf("unix(%s)", cd.Host)
+	}
+
+	s := "%s%s/%s?%s"
+	return fmt.Sprintf(s, user, addr, cd.Database, cd.OptionsString(""))
 }
 
 func (m *mysql) urlWithoutDb() string {
-	deets := m.ConnectionDetails
-	if deets.URL != "" {
-		// respect user's own URL definition (with options).
-		url := strings.TrimPrefix(deets.URL, "mysql://")
-		return strings.Replace(url, "/"+deets.Database+"?", "/?", 1)
-	}
-	encoding := defaults.String(deets.Encoding, "utf8mb4_general_ci")
-	s := "%s:%s@(%s:%s)/?parseTime=true&multiStatements=true&readTimeout=1s&collation=%s"
-	return fmt.Sprintf(s, deets.User, deets.Password, deets.Host, deets.Port, encoding)
+	cd := m.ConnectionDetails
+	return strings.Replace(m.URL(), "/"+cd.Database+"?", "/?", 1)
 }
 
 func (m *mysql) MigrationURL() string {
@@ -95,7 +104,7 @@ func (m *mysql) CreateDB() error {
 		return errors.Wrapf(err, "error creating MySQL database %s", deets.Database)
 	}
 	defer db.Close()
-	encoding := defaults.String(deets.Encoding, "utf8mb4_general_ci")
+	encoding := defaults.String(deets.Options["collation"], "utf8mb4_general_ci")
 	query := fmt.Sprintf("CREATE DATABASE `%s` DEFAULT COLLATE `%s`", deets.Database, encoding)
 	log(logging.SQL, query)
 
@@ -176,12 +185,84 @@ func (m *mysql) TruncateAll(tx *Connection) error {
 	return tx.RawQuery(qb.String()).Exec()
 }
 
-func newMySQL(deets *ConnectionDetails) dialect {
+func (m *mysql) afterOpen(c *Connection) error {
+	return nil
+}
+
+func newMySQL(deets *ConnectionDetails) (dialect, error) {
 	cd := &mysql{
 		ConnectionDetails: deets,
 	}
+	return cd, nil
+}
 
-	return cd
+func urlParserMySQL(cd *ConnectionDetails) error {
+	cfg, err := _mysql.ParseDSN(strings.TrimPrefix(cd.URL, "mysql://"))
+	if err != nil {
+		return errors.Wrapf(err, "the URL '%s' is not supported by MySQL driver", cd.URL)
+	}
+
+	cd.User = cfg.User
+	cd.Password = cfg.Passwd
+	cd.Database = cfg.DBName
+	if cd.Options == nil { // prevent panic
+		cd.Options = make(map[string]string)
+	}
+	// NOTE: use cfg.Params if want to fill options with full parameters
+	cd.Options["collation"] = cfg.Collation
+	if cfg.Net == "unix" {
+		cd.Port = "socket" // trick. see: `URL()`
+		cd.Host = cfg.Addr
+	} else {
+		tmp := strings.Split(cfg.Addr, ":")
+		cd.Host = tmp[0]
+		if len(tmp) > 1 {
+			cd.Port = tmp[1]
+		}
+	}
+
+	return nil
+}
+
+func finalizerMySQL(cd *ConnectionDetails) {
+	cd.Host = defaults.String(cd.Host, hostMySQL)
+	cd.Port = defaults.String(cd.Port, portMySQL)
+
+	defs := map[string]string{
+		"readTimeout": "3s",
+		"collation":   "utf8mb4_general_ci",
+	}
+	forced := map[string]string{
+		"parseTime":       "true",
+		"multiStatements": "true",
+	}
+
+	if cd.Options == nil { // prevent panic
+		cd.Options = make(map[string]string)
+	}
+
+	for k, v := range defs {
+		cd.Options[k] = defaults.String(cd.Options[k], v)
+	}
+
+	for k, v := range forced {
+		// respect user specified options but print warning!
+		cd.Options[k] = defaults.String(cd.Options[k], v)
+		if cd.Options[k] != v { // when user-defined option exists
+			log(logging.Warn, "IMPORTANT! '%s: %s' option is required to work properly but your current setting is '%v: %v'.", k, v, k, cd.Options[k])
+			log(logging.Warn, "It is highly recommended to remove '%v: %v' option from your config!", k, cd.Options[k])
+		} // or override with `cd.Options[k] = v`?
+		if cd.URL != "" && !strings.Contains(cd.URL, k+"="+v) {
+			log(logging.Warn, "IMPORTANT! '%s=%s' option is required to work properly. Please add it to the database URL in the config!", k, v)
+		} // or fix user specified url?
+	}
+
+	if cd.Encoding != "" {
+		//! DEPRECATED, 2018-11-06
+		// when user still uses `encoding:` in database.yml
+		oncer.Deprecate(0, "Encoding", "use options.collation")
+		cd.Options["collation"] = cd.Encoding
+	}
 }
 
 const mysqlTruncate = "SELECT concat('TRUNCATE TABLE `', TABLE_NAME, '`;') as stmt FROM INFORMATION_SCHEMA.TABLES WHERE table_schema = ? AND table_type <> 'VIEW'"

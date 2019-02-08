@@ -16,10 +16,15 @@ import (
 	"github.com/pkg/errors"
 )
 
+const namePostgreSQL = "postgres"
+const portPostgreSQL = "5432"
+
 func init() {
-	AvailableDialects = append(AvailableDialects, "postgres")
-	dialectSynonyms["postgresql"] = "postgres"
-	dialectSynonyms["pg"] = "postgres"
+	AvailableDialects = append(AvailableDialects, namePostgreSQL)
+	dialectSynonyms["postgresql"] = namePostgreSQL
+	dialectSynonyms["pg"] = namePostgreSQL
+	finalizer[namePostgreSQL] = finalizerPostgreSQL
+	newConnection[namePostgreSQL] = newPostgreSQL
 }
 
 var _ dialect = &postgresql{}
@@ -31,7 +36,7 @@ type postgresql struct {
 }
 
 func (p *postgresql) Name() string {
-	return "postgres"
+	return namePostgreSQL
 }
 
 func (p *postgresql) Details() *ConnectionDetails {
@@ -47,7 +52,12 @@ func (p *postgresql) Create(s store, model *Model, cols columns.Columns) error {
 			ID int `db:"id"`
 		}{}
 		w := cols.Writeable()
-		query := fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s) returning id", model.TableName(), w.String(), w.SymbolizedString())
+		var query string
+		if len(w.Cols) > 0 {
+			query = fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s) returning id", model.TableName(), w.String(), w.SymbolizedString())
+		} else {
+			query = fmt.Sprintf("INSERT INTO %s DEFAULT VALUES returning id", model.TableName())
+		}
 		log(logging.SQL, query)
 		stmt, err := s.PrepareNamed(query)
 		if err != nil {
@@ -131,22 +141,18 @@ func (p *postgresql) URL() string {
 	if c.URL != "" {
 		return c.URL
 	}
-	ssl := defaults.String(c.Options["sslmode"], "disable")
-
-	s := "postgres://%s:%s@%s:%s/%s?sslmode=%s"
-	return fmt.Sprintf(s, c.User, c.Password, c.Host, c.Port, c.Database, ssl)
+	s := "postgres://%s:%s@%s:%s/%s?%s"
+	return fmt.Sprintf(s, c.User, c.Password, c.Host, c.Port, c.Database, c.OptionsString(""))
 }
 
 func (p *postgresql) urlWithoutDb() string {
 	c := p.ConnectionDetails
-	ssl := defaults.String(c.Options["sslmode"], "disable")
-
 	// https://github.com/gobuffalo/buffalo/issues/836
 	// If the db is not precised, postgresql takes the username as the database to connect on.
 	// To avoid a connection problem if the user db is not here, we use the default "postgres"
 	// db, just like the other client tools do.
-	s := "postgres://%s:%s@%s:%s/postgres?sslmode=%s"
-	return fmt.Sprintf(s, c.User, c.Password, c.Host, c.Port, ssl)
+	s := "postgres://%s:%s@%s:%s/postgres?%s"
+	return fmt.Sprintf(s, c.User, c.Password, c.Host, c.Port, c.OptionsString(""))
 }
 
 func (p *postgresql) MigrationURL() string {
@@ -189,13 +195,22 @@ func (p *postgresql) TruncateAll(tx *Connection) error {
 	return tx.RawQuery(fmt.Sprintf(pgTruncate, tx.MigrationTableName())).Exec()
 }
 
-func newPostgreSQL(deets *ConnectionDetails) dialect {
+func (p *postgresql) afterOpen(c *Connection) error {
+	return nil
+}
+
+func newPostgreSQL(deets *ConnectionDetails) (dialect, error) {
 	cd := &postgresql{
 		ConnectionDetails: deets,
 		translateCache:    map[string]string{},
 		mu:                sync.Mutex{},
 	}
-	return cd
+	return cd, nil
+}
+
+func finalizerPostgreSQL(cd *ConnectionDetails) {
+	cd.Options["sslmode"] = defaults.String(cd.Options["sslmode"], "disable")
+	cd.Port = defaults.String(cd.Port, portPostgreSQL)
 }
 
 const pgTruncate = `DO

@@ -72,12 +72,18 @@ func (q *Query) RawQuery(stmt string, args ...interface{}) *Query {
 	return q
 }
 
-// Eager will enable load associations of the model.
+// Eager will enable associations loading of the model.
 // by defaults loads all the associations on the model,
 // but can take a variadic list of associations to load.
 //
 // 	c.Eager().Find(model, 1) // will load all associations for model.
 // 	c.Eager("Books").Find(model, 1) // will load only Book association for model.
+//
+// Eager also enable nested models creation:
+//
+//	model := Parent{Child: Child{}, Parent: &Parent{}}
+//	c.Eager().Create(&model) // will create all associations for model.
+//	c.Eager("Child").Create(&model) // will only create the Child association for model.
 func (c *Connection) Eager(fields ...string) *Connection {
 	con := c.copy()
 	con.eager = true
@@ -154,12 +160,16 @@ func (q *Query) Order(stmt string) *Query {
 	return q
 }
 
-// Limit will add a limit clause to the query.
+// Limit will create a query and add a limit clause to it.
+//
+// 	c.Limit(10)
 func (c *Connection) Limit(limit int) *Query {
 	return Q(c).Limit(limit)
 }
 
 // Limit will add a limit clause to the query.
+//
+// 	q.Limit(10)
 func (q *Query) Limit(limit int) *Query {
 	q.limitResults = limit
 	return q

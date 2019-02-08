@@ -189,6 +189,24 @@ func Test_Find_Eager_Belongs_To_Nulls(t *testing.T) {
 	})
 }
 
+func Test_Find_Eager_Belongs_To_Pointers(t *testing.T) {
+	transaction(func(tx *Connection) {
+		r := require.New(t)
+
+		body := Body{}
+		err := tx.Create(&body)
+		r.NoError(err)
+
+		head := Head{BodyID: body.ID}
+		err = tx.Create(&head)
+		r.NoError(err)
+
+		b := Body{}
+		err = tx.Eager().Find(&b, body.ID)
+		r.NoError(err)
+	})
+}
+
 func Test_Find_Eager_Has_One(t *testing.T) {
 	transaction(func(tx *Connection) {
 		r := require.New(t)
@@ -619,13 +637,13 @@ func Test_Count_Disregards_Pagination(t *testing.T) {
 		secondUsers := Users{}
 
 		q := tx.Paginate(1, 3)
-		q.All(&firstUsers)
+		r.NoError(q.All(&firstUsers))
 		r.Equal(len(names), q.Paginator.TotalEntriesSize) //ensure paginator populates count
 		r.Equal(3, len(firstUsers))
 
 		firstUsers = Users{}
 		q = tx.RawQuery("select * from users").Paginate(1, 3)
-		q.All(&firstUsers)
+		r.NoError(q.All(&firstUsers))
 		r.Equal(1, q.Paginator.Page)
 		r.Equal(3, q.Paginator.PerPage)
 		r.Equal(len(names), q.Paginator.TotalEntriesSize) //ensure paginator populates count
@@ -634,7 +652,7 @@ func Test_Count_Disregards_Pagination(t *testing.T) {
 		totalFirstPage := q.Paginator.TotalPages
 
 		q = tx.Paginate(2, 3)
-		q.All(&secondUsers)
+		r.NoError(q.All(&secondUsers))
 
 		r.Equal(3, len(secondUsers))
 		totalSecondPage := q.Paginator.TotalPages

@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-
 	"os"
 
 	"github.com/gobuffalo/pop"

@@ -13,14 +13,13 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/gobuffalo/flect"
-	"github.com/gobuffalo/makr"
-	"github.com/pkg/errors"
-
 	"github.com/gobuffalo/fizz"
+	"github.com/gobuffalo/flect"
 	nflect "github.com/gobuffalo/flect/name"
+	"github.com/gobuffalo/makr"
 	"github.com/gobuffalo/pop"
 	"github.com/markbates/going/defaults"
+	"github.com/pkg/errors"
 )
 
 type model struct {
@@ -118,6 +117,7 @@ func (m *model) addAttribute(a attribute) error {
 	if a.Name.String() == "id" {
 		// No need to create a default ID
 		m.HasID = true
+		a.Primary = true
 		// Ensure ID is the first attribute
 		m.Attributes = append([]attribute{a}, m.Attributes...)
 	} else {
@@ -148,7 +148,7 @@ func (m *model) addID() {
 	}
 
 	id := flect.New("id")
-	a := attribute{Name: id, OriginalType: "uuid.UUID", GoType: "uuid.UUID"}
+	a := attribute{Name: id, OriginalType: "uuid.UUID", GoType: "uuid.UUID", Primary: true}
 	// Ensure ID is the first attribute
 	m.Attributes = append([]attribute{a}, m.Attributes...)
 	m.HasID = true
@@ -187,14 +187,19 @@ func (m model) Fizz() string {
 	for _, a := range m.Attributes {
 		switch a.Name.String() {
 		case "created_at", "updated_at":
-		case "id":
-			s = append(s, fmt.Sprintf("\tt.Column(\"id\", \"%s\", {\"primary\": true})", fizzColType(a.OriginalType)))
 		default:
-			x := fmt.Sprintf("\tt.Column(\"%s\", \"%s\", {})", a.Name.Underscore(), fizzColType(a.OriginalType))
-			if a.Nullable {
-				x = strings.Replace(x, "{}", `{"null": true}`, -1)
+			col := fizz.Column{
+				Name:    a.Name.Underscore().String(),
+				ColType: fizzColType(a.OriginalType),
+				Options: map[string]interface{}{},
 			}
-			s = append(s, x)
+			if a.Primary {
+				col.Options["primary"] = true
+			}
+			if a.Nullable {
+				col.Options["null"] = true
+			}
+			s = append(s, "\t"+col.String())
 		}
 	}
 	s = append(s, "}")
@@ -235,8 +240,8 @@ func newModel(name string, structTag string) (model, error) {
 		return model{}, errors.New("invalid struct tags (use xml or json)")
 	}
 
-	m.addAttribute(attribute{Name: flect.New("created_at"), OriginalType: "time.Time", GoType: "time.Time", PreventValidation: true, StructTag: structTag})
-	m.addAttribute(attribute{Name: flect.New("updated_at"), OriginalType: "time.Time", GoType: "time.Time", PreventValidation: true, StructTag: structTag})
+	_ = m.addAttribute(attribute{Name: flect.New("created_at"), OriginalType: "time.Time", GoType: "time.Time", PreventValidation: true, StructTag: structTag})
+	_ = m.addAttribute(attribute{Name: flect.New("updated_at"), OriginalType: "time.Time", GoType: "time.Time", PreventValidation: true, StructTag: structTag})
 
 	return m, nil
 }
