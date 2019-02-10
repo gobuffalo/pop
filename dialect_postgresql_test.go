@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func Test_ConnectionDetails_Finalize_PostgreSQL_ConnectionString(t *testing.T) {
+func Test_PostgreSQL_Connection_String(t *testing.T) {
 	r := require.New(t)
 
 	url := "host=host port=port dbname=database user=user password=pass"
@@ -26,7 +26,7 @@ func Test_ConnectionDetails_Finalize_PostgreSQL_ConnectionString(t *testing.T) {
 	r.Equal("database", cd.Database)
 }
 
-func Test_ConnectionDetails_Finalize_PostgreSQL_ConnectionString_Options(t *testing.T) {
+func Test_PostgreSQL_Connection_String_Options(t *testing.T) {
 	r := require.New(t)
 
 	url := "host=host port=port dbname=database user=user password=pass sslmode=disable fallback_application_name=test_app connect_timeout=10 sslcert=/some/location sslkey=/some/other/location sslrootcert=/root/location"
@@ -47,7 +47,7 @@ func Test_ConnectionDetails_Finalize_PostgreSQL_ConnectionString_Options(t *test
 	r.Equal("/root/location", cd.Options["sslrootcert"])
 }
 
-func Test_ConnectionDetails_Finalize_PostgreSQL_ConnectionString_Without_User(t *testing.T) {
+func Test_PostgreSQL_Connection_String_Without_User(t *testing.T) {
 	r := require.New(t)
 
 	url := "dbname=database"
@@ -67,7 +67,7 @@ func Test_ConnectionDetails_Finalize_PostgreSQL_ConnectionString_Without_User(t 
 	r.Equal("database", cd.Database)
 }
 
-func Test_ConnectionDetails_Finalize_PostgreSQL_ConnectionString_Failure(t *testing.T) {
+func Test_PostgreSQL_Connection_String_Failure(t *testing.T) {
 	r := require.New(t)
 
 	url := "abc"
