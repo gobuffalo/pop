@@ -13,7 +13,7 @@ import (
 	"github.com/gobuffalo/fizz"
 	"github.com/gobuffalo/pop/columns"
 	"github.com/gobuffalo/pop/logging"
-	"github.com/gobuffalo/uuid"
+	"github.com/gofrs/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 )

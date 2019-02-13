@@ -10,7 +10,7 @@ import (
 
 	"github.com/gobuffalo/pop/associations"
 	"github.com/gobuffalo/pop/logging"
-	"github.com/gobuffalo/uuid"
+	"github.com/gofrs/uuid"
 	"github.com/pkg/errors"
 )
 
