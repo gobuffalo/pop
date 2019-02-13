@@ -8,9 +8,9 @@ import (
 
 	"github.com/gobuffalo/pop/logging"
 	"github.com/gobuffalo/pop/nulls"
-	"github.com/gobuffalo/uuid"
 	"github.com/gobuffalo/validate"
 	"github.com/gobuffalo/validate/validators"
+	"github.com/gofrs/uuid"
 	"github.com/stretchr/testify/suite"
 )
 

@@ -144,7 +144,7 @@ func (m *model) addID() {
 
 	if !m.HasUUID {
 		m.HasUUID = true
-		m.Imports = append(m.Imports, "github.com/gobuffalo/uuid")
+		m.Imports = append(m.Imports, "github.com/gofrs/uuid")
 	}
 
 	id := flect.New("id")

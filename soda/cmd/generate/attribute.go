@@ -50,7 +50,7 @@ func newAttribute(base string, model *model) (attribute, error) {
 		model.Imports = append(model.Imports, "github.com/gobuffalo/pop/slices")
 	} else if !model.HasUUID && col[1] == "uuid" {
 		model.HasUUID = true
-		model.Imports = append(model.Imports, "github.com/gobuffalo/uuid")
+		model.Imports = append(model.Imports, "github.com/gofrs/uuid")
 	}
 
 	got := colType(col[1])
