@@ -245,11 +245,10 @@ func (c *Connection) Create(model interface{}, excludeColumns ...string) error {
 							id := fbn.Interface()
 							if IsZeroOfUnderlyingType(id) {
 								return c.Create(m.Value)
-							} else {
-								exists, errE := Q(c).Exists(i)
-								if errE != nil || !exists {
-									return c.Create(m.Value)
-								}
+							}
+							exists, errE := Q(c).Exists(i)
+							if errE != nil || !exists {
+								return c.Create(m.Value)
 							}
 							return nil
 						})
