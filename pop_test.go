@@ -360,3 +360,17 @@ type HeadPtr struct {
 	BodyID *int  `json:"-" db:"body_id"`
 	Body   *Body `json:"body,omitempty" belongs_to:"body"`
 }
+
+type Student struct {
+	ID        uuid.UUID `json:"id" db:"id"`
+	CreatedAt time.Time `json:"created_at" db:"created_at"`
+	UpdatedAt time.Time `json:"updated_at" db:"updated_at"`
+}
+
+// https://github.com/gobuffalo/pop/issues/302
+type Parent struct {
+	ID        uuid.UUID  `json:"id" db:"id"`
+	CreatedAt time.Time  `json:"created_at" db:"created_at"`
+	UpdatedAt time.Time  `json:"updated_at" db:"updated_at"`
+	Students  []*Student `many_to_many:"parents_students"`
+}
