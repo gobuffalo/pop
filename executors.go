@@ -146,6 +146,10 @@ func (c *Connection) ValidateAndCreate(model interface{}, excludeColumns ...stri
 
 // Create add a new given entry to the database, excluding the given columns.
 // It updates `created_at` and `updated_at` columns automatically.
+//
+// Create support two modes:
+// * Flat (default): Associate existing nested objects only. NO creation or update of nested objects.
+// * Eager: Associate existing nested objects and create non-existent objects. NO change to existing objects.
 func (c *Connection) Create(model interface{}, excludeColumns ...string) error {
 	var isEager = c.eager
 
