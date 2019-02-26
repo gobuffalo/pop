@@ -52,7 +52,7 @@ func (ns Int64) MarshalJSON() ([]byte, error) {
 }
 
 // UnmarshalJSON will unmarshal a JSON value into
-// the propert representation of that value.
+// the proper representation of that value.
 func (ns *Int64) UnmarshalJSON(text []byte) error {
 	t := string(text)
 	ns.Valid = true
@@ -60,12 +60,12 @@ func (ns *Int64) UnmarshalJSON(text []byte) error {
 		ns.Valid = false
 		return nil
 	}
-	i, err := strconv.ParseInt(t, 10, 64)
+	i, err := strconv.ParseFloat(t,  64)
 	if err != nil {
 		ns.Valid = false
 		return err
 	}
-	ns.Int64 = i
+	ns.Int64 = int64(i)
 	return nil
 }
 

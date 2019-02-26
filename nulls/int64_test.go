@@ -7,11 +7,11 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func Test_IntUnmarshalJSON(t *testing.T) {
+func Test_Int64UnmarshalJSON(t *testing.T) {
 	r := require.New(t)
 	cases := []struct {
 		Input []byte
-		Value int
+		Value int64
 		Valid bool
 	}{
 		{
@@ -37,14 +37,14 @@ func Test_IntUnmarshalJSON(t *testing.T) {
 	}
 
 	for _, c := range cases {
-		i := nulls.Int{}
+		i := nulls.Int64{}
 		r.NoError(i.UnmarshalJSON(c.Input))
-		r.Equal(c.Value, i.Int)
+		r.Equal(c.Value, i.Int64)
 		r.Equal(c.Valid, i.Valid)
 	}
 }
 
-func Test_IntUnmarshalJSON_Errors(t *testing.T) {
+func Test_Int64UnmarshalJSON_Errors(t *testing.T) {
 	r := require.New(t)
 
 	cases := []struct {
@@ -59,9 +59,9 @@ func Test_IntUnmarshalJSON_Errors(t *testing.T) {
 	}
 
 	for _, c := range cases {
-		i := nulls.Int{}
+		i := nulls.Int64{}
 		r.Error(i.UnmarshalJSON(c.Input))
-		r.Equal(0, i.Int)
+		r.Equal(int64(0), i.Int64)
 		r.False(i.Valid)
 	}
 }
