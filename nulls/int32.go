@@ -63,7 +63,7 @@ func (ns *Int32) UnmarshalJSON(text []byte) error {
 		ns.Valid = false
 		return nil
 	}
-	i, err := strconv.ParseFloat(txt,32)
+	i, err := strconv.ParseFloat(txt, 32)
 	if err != nil {
 		ns.Valid = false
 		return err
