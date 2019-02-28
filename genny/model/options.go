@@ -7,6 +7,7 @@ import (
 	"github.com/pkg/errors"
 )
 
+// Options for generating a new model
 type Options struct {
 	Name        string      `json:"name"`
 	Attrs       attrs.Attrs `json:"props"`
