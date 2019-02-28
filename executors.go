@@ -6,8 +6,8 @@ import (
 	"github.com/gobuffalo/pop/associations"
 	"github.com/gobuffalo/pop/columns"
 	"github.com/gobuffalo/pop/logging"
-	"github.com/gobuffalo/uuid"
 	"github.com/gobuffalo/validate"
+	"github.com/gofrs/uuid"
 )
 
 // Reload fetch fresh data for a given model, using its ID.
@@ -146,6 +146,10 @@ func (c *Connection) ValidateAndCreate(model interface{}, excludeColumns ...stri
 
 // Create add a new given entry to the database, excluding the given columns.
 // It updates `created_at` and `updated_at` columns automatically.
+//
+// Create support two modes:
+// * Flat (default): Associate existing nested objects only. NO creation or update of nested objects.
+// * Eager: Associate existing nested objects and create non-existent objects. NO change to existing objects.
 func (c *Connection) Create(model interface{}, excludeColumns ...string) error {
 	var isEager = c.eager
 
@@ -245,11 +249,10 @@ func (c *Connection) Create(model interface{}, excludeColumns ...string) error {
 							id := fbn.Interface()
 							if IsZeroOfUnderlyingType(id) {
 								return c.Create(m.Value)
-							} else {
-								exists, errE := Q(c).Exists(i)
-								if errE != nil || !exists {
-									return c.Create(m.Value)
-								}
+							}
+							exists, errE := Q(c).Exists(i)
+							if errE != nil || !exists {
+								return c.Create(m.Value)
 							}
 							return nil
 						})

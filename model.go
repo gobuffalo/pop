@@ -8,7 +8,7 @@ import (
 
 	"github.com/gobuffalo/flect"
 	nflect "github.com/gobuffalo/flect/name"
-	"github.com/gobuffalo/uuid"
+	"github.com/gofrs/uuid"
 	"github.com/pkg/errors"
 )
 

@@ -8,9 +8,9 @@ import (
 
 	"github.com/gobuffalo/pop/logging"
 	"github.com/gobuffalo/pop/nulls"
-	"github.com/gobuffalo/uuid"
 	"github.com/gobuffalo/validate"
 	"github.com/gobuffalo/validate/validators"
+	"github.com/gofrs/uuid"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -359,4 +359,18 @@ type HeadPtr struct {
 	ID     int   `json:"id,omitempty" db:"id"`
 	BodyID *int  `json:"-" db:"body_id"`
 	Body   *Body `json:"body,omitempty" belongs_to:"body"`
+}
+
+type Student struct {
+	ID        uuid.UUID `json:"id" db:"id"`
+	CreatedAt time.Time `json:"created_at" db:"created_at"`
+	UpdatedAt time.Time `json:"updated_at" db:"updated_at"`
+}
+
+// https://github.com/gobuffalo/pop/issues/302
+type Parent struct {
+	ID        uuid.UUID  `json:"id" db:"id"`
+	CreatedAt time.Time  `json:"created_at" db:"created_at"`
+	UpdatedAt time.Time  `json:"updated_at" db:"updated_at"`
+	Students  []*Student `many_to_many:"parents_students"`
 }
