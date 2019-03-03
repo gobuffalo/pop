@@ -102,7 +102,7 @@ func (c *Connection) Open() error {
 	db.SetMaxIdleConns(details.IdlePool)
 	c.Store = &dB{db}
 
-	err = c.Dialect.afterOpen(c)
+	err = c.Dialect.AfterOpen(c)
 	if err != nil {
 		c.Store = nil
 	}

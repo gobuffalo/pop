@@ -34,9 +34,9 @@ func init() {
 var _ dialect = &postgresql{}
 
 type postgresql struct {
-	translateCache    map[string]string
-	mu                sync.Mutex
-	ConnectionDetails *ConnectionDetails
+	commonDialect
+	translateCache map[string]string
+	mu             sync.Mutex
 }
 
 func (p *postgresql) Name() string {
@@ -180,10 +180,6 @@ func (p *postgresql) FizzTranslator() fizz.Translator {
 	return translators.NewPostgres()
 }
 
-func (p *postgresql) Lock(fn func() error) error {
-	return fn()
-}
-
 func (p *postgresql) DumpSchema(w io.Writer) error {
 	cmd := exec.Command("pg_dump", "-s", fmt.Sprintf("--dbname=%s", p.URL()))
 	return genericDumpSchema(p.Details(), cmd, w)
@@ -199,15 +195,11 @@ func (p *postgresql) TruncateAll(tx *Connection) error {
 	return tx.RawQuery(fmt.Sprintf(pgTruncate, tx.MigrationTableName())).Exec()
 }
 
-func (p *postgresql) afterOpen(c *Connection) error {
-	return nil
-}
-
 func newPostgreSQL(deets *ConnectionDetails) (dialect, error) {
 	cd := &postgresql{
-		ConnectionDetails: deets,
-		translateCache:    map[string]string{},
-		mu:                sync.Mutex{},
+		commonDialect:  commonDialect{ConnectionDetails: deets},
+		translateCache: map[string]string{},
+		mu:             sync.Mutex{},
 	}
 	return cd, nil
 }

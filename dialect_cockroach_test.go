@@ -15,7 +15,7 @@ func Test_Cockroach_URL_Raw(t *testing.T) {
 	}
 	err := cd.Finalize()
 	r.NoError(err)
-	m := &cockroach{ConnectionDetails: cd}
+	m := &cockroach{commonDialect: commonDialect{ConnectionDetails: cd}}
 	r.Equal("scheme://user:pass@host:port/database?option1=value1", m.URL())
 	r.Equal("postgres://user:pass@host:port/?option1=value1", m.urlWithoutDb())
 }
@@ -36,7 +36,7 @@ func Test_Cockroach_URL_Build(t *testing.T) {
 	}
 	err := cd.Finalize()
 	r.NoError(err)
-	m := &cockroach{ConnectionDetails: cd}
+	m := &cockroach{commonDialect: commonDialect{ConnectionDetails: cd}}
 	r.True(strings.HasPrefix(m.URL(), "postgres://user:pass@host:port/database?"), "URL() returns %v", m.URL())
 	r.Contains(m.URL(), "option1=value1")
 	r.Contains(m.URL(), "application_name=pop.test")
@@ -58,7 +58,7 @@ func Test_Cockroach_URL_UserDefinedAppName(t *testing.T) {
 	}
 	err := cd.Finalize()
 	r.NoError(err)
-	m := &cockroach{ConnectionDetails: cd}
+	m := &cockroach{commonDialect: commonDialect{ConnectionDetails: cd}}
 	r.Contains(m.URL(), "database?application_name=myapp")
 	r.Contains(m.urlWithoutDb(), "/?application_name=myapp")
 }

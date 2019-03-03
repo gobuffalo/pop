@@ -44,10 +44,10 @@ type cockroachInfo struct {
 }
 
 type cockroach struct {
-	translateCache    map[string]string
-	mu                sync.Mutex
-	ConnectionDetails *ConnectionDetails
-	info              cockroachInfo
+	commonDialect
+	translateCache map[string]string
+	mu             sync.Mutex
+	info           cockroachInfo
 }
 
 func (p *cockroach) Name() string {
@@ -187,10 +187,6 @@ func (p *cockroach) FizzTranslator() fizz.Translator {
 	return translators.NewCockroach(p.URL(), p.Details().Database)
 }
 
-func (p *cockroach) Lock(fn func() error) error {
-	return fn()
-}
-
 func (p *cockroach) DumpSchema(w io.Writer) error {
 	cmd := exec.Command("cockroach", "dump", p.Details().Database, "--dump-mode=schema")
 
@@ -239,7 +235,7 @@ func (p *cockroach) TruncateAll(tx *Connection) error {
 	// return tx3.RawQuery(fmt.Sprintf("truncate %s cascade;", strings.Join(tableNames, ", "))).Exec()
 }
 
-func (p *cockroach) afterOpen(c *Connection) error {
+func (p *cockroach) AfterOpen(c *Connection) error {
 	if err := c.RawQuery(`select version() AS "version"`).First(&p.info); err != nil {
 		return err
 	}
@@ -257,9 +253,9 @@ func (p *cockroach) afterOpen(c *Connection) error {
 func newCockroach(deets *ConnectionDetails) (dialect, error) {
 	deets.Dialect = "postgres"
 	d := &cockroach{
-		ConnectionDetails: deets,
-		translateCache:    map[string]string{},
-		mu:                sync.Mutex{},
+		commonDialect:  commonDialect{ConnectionDetails: deets},
+		translateCache: map[string]string{},
+		mu:             sync.Mutex{},
 	}
 	d.info.client = deets.Options["application_name"]
 	return d, nil
