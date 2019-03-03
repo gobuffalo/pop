@@ -33,10 +33,6 @@ func (commonDialect) Quote(key string) string {
 	return fmt.Sprintf(`"%s"`, key)
 }
 
-func (commonDialect) AfterOpen(c *Connection) error {
-	return nil
-}
-
 func genericCreate(s store, model *Model, cols columns.Columns) error {
 	keyType := model.PrimaryKeyType()
 	switch keyType {

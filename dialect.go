@@ -26,5 +26,8 @@ type dialect interface {
 	Lock(func() error) error
 	TruncateAll(*Connection) error
 	Quote(key string) string
+}
+
+type afterOpenable interface {
 	AfterOpen(*Connection) error
 }
