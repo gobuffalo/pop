@@ -20,7 +20,7 @@ func Test_MySQL_URL_As_Is(t *testing.T) {
 	err := cd.Finalize()
 	r.NoError(err)
 
-	m := &mysql{ConnectionDetails: cd}
+	m := &mysql{commonDialect{ConnectionDetails: cd}}
 	r.Equal("user:pass@(host:port)/dbase?opt=value", m.URL())
 	r.Equal("user:pass@(host:port)/?opt=value", m.urlWithoutDb())
 	r.Equal("user:pass@(host:port)/dbase?opt=value", m.MigrationURL())
@@ -40,7 +40,7 @@ func Test_MySQL_URL_Override_withURL(t *testing.T) {
 	err := cd.Finalize()
 	r.NoError(err)
 
-	m := &mysql{ConnectionDetails: cd}
+	m := &mysql{commonDialect{ConnectionDetails: cd}}
 	r.Equal("user:pass@(host:port)/dbase?opt=value", m.URL())
 	r.Equal("user:pass@(host:port)/?opt=value", m.urlWithoutDb())
 	r.Equal("user:pass@(host:port)/dbase?opt=value", m.MigrationURL())
@@ -48,14 +48,14 @@ func Test_MySQL_URL_Override_withURL(t *testing.T) {
 
 func Test_MySQL_URL_With_Values(t *testing.T) {
 	r := require.New(t)
-	m := &mysql{ConnectionDetails: &ConnectionDetails{
+	m := &mysql{commonDialect{ConnectionDetails: &ConnectionDetails{
 		Database: "dbase",
 		Host:     "host",
 		Port:     "port",
 		User:     "user",
 		Password: "pass",
 		Options:  map[string]string{"opt": "value"},
-	}}
+	}}}
 	r.Equal("user:pass@(host:port)/dbase?opt=value", m.URL())
 	r.Equal("user:pass@(host:port)/?opt=value", m.urlWithoutDb())
 	r.Equal("user:pass@(host:port)/dbase?opt=value", m.MigrationURL())
@@ -63,10 +63,10 @@ func Test_MySQL_URL_With_Values(t *testing.T) {
 
 func Test_MySQL_URL_Without_User(t *testing.T) {
 	r := require.New(t)
-	m := &mysql{ConnectionDetails: &ConnectionDetails{
+	m := &mysql{commonDialect{ConnectionDetails: &ConnectionDetails{
 		Password: "pass",
 		Database: "dbase",
-	}}
+	}}}
 	// finalizerMySQL fills address part in real world.
 	// without user, password cannot live alone
 	r.Equal("(:)/dbase?", m.URL())
@@ -74,10 +74,10 @@ func Test_MySQL_URL_Without_User(t *testing.T) {
 
 func Test_MySQL_URL_Without_Password(t *testing.T) {
 	r := require.New(t)
-	m := &mysql{ConnectionDetails: &ConnectionDetails{
+	m := &mysql{commonDialect{ConnectionDetails: &ConnectionDetails{
 		User:     "user",
 		Database: "dbase",
-	}}
+	}}}
 	// finalizerMySQL fills address part in real world.
 	r.Equal("user@(:)/dbase?", m.URL())
 }
@@ -125,7 +125,7 @@ func Test_MySQL_URL_urlParserMySQL_Socket(t *testing.T) {
 
 	// additional test without URL
 	cd.URL = ""
-	m := &mysql{ConnectionDetails: cd}
+	m := &mysql{commonDialect{ConnectionDetails: cd}}
 	r.True(strings.HasPrefix(m.URL(), "unix(/tmp/socket)/dbase?"))
 	r.True(strings.HasPrefix(m.urlWithoutDb(), "unix(/tmp/socket)/?"))
 }
@@ -141,7 +141,7 @@ func Test_MySQL_URL_urlParserMySQL_Unsupported(t *testing.T) {
 
 func Test_MySQL_Database_Open_Failure(t *testing.T) {
 	r := require.New(t)
-	m := &mysql{ConnectionDetails: &ConnectionDetails{}}
+	m := &mysql{commonDialect{ConnectionDetails: &ConnectionDetails{}}}
 	err := m.CreateDB()
 	r.Error(err)
 	err = m.DropDB()
@@ -151,7 +151,7 @@ func Test_MySQL_Database_Open_Failure(t *testing.T) {
 func Test_MySQL_FizzTranslator(t *testing.T) {
 	r := require.New(t)
 	cd := &ConnectionDetails{}
-	m := &mysql{ConnectionDetails: cd}
+	m := &mysql{commonDialect{ConnectionDetails: cd}}
 	ft := m.FizzTranslator()
 	r.IsType(&translators.MySQL{}, ft)
 	r.Implements((*fizz.Translator)(nil), ft)
@@ -159,7 +159,7 @@ func Test_MySQL_FizzTranslator(t *testing.T) {
 
 func Test_MySQL_Finalizer_Default_CD(t *testing.T) {
 	r := require.New(t)
-	m := &mysql{ConnectionDetails: &ConnectionDetails{}}
+	m := &mysql{commonDialect{ConnectionDetails: &ConnectionDetails{}}}
 	finalizerMySQL(m.ConnectionDetails)
 	r.Equal(hostMySQL, m.ConnectionDetails.Host)
 	r.Equal(portMySQL, m.ConnectionDetails.Port)
@@ -167,7 +167,7 @@ func Test_MySQL_Finalizer_Default_CD(t *testing.T) {
 
 func Test_MySQL_Finalizer_Default_Options(t *testing.T) {
 	r := require.New(t)
-	m := &mysql{ConnectionDetails: &ConnectionDetails{}}
+	m := &mysql{commonDialect{ConnectionDetails: &ConnectionDetails{}}}
 	finalizerMySQL(m.ConnectionDetails)
 	r.Contains(m.URL(), "multiStatements=true")
 	r.Contains(m.URL(), "parseTime=true")
@@ -177,14 +177,14 @@ func Test_MySQL_Finalizer_Default_Options(t *testing.T) {
 
 func Test_MySQL_Finalizer_Preserve_User_Defined_Options(t *testing.T) {
 	r := require.New(t)
-	m := &mysql{ConnectionDetails: &ConnectionDetails{
+	m := &mysql{commonDialect{ConnectionDetails: &ConnectionDetails{
 		Options: map[string]string{
 			"multiStatements": "false",
 			"parseTime":       "false",
 			"readTimeout":     "1h",
 			"collation":       "utf8",
 		},
-	}}
+	}}}
 	finalizerMySQL(m.ConnectionDetails)
 	r.Contains(m.URL(), "multiStatements=false")
 	r.Contains(m.URL(), "parseTime=false")

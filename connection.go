@@ -102,9 +102,11 @@ func (c *Connection) Open() error {
 	db.SetMaxIdleConns(details.IdlePool)
 	c.Store = &dB{db}
 
-	err = c.Dialect.afterOpen(c)
-	if err != nil {
-		c.Store = nil
+	if d, ok := c.Dialect.(afterOpenable); ok {
+		err = d.AfterOpen(c)
+		if err != nil {
+			c.Store = nil
+		}
 	}
 	return errors.Wrap(err, "could not open database connection")
 }
