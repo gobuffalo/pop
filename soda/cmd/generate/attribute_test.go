@@ -45,7 +45,7 @@ func Test_Attribute_String(t *testing.T) {
 	}
 
 	for _, c := range cases {
-		model, err := newModel("car", "json")
+		model, err := newModel("car", "json", "models")
 		r.NoError(err)
 		a, err := newAttribute(c.name, &model)
 		r.NoError(err)
@@ -130,7 +130,7 @@ func Test_newAttribute(t *testing.T) {
 	for index, tcase := range cases {
 		t.Run(fmt.Sprintf("%d-%s", index, tcase.AttributeInput), func(tt *testing.T) {
 			r := require.New(tt)
-			model, err := newModel("car", "json")
+			model, err := newModel("car", "json", "models")
 			r.NoError(err)
 			a, err := newAttribute(tcase.AttributeInput, &model)
 			if tcase.Invalid {

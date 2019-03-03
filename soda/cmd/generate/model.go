@@ -24,6 +24,7 @@ import (
 
 type model struct {
 	Package               string
+	ModelPath             string
 	Imports               []string
 	Name                  nflect.Ident
 	attributesCache       map[string]struct{}
@@ -52,9 +53,9 @@ func (m model) Generate() error {
 	ctx["encoding_type"] = m.StructTag
 	ctx["encoding_type_char"] = nflect.Char(m.StructTag)
 
-	fname := filepath.Join(m.Package, m.Name.File(".go").String())
+	fname := filepath.Join(m.ModelPath, m.Name.File(".go").String())
 	g.Add(makr.NewFile(fname, modelTemplate))
-	tfname := filepath.Join(m.Package, m.Name.File("_test.go").String())
+	tfname := filepath.Join(m.ModelPath, m.Name.File("_test.go").String())
 	g.Add(makr.NewFile(tfname, modelTestTemplate))
 	return g.Run(".", ctx)
 }
@@ -75,7 +76,7 @@ func (m model) testPkgName() string {
 	pkg := m.Package
 
 	path, _ := os.Getwd()
-	path = filepath.Join(path, "models")
+	path = filepath.Join(path, m.ModelPath)
 
 	if _, err := os.Stat(path); err != nil {
 		return pkg
@@ -155,9 +156,9 @@ func (m *model) addID() {
 }
 
 func (m model) generateModelFile() error {
-	err := os.MkdirAll(m.Package, 0766)
+	err := os.MkdirAll(m.ModelPath, 0766)
 	if err != nil {
-		return errors.Wrapf(err, "couldn't create folder %s", m.Package)
+		return errors.Wrapf(err, "couldn't create folder %s", m.ModelPath)
 	}
 
 	return m.Generate()
@@ -220,9 +221,10 @@ func (m model) GenerateSQLFromFizz(content string, f fizz.Translator) string {
 	return content
 }
 
-func newModel(name string, structTag string) (model, error) {
+func newModel(name, structTag, modelPath string) (model, error) {
 	m := model{
-		Package:               "models",
+		Package:               filepath.Base(modelPath),
+		ModelPath:             modelPath,
 		Imports:               []string{"time", "github.com/gobuffalo/pop", "github.com/gobuffalo/validate"},
 		Name:                  nflect.New(name),
 		Attributes:            []attribute{},
