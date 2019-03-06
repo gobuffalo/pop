@@ -2,6 +2,7 @@ package pop
 
 import (
 	"bytes"
+	"database/sql"
 	"encoding/gob"
 	"fmt"
 	"io"
@@ -97,20 +98,17 @@ func genericUpdate(s store, model *Model, cols columns.Columns) error {
 
 func genericDestroy(s store, model *Model) error {
 	stmt := fmt.Sprintf("DELETE FROM %s WHERE %s", model.TableName(), model.whereID())
-	err := genericExec(s, stmt, model.ID())
+	_, err := genericExec(s, stmt, model.ID())
 	if err != nil {
 		return errors.WithStack(err)
 	}
 	return nil
 }
 
-func genericExec(s store, stmt string, args ...interface{}) error {
+func genericExec(s store, stmt string, args ...interface{}) (sql.Result, error) {
 	log(logging.SQL, stmt, args...)
-	_, err := s.Exec(stmt, args...)
-	if err != nil {
-		return errors.WithStack(err)
-	}
-	return nil
+	res, err := s.Exec(stmt, args...)
+	return res, errors.WithStack(err)
 }
 
 func genericSelectOne(s store, model *Model, query Query) error {
