@@ -1,9 +1,10 @@
-package nulls
+package nulls_test
 
 import (
 	"encoding/json"
 	"testing"
 
+	"github.com/gobuffalo/nulls"
 	"github.com/gofrs/uuid"
 	"github.com/stretchr/testify/require"
 )
@@ -16,7 +17,7 @@ func Test_UUID_UnmarshalJSON(t *testing.T) {
 	b, err := json.Marshal(id)
 	r.NoError(err)
 
-	nid := &UUID{}
+	nid := &nulls.UUID{}
 
 	r.NoError(nid.UnmarshalJSON(b))
 
