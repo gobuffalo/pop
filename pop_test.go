@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/gobuffalo/nulls"
 	"github.com/gobuffalo/pop/logging"
-	"github.com/gobuffalo/pop/nulls"
 	"github.com/gobuffalo/validate"
 	"github.com/gobuffalo/validate/validators"
 	"github.com/gofrs/uuid"

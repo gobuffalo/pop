@@ -3,7 +3,7 @@ package pop
 import (
 	"testing"
 
-	"github.com/gobuffalo/pop/nulls"
+	"github.com/gobuffalo/nulls"
 	"github.com/gofrs/uuid"
 	"github.com/stretchr/testify/require"
 )

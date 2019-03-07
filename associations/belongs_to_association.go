@@ -5,8 +5,8 @@ import (
 	"reflect"
 
 	"github.com/gobuffalo/flect"
+	"github.com/gobuffalo/nulls"
 	"github.com/gobuffalo/pop/columns"
-	"github.com/gobuffalo/pop/nulls"
 	"github.com/gobuffalo/x/defaults"
 )
 

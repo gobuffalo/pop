@@ -1,5 +1,7 @@
 # github.com/gobuffalo/pop/nulls
 
+DEPRECATED: use github.com/gobuffalo/nulls instead.
+
 This package should be used in place of the built-in null types in the `sql` package.
 
 The real benefit of this packages comes in its implementation of `MarshalJSON` and `UnmarshalJSON` to properly encode/decode `null` values.
