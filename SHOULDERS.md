@@ -39,6 +39,8 @@ Thank you to the following **GIANTS**:
 
 * [github.com/gobuffalo/makr](https://godoc.org/github.com/gobuffalo/makr)
 
+* [github.com/gobuffalo/nulls](https://godoc.org/github.com/gobuffalo/nulls)
+
 * [github.com/gobuffalo/packd](https://godoc.org/github.com/gobuffalo/packd)
 
 * [github.com/gobuffalo/plush](https://godoc.org/github.com/gobuffalo/plush)
@@ -50,18 +52,6 @@ Thank you to the following **GIANTS**:
 * [github.com/gobuffalo/plush/parser](https://godoc.org/github.com/gobuffalo/plush/parser)
 
 * [github.com/gobuffalo/plush/token](https://godoc.org/github.com/gobuffalo/plush/token)
-
-* [github.com/gobuffalo/pop](https://godoc.org/github.com/gobuffalo/pop)
-
-* [github.com/gobuffalo/pop/associations](https://godoc.org/github.com/gobuffalo/pop/associations)
-
-* [github.com/gobuffalo/pop/columns](https://godoc.org/github.com/gobuffalo/pop/columns)
-
-* [github.com/gobuffalo/pop/fix](https://godoc.org/github.com/gobuffalo/pop/fix)
-
-* [github.com/gobuffalo/pop/logging](https://godoc.org/github.com/gobuffalo/pop/logging)
-
-* [github.com/gobuffalo/pop/nulls](https://godoc.org/github.com/gobuffalo/pop/nulls)
 
 * [github.com/gobuffalo/syncx](https://godoc.org/github.com/gobuffalo/syncx)
 
