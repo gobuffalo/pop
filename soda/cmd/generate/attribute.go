@@ -44,7 +44,7 @@ func newAttribute(base string, model *model) (attribute, error) {
 	nullable := strings.HasPrefix(col[1], "nulls.")
 	if !model.HasNulls && nullable {
 		model.HasNulls = true
-		model.Imports = append(model.Imports, "github.com/gobuffalo/pop/nulls")
+		model.Imports = append(model.Imports, "github.com/gobuffalo/nulls")
 	} else if !model.HasSlices && strings.HasPrefix(col[1], "slices.") {
 		model.HasSlices = true
 		model.Imports = append(model.Imports, "github.com/gobuffalo/pop/slices")
