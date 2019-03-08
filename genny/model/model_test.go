@@ -141,3 +141,27 @@ func Test_New_XML(t *testing.T) {
 	r.NoError(err)
 	r.Equal(bf, f.String())
 }
+
+func Test_New_Package(t *testing.T) {
+	r := require.New(t)
+
+	g, err := New(&Options{
+		Name: "widget",
+		Path: "models/admin",
+	})
+	r.NoError(err)
+
+	run := gentest.NewRunner()
+	run.With(g)
+
+	r.NoError(run.Run())
+
+	res := run.Results()
+
+	r.Len(res.Commands, 0)
+	r.Len(res.Files, 2)
+
+	f, err := res.Find("models/admin/widget.go")
+	r.NoError(err)
+	r.Contains(f.String(), "package admin")
+}

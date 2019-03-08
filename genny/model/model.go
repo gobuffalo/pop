@@ -39,6 +39,6 @@ func New(opts *Options) (*genny.Generator, error) {
 	t := gogen.TemplateTransformer(ctx, help)
 	g.Transformer(t)
 	g.Transformer(genny.Replace("-name-", opts.Name))
-	g.Transformer(genny.Replace("-package-", opts.Package))
+	g.Transformer(genny.Replace("-path-", opts.Path))
 	return g, nil
 }
