@@ -20,7 +20,7 @@ func buildImports(opts *Options) []string {
 			imps["time"] = true
 		default:
 			if strings.HasPrefix(a.GoType(), "nulls") {
-				imps["github.com/gobuffalo/pop/nulls"] = true
+				imps["github.com/gobuffalo/nulls"] = true
 			}
 			if strings.HasPrefix(a.GoType(), "slices") {
 				imps["github.com/gobuffalo/pop/slices"] = true
