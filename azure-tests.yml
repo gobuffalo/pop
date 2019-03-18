@@ -58,12 +58,12 @@ steps:
     condition: and(succeeded(), eq(variables['SODA_DIALECT'], 'cockroach_ssl'))
   - script: |
       go get -t -v ./...
-      go build -v -tags sqlite -o tsoda ./soda
+      go install -v -tags sqlite ./soda
     workingDirectory: "$(modulePath)"          
     displayName: "Install soda"
   - script: |
-      $(modulePath)/tsoda create -e $(SODA_DIALECT)
-      $(modulePath)/tsoda migrate -e $(SODA_DIALECT)
+      $(GOBIN)/soda create -e $(SODA_DIALECT)
+      $(GOBIN)/soda migrate -e $(SODA_DIALECT)
     workingDirectory: "$(modulePath)"         
     displayName: "Create DB & run migrations"
   - script: |
