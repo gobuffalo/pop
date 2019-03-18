@@ -13,7 +13,7 @@ func Test_LoadsConnectionsFromConfig(t *testing.T) {
 	r := require.New(t)
 
 	conns := Connections
-	r.Equal(6, len(conns))
+	r.Equal(5, len(conns))
 }
 
 func Test_AddLookupPaths(t *testing.T) {
@@ -28,10 +28,10 @@ func Test_ParseConfig(t *testing.T) {
 mysql:
   dialect: "mysql"
   database: "pop_test"
-  host: {{ envOr "MYSQL_HOST" "127.0.0.1"  }}
-  port: {{ envOr "MYSQL_PORT" "3306"  }}
-  user: {{ envOr "MYSQL_USER"  "root"  }}
-  password: {{ envOr "MYSQL_PASSWORD"  "root"  }}
+  host: "127.0.0.1"
+  port: "3306"
+  user: "root"
+  password: "root"
   options:
     readTimeout: 5s`)
 	conns, err := ParseConfig(config)
