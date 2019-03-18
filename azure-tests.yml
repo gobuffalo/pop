@@ -56,8 +56,8 @@ steps:
         popd
     condition: and(succeeded(), eq(variables['SODA_DIALECT'], 'cockroach_ssl'))
   - script: |
-      go get -t -v ./...
-      go build -v -tags sqlite -o tsoda ./soda
+      GO111MODULE=off go get -t -v ./...
+      GO111MODULE=off go build -v -tags sqlite -o tsoda ./soda
     workingDirectory: "$(modulePath)" 
     displayName: "Install soda"
   - script: |
