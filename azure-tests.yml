@@ -55,9 +55,12 @@ steps:
         ./cockroach start --certs-dir certs --listen-addr localhost --port 26259 --http-port 8089 --background
         popd
     condition: and(succeeded(), eq(variables['SODA_DIALECT'], 'cockroach_ssl'))
-  - script: |
-      GO111MODULE=off go get -t -v ./...
-      GO111MODULE=off go build -v -tags sqlite -o tsoda ./soda
+  - task: Bash@3
+    inputs:
+        targetType: inline
+        script: |
+          GO111MODULE=off go get -t -v ./...
+          GO111MODULE=off go build -v -tags sqlite -o tsoda ./soda
     workingDirectory: "$(modulePath)" 
     displayName: "Install soda"
   - script: |
