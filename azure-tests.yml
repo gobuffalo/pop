@@ -59,6 +59,7 @@ steps:
     inputs:
         targetType: inline
         script: |
+          cd $(modulePath)
           GO111MODULE=off go get -t -v ./...
           GO111MODULE=off go build -v -tags sqlite -o tsoda ./soda
     displayName: "Install soda"
