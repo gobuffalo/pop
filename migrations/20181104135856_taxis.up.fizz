@@ -2,4 +2,5 @@ create_table("taxis") {
   t.Column("id", "int", {primary: true})
   t.Column("model", "string", {})
   t.Column("user_id", "int", {"null": true})
+  t.Timestamps()
 }
