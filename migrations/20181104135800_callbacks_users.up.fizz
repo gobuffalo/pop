@@ -9,4 +9,5 @@ create_table("callbacks_users") {
   t.Column("after_u", "string", {})
   t.Column("after_d", "string", {})
   t.Column("after_f", "string", {})
+  t.Timestamps()
 }

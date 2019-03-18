@@ -1,3 +1,4 @@
 create_table("courses") {
   t.Column("id", "uuid", {"primary": true})
+  t.Timestamps()
 }
