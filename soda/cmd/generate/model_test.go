@@ -196,6 +196,7 @@ func Test_model_Fizz(t *testing.T) {
 	t.Column("id", "integer", {primary: true})
 	t.Column("brand", "string", {})
 	t.Column("owner", "string", {null: true})
+	t.Timestamps()
 }`
 	r.Equal(expected, m.Fizz())
 }
