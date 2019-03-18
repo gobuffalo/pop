@@ -102,4 +102,4 @@ jobs:
         GO111MODULE: "off"
         SODA_DIALECT: "sqlite"
   steps:
-- template: azure-tests.yml
+    - template: azure-tests.yml
