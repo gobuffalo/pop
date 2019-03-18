@@ -18,7 +18,6 @@ steps:
       command: run
       imageName: postgres:9.6
       ports: "5432:5432"
-      envVars: POSTGRES_DB=pop_test
     condition: and(succeeded(), eq(variables['SODA_DIALECT'], 'postgres'))
   - task: Docker@1
     displayName: Run mysql image
@@ -28,9 +27,6 @@ steps:
       ports: "3307:3306"
       envVars: |
         MYSQL_ROOT_PASSWORD=root
-        MYSQL_DATABASE=pop_test
-        MYSQL_USER=pop
-        MYSQL_PASSWORD=pop
     condition: and(succeeded(), eq(variables['SODA_DIALECT'], 'mysql'))
   - task: Docker@1
     displayName: Run cockroach image
@@ -62,6 +58,7 @@ steps:
     workingDirectory: "$(modulePath)"          
     displayName: "Install soda"
   - script: |
+      $(GOBIN)/soda drop -e $(SODA_DIALECT)
       $(GOBIN)/soda create -e $(SODA_DIALECT)
       $(GOBIN)/soda migrate -e $(SODA_DIALECT)
     workingDirectory: "$(modulePath)"         
