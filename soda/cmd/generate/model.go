@@ -203,6 +203,7 @@ func (m model) Fizz() string {
 			s = append(s, "\t"+col.String())
 		}
 	}
+	s = append(s, "\tt.Timestamps()")
 	s = append(s, "}")
 	return strings.Join(s, "\n")
 }
