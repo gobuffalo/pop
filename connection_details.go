@@ -39,6 +39,8 @@ type ConnectionDetails struct {
 	Pool int
 	// Defaults to 0 "unlimited". See https://golang.org/pkg/database/sql/#DB.SetMaxIdleConns
 	IdlePool int
+	// See https://godoc.org/github.com/jmoiron/sqlx#DB.Unsafe
+	Unsafe bool
 	Options  map[string]string
 	// Query string encoded options from URL. Example: "sslmode=disable"
 	RawOptions string
