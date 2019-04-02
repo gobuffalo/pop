@@ -94,7 +94,12 @@ func (c *Connection) Open() error {
 		return errors.New("invalid connection instance")
 	}
 	details := c.Dialect.Details()
-	db, err := sqlx.Open(details.Dialect, c.Dialect.URL())
+	driver := details.Dialect
+	if details.Driver != "" {
+		driver = details.Driver
+	}
+
+	db, err := sqlx.Open(driver, c.Dialect.URL())
 	if err != nil {
 		return errors.Wrap(err, "could not open database connection")
 	}

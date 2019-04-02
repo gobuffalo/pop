@@ -18,6 +18,8 @@ import (
 type ConnectionDetails struct {
 	// Example: "postgres" or "sqlite3" or "mysql"
 	Dialect string
+	// Optional: specifies the database driver to use
+	Driver string
 	// The name of your database. Example: "foo_development"
 	Database string
 	// The host of your database. Example: "127.0.0.1"
