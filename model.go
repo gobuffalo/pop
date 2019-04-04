@@ -9,7 +9,6 @@ import (
 	"github.com/gobuffalo/flect"
 	nflect "github.com/gobuffalo/flect/name"
 	"github.com/gofrs/uuid"
-	"github.com/pkg/errors"
 )
 
 var tableMap = map[string]string{}
@@ -117,7 +116,7 @@ func (m *Model) fieldByName(s string) (reflect.Value, error) {
 	el := reflect.ValueOf(m.Value).Elem()
 	fbn := el.FieldByName(s)
 	if !fbn.IsValid() {
-		return fbn, errors.Errorf("Model does not have a field named %s", s)
+		return fbn, fmt.Errorf("Model does not have a field named %s", s)
 	}
 	return fbn, nil
 }

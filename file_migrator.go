@@ -30,7 +30,7 @@ func NewFileMigrator(path string, c *Connection) (FileMigrator, error) {
 
 	err := fm.findMigrations()
 	if err != nil {
-		return fm, errors.WithStack(err)
+		return fm, err
 	}
 
 	return fm, nil
@@ -68,7 +68,7 @@ func (fm *FileMigrator) findMigrations() error {
 				Runner: func(mf Migration, tx *Connection) error {
 					f, err := os.Open(p)
 					if err != nil {
-						return errors.WithStack(err)
+						return err
 					}
 					content, err := migrationContent(mf, tx, f)
 					if err != nil {

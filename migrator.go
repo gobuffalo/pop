@@ -99,7 +99,7 @@ func (m Migrator) Up() error {
 				return errors.Wrapf(err, "problem inserting migration version %s", mi.Version)
 			})
 			if err != nil {
-				return errors.WithStack(err)
+				return err
 			}
 			log(logging.Info, "> %s", mi.Name)
 			applied++
@@ -158,7 +158,7 @@ func (m Migrator) Down(step int) error {
 func (m Migrator) Reset() error {
 	err := m.Down(-1)
 	if err != nil {
-		return errors.WithStack(err)
+		return err
 	}
 	return m.Up()
 }
@@ -185,7 +185,7 @@ func (m Migrator) CreateSchemaMigrations() error {
 		}
 		err = tx.RawQuery(smSQL).Exec()
 		if err != nil {
-			return errors.WithStack(errors.Wrap(err, smSQL))
+			return errors.Wrap(err, smSQL)
 		}
 		return nil
 	})
@@ -195,7 +195,7 @@ func (m Migrator) CreateSchemaMigrations() error {
 func (m Migrator) Status() error {
 	err := m.CreateSchemaMigrations()
 	if err != nil {
-		return errors.WithStack(err)
+		return err
 	}
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 3, ' ', tabwriter.TabIndent)
 	fmt.Fprintln(w, "Version\tName\tStatus\t")
@@ -223,12 +223,12 @@ func (m Migrator) DumpMigrationSchema() error {
 	schema := filepath.Join(m.SchemaPath, "schema.sql")
 	f, err := os.Create(schema)
 	if err != nil {
-		return errors.WithStack(err)
+		return err
 	}
 	err = c.Dialect.DumpSchema(f)
 	if err != nil {
 		os.RemoveAll(schema)
-		return errors.WithStack(err)
+		return err
 	}
 	return nil
 }

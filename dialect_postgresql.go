@@ -65,14 +65,14 @@ func (p *postgresql) Create(s store, model *Model, cols columns.Columns) error {
 		log(logging.SQL, query)
 		stmt, err := s.PrepareNamed(query)
 		if err != nil {
-			return errors.WithStack(err)
+			return err
 		}
 		err = stmt.Get(&id, model.Value)
 		if err != nil {
 			if err := stmt.Close(); err != nil {
 				return errors.WithMessage(err, "failed to close statement")
 			}
-			return errors.WithStack(err)
+			return err
 		}
 		model.setID(id.ID)
 		return errors.WithMessage(stmt.Close(), "failed to close statement")
@@ -88,7 +88,7 @@ func (p *postgresql) Destroy(s store, model *Model) error {
 	stmt := p.TranslateSQL(fmt.Sprintf("DELETE FROM %s WHERE %s", model.TableName(), model.whereID()))
 	_, err := genericExec(s, stmt, model.ID())
 	if err != nil {
-		return errors.WithStack(err)
+		return err
 	}
 	return nil
 }

@@ -40,13 +40,13 @@ func init() {
 func LoadConfigFile() error {
 	path, err := findConfigPath()
 	if err != nil {
-		return errors.WithStack(err)
+		return err
 	}
 	Connections = map[string]*Connection{}
 	log(logging.Debug, "Loading config file from %s", path)
 	f, err := os.Open(path)
 	if err != nil {
-		return errors.WithStack(err)
+		return err
 	}
 	return LoadFrom(f)
 }
@@ -104,7 +104,7 @@ func ParseConfig(r io.Reader) (map[string]*ConnectionDetails, error) {
 	})
 	b, err := ioutil.ReadAll(r)
 	if err != nil {
-		return nil, errors.WithStack(err)
+		return nil, err
 	}
 	t, err := tmpl.Parse(string(b))
 	if err != nil {

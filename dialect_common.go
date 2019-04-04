@@ -44,14 +44,14 @@ func genericCreate(s store, model *Model, cols columns.Columns) error {
 		log(logging.SQL, query)
 		res, err := s.NamedExec(query, model.Value)
 		if err != nil {
-			return errors.WithStack(err)
+			return err
 		}
 		id, err = res.LastInsertId()
 		if err == nil {
 			model.setID(id)
 		}
 		if err != nil {
-			return errors.WithStack(err)
+			return err
 		}
 		return nil
 	case "UUID", "string":
@@ -59,7 +59,7 @@ func genericCreate(s store, model *Model, cols columns.Columns) error {
 			if model.ID() == emptyUUID {
 				u, err := uuid.NewV4()
 				if err != nil {
-					return errors.WithStack(err)
+					return err
 				}
 				model.setID(u)
 			}
@@ -72,14 +72,14 @@ func genericCreate(s store, model *Model, cols columns.Columns) error {
 		log(logging.SQL, query)
 		stmt, err := s.PrepareNamed(query)
 		if err != nil {
-			return errors.WithStack(err)
+			return err
 		}
 		_, err = stmt.Exec(model.Value)
 		if err != nil {
 			if err := stmt.Close(); err != nil {
 				return errors.WithMessage(err, "failed to close statement")
 			}
-			return errors.WithStack(err)
+			return err
 		}
 		return errors.WithMessage(stmt.Close(), "failed to close statement")
 	}
@@ -91,7 +91,7 @@ func genericUpdate(s store, model *Model, cols columns.Columns) error {
 	log(logging.SQL, stmt, model.ID())
 	_, err := s.NamedExec(stmt, model.Value)
 	if err != nil {
-		return errors.WithStack(err)
+		return err
 	}
 	return nil
 }
@@ -100,7 +100,7 @@ func genericDestroy(s store, model *Model) error {
 	stmt := fmt.Sprintf("DELETE FROM %s WHERE %s", model.TableName(), model.whereID())
 	_, err := genericExec(s, stmt, model.ID())
 	if err != nil {
-		return errors.WithStack(err)
+		return err
 	}
 	return nil
 }
@@ -108,7 +108,7 @@ func genericDestroy(s store, model *Model) error {
 func genericExec(s store, stmt string, args ...interface{}) (sql.Result, error) {
 	log(logging.SQL, stmt, args...)
 	res, err := s.Exec(stmt, args...)
-	return res, errors.WithStack(err)
+	return res, err
 }
 
 func genericSelectOne(s store, model *Model, query Query) error {
@@ -116,7 +116,7 @@ func genericSelectOne(s store, model *Model, query Query) error {
 	log(logging.SQL, sql, args...)
 	err := s.Get(model.Value, sql, args...)
 	if err != nil {
-		return errors.WithStack(err)
+		return err
 	}
 	return nil
 }
@@ -126,7 +126,7 @@ func genericSelectMany(s store, models *Model, query Query) error {
 	log(logging.SQL, sql, args...)
 	err := s.Select(models.Value, sql, args...)
 	if err != nil {
-		return errors.WithStack(err)
+		return err
 	}
 	return nil
 }

@@ -6,8 +6,9 @@ import (
 	"fmt"
 	"strings"
 
+	"errors"
+
 	"github.com/gofrs/uuid"
-	"github.com/pkg/errors"
 )
 
 // For reading in arrays from postgres
@@ -29,7 +30,7 @@ func (s *UUID) Scan(src interface{}) error {
 	}
 	us, err := strSliceToUUIDSlice(strToUUID(string(b)))
 	if err != nil {
-		return errors.WithStack(err)
+		return err
 	}
 	*s = us
 	return nil
@@ -54,7 +55,7 @@ func (s *UUID) UnmarshalJSON(data []byte) error {
 	}
 	us, err := strSliceToUUIDSlice(ss)
 	if err != nil {
-		return errors.WithStack(err)
+		return err
 	}
 	*s = us
 	return nil
@@ -69,7 +70,7 @@ func (s *UUID) UnmarshalText(text []byte) error {
 	}
 	us, err := strSliceToUUIDSlice(ss)
 	if err != nil {
-		return errors.WithStack(err)
+		return err
 	}
 	*s = us
 	return nil
@@ -102,7 +103,7 @@ func strSliceToUUIDSlice(ss []string) (UUID, error) {
 		}
 		u, err := uuid.FromString(s)
 		if err != nil {
-			return UUID{}, errors.WithStack(err)
+			return UUID{}, err
 		}
 		us[i] = u
 	}

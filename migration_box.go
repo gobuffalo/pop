@@ -24,7 +24,7 @@ func NewMigrationBox(box packd.Walkable, c *Connection) (MigrationBox, error) {
 
 	err := fm.findMigrations()
 	if err != nil {
-		return fm, errors.WithStack(err)
+		return fm, err
 	}
 
 	return fm, nil
@@ -34,7 +34,7 @@ func (fm *MigrationBox) findMigrations() error {
 	return fm.Box.Walk(func(p string, f packd.File) error {
 		info, err := f.FileInfo()
 		if err != nil {
-			return errors.WithStack(err)
+			return err
 		}
 		matches := mrx.FindAllStringSubmatch(info.Name(), -1)
 		if len(matches) == 0 {
