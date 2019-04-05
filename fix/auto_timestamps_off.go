@@ -38,7 +38,8 @@ func AutoTimestampsOff(content string) (string, error) {
 				for _, bs := range function.Block.Statements {
 					bstmt := bs.(*ast.ExpressionStatement)
 					if f, ok := bstmt.Expression.(*ast.CallExpression); ok {
-						if f.Function.String() == "t.DisableTimestamps" {
+						fs := f.Function.String()
+						if fs == "t.DisableTimestamps" || fs == "t.Timestamps" {
 							enableTimestamps = false
 						}
 					}
