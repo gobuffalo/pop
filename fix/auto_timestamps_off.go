@@ -1,7 +1,7 @@
 package fix
 
 import (
-	"fmt"
+	"strings"
 
 	"github.com/gobuffalo/plush/ast"
 	"github.com/gobuffalo/plush/parser"
@@ -27,21 +27,28 @@ func AutoTimestampsOff(content string) (string, error) {
 		if function, ok := stmt.Expression.(*ast.CallExpression); ok {
 			if function.Function.TokenLiteral() == "create_table" {
 				args := function.Arguments
-				for _, a := range args {
-					fmt.Println(a)
+				enableTimestamps := true
+				if len(args) > 1 {
+					if v, ok := args[1].(*ast.HashLiteral); ok {
+						if strings.Contains(v.String(), `"timestamps": false`) {
+							enableTimestamps = false
+						}
+					}
 				}
 				for _, bs := range function.Block.Statements {
 					bstmt := bs.(*ast.ExpressionStatement)
 					if f, ok := bstmt.Expression.(*ast.CallExpression); ok {
-						fmt.Printf("%T\n", f)
+						if f.Function.String() == "t.DisableTimestamps" {
+							enableTimestamps = false
+						}
 					}
 				}
-				function.Block.Statements = append(function.Block.Statements, ts)
+				if enableTimestamps {
+					function.Block.Statements = append(function.Block.Statements, ts)
+				}
 			}
 		}
 	}
-
-	fmt.Println(p.Statements)
 
 	return p.String(), nil
 }

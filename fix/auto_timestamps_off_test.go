@@ -10,7 +10,8 @@ import (
 
 func Test_AutoTimestampsOff(t *testing.T) {
 	r := require.New(t)
-	box := packr.New("./fixtures/auto_timestamps_off", "./fixtures/auto_timestamps_off")
+	box := packr.New("./fixtures/auto_timestamps_off/raw", "./fixtures/auto_timestamps_off/raw")
+	boxPatched := packr.New("./fixtures/auto_timestamps_off/patched", "./fixtures/auto_timestamps_off/patched")
 
 	err := box.Walk(func(path string, info packr.File) error {
 		t.Run(path, func(tt *testing.T) {
@@ -19,8 +20,11 @@ func Test_AutoTimestampsOff(t *testing.T) {
 			rr.NoError(err)
 
 			body := string(b)
-			_, err = AutoTimestampsOff(body)
+			patched, err := AutoTimestampsOff(body)
 			rr.NoError(err)
+			expected, err := boxPatched.FindString(path)
+			rr.NoError(err)
+			rr.Equal(expected, patched)
 		})
 		return nil
 	})
