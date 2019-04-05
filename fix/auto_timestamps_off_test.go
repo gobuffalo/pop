@@ -2,6 +2,7 @@ package fix
 
 import (
 	"io/ioutil"
+	"strings"
 	"testing"
 
 	packr "github.com/gobuffalo/packr/v2"
@@ -24,7 +25,7 @@ func Test_AutoTimestampsOff(t *testing.T) {
 			rr.NoError(err)
 			expected, err := boxPatched.FindString(path)
 			rr.NoError(err)
-			rr.Equal(expected, patched)
+			rr.Equal(strings.Replace(expected, "\r", "", -1), patched)
 		})
 		return nil
 	})
