@@ -11,7 +11,7 @@ import (
 
 func Test_Anko(t *testing.T) {
 	r := require.New(t)
-	box := packr.New("./fixtures", "./fixtures")
+	box := packr.New("./fixtures/anko", "./fixtures/anko")
 	err := box.Walk(func(path string, info packr.File) error {
 		if strings.HasPrefix(path, "pass") {
 			t.Run(path, testPass(path, info))
