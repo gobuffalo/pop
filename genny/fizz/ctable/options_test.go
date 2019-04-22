@@ -13,10 +13,11 @@ func Test_Options_Validate(t *testing.T) {
 	err := opts.Validate()
 	r.Error(err)
 
-	// TODO: make it valid. :)
+	opts.TableName = "widget"
 
 	err = opts.Validate()
 	r.NoError(err)
 
-	// TODO: add some more assertions here.
+	r.Contains(opts.Name, "_create_widgets.fizz")
+	r.Equal("migrations", opts.Path)
 }

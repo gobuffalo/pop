@@ -28,5 +28,18 @@ func Test_New(t *testing.T) {
 
 	f := res.Files[0]
 	r.Equal("create_widgets.fizz", f.Name())
-	r.Equal("", f.String())
+	r.Equal(`create_table("widgets") {
+	t.Timestamps()
+}`, f.String())
+}
+
+func Test_New_Fail(t *testing.T) {
+	r := require.New(t)
+
+	g, err := New(&Options{
+		TableName: "",
+		Name:      "create_widgets.fizz",
+	})
+	r.Error(err)
+	r.NotEmpty(g)
 }

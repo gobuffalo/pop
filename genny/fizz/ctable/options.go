@@ -9,6 +9,7 @@ import (
 	"github.com/pkg/errors"
 )
 
+// Options for the table create generator
 type Options struct {
 	TableName string
 	Name      string
@@ -25,7 +26,7 @@ func (opts *Options) Validate() error {
 		opts.Path = "migrations"
 	}
 	if len(opts.Name) == 0 {
-		opts.Name = fmt.Sprintf("%d_create_%s.fizz", time.Now().UnixNano(), name.New(opts.TableName).Tableize())
+		opts.Name = fmt.Sprintf("%s_create_%s.fizz", time.Now().Format("YYYYMMDDHHmmSS"), name.New(opts.TableName).Tableize())
 	}
 	return nil
 }
