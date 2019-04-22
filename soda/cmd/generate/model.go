@@ -87,17 +87,17 @@ func (m model) testPkgName() string {
 
 			b, err := ioutil.ReadFile(p)
 			if err != nil {
-				return errors.WithStack(err)
+				return err
 			}
 			f, err := parser.ParseFile(fset, p, string(b), 0)
 			if err != nil {
-				return errors.WithStack(err)
+				return err
 			}
 
 			conf := types.Config{Importer: importer.Default()}
 			p, err := conf.Check("cmd/hello", fset, []*ast.File{f}, nil)
 			if err != nil {
-				return errors.WithStack(err)
+				return err
 			}
 			pkg = p.Name()
 
@@ -203,6 +203,7 @@ func (m model) Fizz() string {
 			s = append(s, "\t"+col.String())
 		}
 	}
+	s = append(s, "\tt.Timestamps()")
 	s = append(s, "}")
 	return strings.Join(s, "\n")
 }

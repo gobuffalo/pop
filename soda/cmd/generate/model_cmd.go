@@ -3,7 +3,8 @@ package generate
 import (
 	"strings"
 
-	"github.com/pkg/errors"
+	"errors"
+
 	"github.com/spf13/cobra"
 )
 
@@ -62,7 +63,7 @@ func Model(name string, opts map[string]interface{}, attributes []string) error 
 
 	model, err := newModel(name, mt, pp)
 	if err != nil {
-		return errors.WithStack(err)
+		return err
 	}
 
 	for _, def := range attributes {

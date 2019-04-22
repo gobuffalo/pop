@@ -70,14 +70,14 @@ func (m *sqlite) Create(s store, model *Model, cols columns.Columns) error {
 			log(logging.SQL, query)
 			res, err := s.NamedExec(query, model.Value)
 			if err != nil {
-				return errors.WithStack(err)
+				return err
 			}
 			id, err = res.LastInsertId()
 			if err == nil {
 				model.setID(id)
 			}
 			if err != nil {
-				return errors.WithStack(err)
+				return err
 			}
 			return nil
 		}

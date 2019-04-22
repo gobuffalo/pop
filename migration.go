@@ -7,7 +7,6 @@ import (
 
 	"github.com/gobuffalo/makr"
 	"github.com/markbates/oncer"
-	"github.com/pkg/errors"
 )
 
 // MigrationCreate writes contents for a given migration in normalized files
@@ -31,7 +30,7 @@ func (c *Connection) MigrateUp(path string) error {
 
 	mig, err := NewFileMigrator(path, c)
 	if err != nil {
-		return errors.WithStack(err)
+		return err
 	}
 	return mig.Up()
 }
@@ -42,7 +41,7 @@ func (c *Connection) MigrateDown(path string, step int) error {
 
 	mig, err := NewFileMigrator(path, c)
 	if err != nil {
-		return errors.WithStack(err)
+		return err
 	}
 	return mig.Down(step)
 }
@@ -53,7 +52,7 @@ func (c *Connection) MigrateStatus(path string) error {
 
 	mig, err := NewFileMigrator(path, c)
 	if err != nil {
-		return errors.WithStack(err)
+		return err
 	}
 	return mig.Status()
 }
@@ -64,7 +63,7 @@ func (c *Connection) MigrateReset(path string) error {
 
 	mig, err := NewFileMigrator(path, c)
 	if err != nil {
-		return errors.WithStack(err)
+		return err
 	}
 	return mig.Reset()
 }

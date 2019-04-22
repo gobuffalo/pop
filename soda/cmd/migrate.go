@@ -3,8 +3,9 @@ package cmd
 import (
 	"os"
 
+	"errors"
+
 	"github.com/gobuffalo/pop"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -24,7 +25,7 @@ var migrateCmd = &cobra.Command{
 		}
 		mig, err := pop.NewFileMigrator(migrationPath, getConn())
 		if err != nil {
-			return errors.WithStack(err)
+			return err
 		}
 		return mig.Up()
 	},

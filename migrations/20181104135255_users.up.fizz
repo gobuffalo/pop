@@ -7,4 +7,5 @@ create_table("users") {
   t.Column("bio", "text", {"null": true})
   t.Column("price", "numeric", {"null": true, "default": "1.00"})
   t.Column("email", "string", {"default": "foo@example.com", "size": 50})
+  t.Timestamps()
 }
