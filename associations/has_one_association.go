@@ -57,6 +57,9 @@ func hasOneAssociationBuilder(p associationParams) (Association, error) {
 }
 
 func (h *hasOneAssociation) Kind() reflect.Kind {
+	if h.ownedType.Kind() == reflect.Ptr {
+		return h.ownedType.Elem().Kind()
+	}
 	return h.ownedType.Kind()
 }
 
