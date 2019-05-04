@@ -37,7 +37,7 @@ type ConnectionDetails struct {
 	URL string
 	// Defaults to 0 "unlimited". See https://golang.org/pkg/database/sql/#DB.SetMaxOpenConns
 	Pool int
-	// Defaults to 0 "unlimited". See https://golang.org/pkg/database/sql/#DB.SetMaxIdleConns
+	// Defaults to 2. See https://golang.org/pkg/database/sql/#DB.SetMaxIdleConns
 	IdlePool int
 	Options  map[string]string
 	// Query string encoded options from URL. Example: "sslmode=disable"
