@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/gobuffalo/pop/fix"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -20,38 +19,52 @@ var fixCmd = &cobra.Command{
 			if info == nil {
 				return nil
 			}
-			ext := strings.ToLower(filepath.Ext(path))
-			if ext != ".fizz" {
-				return nil
-			}
-
-			b, err := ioutil.ReadFile(path)
-			if err != nil {
-				return errors.WithStack(err)
-			}
-
-			content := string(b)
-
-			fixed, err := fix.Anko(content)
-			if err != nil {
-				return errors.WithStack(err)
-			}
-			if strings.TrimSpace(fixed) != strings.TrimSpace(content) {
-				f, err := os.Create(path)
-				if err != nil {
-					return errors.WithStack(err)
-				}
-				if _, err := f.WriteString(fixed); err != nil {
-					return errors.WithStack(err)
-				}
-				if err := f.Close(); err != nil {
-					return errors.WithStack(err)
-				}
-			}
-
-			return nil
+			return fixFizz(path)
 		})
 	},
+}
+
+func fixFizz(path string) error {
+	ext := strings.ToLower(filepath.Ext(path))
+	if ext != ".fizz" {
+		return nil
+	}
+
+	b, err := ioutil.ReadFile(path)
+	if err != nil {
+		return err
+	}
+
+	content := string(b)
+
+	// Old anko format
+	fixed, err := fix.Anko(content)
+	if err != nil {
+		return err
+	}
+	if strings.TrimSpace(fixed) != strings.TrimSpace(content) {
+		content = fixed
+	}
+
+	// Rewrite migrations to use t.Timestamps() if necessary
+	fixed, err = fix.AutoTimestampsOff(content)
+	if err != nil {
+		return err
+	}
+
+	if strings.TrimSpace(fixed) != strings.TrimSpace(content) {
+		f, err := os.Create(path)
+		if err != nil {
+			return err
+		}
+		if _, err := f.WriteString(fixed); err != nil {
+			return err
+		}
+		if err := f.Close(); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func init() {

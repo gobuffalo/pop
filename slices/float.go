@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/pkg/errors"
+	"errors"
 )
 
 // Float is a slice of float64.
@@ -46,7 +46,7 @@ func (f *Float) UnmarshalText(text []byte) error {
 	for _, x := range strings.Split(string(text), ",") {
 		f, err := strconv.ParseFloat(x, 64)
 		if err != nil {
-			return errors.WithStack(err)
+			return err
 		}
 		ss = append(ss, f)
 	}

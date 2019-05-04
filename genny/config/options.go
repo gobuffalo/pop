@@ -3,7 +3,7 @@ package config
 import (
 	"os"
 
-	"github.com/pkg/errors"
+	"errors"
 )
 
 // Options needed for the config generator
