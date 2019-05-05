@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/pkg/errors"
+	"errors"
 )
 
 // Int is a slice of int.
@@ -46,7 +46,7 @@ func (i *Int) UnmarshalText(text []byte) error {
 	for _, x := range strings.Split(string(text), ",") {
 		f, err := strconv.Atoi(x)
 		if err != nil {
-			return errors.WithStack(err)
+			return err
 		}
 		ss = append(ss, f)
 	}

@@ -3,7 +3,6 @@ package cmd
 import (
 	"github.com/gobuffalo/pop"
 	"github.com/markbates/oncer"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -15,7 +14,7 @@ var migrateResetCmd = &cobra.Command{
 		oncer.Deprecate(0, "command `migrate reset`", "Use command `reset` instead.")
 		mig, err := pop.NewFileMigrator(migrationPath, getConn())
 		if err != nil {
-			return errors.WithStack(err)
+			return err
 		}
 		return mig.Reset()
 	},

@@ -47,6 +47,8 @@ func (q *Query) ExecWithCount() (int, error) {
 
 // ValidateAndSave applies validation rules on the given entry, then save it
 // if the validation succeed, excluding the given columns.
+//
+// If model is a slice, each item of the slice is validated then saved in the database.
 func (c *Connection) ValidateAndSave(model interface{}, excludeColumns ...string) (*validate.Errors, error) {
 	sm := &Model{Value: model}
 	verrs, err := sm.validateSave(c)
@@ -68,6 +70,8 @@ func IsZeroOfUnderlyingType(x interface{}) bool {
 
 // Save wraps the Create and Update methods. It executes a Create if no ID is provided with the entry;
 // or issues an Update otherwise.
+//
+// If model is a slice, each item of the slice is saved in the database.
 func (c *Connection) Save(model interface{}, excludeColumns ...string) error {
 	sm := &Model{Value: model}
 	return sm.iterate(func(m *Model) error {
@@ -84,6 +88,8 @@ func (c *Connection) Save(model interface{}, excludeColumns ...string) error {
 
 // ValidateAndCreate applies validation rules on the given entry, then creates it
 // if the validation succeed, excluding the given columns.
+//
+// If model is a slice, each item of the slice is validated then created in the database.
 func (c *Connection) ValidateAndCreate(model interface{}, excludeColumns ...string) (*validate.Errors, error) {
 	sm := &Model{Value: model}
 	verrs, err := sm.validateCreate(c)
@@ -146,6 +152,8 @@ func (c *Connection) ValidateAndCreate(model interface{}, excludeColumns ...stri
 
 // Create add a new given entry to the database, excluding the given columns.
 // It updates `created_at` and `updated_at` columns automatically.
+//
+// If model is a slice, each item of the slice is created in the database.
 //
 // Create support two modes:
 // * Flat (default): Associate existing nested objects only. NO creation or update of nested objects.
@@ -300,6 +308,8 @@ func (c *Connection) Create(model interface{}, excludeColumns ...string) error {
 
 // ValidateAndUpdate applies validation rules on the given entry, then update it
 // if the validation succeed, excluding the given columns.
+//
+// If model is a slice, each item of the slice is validated then updated in the database.
 func (c *Connection) ValidateAndUpdate(model interface{}, excludeColumns ...string) (*validate.Errors, error) {
 	sm := &Model{Value: model}
 	verrs, err := sm.validateUpdate(c)
@@ -314,6 +324,8 @@ func (c *Connection) ValidateAndUpdate(model interface{}, excludeColumns ...stri
 
 // Update writes changes from an entry to the database, excluding the given columns.
 // It updates the `updated_at` column automatically.
+//
+// If model is a slice, each item of the slice is updated in the database.
 func (c *Connection) Update(model interface{}, excludeColumns ...string) error {
 	sm := &Model{Value: model}
 	return sm.iterate(func(m *Model) error {
@@ -349,7 +361,9 @@ func (c *Connection) Update(model interface{}, excludeColumns ...string) error {
 	})
 }
 
-// Destroy deletes a given entry from the database
+// Destroy deletes a given entry from the database.
+//
+// If model is a slice, each item of the slice is deleted from the database.
 func (c *Connection) Destroy(model interface{}) error {
 	sm := &Model{Value: model}
 	return sm.iterate(func(m *Model) error {

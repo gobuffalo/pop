@@ -3,4 +3,5 @@ create_table("songs") {
   t.Column("u_id", "int", {"null":true})
   t.Column("title", "string", {})
   t.Column("composed_by_id", "int", {"null":true})
+  t.Timestamps()
 }
