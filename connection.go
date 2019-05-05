@@ -99,7 +99,9 @@ func (c *Connection) Open() error {
 		return errors.Wrap(err, "could not open database connection")
 	}
 	db.SetMaxOpenConns(details.Pool)
-	db.SetMaxIdleConns(details.IdlePool)
+	if details.IdlePool != 0 {
+		db.SetMaxIdleConns(details.IdlePool)
+	}
 	c.Store = &dB{db}
 
 	if d, ok := c.Dialect.(afterOpenable); ok {
