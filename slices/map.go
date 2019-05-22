@@ -4,7 +4,7 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 
-	"github.com/pkg/errors"
+	"errors"
 )
 
 // Map is a map[string]interface.
@@ -24,7 +24,7 @@ func (m *Map) Scan(src interface{}) error {
 	}
 	err := json.Unmarshal(b, m)
 	if err != nil {
-		return errors.WithStack(err)
+		return err
 	}
 	return nil
 }
@@ -34,7 +34,7 @@ func (m *Map) Scan(src interface{}) error {
 func (m Map) Value() (driver.Value, error) {
 	b, err := json.Marshal(m)
 	if err != nil {
-		return nil, errors.WithStack(err)
+		return nil, err
 	}
 	return string(b), nil
 }
@@ -58,7 +58,7 @@ func (m Map) UnmarshalJSON(b []byte) error {
 func (m Map) UnmarshalText(text []byte) error {
 	err := json.Unmarshal(text, &m)
 	if err != nil {
-		return errors.WithStack(err)
+		return err
 	}
 	return nil
 }

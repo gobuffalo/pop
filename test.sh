@@ -47,8 +47,10 @@ function debug_test {
     dlv test github.com/gobuffalo/pop
 }
 
+dialects=("postgres" "cockroach" "mysql" "sqlite")
+
+for dialect in "${dialects[@]}" ; do
+  test ${dialect}
+done
+
 # debug_test "postgres"
-test "postgres"
-test "cockroach"
-test "mysql"
-test "sqlite"

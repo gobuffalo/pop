@@ -7,7 +7,7 @@ import (
 	"text/template"
 
 	"github.com/gobuffalo/flect"
-	"github.com/gobuffalo/pop/nulls"
+	"github.com/gobuffalo/nulls"
 	"github.com/jmoiron/sqlx"
 )
 

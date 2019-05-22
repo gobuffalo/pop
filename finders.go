@@ -10,7 +10,7 @@ import (
 
 	"github.com/gobuffalo/pop/associations"
 	"github.com/gobuffalo/pop/logging"
-	"github.com/gobuffalo/uuid"
+	"github.com/gofrs/uuid"
 	"github.com/pkg/errors"
 )
 
@@ -21,8 +21,7 @@ var rLimit = regexp.MustCompile("(?i)(limit [0-9]+)$")
 //
 //	c.Find(&User{}, 1)
 func (c *Connection) Find(model interface{}, id interface{}) error {
-	q := Q(c)
-	return q.Find(model, id)
+	return Q(c).Find(model, id)
 }
 
 // Find the first record of the model in the database with a particular id.
@@ -30,13 +29,6 @@ func (c *Connection) Find(model interface{}, id interface{}) error {
 //	q.Find(&User{}, 1)
 func (q *Query) Find(model interface{}, id interface{}) error {
 	m := &Model{Value: model}
-	tn := m.TableName()
-	for _, c := range q.fromClauses {
-		if c.From == tn {
-			tn = c.As
-			break
-		}
-	}
 	idq := m.whereID()
 	switch t := id.(type) {
 	case uuid.UUID:
@@ -63,8 +55,7 @@ func (q *Query) Find(model interface{}, id interface{}) error {
 //
 //	c.First(&User{})
 func (c *Connection) First(model interface{}) error {
-	q := Q(c)
-	return q.First(model)
+	return Q(c).First(model)
 }
 
 // First record of the model in the database that matches the query.
@@ -96,8 +87,7 @@ func (q *Query) First(model interface{}) error {
 //
 //	c.Last(&User{})
 func (c *Connection) Last(model interface{}) error {
-	q := Q(c)
-	return q.Last(model)
+	return Q(c).Last(model)
 }
 
 // Last record of the model in the database that matches the query.
@@ -131,8 +121,7 @@ func (q *Query) Last(model interface{}) error {
 //
 //	c.All(&[]User{})
 func (c *Connection) All(models interface{}) error {
-	q := Q(c)
-	return q.All(models)
+	return Q(c).All(models)
 }
 
 // All retrieves all of the records in the database that match the query.
@@ -153,7 +142,7 @@ func (q *Query) All(models interface{}) error {
 	})
 
 	if err != nil {
-		return err
+		return errors.Wrap(err, "unable to fetch records")
 	}
 
 	if q.eager {
