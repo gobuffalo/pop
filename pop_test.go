@@ -215,6 +215,8 @@ type Song struct {
 	ComposedBy   Composer  `belongs_to:"composer"`
 }
 
+type Songs []Song
+
 type Composer struct {
 	ID        int       `db:"id"`
 	Name      string    `db:"name"`

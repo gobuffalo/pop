@@ -10,8 +10,8 @@ import (
 )
 
 type fooManyToMany struct {
-	ID                  uuid.UUID       `db:"id"`
-	BarManyToManies     barManyToManies `many_to_many:"foos_and_bars"`
+	ID              uuid.UUID       `db:"id"`
+	BarManyToManies barManyToManies `many_to_many:"foos_and_bars"`
 }
 
 type fooManyToMany2 struct {

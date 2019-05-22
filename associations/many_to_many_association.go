@@ -1,8 +1,11 @@
 package associations
 
 import (
+	"bytes"
 	"fmt"
+	"github.com/jmoiron/sqlx"
 	"reflect"
+	"text/template"
 	"time"
 
 	"github.com/gobuffalo/flect"
@@ -100,6 +103,9 @@ func (m *manyToManyAssociation) Constraint() (string, []interface{}) {
 func (m *manyToManyAssociation) OrderBy() string {
 	return m.orderBy
 }
+func (m* manyToManyAssociation) EagerBeforeInterface() interface{}{
+	return m.BeforeInterface()
+}
 
 func (m *manyToManyAssociation) BeforeInterface() interface{} {
 	if m.fieldValue.Kind() == reflect.Ptr {
@@ -107,6 +113,7 @@ func (m *manyToManyAssociation) BeforeInterface() interface{} {
 	}
 	return m.fieldValue.Addr().Interface()
 }
+
 
 func (m *manyToManyAssociation) BeforeSetup() error {
 	return nil
@@ -153,4 +160,81 @@ func (m *manyToManyAssociation) Statements() []AssociationStatement {
 	}
 
 	return statements
+}
+
+func (m *manyToManyAssociation) DeleteStatements() AssociationStatement {
+
+	modelColumnID := fmt.Sprintf("%s%s", flect.Underscore(m.model.Type().Name()), "_id")
+	var columnFieldID string
+	i := reflect.Indirect(m.fieldValue)
+
+	if i.Kind() == reflect.Slice || i.Kind() == reflect.Array {
+		t := i.Type().Elem()
+		columnFieldID = fmt.Sprintf("%s%s", flect.Underscore(t.Name()), "_id")
+	} else {
+		columnFieldID = fmt.Sprintf("%s%s", flect.Underscore(i.Type().Name()), "_id")
+	}
+
+	// Get Current many_to_many IDs for related objects
+	var currentManyToManyIDs []interface{}
+	for i := 0; i < m.fieldValue.Len(); i++ {
+		v := m.fieldValue.Index(i)
+		manyIDValue := v.FieldByName("ID").Interface()
+
+		if IsZeroOfUnderlyingType(manyIDValue) {
+			continue
+		}
+		currentManyToManyIDs = append(currentManyToManyIDs, manyIDValue)
+	}
+
+	//	Get the subject ID
+	modelIDValue := m.model.FieldByName("ID").Interface()
+
+	queryData := struct {
+		Table       string
+		OwnerColumn string
+		QueryColumn string
+	}{
+		m.manyToManyTableName,
+		modelColumnID,
+		columnFieldID,
+	}
+
+	tmpl, err := template.New("delete statement").Parse(
+		`
+			DELETE FROM {{.Table}}
+			WHERE
+			{{.OwnerColumn}} = ?
+			AND
+			{{.QueryColumn}} NOT IN  (?)
+		`,
+	)
+
+	if err != nil {
+		panic(err)
+	}
+
+	buf := bytes.Buffer{}
+
+	err = tmpl.Execute(&buf, queryData)
+
+	if err != nil {
+		panic(err)
+
+	}
+
+	ret := buf.String()
+
+	update, args, err := sqlx.In(ret, modelIDValue, currentManyToManyIDs)
+	if err != nil {
+		return AssociationStatement{
+			Statement: "",
+			Args:      []interface{}{},
+		}
+	}
+
+	return AssociationStatement{
+		Statement: update,
+		Args:      args,
+	}
 }
