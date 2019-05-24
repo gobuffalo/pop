@@ -63,11 +63,10 @@ type AssociationBeforeCreatable interface {
 	Association
 }
 
-
-  // AssociationBeforeUpdatable allows an association to be updated before
-  // the parent structure.
+// AssociationBeforeUpdatable allows an association to be updated before
+// the parent structure.
 type AssociationBeforeUpdatable interface {
-	EagerBeforeInterface() interface{}
+	BeforeInterface() interface{}
 	BeforeSetup() error
 	Association
 }
@@ -87,7 +86,6 @@ type AssociationAfterUpdatable interface {
 	AfterInterface() interface{}
 	AfterSetup() error
 	AfterFixRelationships() AssociationStatement
-	//AfterProcess() AssociationStatement
 	Association
 }
 

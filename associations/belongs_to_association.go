@@ -92,11 +92,6 @@ func (b *belongsToAssociation) Constraint() (string, []interface{}) {
 	return fmt.Sprintf("%s = ?", b.primaryTableID), []interface{}{b.ownerID.Interface()}
 }
 
-func (b *belongsToAssociation) EagerBeforeInterface() interface {} {
-	b.skipped = true
-	return b.BeforeInterface()
-}
-
 func (b *belongsToAssociation) BeforeInterface() interface{} {
 	// if the owner field is set, don't try to create the association to prevent conflicts.
 	if !b.skipped {

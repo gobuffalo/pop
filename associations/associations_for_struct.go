@@ -69,7 +69,9 @@ func ForStruct(s interface{}, fields ...string) (Associations, error) {
 		}
 	}
 
-	for i := 0; i < t.NumField(); i++ {
+
+	field := t.NumField()
+	for i := 0; i < field; i++ {
 		f := t.Field(i)
 
 		// ignores those fields not included in fields list.

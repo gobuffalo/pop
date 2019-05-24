@@ -103,22 +103,81 @@ func (c *Connection) ValidateAndCreate(model interface{}, excludeColumns ...stri
 	if verrs.HasAny() {
 		return verrs, nil
 	}
+
+	if c.eager {
+		asos, err2 := associations.ForStruct(model, c.eagerFields...)
+
+		if err2 != nil {
+			return verrs, err2
+		}
+
+		if len(asos) == 0 {
+			c.disableEager()
+			return verrs, c.Create(model, excludeColumns...)
+		}
+
+		before := asos.AssociationsBeforeCreatable()
+		for index := range before {
+			i := before[index].BeforeInterface()
+			if i == nil {
+				continue
+			}
+
+			sm := &Model{Value: i}
+			verrs, err := sm.validateAndOnlyCreate(c)
+			if err != nil || verrs.HasAny() {
+				return verrs, err
+			}
+		}
+
+		after := asos.AssociationsAfterCreatable()
+		for index := range after {
+			i := after[index].AfterInterface()
+			if i == nil {
+				continue
+			}
+
+			sm := &Model{Value: i}
+			verrs, err := sm.validateAndOnlyCreate(c)
+			if err != nil || verrs.HasAny() {
+				return verrs, err
+			}
+		}
+
+		sm := &Model{Value: model}
+		verrs, err = sm.validateCreate(c)
+		if err != nil || verrs.HasAny() {
+			return verrs, err
+		}
+	}
 	return verrs, c.Create(model, excludeColumns...)
 }
 
 // Create add a new given entry to the database, excluding the given columns.
 // It updates `created_at` and `updated_at` columns automatically.
+//
+// If model is a slice, each item of the slice is created in the database.
+//
+// Create support two modes:
+// * Flat (default): Associate existing nested objects only. NO creation or update of nested objects.
+// * Eager: Associate existing nested objects and create non-existent objects. NO change to existing objects.
 func (c *Connection) Create(model interface{}, excludeColumns ...string) error {
-	if c.eager {
-		return c.eagerCreate(model, excludeColumns...)
-	}
+	var isEager = c.eager
+
+	c.disableEager()
 
 	sm := &Model{Value: model}
 	return sm.iterate(func(m *Model) error {
 		return c.timeFunc("Create", func() error {
-			asos, err := associations.ForStruct(m.Value)
+			var localIsEager = isEager
+			asos, err := associations.ForStruct(m.Value, c.eagerFields...)
 			if err != nil {
 				return err
+			}
+
+			if localIsEager && len(asos) == 0 {
+				// No association, fallback to non-eager mode.
+				localIsEager = false
 			}
 
 			if err = m.beforeSave(c); err != nil {
@@ -137,6 +196,24 @@ func (c *Connection) Create(model interface{}, excludeColumns ...string) error {
 					i := before[index].BeforeInterface()
 					if i == nil {
 						continue
+					}
+
+					if localIsEager {
+						sm := &Model{Value: i}
+						err = sm.iterate(func(m *Model) error {
+							id, err := m.fieldByName("ID")
+							if err != nil {
+								return err
+							}
+							if IsZeroOfUnderlyingType(id.Interface()) {
+								return c.Create(m.Value)
+							}
+							return nil
+						})
+
+						if err != nil {
+							return err
+						}
 					}
 
 					err = before[index].BeforeSetup()
@@ -163,6 +240,38 @@ func (c *Connection) Create(model interface{}, excludeColumns ...string) error {
 			if processAssoc {
 				after := asos.AssociationsAfterCreatable()
 				for index := range after {
+					if localIsEager {
+						err = after[index].AfterSetup()
+						if err != nil {
+							return err
+						}
+
+						i := after[index].AfterInterface()
+						if i == nil {
+							continue
+						}
+
+						sm := &Model{Value: i}
+						err = sm.iterate(func(m *Model) error {
+							fbn, err := m.fieldByName("ID")
+							if err != nil {
+								return err
+							}
+							id := fbn.Interface()
+							if IsZeroOfUnderlyingType(id) {
+								return c.Create(m.Value)
+							}
+							exists, errE := Q(c).Exists(i)
+							if errE != nil || !exists {
+								return c.Create(m.Value)
+							}
+							return nil
+						})
+
+						if err != nil {
+							return err
+						}
+					}
 					stm := after[index].AfterProcess()
 					if c.TX != nil && !stm.Empty() {
 						_, err := c.TX.Exec(c.Dialect.TranslateSQL(stm.Statement), stm.Args...)
@@ -226,7 +335,7 @@ func (c *Connection) ValidateAndUpdate(model interface{}, excludeColumns ...stri
 
 		before := asos.AssociationsBeforeUpdatable()
 		for index := range before {
-			i := before[index].EagerBeforeInterface()
+			i := before[index].BeforeInterface()
 			if i == nil {
 				continue
 			}
@@ -273,16 +382,15 @@ func (c *Connection) Update(model interface{}, excludeColumns ...string) error {
 	sm := &Model{Value: model}
 	return sm.iterate(func(m *Model) error {
 		return c.timeFunc("Update", func() error {
-			var innerIsEager = isEager
-			asos, err := associations.ForStruct(model, c.eagerFields...)
-
+			var localIsEager = isEager
+			asos, err := associations.ForStruct(m.Value, c.eagerFields...)
 			if err != nil {
 				return err
 			}
 
-			if innerIsEager {
+			if localIsEager {
 				if len(asos) == 0 {
-					innerIsEager = false
+					localIsEager = false
 				}
 			}
 
@@ -293,17 +401,16 @@ func (c *Connection) Update(model interface{}, excludeColumns ...string) error {
 				return err
 			}
 
-			processAssociations := len(asos) > 0
+			processAssoc := len(asos) > 0
 
-			if processAssociations {
+			if processAssoc {
 				before := asos.AssociationsBeforeUpdatable()
 				for index := range before {
-					i := before[index].EagerBeforeInterface()
+					i := before[index].BeforeInterface()
 					if i == nil {
 						continue
 					}
-					if innerIsEager {
-
+					if localIsEager {
 						sm := &Model{Value: i}
 						err = sm.iterate(func(m *Model) error {
 							id, err := m.fieldByName("ID")
@@ -347,10 +454,10 @@ func (c *Connection) Update(model interface{}, excludeColumns ...string) error {
 				return err
 			}
 
-			if processAssociations {
+			if processAssoc {
 				after := asos.AssociationsAfterUpdatable()
 				for index := range after {
-					if innerIsEager {
+					if localIsEager {
 
 						err = after[index].AfterSetup()
 						if err != nil {
@@ -370,20 +477,22 @@ func (c *Connection) Update(model interface{}, excludeColumns ...string) error {
 							}
 							id := fbn.Interface()
 							if IsZeroOfUnderlyingType(id) {
-								err = c.Create(m.Value)
-
-								if err != nil {
-									return err
-								}
-							} else {
-								err = c.Update(m.Value)
-								if err != nil {
-									return err
-								}
+								return c.Create(m.Value)
+							}
+							exists, errE := Q(c).Exists(i)
+							if errE != nil || !exists {
+								return c.Create(m.Value)
+							}
+							if errE == nil && exists {
+								return c.Update(m.Value)
 							}
 
 							return nil
 						})
+
+						if err != nil {
+							return err
+						}
 
 						stm := after[index].AfterFixRelationships()
 
