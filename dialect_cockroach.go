@@ -69,7 +69,7 @@ func (p *cockroach) Create(s store, model *Model, cols columns.Columns) error {
 		w := cols.Writeable()
 		var query string
 		if len(w.Cols) > 0 {
-			query = fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s) returning id", p.Quote(model.TableName()), w.String(), w.SymbolizedString())
+			query = fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s) returning id", p.Quote(model.TableName()), w.QuotedString(p), w.SymbolizedString())
 		} else {
 			query = fmt.Sprintf("INSERT INTO %s DEFAULT VALUES returning id", p.Quote(model.TableName()))
 		}
@@ -88,11 +88,11 @@ func (p *cockroach) Create(s store, model *Model, cols columns.Columns) error {
 		model.setID(id.ID)
 		return errors.WithMessage(stmt.Close(), "failed to close statement")
 	}
-	return genericCreate(s, model, cols, p.Quote)
+	return genericCreate(s, model, cols, p)
 }
 
 func (p *cockroach) Update(s store, model *Model, cols columns.Columns) error {
-	return genericUpdate(s, model, cols, p.Quote)
+	return genericUpdate(s, model, cols, p)
 }
 
 func (p *cockroach) Destroy(s store, model *Model) error {

@@ -63,7 +63,7 @@ func (m *sqlite) Create(s store, model *Model, cols columns.Columns) error {
 			w := cols.Writeable()
 			var query string
 			if len(w.Cols) > 0 {
-				query = fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s)", m.Quote(model.TableName()), w.String(), w.SymbolizedString())
+				query = fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s)", m.Quote(model.TableName()), w.QuotedString(m.Quote), w.SymbolizedString())
 			} else {
 				query = fmt.Sprintf("INSERT INTO %s DEFAULT VALUES", m.Quote(model.TableName()))
 			}

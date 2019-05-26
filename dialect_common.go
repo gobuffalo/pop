@@ -34,15 +34,17 @@ func (commonDialect) Quote(key string) string {
 	return fmt.Sprintf(`"%s"`, key)
 }
 
-type quoter func(key string) string
+type quoter interface {
+	Quote(key string) string
+}
 
-func genericCreate(s store, model *Model, cols columns.Columns, quote quoter) error {
+func genericCreate(s store, model *Model, cols columns.Columns, quoter quoter) error {
 	keyType := model.PrimaryKeyType()
 	switch keyType {
 	case "int", "int64":
 		var id int64
 		w := cols.Writeable()
-		query := fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s)", quote(model.TableName()), w.String(), w.SymbolizedString())
+		query := fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s)", quoter.Quote(model.TableName()), w.QuotedString(quoter), w.SymbolizedString())
 		log(logging.SQL, query)
 		res, err := s.NamedExec(query, model.Value)
 		if err != nil {
@@ -70,7 +72,7 @@ func genericCreate(s store, model *Model, cols columns.Columns, quote quoter) er
 		}
 		w := cols.Writeable()
 		w.Add("id")
-		query := fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s)", quote(model.TableName()), w.String(), w.SymbolizedString())
+		query := fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s)", quoter.Quote(model.TableName()), w.QuotedString(quoter), w.SymbolizedString())
 		log(logging.SQL, query)
 		stmt, err := s.PrepareNamed(query)
 		if err != nil {
@@ -88,8 +90,8 @@ func genericCreate(s store, model *Model, cols columns.Columns, quote quoter) er
 	return errors.Errorf("can not use %s as a primary key type!", keyType)
 }
 
-func genericUpdate(s store, model *Model, cols columns.Columns, quote quoter) error {
-	stmt := fmt.Sprintf("UPDATE %s SET %s WHERE %s", quote(model.TableName()), cols.Writeable().UpdateString(), model.whereNamedID())
+func genericUpdate(s store, model *Model, cols columns.Columns, quoter quoter) error {
+	stmt := fmt.Sprintf("UPDATE %s SET %s WHERE %s", quoter.Quote(model.TableName()), cols.Writeable().QuotedUpdateString(quoter), model.whereNamedID())
 	log(logging.SQL, stmt, model.ID())
 	_, err := s.NamedExec(stmt, model.Value)
 	if err != nil {
@@ -98,8 +100,8 @@ func genericUpdate(s store, model *Model, cols columns.Columns, quote quoter) er
 	return nil
 }
 
-func genericDestroy(s store, model *Model, quote quoter) error {
-	stmt := fmt.Sprintf("DELETE FROM %s WHERE %s", quote(model.TableName()), model.whereID())
+func genericDestroy(s store, model *Model, quoter quoter) error {
+	stmt := fmt.Sprintf("DELETE FROM %s WHERE %s", quoter.Quote(model.TableName()), model.whereID())
 	_, err := genericExec(s, stmt, model.ID())
 	if err != nil {
 		return err
