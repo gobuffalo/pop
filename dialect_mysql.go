@@ -81,15 +81,15 @@ func (m *mysql) MigrationURL() string {
 }
 
 func (m *mysql) Create(s store, model *Model, cols columns.Columns) error {
-	return errors.Wrap(genericCreate(s, model, cols), "mysql create")
+	return errors.Wrap(genericCreate(s, model, cols, m.Quote), "mysql create")
 }
 
 func (m *mysql) Update(s store, model *Model, cols columns.Columns) error {
-	return errors.Wrap(genericUpdate(s, model, cols), "mysql update")
+	return errors.Wrap(genericUpdate(s, model, cols, m.Quote), "mysql update")
 }
 
 func (m *mysql) Destroy(s store, model *Model) error {
-	return errors.Wrap(genericDestroy(s, model), "mysql destroy")
+	return errors.Wrap(genericDestroy(s, model, m.Quote), "mysql destroy")
 }
 
 func (m *mysql) SelectOne(s store, model *Model, query Query) error {
