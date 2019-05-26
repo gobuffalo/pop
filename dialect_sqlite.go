@@ -63,7 +63,7 @@ func (m *sqlite) Create(s store, model *Model, cols columns.Columns) error {
 			w := cols.Writeable()
 			var query string
 			if len(w.Cols) > 0 {
-				query = fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s)", m.Quote(model.TableName()), w.QuotedString(m.Quote), w.SymbolizedString())
+				query = fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s)", m.Quote(model.TableName()), w.QuotedString(m), w.SymbolizedString())
 			} else {
 				query = fmt.Sprintf("INSERT INTO %s DEFAULT VALUES", m.Quote(model.TableName()))
 			}
@@ -81,19 +81,19 @@ func (m *sqlite) Create(s store, model *Model, cols columns.Columns) error {
 			}
 			return nil
 		}
-		return errors.Wrap(genericCreate(s, model, cols, m.Quote), "sqlite create")
+		return errors.Wrap(genericCreate(s, model, cols, m), "sqlite create")
 	})
 }
 
 func (m *sqlite) Update(s store, model *Model, cols columns.Columns) error {
 	return m.locker(m.smGil, func() error {
-		return errors.Wrap(genericUpdate(s, model, cols, m.Quote), "sqlite update")
+		return errors.Wrap(genericUpdate(s, model, cols, m), "sqlite update")
 	})
 }
 
 func (m *sqlite) Destroy(s store, model *Model) error {
 	return m.locker(m.smGil, func() error {
-		return errors.Wrap(genericDestroy(s, model, m.Quote), "sqlite destroy")
+		return errors.Wrap(genericDestroy(s, model, m), "sqlite destroy")
 	})
 }
 
