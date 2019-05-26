@@ -3,10 +3,11 @@ package associations
 import (
 	"bytes"
 	"fmt"
-	"github.com/jmoiron/sqlx"
 	"reflect"
 	"text/template"
 	"time"
+
+	"github.com/jmoiron/sqlx"
 
 	"github.com/gobuffalo/flect"
 	"github.com/gobuffalo/x/defaults"
@@ -99,8 +100,6 @@ func (m *manyToManyAssociation) OrderBy() string {
 	return m.orderBy
 }
 
-
-
 func (m *manyToManyAssociation) BeforeInterface() interface{} {
 	if m.fieldValue.Kind() == reflect.Ptr {
 		return m.fieldValue.Interface()
@@ -108,8 +107,11 @@ func (m *manyToManyAssociation) BeforeInterface() interface{} {
 	return m.fieldValue.Addr().Interface()
 }
 
-
 func (m *manyToManyAssociation) BeforeSetup() error {
+	return nil
+}
+
+func (m *manyToManyAssociation) CreateDependencies() interface{} {
 	return nil
 }
 

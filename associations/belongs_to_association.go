@@ -6,8 +6,9 @@ import (
 
 	"github.com/gobuffalo/flect"
 	"github.com/gobuffalo/nulls"
-	"github.com/gobuffalo/pop/columns"
 	"github.com/gobuffalo/x/defaults"
+
+	"github.com/gobuffalo/pop/columns"
 )
 
 // belongsToAssociation is the implementation for the belongs_to association type in a model.
@@ -97,6 +98,30 @@ func (b *belongsToAssociation) BeforeInterface() interface{} {
 	if !b.skipped {
 		return nil
 	}
+
+	m := b.ownerModel
+	if m.Kind() == reflect.Ptr && !m.IsNil() {
+		m = b.ownerModel.Elem()
+	}
+
+	if IsZeroOfUnderlyingType(m.Interface()) {
+		return nil
+	}
+
+	return m.Addr().Interface()
+}
+
+func (b *belongsToAssociation) BeforeUpdateableInterface() interface{} {
+
+	/*
+		In the case of belongsToAssociation  we should never create a the owner of the association.
+		Instead we should just update it. IF there is a different user that user usually should be
+		created before it's associated with the owned model. I can't think of many cases where the
+		thing to be owned would create it's owner. I could be wrong. Therefore we won't skip the updatd
+		if !b.skipped {
+			return nil
+		}
+	*/
 
 	m := b.ownerModel
 	if m.Kind() == reflect.Ptr && !m.IsNil() {

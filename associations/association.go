@@ -4,6 +4,7 @@ import (
 	"reflect"
 
 	"github.com/gobuffalo/nulls"
+
 	"github.com/gobuffalo/pop/columns"
 )
 
@@ -66,7 +67,7 @@ type AssociationBeforeCreatable interface {
 // AssociationBeforeUpdatable allows an association to be updated before
 // the parent structure.
 type AssociationBeforeUpdatable interface {
-	BeforeInterface() interface{}
+	BeforeUpdateableInterface() interface{}
 	BeforeSetup() error
 	Association
 }

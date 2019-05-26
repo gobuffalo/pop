@@ -3,11 +3,12 @@ package pop
 import (
 	"reflect"
 
+	"github.com/gobuffalo/validate"
+	"github.com/gofrs/uuid"
+
 	"github.com/gobuffalo/pop/associations"
 	"github.com/gobuffalo/pop/columns"
 	"github.com/gobuffalo/pop/logging"
-	"github.com/gobuffalo/validate"
-	"github.com/gofrs/uuid"
 )
 
 // Reload fetch fresh data for a given model, using its ID.
@@ -335,7 +336,7 @@ func (c *Connection) ValidateAndUpdate(model interface{}, excludeColumns ...stri
 
 		before := asos.AssociationsBeforeUpdatable()
 		for index := range before {
-			i := before[index].BeforeInterface()
+			i := before[index].BeforeUpdateableInterface()
 			if i == nil {
 				continue
 			}
@@ -406,7 +407,7 @@ func (c *Connection) Update(model interface{}, excludeColumns ...string) error {
 			if processAssoc {
 				before := asos.AssociationsBeforeUpdatable()
 				for index := range before {
-					i := before[index].BeforeInterface()
+					i := before[index].BeforeUpdateableInterface()
 					if i == nil {
 						continue
 					}

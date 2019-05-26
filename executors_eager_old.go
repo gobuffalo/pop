@@ -1,8 +1,9 @@
 package pop
 
 import (
-	"github.com/gobuffalo/pop/associations"
 	"github.com/gobuffalo/validate"
+
+	"github.com/gobuffalo/pop/associations"
 )
 
 func (c *Connection) eagerCreate(model interface{}, excludeColumns ...string) error {
@@ -121,7 +122,7 @@ func (c *Connection) eagerUpdate(model interface{}, excludeColumns ...string) er
 	// Try to update/create the associations the root model depends on.
 	before := assos.AssociationsBeforeUpdatable()
 	for index := range before {
-		i := before[index].BeforeInterface()
+		i := before[index].BeforeUpdateableInterface()
 		if i == nil {
 			continue
 		}
@@ -195,7 +196,7 @@ func (c *Connection) eagerUpdate(model interface{}, excludeColumns ...string) er
 			return nil
 		})
 
-		 stm := after[index].AfterFixRelationships()
+		stm := after[index].AfterFixRelationships()
 
 		if c.TX != nil {
 			_, err := c.TX.Exec(c.Dialect.TranslateSQL(stm.Statement), stm.Args...)
@@ -312,7 +313,7 @@ func (c *Connection) eagerValidateAndUpdate(model interface{}, excludeColumns ..
 
 	before := asos.AssociationsBeforeUpdatable()
 	for index := range before {
-		i := before[index].BeforeInterface()
+		i := before[index].BeforeUpdateableInterface()
 		if i == nil {
 			continue
 		}
