@@ -312,6 +312,8 @@ func (c *Connection) Create(model interface{}, excludeColumns ...string) error {
 
 // ValidateAndUpdate applies validation rules on the given entry, then update it
 // if the validation succeed, excluding the given columns.
+//
+// If model is a slice, each item of the slice is validated then updated in the database.
 func (c *Connection) ValidateAndUpdate(model interface{}, excludeColumns ...string) (*validate.Errors, error) {
 	sm := &Model{Value: model}
 	verrs, err := sm.validateUpdate(c)
@@ -374,6 +376,8 @@ func (c *Connection) ValidateAndUpdate(model interface{}, excludeColumns ...stri
 
 // Update writes changes from an entry to the database, excluding the given columns.
 // It updates the `updated_at` column automatically.
+//
+// If model is a slice, each item of the slice is updated in the database.
 func (c *Connection) Update(model interface{}, excludeColumns ...string) error {
 
 	var isEager = c.eager
