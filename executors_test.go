@@ -1250,27 +1250,27 @@ func Test_Destroy_UUID(t *testing.T) {
 	})
 }
 
-// func Test_TruncateAll(t *testing.T) {
-// 	count := int(0)
-// 	transaction(func(tx *Connection) {
-// 		r := require.New(t)
-//
-// 		var err error
-// 		count, err = tx.Count("users")
-// 		r.NoError(err)
-// 		user := User{Name: nulls.NewString("Mark")}
-// 		err = tx.Create(&user)
-// 		r.NoError(err)
-// 		r.NotEqual(user.ID, 0)
-//
-// 		ctx, err := tx.Count("users")
-// 		r.NoError(err)
-// 		r.Equal(count+1, ctx)
-//
-// 		err = tx.TruncateAll()
-// 		r.NoError(err)
-//
-// 		ctx, _ = tx.Count("users")
-// 		r.Equal(count, ctx)
-// 	})
-// }
+func Test_TruncateAll(t *testing.T) {
+	count := int(0)
+	transaction(func(tx *Connection) {
+		r := require.New(t)
+
+		var err error
+		count, err = tx.Count("users")
+		r.NoError(err)
+		user := User{Name: nulls.NewString("Mark")}
+		err = tx.Create(&user)
+		r.NoError(err)
+		r.NotEqual(user.ID, 0)
+
+		ctx, err := tx.Count("users")
+		r.NoError(err)
+		r.Equal(count+1, ctx)
+
+		err = tx.TruncateAll()
+		r.NoError(err)
+
+		ctx, _ = tx.Count("users")
+		r.Equal(count, ctx)
+	})
+}
