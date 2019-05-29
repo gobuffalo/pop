@@ -107,7 +107,7 @@ func (m *manyToManyAssociation) BeforeInterface() interface{} {
 	return m.fieldValue.Addr().Interface()
 }
 
-func(m *manyToManyAssociation) BeforeUpdateableInterface() interface{} {
+func (m *manyToManyAssociation) BeforeUpdateableInterface() interface{} {
 	if m.fieldValue.Kind() == reflect.Ptr {
 		return m.fieldValue.Interface()
 	}
