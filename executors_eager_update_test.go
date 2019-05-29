@@ -89,6 +89,7 @@ func Test_Eager_Update_Has_Many_Add_Existing(t *testing.T) {
 
 		// Update user
 		err = tx.Eager().Update(&u)
+		r.NoError(err)
 
 		u2 := User{}
 		q2 := tx.Eager().Where("name = ?", "Carl Lewis")
@@ -122,7 +123,7 @@ func Test_Eager_Update_Has_Many_Update_Existing(t *testing.T) {
 
 		err := tx.Eager().Create(&user)
 
-		//Create Book
+		// Create Book
 
 		// Find user
 		u := User{}
@@ -138,7 +139,8 @@ func Test_Eager_Update_Has_Many_Update_Existing(t *testing.T) {
 		u.Houses[0] = address
 
 		// Update user
-		tx.Eager().Update(&u)
+		err = tx.Eager().Update(&u)
+		r.NoError(err)
 
 		u2 := User{}
 		q2 := tx.Eager().Where("name = ?", "Carl Lewis")
@@ -168,7 +170,7 @@ func Test_Eager_Update_Many_2_Many_Update_Existing(t *testing.T) {
 
 		err := tx.Eager().Create(&user)
 
-		//Create Address
+		// Create Address
 
 		addy2 := Address{HouseNumber: 33, Street: "Broad"}
 
@@ -184,7 +186,8 @@ func Test_Eager_Update_Many_2_Many_Update_Existing(t *testing.T) {
 		u.Houses = append(u.Houses, addy2)
 
 		// Update user
-		tx.Eager().Update(&u)
+		err = tx.Eager().Update(&u)
+		r.NoError(err)
 
 		u2 := User{}
 		q2 := tx.Eager().Where("name = ?", "Carl Lewis")
@@ -227,7 +230,8 @@ func Test_Eager_Update_Has_One(t *testing.T) {
 		u.FavoriteSong = Song{Title: "Body - Brando"}
 
 		// Update user
-		tx.Eager().Update(&u)
+		err = tx.Eager().Update(&u)
+		r.NoError(err)
 
 		u2 := User{}
 		q2 := tx.Eager().Where("name = ?", "Carl Lewis")
@@ -278,7 +282,8 @@ func Test_Eager_Update_Many_To_Many(t *testing.T) {
 
 		u.Houses = u.Houses[1:]
 
-		tx.Eager().Update(&u)
+		err = tx.Eager().Update(&u)
+		r.NoError(err)
 
 		u2 := User{}
 		q2 := tx.Eager().Where("name = ?", "Carl Lewis")
@@ -330,7 +335,8 @@ func Test_Eager_Update_Has_Many_Transfer(t *testing.T) {
 		u.Books = user.Books
 
 		// Update user
-		tx.Eager().Update(&u)
+		err = tx.Eager().Update(&u)
+		r.NoError(err)
 
 		u2 := User{}
 		q2 := tx.Eager().Where("name = ?", "Carl Lewis")
