@@ -35,7 +35,8 @@ func Test_Eager_Update_Many_Many_Create(t *testing.T) {
 
 		u.Houses = append(u.Houses, Address{HouseNumber: 43, Street: "Bryden"})
 
-		tx.Eager().Update(&u)
+		err = tx.Eager().Update(&u)
+		r.NoError(err)
 
 		u2 := User{}
 		q2 := tx.Eager().Where("name = ?", "Carl Lewis")
@@ -65,7 +66,7 @@ func Test_Eager_Update_Has_Many_Add_Existing(t *testing.T) {
 
 		err := tx.Eager().Create(&user)
 
-		//Create Book
+		// Create Book
 
 		book := Book{Title: "The Life of Pi", Description: "Fiction", Isbn: "PB2"}
 
@@ -87,7 +88,7 @@ func Test_Eager_Update_Has_Many_Add_Existing(t *testing.T) {
 		u.Books = append(u.Books, book)
 
 		// Update user
-		tx.Eager().Update(&u)
+		err = tx.Eager().Update(&u)
 
 		u2 := User{}
 		q2 := tx.Eager().Where("name = ?", "Carl Lewis")

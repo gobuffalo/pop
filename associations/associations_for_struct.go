@@ -69,7 +69,6 @@ func ForStruct(s interface{}, fields ...string) (Associations, error) {
 		}
 	}
 
-
 	field := t.NumField()
 	for i := 0; i < field; i++ {
 		f := t.Field(i)
