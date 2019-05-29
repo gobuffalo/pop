@@ -13,7 +13,7 @@ func Test_LoadsConnectionsFromConfig(t *testing.T) {
 	r := require.New(t)
 
 	conns := Connections
-	r.Equal(5, len(conns))
+	r.Equal(6, len(conns))
 }
 
 func Test_AddLookupPaths(t *testing.T) {
