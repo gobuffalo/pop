@@ -179,6 +179,7 @@ func (a Associations) AssociationsCreatableStatement() []AssociationCreatableSta
 	return stm
 }
 
+// AssociationsDeletableStatement ...
 func (a Associations) AssociationsDeletableStatement() []AssociationDeletableStatement {
 	var stm []AssociationDeletableStatement
 	for i := range a {
