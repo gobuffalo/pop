@@ -62,3 +62,26 @@ func Test_Cockroach_URL_UserDefinedAppName(t *testing.T) {
 	r.Contains(m.URL(), "database?application_name=myapp")
 	r.Contains(m.urlWithoutDb(), "/?application_name=myapp")
 }
+
+func Test_Cockroach_tableQuery(t *testing.T) {
+	r := require.New(t)
+	cr := cockroach{}
+
+	cr.info.version = "v1.0.7"
+	r.Equal(selectTablesQueryCockroachV1, cr.tablesQuery())
+
+	cr.info.version = "v1.1.9"
+	r.Equal(selectTablesQueryCockroachV1, cr.tablesQuery())
+
+	cr.info.version = "v2.0.7"
+	r.Equal(selectTablesQueryCockroach, cr.tablesQuery())
+
+	cr.info.version = "v2.1.7"
+	r.Equal(selectTablesQueryCockroach, cr.tablesQuery())
+
+	cr.info.version = "v19.1.1"
+	r.Equal(selectTablesQueryCockroach, cr.tablesQuery())
+
+	cr.info.version = "v20.1.1"
+	r.Equal(selectTablesQueryCockroach, cr.tablesQuery())
+}
