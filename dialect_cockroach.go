@@ -217,8 +217,16 @@ func (p *cockroach) TruncateAll(tx *Connection) error {
 	tableNames := make([]string, len(tables))
 	for i, t := range tables {
 		tableNames[i] = t.TableName
+		//! work around for current limitation of DDL and DML at the same transaction.
+		//  it should be fixed when cockroach support it or with other approach.
+		//  https://www.cockroachlabs.com/docs/stable/known-limitations.html#schema-changes-within-transactions
+		if err := tx.RawQuery(fmt.Sprintf("delete from %s", t.TableName)).Exec(); err != nil {
+			return err
+		}
 	}
-	return tx.RawQuery(fmt.Sprintf("truncate %s cascade;", strings.Join(tableNames, ", "))).Exec()
+	return nil
+	// TODO!
+	// return tx3.RawQuery(fmt.Sprintf("truncate %s cascade;", strings.Join(tableNames, ", "))).Exec()
 }
 
 func (p *cockroach) AfterOpen(c *Connection) error {
