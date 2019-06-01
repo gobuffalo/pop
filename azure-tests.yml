@@ -32,7 +32,7 @@ steps:
     displayName: Run cockroach image
     inputs:
       command: run
-      imageName: cockroachdb/cockroach:v1.1.1
+      imageName: cockroachdb/cockroach:v19.1.1
       ports: "26257:26257"
       containerCommand: start --insecure
     condition: and(succeeded(), eq(variables['SODA_DIALECT'], 'cockroach'))
@@ -44,8 +44,8 @@ steps:
         cd $(modulePath)
         mkdir -p crdb/certs
         pushd crdb
-        wget -qO- https://binaries.cockroachdb.com/cockroach-v2.1.0.linux-amd64.tgz | tar  zxv
-        mv cockroach-v2.1.0.linux-amd64/cockroach .
+        wget -qO- https://binaries.cockroachdb.com/cockroach-v19.1.1.linux-amd64.tgz | tar  zxv
+        mv cockroach-v19.1.1.linux-amd64/cockroach .
         ./cockroach cert create-ca --certs-dir certs --ca-key key
         ./cockroach cert create-client root --certs-dir certs --ca-key key
         ./cockroach cert create-node localhost 127.0.0.1 `hostname -s` `hostname -f` --certs-dir certs --ca-key key
@@ -55,13 +55,13 @@ steps:
   - script: |
       go get -t -v ./...
       go install -v -tags sqlite ./soda
-    workingDirectory: "$(modulePath)"          
+    workingDirectory: "$(modulePath)"
     displayName: "Install soda"
   - script: |
       $(GOBIN)/soda drop -e $(SODA_DIALECT)
       $(GOBIN)/soda create -e $(SODA_DIALECT)
       $(GOBIN)/soda migrate -e $(SODA_DIALECT)
-    workingDirectory: "$(modulePath)"         
+    workingDirectory: "$(modulePath)"
     displayName: "Create DB & run migrations"
   - script: |
       go test -tags sqlite ./... -v
