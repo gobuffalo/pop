@@ -7,6 +7,9 @@ import (
 )
 
 func Test_Callbacks(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
 	transaction(func(tx *Connection) {
 		r := require.New(t)
 
@@ -51,6 +54,9 @@ func Test_Callbacks(t *testing.T) {
 }
 
 func Test_Callbacks_on_Slice(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
 	transaction(func(tx *Connection) {
 		r := require.New(t)
 		for i := 0; i < 2; i++ {

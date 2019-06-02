@@ -206,7 +206,7 @@ func (q *Query) eagerAssociations(model interface{}) error {
 
 	assos, err := associations.ForStruct(model, q.eagerFields...)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "could not retrieve associations")
 	}
 
 	// disable eager mode for current connection.
