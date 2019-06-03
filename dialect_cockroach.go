@@ -23,6 +23,9 @@ import (
 const nameCockroach = "cockroach"
 const portCockroach = "26257"
 
+const selectTablesQueryCockroach = "select table_name from information_schema.tables where table_schema = 'public' and table_type = 'BASE TABLE' and table_catalog = ?"
+const selectTablesQueryCockroachV1 = "select table_name from information_schema.tables where table_schema = ?"
+
 func init() {
 	AvailableDialects = append(AvailableDialects, nameCockroach)
 	dialectSynonyms["cockroachdb"] = nameCockroach
@@ -203,10 +206,7 @@ func (p *cockroach) TruncateAll(tx *Connection) error {
 		TableName string `db:"table_name"`
 	}
 
-	tableQuery := "select table_name from information_schema.tables where table_schema = 'public' and table_type = 'BASE TABLE' and table_catalog = ?"
-	if strings.HasPrefix(p.info.version, "v1") {
-		tableQuery = "select table_name from information_schema.tables where table_schema = ?"
-	}
+	tableQuery := p.tablesQuery()
 
 	var tables []table
 	if err := tx.RawQuery(tableQuery, tx.Dialect.Details().Database).All(&tables); err != nil {
@@ -262,4 +262,13 @@ func finalizerCockroach(cd *ConnectionDetails) {
 	appName := filepath.Base(os.Args[0])
 	cd.Options["application_name"] = defaults.String(cd.Options["application_name"], appName)
 	cd.Port = defaults.String(cd.Port, portCockroach)
+}
+
+func (p *cockroach) tablesQuery() string {
+	// See https://www.cockroachlabs.com/docs/stable/information-schema.html for more info about information schema changes
+	tableQuery := selectTablesQueryCockroach
+	if strings.HasPrefix(p.info.version, "v1.") {
+		tableQuery = selectTablesQueryCockroachV1
+	}
+	return tableQuery
 }
