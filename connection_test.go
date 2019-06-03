@@ -1,3 +1,5 @@
+// +build sqlite
+
 package pop
 
 import (
