@@ -8,6 +8,9 @@ import (
 )
 
 func Test_MigrationBox(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
 	r := require.New(t)
 
 	b, err := NewMigrationBox(packr.New("./migrations/multiple", "./migrations/multiple"), PDB)
