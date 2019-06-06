@@ -1,6 +1,11 @@
+// +build sqlite
+
 package pop
 
 import (
+	"io/ioutil"
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -88,4 +93,19 @@ func Test_ConnectionDetails_Finalize_SQLite_Synonym_Path(t *testing.T) {
 	r.NoError(err)
 	r.Equal("sqlite3", cd.Dialect, "given dialect: sqlite")
 	r.Equal("./foo.db", cd.Database, "given database: ./foo.db")
+}
+
+func Test_ConnectionDetails_FinalizeOSPath(t *testing.T) {
+	r := require.New(t)
+	d, err := ioutil.TempDir("", "")
+	r.NoError(err)
+	p := filepath.Join(d, "testdb.sqlite")
+	defer os.RemoveAll(p)
+	cd := &ConnectionDetails{
+		Dialect:  "sqlite",
+		Database: p,
+	}
+	r.NoError(cd.Finalize())
+	r.Equal("sqlite3", cd.Dialect)
+	r.Equal(p, cd.Database)
 }

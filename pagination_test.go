@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/gobuffalo/pop/nulls"
+	"github.com/gobuffalo/nulls"
 	"github.com/stretchr/testify/require"
 )
 
@@ -43,6 +43,9 @@ func Test_NewPaginatorFromParams(t *testing.T) {
 }
 
 func Test_Pagination(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
 	transaction(func(tx *Connection) {
 		a := require.New(t)
 

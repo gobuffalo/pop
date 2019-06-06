@@ -2,7 +2,7 @@
 
 <p align="center">
     <a href="https://godoc.org/github.com/gobuffalo/pop"><img src="https://godoc.org/github.com/gobuffalo/pop?status.svg" alt="GoDoc" /></a>
-    <a href="https://travis-ci.org/gobuffalo/pop"><img src="https://travis-ci.org/gobuffalo/pop.svg?branch=master" alt="Build Status" /></a>
+    <a href="https://dev.azure.com/stanislasmichalak/pop/_build/latest?definitionId=1&branchName=master"><img src="https://dev.azure.com/stanislasmichalak/pop/_apis/build/status/gobuffalo.pop?branchName=master" alt="Build Status" /></a>
 </p>
 
 # POP

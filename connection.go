@@ -48,7 +48,7 @@ func (c *Connection) MigrationTableName() string {
 func NewConnection(deets *ConnectionDetails) (*Connection, error) {
 	err := deets.Finalize()
 	if err != nil {
-		return nil, errors.WithStack(err)
+		return nil, err
 	}
 	c := &Connection{
 		ID: randx.String(30),
@@ -73,7 +73,7 @@ func Connect(e string) (*Connection, error) {
 	if len(Connections) == 0 {
 		err := LoadConfigFile()
 		if err != nil {
-			return nil, errors.WithStack(err)
+			return nil, err
 		}
 	}
 	e = defaults.String(e, "development")
@@ -99,12 +99,16 @@ func (c *Connection) Open() error {
 		return errors.Wrap(err, "could not open database connection")
 	}
 	db.SetMaxOpenConns(details.Pool)
-	db.SetMaxIdleConns(details.IdlePool)
+	if details.IdlePool != 0 {
+		db.SetMaxIdleConns(details.IdlePool)
+	}
 	c.Store = &dB{db}
 
-	err = c.Dialect.afterOpen(c)
-	if err != nil {
-		c.Store = nil
+	if d, ok := c.Dialect.(afterOpenable); ok {
+		err = d.AfterOpen(c)
+		if err != nil {
+			c.Store = nil
+		}
 	}
 	return errors.Wrap(err, "could not open database connection")
 }
@@ -131,7 +135,7 @@ func (c *Connection) Transaction(fn func(tx *Connection) error) error {
 			dberr = cn.TX.Commit()
 		}
 		if err != nil {
-			return errors.WithStack(err)
+			return err
 		}
 		return errors.Wrap(dberr, "error committing or rolling back transaction")
 	})
@@ -199,7 +203,7 @@ func (c *Connection) timeFunc(name string, fn func() error) error {
 	err := fn()
 	atomic.AddInt64(&c.Elapsed, int64(time.Since(start)))
 	if err != nil {
-		return errors.WithStack(err)
+		return err
 	}
 	return nil
 }

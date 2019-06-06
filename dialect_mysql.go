@@ -33,11 +33,15 @@ func init() {
 var _ dialect = &mysql{}
 
 type mysql struct {
-	ConnectionDetails *ConnectionDetails
+	commonDialect
 }
 
 func (m *mysql) Name() string {
 	return nameMySQL
+}
+
+func (mysql) Quote(key string) string {
+	return fmt.Sprintf("`%s`", key)
 }
 
 func (m *mysql) Details() *ConnectionDetails {
@@ -146,10 +150,6 @@ func (m *mysql) FizzTranslator() fizz.Translator {
 	return t
 }
 
-func (m *mysql) Lock(fn func() error) error {
-	return fn()
-}
-
 func (m *mysql) DumpSchema(w io.Writer) error {
 	deets := m.Details()
 	cmd := exec.Command("mysqldump", "-d", "-h", deets.Host, "-P", deets.Port, "-u", deets.User, fmt.Sprintf("--password=%s", deets.Password), deets.Database)
@@ -185,13 +185,9 @@ func (m *mysql) TruncateAll(tx *Connection) error {
 	return tx.RawQuery(qb.String()).Exec()
 }
 
-func (m *mysql) afterOpen(c *Connection) error {
-	return nil
-}
-
 func newMySQL(deets *ConnectionDetails) (dialect, error) {
 	cd := &mysql{
-		ConnectionDetails: deets,
+		commonDialect: commonDialect{ConnectionDetails: deets},
 	}
 	return cd, nil
 }

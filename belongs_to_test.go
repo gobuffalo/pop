@@ -7,6 +7,9 @@ import (
 )
 
 func Test_BelongsTo(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
 	r := require.New(t)
 
 	q := PDB.BelongsTo(&User{ID: 1})
@@ -18,6 +21,9 @@ func Test_BelongsTo(t *testing.T) {
 }
 
 func Test_BelongsToAs(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
 	r := require.New(t)
 
 	q := PDB.BelongsToAs(&User{ID: 1}, "u_id")
@@ -29,6 +35,9 @@ func Test_BelongsToAs(t *testing.T) {
 }
 
 func Test_BelongsToThrough(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
 	r := require.New(t)
 
 	q := PDB.BelongsToThrough(&User{ID: 1}, &Friend{})

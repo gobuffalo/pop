@@ -2,4 +2,5 @@ create_table("good_friends") {
   t.Column("id", "int", {primary: true})
   t.Column("first_name", "string", {})
   t.Column("last_name", "string", {})
+  t.Timestamps()
 }

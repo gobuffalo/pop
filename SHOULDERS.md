@@ -1,6 +1,6 @@
-# github.com/gobuffalo/pop Stands on the Shoulders of Giants
+# Pop Stands on the Shoulders of Giants
 
-github.com/gobuffalo/pop does not try to reinvent the wheel! Instead, it uses the already great wheels developed by the Go community and puts them all together in the best way possible. Without these giants this project would not be possible. Please make sure to check them out and thank them for all of their hard work.
+Pop does not try to reinvent the wheel! Instead, it uses the already great wheels developed by the Go community and puts them all together in the best way possible. Without these giants, this project would not be possible. Please make sure to check them out and thank them for all of their hard work.
 
 Thank you to the following **GIANTS**:
 
@@ -39,6 +39,8 @@ Thank you to the following **GIANTS**:
 
 * [github.com/gobuffalo/makr](https://godoc.org/github.com/gobuffalo/makr)
 
+* [github.com/gobuffalo/nulls](https://godoc.org/github.com/gobuffalo/nulls)
+
 * [github.com/gobuffalo/packd](https://godoc.org/github.com/gobuffalo/packd)
 
 * [github.com/gobuffalo/plush](https://godoc.org/github.com/gobuffalo/plush)
@@ -50,18 +52,6 @@ Thank you to the following **GIANTS**:
 * [github.com/gobuffalo/plush/parser](https://godoc.org/github.com/gobuffalo/plush/parser)
 
 * [github.com/gobuffalo/plush/token](https://godoc.org/github.com/gobuffalo/plush/token)
-
-* [github.com/gobuffalo/pop](https://godoc.org/github.com/gobuffalo/pop)
-
-* [github.com/gobuffalo/pop/associations](https://godoc.org/github.com/gobuffalo/pop/associations)
-
-* [github.com/gobuffalo/pop/columns](https://godoc.org/github.com/gobuffalo/pop/columns)
-
-* [github.com/gobuffalo/pop/fix](https://godoc.org/github.com/gobuffalo/pop/fix)
-
-* [github.com/gobuffalo/pop/logging](https://godoc.org/github.com/gobuffalo/pop/logging)
-
-* [github.com/gobuffalo/pop/nulls](https://godoc.org/github.com/gobuffalo/pop/nulls)
 
 * [github.com/gobuffalo/syncx](https://godoc.org/github.com/gobuffalo/syncx)
 
@@ -112,10 +102,6 @@ Thank you to the following **GIANTS**:
 * [github.com/markbates/inflect](https://godoc.org/github.com/markbates/inflect)
 
 * [github.com/markbates/oncer](https://godoc.org/github.com/markbates/oncer)
-
-* [github.com/mattn/go-colorable](https://godoc.org/github.com/mattn/go-colorable)
-
-* [github.com/mattn/go-isatty](https://godoc.org/github.com/mattn/go-isatty)
 
 * [github.com/microcosm-cc/bluemonday](https://godoc.org/github.com/microcosm-cc/bluemonday)
 

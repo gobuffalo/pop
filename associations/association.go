@@ -3,8 +3,8 @@ package associations
 import (
 	"reflect"
 
+	"github.com/gobuffalo/nulls"
 	"github.com/gobuffalo/pop/columns"
-	"github.com/gobuffalo/pop/nulls"
 )
 
 // Association represents a definition of a model association

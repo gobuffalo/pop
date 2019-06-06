@@ -9,7 +9,6 @@ import (
 const nameSQLite3 = "sqlite3"
 
 func init() {
-	AvailableDialects = append(AvailableDialects, nameSQLite3)
 	dialectSynonyms["sqlite"] = nameSQLite3
 	newConnection[nameSQLite3] = newSQLite
 }

@@ -1,0 +1,69 @@
+steps:
+  - task: GoTool@0
+    inputs:
+      version: $(go_version)
+  - task: Bash@3
+    inputs:
+      targetType: inline
+      script: |
+        mkdir -p "$(GOBIN)"
+        mkdir -p "$(GOPATH)/pkg"
+        mkdir -p "$(modulePath)"
+        shopt -s extglob
+        mv !(gopath) "$(modulePath)"
+    displayName: "Setup Go Workspace"
+  - task: Docker@1
+    displayName: Run postgres image
+    inputs:
+      command: run
+      imageName: postgres:9.6
+      ports: "5432:5432"
+    condition: and(succeeded(), eq(variables['SODA_DIALECT'], 'postgres'))
+  - task: Docker@1
+    displayName: Run mysql image
+    inputs:
+      command: run
+      imageName: mysql:5.7
+      ports: "3307:3306"
+      envVars: |
+        MYSQL_ROOT_PASSWORD=root
+    condition: and(succeeded(), eq(variables['SODA_DIALECT'], 'mysql'))
+  - task: Docker@1
+    displayName: Run cockroach image
+    inputs:
+      command: run
+      imageName: cockroachdb/cockroach:v1.1.1
+      ports: "26257:26257"
+      containerCommand: start --insecure
+    condition: and(succeeded(), eq(variables['SODA_DIALECT'], 'cockroach'))
+  - task: Bash@3
+    displayName: Install Cockroach SSL
+    inputs:
+      targetType: inline
+      script: |
+        cd $(modulePath)
+        mkdir -p crdb/certs
+        pushd crdb
+        wget -qO- https://binaries.cockroachdb.com/cockroach-v2.1.0.linux-amd64.tgz | tar  zxv
+        mv cockroach-v2.1.0.linux-amd64/cockroach .
+        ./cockroach cert create-ca --certs-dir certs --ca-key key
+        ./cockroach cert create-client root --certs-dir certs --ca-key key
+        ./cockroach cert create-node localhost 127.0.0.1 `hostname -s` `hostname -f` --certs-dir certs --ca-key key
+        ./cockroach start --certs-dir certs --listen-addr localhost --port 26259 --http-port 8089 --background
+        popd
+    condition: and(succeeded(), eq(variables['SODA_DIALECT'], 'cockroach_ssl'))
+  - script: |
+      go get -t -v ./...
+      go install -v -tags sqlite ./soda
+    workingDirectory: "$(modulePath)"          
+    displayName: "Install soda"
+  - script: |
+      $(GOBIN)/soda drop -e $(SODA_DIALECT)
+      $(GOBIN)/soda create -e $(SODA_DIALECT)
+      $(GOBIN)/soda migrate -e $(SODA_DIALECT)
+    workingDirectory: "$(modulePath)"         
+    displayName: "Create DB & run migrations"
+  - script: |
+      go test -tags sqlite ./... -v
+    workingDirectory: "$(modulePath)"
+    displayName: "Tests"

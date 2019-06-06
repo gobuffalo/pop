@@ -4,11 +4,14 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/gobuffalo/uuid"
+	"github.com/gofrs/uuid"
 	"github.com/stretchr/testify/require"
 )
 
 func Test_Where(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
 	a := require.New(t)
 	m := &Model{Value: &Enemy{}}
 
@@ -30,6 +33,9 @@ func Test_Where(t *testing.T) {
 }
 
 func Test_Where_In(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
 	r := require.New(t)
 	transaction(func(tx *Connection) {
 		u1 := &Song{Title: "A"}
@@ -50,6 +56,9 @@ func Test_Where_In(t *testing.T) {
 }
 
 func Test_Where_In_Slice(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
 	r := require.New(t)
 	transaction(func(tx *Connection) {
 		u1 := &Song{Title: "A"}
@@ -70,6 +79,9 @@ func Test_Where_In_Slice(t *testing.T) {
 }
 
 func Test_Where_In_Complex(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
 	r := require.New(t)
 	transaction(func(tx *Connection) {
 		u1 := &Song{Title: "A"}
@@ -90,6 +102,9 @@ func Test_Where_In_Complex(t *testing.T) {
 }
 
 func Test_Order(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
 	a := require.New(t)
 
 	m := &Model{Value: &Enemy{}}
@@ -103,6 +118,9 @@ func Test_Order(t *testing.T) {
 }
 
 func Test_GroupBy(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
 	a := require.New(t)
 
 	m := &Model{Value: &Enemy{}}
@@ -136,6 +154,9 @@ func Test_GroupBy(t *testing.T) {
 }
 
 func Test_ToSQL(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
 	a := require.New(t)
 	transaction(func(tx *Connection) {
 		user := &Model{Value: &User{}}
@@ -236,6 +257,9 @@ func Test_ToSQL(t *testing.T) {
 }
 
 func Test_ToSQLInjection(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
 	a := require.New(t)
 	transaction(func(tx *Connection) {
 		user := &Model{Value: &User{}}
@@ -246,6 +270,9 @@ func Test_ToSQLInjection(t *testing.T) {
 }
 
 func Test_ToSQL_RawQuery(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
 	a := require.New(t)
 	transaction(func(tx *Connection) {
 		query := tx.RawQuery("this is some ? raw ?", "random", "query")

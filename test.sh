@@ -1,15 +1,32 @@
 #!/bin/bash
+
+########################################################
+# test.sh is a wrapper to execute integration tests for
+# pop.
+########################################################
+
 set -e
 clear
 
-verbose=""
+VERBOSE=""
+DEBUG='NO'
 
-echo $@
-
-if [[ "$@" == "-v" ]]
-then
-  verbose="-v"
-fi
+for i in "$@"
+do
+case $i in
+    -v)
+    VERBOSE="-v"
+    shift
+    ;;
+    -d)
+    DEBUG='YES'
+    shift
+    ;;
+    *)
+      # unknown option
+    ;;
+esac
+done
 
 function cleanup {
   echo "Cleanup resources..."
@@ -31,24 +48,32 @@ function test {
   echo "!!! Testing $1"
   export SODA_DIALECT=$1
   echo ./tsoda -v
+  echo "Setup..."
   ./tsoda drop -e $SODA_DIALECT -c ./database.yml
   ./tsoda create -e $SODA_DIALECT -c ./database.yml
   ./tsoda migrate -e $SODA_DIALECT -c ./database.yml
-  go test -race -tags sqlite $verbose $(go list ./... | grep -v /vendor/)
+  echo "Test..."
+  go test -race -tags sqlite $VERBOSE ./... -count=1
 }
 
 function debug_test {
     echo "!!! Debug Testing $1"
     export SODA_DIALECT=$1
     echo ./tsoda -v
+    echo "Setup..."
     ./tsoda drop -e $SODA_DIALECT -c ./database.yml
     ./tsoda create -e $SODA_DIALECT -c ./database.yml
     ./tsoda migrate -e $SODA_DIALECT -c ./database.yml
+    echo "Test and debug..."
     dlv test github.com/gobuffalo/pop
 }
 
-# debug_test "postgres"
-test "postgres"
-test "cockroach"
-test "mysql"
-test "sqlite"
+dialects=("postgres" "cockroach" "mysql" "sqlite")
+
+for dialect in "${dialects[@]}" ; do
+  if [ $DEBUG = 'NO' ]; then
+  test ${dialect}
+  else
+  debug_test ${dialect}
+  fi
+done

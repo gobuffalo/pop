@@ -7,12 +7,9 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"strings"
 	"text/template"
 
 	"github.com/gobuffalo/fizz"
-	"github.com/gobuffalo/pop/fix"
-	"github.com/gobuffalo/pop/logging"
 	"github.com/pkg/errors"
 )
 
@@ -33,7 +30,7 @@ func NewFileMigrator(path string, c *Connection) (FileMigrator, error) {
 
 	err := fm.findMigrations()
 	if err != nil {
-		return fm, errors.WithStack(err)
+		return fm, err
 	}
 
 	return fm, nil
@@ -71,7 +68,7 @@ func (fm *FileMigrator) findMigrations() error {
 				Runner: func(mf Migration, tx *Connection) error {
 					f, err := os.Open(p)
 					if err != nil {
-						return errors.WithStack(err)
+						return err
 					}
 					content, err := migrationContent(mf, tx, f)
 					if err != nil {
@@ -102,27 +99,13 @@ func migrationContent(mf Migration, c *Connection, r io.Reader) (string, error) 
 		return "", nil
 	}
 
-	content := string(b)
-
-	if mf.Type == "fizz" {
-		// test for && fix anko migrations
-		fixed, err := fix.Anko(content)
-		if err != nil {
-			return "", errors.Wrapf(err, "could not fizz the migration %s", mf.Path)
-		}
-		if strings.TrimSpace(fixed) != strings.TrimSpace(content) {
-			log(logging.Warn, "%s uses an old fizz syntax. please use\n%s", mf.Path, fixed)
-		}
-		content = fixed
-	}
-
-	t := template.Must(template.New("sql").Parse(content))
+	t := template.Must(template.New("sql").Parse(string(b)))
 	var bb bytes.Buffer
 	err = t.Execute(&bb, c.Dialect.Details())
 	if err != nil {
 		return "", errors.Wrapf(err, "could not execute migration template %s", mf.Path)
 	}
-	content = bb.String()
+	content := bb.String()
 
 	if mf.Type == "fizz" {
 		content, err = fizz.AString(content, c.Dialect.FizzTranslator())

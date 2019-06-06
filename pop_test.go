@@ -6,11 +6,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/gobuffalo/nulls"
 	"github.com/gobuffalo/pop/logging"
-	"github.com/gobuffalo/pop/nulls"
-	"github.com/gobuffalo/uuid"
 	"github.com/gobuffalo/validate"
 	"github.com/gobuffalo/validate/validators"
+	"github.com/gofrs/uuid"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -32,7 +32,7 @@ func TestSpecificSuites(t *testing.T) {
 	switch os.Getenv("SODA_DIALECT") {
 	case "postgres":
 		suite.Run(t, &PostgreSQLSuite{})
-	case "mysql":
+	case "mysql", "mysql_travis":
 		suite.Run(t, &MySQLSuite{})
 	case "sqlite":
 		suite.Run(t, &SQLiteSuite{})
@@ -45,11 +45,18 @@ func init() {
 
 	dialect := os.Getenv("SODA_DIALECT")
 
-	var err error
-	PDB, err = Connect(dialect)
-	log(logging.Info, "Run test with dialect %v", dialect)
-	if err != nil {
-		stdlog.Panic(err)
+	if dialect != "" {
+		if err := LoadConfigFile(); err != nil {
+			stdlog.Panic(err)
+		}
+		var err error
+		PDB, err = Connect(dialect)
+		log(logging.Info, "Run test with dialect %v", dialect)
+		if err != nil {
+			stdlog.Panic(err)
+		}
+	} else {
+		log(logging.Info, "Skipping integration tests")
 	}
 }
 
@@ -359,4 +366,18 @@ type HeadPtr struct {
 	ID     int   `json:"id,omitempty" db:"id"`
 	BodyID *int  `json:"-" db:"body_id"`
 	Body   *Body `json:"body,omitempty" belongs_to:"body"`
+}
+
+type Student struct {
+	ID        uuid.UUID `json:"id" db:"id"`
+	CreatedAt time.Time `json:"created_at" db:"created_at"`
+	UpdatedAt time.Time `json:"updated_at" db:"updated_at"`
+}
+
+// https://github.com/gobuffalo/pop/issues/302
+type Parent struct {
+	ID        uuid.UUID  `json:"id" db:"id"`
+	CreatedAt time.Time  `json:"created_at" db:"created_at"`
+	UpdatedAt time.Time  `json:"updated_at" db:"updated_at"`
+	Students  []*Student `many_to_many:"parents_students"`
 }

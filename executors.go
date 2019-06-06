@@ -6,8 +6,9 @@ import (
 	"github.com/gobuffalo/pop/associations"
 	"github.com/gobuffalo/pop/columns"
 	"github.com/gobuffalo/pop/logging"
-	"github.com/gobuffalo/uuid"
 	"github.com/gobuffalo/validate"
+	"github.com/gofrs/uuid"
+	"github.com/pkg/errors"
 )
 
 // Reload fetch fresh data for a given model, using its ID.
@@ -47,6 +48,8 @@ func (q *Query) ExecWithCount() (int, error) {
 
 // ValidateAndSave applies validation rules on the given entry, then save it
 // if the validation succeed, excluding the given columns.
+//
+// If model is a slice, each item of the slice is validated then saved in the database.
 func (c *Connection) ValidateAndSave(model interface{}, excludeColumns ...string) (*validate.Errors, error) {
 	sm := &Model{Value: model}
 	verrs, err := sm.validateSave(c)
@@ -68,6 +71,8 @@ func IsZeroOfUnderlyingType(x interface{}) bool {
 
 // Save wraps the Create and Update methods. It executes a Create if no ID is provided with the entry;
 // or issues an Update otherwise.
+//
+// If model is a slice, each item of the slice is saved in the database.
 func (c *Connection) Save(model interface{}, excludeColumns ...string) error {
 	sm := &Model{Value: model}
 	return sm.iterate(func(m *Model) error {
@@ -84,6 +89,8 @@ func (c *Connection) Save(model interface{}, excludeColumns ...string) error {
 
 // ValidateAndCreate applies validation rules on the given entry, then creates it
 // if the validation succeed, excluding the given columns.
+//
+// If model is a slice, each item of the slice is validated then created in the database.
 func (c *Connection) ValidateAndCreate(model interface{}, excludeColumns ...string) (*validate.Errors, error) {
 	sm := &Model{Value: model}
 	verrs, err := sm.validateCreate(c)
@@ -95,13 +102,13 @@ func (c *Connection) ValidateAndCreate(model interface{}, excludeColumns ...stri
 	}
 
 	if c.eager {
-		asos, err2 := associations.ForStruct(model, c.eagerFields...)
-
-		if err2 != nil {
-			return verrs, err2
+		asos, err := associations.ForStruct(model, c.eagerFields...)
+		if err != nil {
+			return verrs, errors.Wrap(err, "could not retrieve associations")
 		}
 
 		if len(asos) == 0 {
+			log(logging.Debug, "no associations found for given struct, disable eager mode")
 			c.disableEager()
 			return verrs, c.Create(model, excludeColumns...)
 		}
@@ -146,6 +153,12 @@ func (c *Connection) ValidateAndCreate(model interface{}, excludeColumns ...stri
 
 // Create add a new given entry to the database, excluding the given columns.
 // It updates `created_at` and `updated_at` columns automatically.
+//
+// If model is a slice, each item of the slice is created in the database.
+//
+// Create support two modes:
+// * Flat (default): Associate existing nested objects only. NO creation or update of nested objects.
+// * Eager: Associate existing nested objects and create non-existent objects. NO change to existing objects.
 func (c *Connection) Create(model interface{}, excludeColumns ...string) error {
 	var isEager = c.eager
 
@@ -157,7 +170,7 @@ func (c *Connection) Create(model interface{}, excludeColumns ...string) error {
 			var localIsEager = isEager
 			asos, err := associations.ForStruct(m.Value, c.eagerFields...)
 			if err != nil {
-				return err
+				return errors.Wrap(err, "could not retrieve associations")
 			}
 
 			if localIsEager && len(asos) == 0 {
@@ -245,11 +258,10 @@ func (c *Connection) Create(model interface{}, excludeColumns ...string) error {
 							id := fbn.Interface()
 							if IsZeroOfUnderlyingType(id) {
 								return c.Create(m.Value)
-							} else {
-								exists, errE := Q(c).Exists(i)
-								if errE != nil || !exists {
-									return c.Create(m.Value)
-								}
+							}
+							exists, errE := Q(c).Exists(i)
+							if errE != nil || !exists {
+								return c.Create(m.Value)
 							}
 							return nil
 						})
@@ -297,6 +309,8 @@ func (c *Connection) Create(model interface{}, excludeColumns ...string) error {
 
 // ValidateAndUpdate applies validation rules on the given entry, then update it
 // if the validation succeed, excluding the given columns.
+//
+// If model is a slice, each item of the slice is validated then updated in the database.
 func (c *Connection) ValidateAndUpdate(model interface{}, excludeColumns ...string) (*validate.Errors, error) {
 	sm := &Model{Value: model}
 	verrs, err := sm.validateUpdate(c)
@@ -311,6 +325,8 @@ func (c *Connection) ValidateAndUpdate(model interface{}, excludeColumns ...stri
 
 // Update writes changes from an entry to the database, excluding the given columns.
 // It updates the `updated_at` column automatically.
+//
+// If model is a slice, each item of the slice is updated in the database.
 func (c *Connection) Update(model interface{}, excludeColumns ...string) error {
 	sm := &Model{Value: model}
 	return sm.iterate(func(m *Model) error {
@@ -346,7 +362,9 @@ func (c *Connection) Update(model interface{}, excludeColumns ...string) error {
 	})
 }
 
-// Destroy deletes a given entry from the database
+// Destroy deletes a given entry from the database.
+//
+// If model is a slice, each item of the slice is deleted from the database.
 func (c *Connection) Destroy(model interface{}) error {
 	sm := &Model{Value: model}
 	return sm.iterate(func(m *Model) error {
