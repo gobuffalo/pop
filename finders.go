@@ -332,7 +332,7 @@ func (q Query) CountByField(model interface{}, field string) (int, error) {
 		tmpQuery.Paginator = nil
 		tmpQuery.orderClauses = clauses{}
 		tmpQuery.limitResults = 0
-		query, args := tmpQuery.ToSQL(&Model{Value: model, ignoreTableName: true}, "COUNT(*)")
+		query, args := tmpQuery.ToSQL(&Model{Value: model, ignoreTableName: true}, "COUNT(*) as row_count")
 		//when query contains custom selected fields / executed using RawQuery,
 		//	sql may already contains limit and offset
 
