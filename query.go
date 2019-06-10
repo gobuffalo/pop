@@ -180,10 +180,10 @@ func (q *Query) Limit(limit int) *Query {
 // Q will create a new "empty" query from the current connection.
 func Q(c *Connection) *Query {
 	return &Query{
-		RawSQL:      &clause{},
-		Connection:  c,
-		eager:       c.eager,
-		eagerFields: c.eagerFields,
+		RawSQL:        &clause{},
+		Connection:    c,
+		eager:         c.eager,
+		eagerFields:   c.eagerFields,
 		OptimizeCount: c.OptimizeCount,
 	}
 }
