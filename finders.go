@@ -332,10 +332,24 @@ func (q Query) CountByField(model interface{}, field string) (int, error) {
 		tmpQuery.Paginator = nil
 		tmpQuery.orderClauses = clauses{}
 		tmpQuery.limitResults = 0
-		query, args := tmpQuery.ToSQL(&Model{Value: model, ignoreTableName: true}, "COUNT(*) as row_count")
+
+		var query, countQuery string
+		var args []interface{}
+
+		if tmpQuery.OptimizeCount && tmpQuery.RawSQL == nil {
+			tmpQuery.addColumns = []string{}
+			query, args = tmpQuery.ToSQL(&Model{Value: model, ignoreTableName: true},
+				fmt.Sprintf("COUNT(%s) as row_count", field))
+		} else {
+			if tmpQuery.OptimizeCount && tmpQuery.RawSQL != nil {
+				log(logging.Warn, "Query contains raw SQL; COUNT cannot be optimized")
+			}
+
+			query, args = tmpQuery.ToSQL(&Model{Value: model})
+		}
+
 		//when query contains custom selected fields / executed using RawQuery,
 		//	sql may already contains limit and offset
-
 		if rLimitOffset.MatchString(query) {
 			foundLimit := rLimitOffset.FindString(query)
 			query = query[0 : len(query)-len(foundLimit)]
@@ -344,9 +358,14 @@ func (q Query) CountByField(model interface{}, field string) (int, error) {
 			query = query[0 : len(query)-len(foundLimit)]
 		}
 
-		// countQuery := fmt.Sprintf("SELECT COUNT(%s) AS row_count FROM (%s) a", field, query)
-		log(logging.SQL, query, args...)
-		return q.Connection.Store.Get(res, query, args...)
+		if tmpQuery.OptimizeCount {
+			countQuery = query
+		} else {
+			countQuery = fmt.Sprintf("SELECT COUNT(%s) AS row_count FROM (%s) a", field, query)
+		}
+
+		log(logging.SQL, countQuery, args...)
+		return q.Connection.Store.Get(res, countQuery, args...)
 	})
 	return res.Count, err
 }
