@@ -341,8 +341,11 @@ func (q Query) CountByField(model interface{}, field string) (int, error) {
 			isRaw = true
 		}
 
+		// Count can't be optimized if the query contains raw SQL due to ToSQL internals
 		if tmpQuery.OptimizeCount && !isRaw {
-			tmpQuery.addColumns = []string{}
+			tmpQuery.addColumns = []string{} // Optimizing Count means giving up selecting any distinct columns.
+			// This can be changed in the future but will also have to address the issue of
+			// table aliasing in column names -- AKA reevaluating how Model.ignoreTableName works.
 			query, args = tmpQuery.ToSQL(&Model{Value: model, ignoreTableName: true},
 				fmt.Sprintf("COUNT(%s) as row_count", field))
 		} else {

@@ -669,6 +669,40 @@ func Test_Count(t *testing.T) {
 	})
 }
 
+func Test_Count_Optimized(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
+	transaction(func(tx *Connection) {
+		r := require.New(t)
+
+		tx.OptimizeCount = true
+
+		user := User{Name: nulls.NewString("Dylan")}
+		err := tx.Create(&user)
+		r.NoError(err)
+		c, err := tx.Count(&user)
+		r.NoError(err)
+		r.Equal(c, 1)
+
+		c, err = tx.Where("1=1").CountByField(&user, "distinct id")
+		r.NoError(err)
+		r.Equal(c, 1)
+		// should ignore order in count
+
+		c, err = tx.Order("id desc").Count(&user)
+		r.NoError(err)
+		r.Equal(c, 1)
+
+		var uAQ []UsersAddressQuery
+		_, err = Q(tx).Select("users_addresses.*").LeftJoin("users", "users.id=users_addresses.user_id").Count(&uAQ)
+		r.NoError(err)
+
+		_, err = Q(tx).Select("users_addresses.*", "users.name", "users.email").LeftJoin("users", "users.id=users_addresses.user_id").Count(&uAQ)
+		r.NoError(err)
+	})
+}
+
 func Test_Count_Disregards_Pagination(t *testing.T) {
 	if PDB == nil {
 		t.Skip("skipping integration tests")

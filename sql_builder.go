@@ -218,6 +218,7 @@ func (sq *sqlBuilder) buildColumns() columns.Columns {
 	tableName := sq.Model.TableName()
 
 	asName := sq.Model.As
+	// If asName is not explicitly set and ignoreTableName is set, then don't us an AS name (alias)
 	if asName == "" && !sq.Model.ignoreTableName {
 		asName = strings.Replace(tableName, ".", "_", -1)
 	}

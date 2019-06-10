@@ -22,6 +22,7 @@ type Connection struct {
 	TX          *Tx
 	eager       bool
 	eagerFields []string
+	OptimizeCount           bool
 }
 
 func (c *Connection) String() string {
