@@ -23,8 +23,9 @@ type modelIterable func(*Model) error
 // that is passed in to many functions.
 type Model struct {
 	Value
-	tableName string
-	As        string
+	tableName       string
+	As              string
+	ignoreTableName bool
 }
 
 // ID returns the ID of the Model. All models must have an `ID` field this is

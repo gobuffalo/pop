@@ -216,10 +216,12 @@ var columnCacheMutex = sync.RWMutex{}
 
 func (sq *sqlBuilder) buildColumns() columns.Columns {
 	tableName := sq.Model.TableName()
+
 	asName := sq.Model.As
-	if asName == "" {
+	if asName == "" && !sq.Model.ignoreTableName {
 		asName = strings.Replace(tableName, ".", "_", -1)
 	}
+
 	acl := len(sq.AddColumns)
 	if acl == 0 {
 		columnCacheMutex.RLock()
