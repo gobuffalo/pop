@@ -335,13 +335,18 @@ func (q Query) CountByField(model interface{}, field string) (int, error) {
 
 		var query, countQuery string
 		var args []interface{}
+		var isRaw bool
 
-		if tmpQuery.OptimizeCount && tmpQuery.RawSQL == nil {
+		if tmpQuery.RawSQL != nil && tmpQuery.RawSQL.Fragment != "" {
+			isRaw = true
+		}
+
+		if tmpQuery.OptimizeCount && !isRaw {
 			tmpQuery.addColumns = []string{}
 			query, args = tmpQuery.ToSQL(&Model{Value: model, ignoreTableName: true},
 				fmt.Sprintf("COUNT(%s) as row_count", field))
 		} else {
-			if tmpQuery.OptimizeCount && tmpQuery.RawSQL != nil {
+			if tmpQuery.OptimizeCount && isRaw {
 				log(logging.Warn, "Query contains raw SQL; COUNT cannot be optimized")
 			}
 
