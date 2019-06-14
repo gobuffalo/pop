@@ -18,7 +18,7 @@ import (
 	nflect "github.com/gobuffalo/flect/name"
 	"github.com/gobuffalo/makr"
 	"github.com/gobuffalo/pop"
-	"github.com/markbates/going/defaults"
+	"github.com/gobuffalo/pop/internal/defaults"
 	"github.com/pkg/errors"
 )
 

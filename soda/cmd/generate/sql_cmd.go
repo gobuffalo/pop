@@ -4,7 +4,7 @@ import (
 	"errors"
 
 	"github.com/gobuffalo/pop"
-	"github.com/markbates/going/defaults"
+	"github.com/gobuffalo/pop/internal/defaults"
 	"github.com/spf13/cobra"
 )
 

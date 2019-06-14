@@ -4,9 +4,9 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/gobuffalo/pop/internal/defaults"
+	"github.com/gobuffalo/pop/internal/randx"
 	"github.com/jmoiron/sqlx"
-	"github.com/markbates/going/defaults"
-	"github.com/markbates/going/randx"
 	"github.com/pkg/errors"
 )
 
