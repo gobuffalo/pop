@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/gobuffalo/pop/columns"
-	"github.com/markbates/oncer"
+	"github.com/gobuffalo/pop/internal/oncer"
 )
 
 // If a field match with the regexp, it will be considered as a valid field definition.
