@@ -42,7 +42,7 @@ func (fm *FileMigrator) findMigrations() error {
 		// directory doesn't exist
 		return nil
 	}
-	filepath.Walk(dir, func(p string, info os.FileInfo, err error) error {
+	return filepath.Walk(dir, func(p string, info os.FileInfo, err error) error {
 		if !info.IsDir() {
 			matches := mrx.FindAllStringSubmatch(info.Name(), -1)
 			if len(matches) == 0 {
@@ -90,7 +90,6 @@ func (fm *FileMigrator) findMigrations() error {
 		}
 		return nil
 	})
-	return nil
 }
 
 func migrationContent(mf Migration, c *Connection, r io.Reader) (string, error) {
