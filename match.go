@@ -32,6 +32,10 @@ func ParseMigrationFilename(filename string) (*Match, error) {
 		}
 	}
 
+	if m[5] == "fizz" && dbType != "all" {
+		return nil, fmt.Errorf("invalid database type %q, expected \"all\" because fizz is database type independent", dbType)
+	}
+
 	match := &Match{
 		Version:   m[1],
 		Name:      m[2],
