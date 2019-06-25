@@ -2,7 +2,7 @@ package cmd
 
 import (
 	"github.com/gobuffalo/pop"
-	"github.com/markbates/oncer"
+	"github.com/gobuffalo/pop/internal/oncer"
 	"github.com/spf13/cobra"
 )
 

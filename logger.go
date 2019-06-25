@@ -6,8 +6,8 @@ import (
 	"os"
 
 	"github.com/fatih/color"
+	"github.com/gobuffalo/pop/internal/oncer"
 	"github.com/gobuffalo/pop/logging"
-	"github.com/markbates/oncer"
 )
 
 type logger func(lvl logging.Level, s string, args ...interface{})
