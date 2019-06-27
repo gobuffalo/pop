@@ -41,6 +41,8 @@ type ConnectionDetails struct {
 	Pool int
 	// Defaults to 2. See https://golang.org/pkg/database/sql/#DB.SetMaxIdleConns
 	IdlePool int
+	// Defaults to 0. See https://golang.org/pkg/database/sql/#DB.SetConnMaxLifetime
+	MaxAgeInSeconds int
 	Options  map[string]string
 	// Query string encoded options from URL. Example: "sslmode=disable"
 	RawOptions string
