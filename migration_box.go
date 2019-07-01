@@ -22,7 +22,7 @@ func NewMigrationBox(box packd.Walkable, c *Connection) (MigrationBox, error) {
 
 	runner := func(f packd.File) func(mf Migration, tx *Connection) error {
 		return func(mf Migration, tx *Connection) error {
-			content, err := MigrationContent(mf, tx, f)
+			content, err := MigrationContent(mf, tx, f, true)
 			if err != nil {
 				return errors.Wrapf(err, "error processing %s", mf.Path)
 			}

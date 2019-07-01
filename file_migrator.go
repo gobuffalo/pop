@@ -26,7 +26,7 @@ func NewFileMigrator(path string, c *Connection) (FileMigrator, error) {
 		if err != nil {
 			return err
 		}
-		content, err := MigrationContent(mf, tx, f)
+		content, err := MigrationContent(mf, tx, f, true)
 		if err != nil {
 			return errors.Wrapf(err, "error processing %s", mf.Path)
 		}
