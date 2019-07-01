@@ -20,7 +20,24 @@ func NewMigrationBox(box packd.Walkable, c *Connection) (MigrationBox, error) {
 		Box:      box,
 	}
 
-	err := fm.findMigrations()
+	runner := func(f packd.File) func(mf Migration, tx *Connection) error {
+		return func(mf Migration, tx *Connection) error {
+			content, err := MigrationContent(mf, tx, f)
+			if err != nil {
+				return errors.Wrapf(err, "error processing %s", mf.Path)
+			}
+			if content == "" {
+				return nil
+			}
+			err = tx.RawQuery(content).Exec()
+			if err != nil {
+				return errors.Wrapf(err, "error executing %s, sql: %s", mf.Path, content)
+			}
+			return nil
+		}
+	}
+
+	err := fm.findMigrations(runner)
 	if err != nil {
 		return fm, err
 	}
@@ -28,7 +45,7 @@ func NewMigrationBox(box packd.Walkable, c *Connection) (MigrationBox, error) {
 	return fm, nil
 }
 
-func (fm *MigrationBox) findMigrations() error {
+func (fm *MigrationBox) findMigrations(runner func(f packd.File) func(mf Migration, tx *Connection) error) error {
 	return fm.Box.Walk(func(p string, f packd.File) error {
 		info, err := f.FileInfo()
 		if err != nil {
@@ -48,22 +65,7 @@ func (fm *MigrationBox) findMigrations() error {
 			DBType:    match.DBType,
 			Direction: match.Direction,
 			Type:      match.Type,
-			Runner: func(mf Migration, tx *Connection) error {
-				content, err := migrationContent(mf, tx, f)
-				if err != nil {
-					return errors.Wrapf(err, "error processing %s", mf.Path)
-				}
-
-				if content == "" {
-					return nil
-				}
-
-				err = tx.RawQuery(content).Exec()
-				if err != nil {
-					return errors.Wrapf(err, "error executing %s, sql: %s", mf.Path, content)
-				}
-				return nil
-			},
+			Runner:    runner(f),
 		}
 		fm.Migrations[mf.Direction] = append(fm.Migrations[mf.Direction], mf)
 		return nil
