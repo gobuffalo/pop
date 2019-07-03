@@ -11,7 +11,7 @@ import (
 
 func Test_LoadsConnectionsFromConfig(t *testing.T) {
 	r := require.New(t)
-  
+
 	r.NoError(LoadConfigFile())
 	if DialectSupported("sqlite3") {
 		r.Equal(5, len(Connections))
