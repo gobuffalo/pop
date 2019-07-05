@@ -3,7 +3,7 @@ package columns
 import (
 	"reflect"
 
-	"github.com/markbates/oncer"
+	"github.com/gobuffalo/pop/internal/oncer"
 )
 
 // ColumnsForStruct returns a Columns instance for
