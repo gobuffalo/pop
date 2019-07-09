@@ -73,6 +73,19 @@ func Test_Touch_Time_Timestamp(t *testing.T) {
 	r.NotZero(v.UpdatedAt)
 }
 
+func Test_Touch_Time_Timestamp_With_Existing_Value(t *testing.T) {
+	r := require.New(t)
+
+	createdAt := time.Now().Add(-36 * time.Hour)
+
+	m := Model{Value: &TimeTimestamp{CreatedAt: createdAt}}
+	m.touchCreatedAt()
+	m.touchUpdatedAt()
+	v := m.Value.(*TimeTimestamp)
+	r.Equal(createdAt, v.CreatedAt)
+	r.NotZero(v.UpdatedAt)
+}
+
 func Test_Touch_Unix_Timestamp(t *testing.T) {
 	r := require.New(t)
 
@@ -81,5 +94,18 @@ func Test_Touch_Unix_Timestamp(t *testing.T) {
 	m.touchUpdatedAt()
 	v := m.Value.(*UnixTimestamp)
 	r.NotZero(v.CreatedAt)
+	r.NotZero(v.UpdatedAt)
+}
+
+func Test_Touch_Unix_Timestamp_With_Existing_Value(t *testing.T) {
+	r := require.New(t)
+
+	createdAt := int(time.Now().Add(-36 * time.Hour).Unix())
+
+	m := Model{Value: &UnixTimestamp{CreatedAt: createdAt}}
+	m.touchCreatedAt()
+	m.touchUpdatedAt()
+	v := m.Value.(*UnixTimestamp)
+	r.Equal(createdAt, v.CreatedAt)
 	r.NotZero(v.UpdatedAt)
 }
