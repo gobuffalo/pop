@@ -145,9 +145,13 @@ func (m *Model) touchCreatedAt() {
 		now := time.Now()
 		switch fbn.Kind() {
 		case reflect.Int, reflect.Int64:
-			fbn.SetInt(now.Unix())
+			if fbn.Int() == 0 {
+				fbn.SetInt(now.Unix())
+			}
 		default:
-			fbn.Set(reflect.ValueOf(now))
+			if fbn.Interface().(time.Time).IsZero() {
+				fbn.Set(reflect.ValueOf(now))
+			}
 		}
 	}
 }
