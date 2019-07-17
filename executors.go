@@ -3,12 +3,12 @@ package pop
 import (
 	"reflect"
 
-	"github.com/gobuffalo/validate"
-	"github.com/gofrs/uuid"
-
 	"github.com/gobuffalo/pop/associations"
 	"github.com/gobuffalo/pop/columns"
 	"github.com/gobuffalo/pop/logging"
+	"github.com/gobuffalo/validate"
+	"github.com/gofrs/uuid"
+	"github.com/pkg/errors"
 )
 
 // Reload fetch fresh data for a given model, using its ID.
@@ -102,13 +102,13 @@ func (c *Connection) ValidateAndCreate(model interface{}, excludeColumns ...stri
 	}
 
 	if c.eager {
-		asos, err2 := associations.ForStruct(model, c.eagerFields...)
-
-		if err2 != nil {
-			return verrs, err2
+		asos, err := associations.ForStruct(model, c.eagerFields...)
+		if err != nil {
+			return verrs, errors.Wrap(err, "could not retrieve associations")
 		}
 
 		if len(asos) == 0 {
+			log(logging.Debug, "no associations found for given struct, disable eager mode")
 			c.disableEager()
 			return verrs, c.Create(model, excludeColumns...)
 		}
@@ -147,6 +147,7 @@ func (c *Connection) ValidateAndCreate(model interface{}, excludeColumns ...stri
 			return verrs, err
 		}
 	}
+
 	return verrs, c.Create(model, excludeColumns...)
 }
 
@@ -169,7 +170,7 @@ func (c *Connection) Create(model interface{}, excludeColumns ...string) error {
 			var localIsEager = isEager
 			asos, err := associations.ForStruct(m.Value, c.eagerFields...)
 			if err != nil {
-				return err
+				return errors.Wrap(err, "could not retrieve associations")
 			}
 
 			if localIsEager && len(asos) == 0 {

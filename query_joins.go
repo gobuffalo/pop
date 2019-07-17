@@ -1,8 +1,8 @@
 package pop
 
 import (
+	"github.com/gobuffalo/pop/internal/oncer"
 	"github.com/gobuffalo/pop/logging"
-	"github.com/markbates/oncer"
 )
 
 // Join will append a JOIN clause to the query

@@ -12,8 +12,12 @@ import (
 func Test_LoadsConnectionsFromConfig(t *testing.T) {
 	r := require.New(t)
 
-	conns := Connections
-	r.Equal(6, len(conns))
+	r.NoError(LoadConfigFile())
+	if DialectSupported("sqlite3") {
+		r.Equal(5, len(Connections))
+	} else {
+		r.Equal(4, len(Connections))
+	}
 }
 
 func Test_AddLookupPaths(t *testing.T) {

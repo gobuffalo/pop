@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/gobuffalo/makr"
-	"github.com/markbates/oncer"
+	"github.com/gobuffalo/pop/internal/oncer"
 )
 
 // MigrationCreate writes contents for a given migration in normalized files

@@ -1,16 +1,9 @@
 package pop
 
 import (
-	"bytes"
-	"fmt"
-	"io"
-	"io/ioutil"
+	"github.com/pkg/errors"
 	"os"
 	"path/filepath"
-	"text/template"
-
-	"github.com/gobuffalo/fizz"
-	"github.com/pkg/errors"
 )
 
 // FileMigrator is a migrator for SQL and Fizz
@@ -28,7 +21,26 @@ func NewFileMigrator(path string, c *Connection) (FileMigrator, error) {
 	}
 	fm.SchemaPath = path
 
-	err := fm.findMigrations()
+	runner := func(mf Migration, tx *Connection) error {
+		f, err := os.Open(mf.Path)
+		if err != nil {
+			return err
+		}
+		content, err := MigrationContent(mf, tx, f, true)
+		if err != nil {
+			return errors.Wrapf(err, "error processing %s", mf.Path)
+		}
+		if content == "" {
+			return nil
+		}
+		err = tx.RawQuery(content).Exec()
+		if err != nil {
+			return errors.Wrapf(err, "error executing %s, sql: %s", mf.Path, content)
+		}
+		return nil
+	}
+
+	err := fm.findMigrations(runner)
 	if err != nil {
 		return fm, err
 	}
@@ -36,82 +48,32 @@ func NewFileMigrator(path string, c *Connection) (FileMigrator, error) {
 	return fm, nil
 }
 
-func (fm *FileMigrator) findMigrations() error {
+func (fm *FileMigrator) findMigrations(runner func(mf Migration, tx *Connection) error) error {
 	dir := fm.Path
 	if fi, err := os.Stat(dir); err != nil || !fi.IsDir() {
 		// directory doesn't exist
 		return nil
 	}
-	filepath.Walk(dir, func(p string, info os.FileInfo, err error) error {
+	return filepath.Walk(dir, func(p string, info os.FileInfo, err error) error {
 		if !info.IsDir() {
-			matches := mrx.FindAllStringSubmatch(info.Name(), -1)
-			if len(matches) == 0 {
-				return nil
+			match, err := ParseMigrationFilename(info.Name())
+			if err != nil {
+				return err
 			}
-			m := matches[0]
-			var dbType string
-			if m[3] == "" {
-				dbType = "all"
-			} else {
-				dbType = m[3][1:]
-				if !DialectSupported(dbType) {
-					return fmt.Errorf("unsupported dialect %s", dbType)
-				}
+			if match == nil {
+				return nil
 			}
 			mf := Migration{
 				Path:      p,
-				Version:   m[1],
-				Name:      m[2],
-				DBType:    dbType,
-				Direction: m[4],
-				Type:      m[5],
-				Runner: func(mf Migration, tx *Connection) error {
-					f, err := os.Open(p)
-					if err != nil {
-						return err
-					}
-					content, err := migrationContent(mf, tx, f)
-					if err != nil {
-						return errors.Wrapf(err, "error processing %s", mf.Path)
-					}
-
-					if content == "" {
-						return nil
-					}
-
-					err = tx.RawQuery(content).Exec()
-					if err != nil {
-						return errors.Wrapf(err, "error executing %s, sql: %s", mf.Path, content)
-					}
-					return nil
-				},
+				Version:   match.Version,
+				Name:      match.Name,
+				DBType:    match.DBType,
+				Direction: match.Direction,
+				Type:      match.Type,
+				Runner:    runner,
 			}
 			fm.Migrations[mf.Direction] = append(fm.Migrations[mf.Direction], mf)
 		}
 		return nil
 	})
-	return nil
-}
-
-func migrationContent(mf Migration, c *Connection, r io.Reader) (string, error) {
-	b, err := ioutil.ReadAll(r)
-	if err != nil {
-		return "", nil
-	}
-
-	t := template.Must(template.New("sql").Parse(string(b)))
-	var bb bytes.Buffer
-	err = t.Execute(&bb, c.Dialect.Details())
-	if err != nil {
-		return "", errors.Wrapf(err, "could not execute migration template %s", mf.Path)
-	}
-	content := bb.String()
-
-	if mf.Type == "fizz" {
-		content, err = fizz.AString(content, c.Dialect.FizzTranslator())
-		if err != nil {
-			return "", errors.Wrapf(err, "could not fizz the migration %s", mf.Path)
-		}
-	}
-	return content, nil
 }
