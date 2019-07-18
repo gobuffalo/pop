@@ -2,6 +2,7 @@ package fix
 
 import (
 	"io/ioutil"
+	"regexp"
 	"strings"
 	"testing"
 
@@ -25,7 +26,12 @@ func Test_AutoTimestampsOff(t *testing.T) {
 			rr.NoError(err)
 			expected, err := boxPatched.FindString(path)
 			rr.NoError(err)
-			rr.Equal(strings.Replace(expected, "\r", "", -1), patched)
+
+			re := regexp.MustCompile(`(?m)(\\n|\\r)$`)
+
+			cleaned := re.ReplaceAllString(expected, "")
+
+			rr.Equal(strings.Replace(cleaned, "\r", "", -1), patched)
 		})
 		return nil
 	})
