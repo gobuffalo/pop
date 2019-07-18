@@ -9,8 +9,11 @@ import (
 )
 
 func Test_Eager_Update_Many_Many_Create(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
+	r := require.New(t)
 	transaction(func(tx *Connection) {
-		r := require.New(t)
 		count2, _ := tx.Count(&User{})
 		println("Count of user s in database: ", count2)
 
@@ -49,9 +52,11 @@ func Test_Eager_Update_Many_Many_Create(t *testing.T) {
 }
 
 func Test_Eager_Update_Has_Many_Add_Existing(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
+	r := require.New(t)
 	transaction(func(tx *Connection) {
-		r := require.New(t)
-
 		// Create User
 		user := User{
 			Name: nulls.NewString("Carl Lewis"),
@@ -106,9 +111,11 @@ func Test_Eager_Update_Has_Many_Add_Existing(t *testing.T) {
 }
 
 func Test_Eager_Update_Has_Many_Update_Existing(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
+	r := require.New(t)
 	transaction(func(tx *Connection) {
-		r := require.New(t)
-
 		// Create User
 		user := User{
 			Name: nulls.NewString("Carl Lewis"),
@@ -153,9 +160,11 @@ func Test_Eager_Update_Has_Many_Update_Existing(t *testing.T) {
 }
 
 func Test_Eager_Update_Many_2_Many_Update_Existing(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
+	r := require.New(t)
 	transaction(func(tx *Connection) {
-		r := require.New(t)
-
 		// Create User
 		user := User{
 			Name: nulls.NewString("Carl Lewis"),
@@ -202,9 +211,11 @@ func Test_Eager_Update_Many_2_Many_Update_Existing(t *testing.T) {
 }
 
 func Test_Eager_Update_Has_One(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
+	r := require.New(t)
 	transaction(func(tx *Connection) {
-		r := require.New(t)
-
 		// Create User
 		user := User{
 			Name: nulls.NewString("Carl Lewis"),
@@ -251,8 +262,11 @@ func Test_Eager_Update_Has_One(t *testing.T) {
 }
 
 func Test_Eager_Update_Many_To_Many(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
+	r := require.New(t)
 	transaction(func(tx *Connection) {
-		r := require.New(t)
 
 		user := User{
 			Name: nulls.NewString("Carl Lewis"),
@@ -296,9 +310,11 @@ func Test_Eager_Update_Many_To_Many(t *testing.T) {
 }
 
 func Test_Eager_Update_Has_Many_Transfer(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
+	r := require.New(t)
 	transaction(func(tx *Connection) {
-		r := require.New(t)
-
 		// Create Users
 		user := User{
 			Name: nulls.NewString("Carl Lewis"),
@@ -365,9 +381,11 @@ func Test_Eager_Update_Has_Many_Transfer(t *testing.T) {
 }
 
 func Test_Eager_Update_Belongs_To(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
+	r := require.New(t)
 	transaction(func(tx *Connection) {
-		r := require.New(t)
-
 		// Create Users
 		user := User{
 			Name: nulls.NewString("Carl Lewis"),
