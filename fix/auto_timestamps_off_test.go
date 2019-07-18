@@ -26,7 +26,7 @@ func Test_AutoTimestampsOff(t *testing.T) {
 			expected, err := boxPatched.FindString(path)
 			rr.NoError(err)
 
-			re := regexp.MustCompile(`(?m)(\n|\r)+$`)
+			re := regexp.MustCompile(`(?m)([\n\r])+$`)
 
 			cleaned := re.ReplaceAllString(expected, "")
 			cleanedPatched := re.ReplaceAllString(patched, "")
