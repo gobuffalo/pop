@@ -12,10 +12,6 @@ postgres:
   url: "postgres://postgres:postgres@localhost:5432/pop_test?sslmode=disable"
   pool: 25
 
-development:
-  url: "postgres://postgres:postgres@localhost:5432/pop_test?sslmode=disable"
-  pool: 25
-
 cockroach:
   # url: "cockroach://root@127.0.0.1:26257/pop_test?application_name=cockroach&sslmode=disable"
   dialect: "cockroach"
