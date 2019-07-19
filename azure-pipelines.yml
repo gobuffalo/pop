@@ -4,18 +4,18 @@ variables:
   modulePath: "$(GOPATH)/src/github.com/$(build.repository.name)" # Path to the module"s code
 
 jobs:
-- job: Windows
-  pool:
-    vmImage: "vs2017-win2016"
-  strategy:
-    matrix:
-    # SQLite3
-      go 1.12 (off) sqlite:
-        go_version: "1.12"
-        GO111MODULE: "off"
-        SODA_DIALECT: "sqlite"
-  steps:
-    - template: azure-tests.yml
+#- job: Windows
+#  pool:
+#    vmImage: "vs2017-win2016"
+#  strategy:
+#    matrix:
+#    # SQLite3
+#      go 1.12 (off) sqlite:
+#        go_version: "1.12"
+#        GO111MODULE: "off"
+#        SODA_DIALECT: "sqlite"
+#  steps:
+#    - template: azure-tests.yml
 
 - job: macOS
   pool:
@@ -59,11 +59,11 @@ jobs:
         GO111MODULE: "off"
         SODA_DIALECT: "cockroach_ssl"
     # MySQL
-#      go 1.12 (off) mysql:
-#        go_version: "1.12"
-#        GO111MODULE: "off"
-#        SODA_DIALECT: "mysql"
-#        MYSQL_PORT: "3307"
+      go 1.12 (off) mysql:
+        go_version: "1.12"
+        GO111MODULE: "off"
+        SODA_DIALECT: "mysql"
+        MYSQL_PORT: "3307"
     # SQLite3
       go 1.12 (off) sqlite:
         go_version: "1.12"
