@@ -17,18 +17,18 @@ jobs:
   steps:
     - template: azure-tests.yml
 
-- job: macOS
-  pool:
-    vmImage: "macOS-10.13"
-  strategy:
-    matrix:
+#- job: macOS
+#  pool:
+#    vmImage: "macOS-10.13"
+#  strategy:
+#    matrix:
     # SQLite3
 #      go 1.12 (off) sqlite:
 #        go_version: "1.12"
 #        GO111MODULE: "off"
 #        SODA_DIALECT: "sqlite"
-  steps:
-    - template: azure-tests.yml
+#  steps:
+#    - template: azure-tests.yml
 
 - job: Linux
   pool:
