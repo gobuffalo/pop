@@ -4,22 +4,9 @@ variables:
   modulePath: "$(GOPATH)/src/github.com/$(build.repository.name)" # Path to the module"s code
 
 jobs:
-#- job: Windows
-#  pool:
-#    vmImage: "vs2017-win2016"
-#  strategy:
-#    matrix:
-#    # SQLite3
-#      go 1.12 (off) sqlite:
-#        go_version: "1.12"
-#        GO111MODULE: "off"
-#        SODA_DIALECT: "sqlite"
-#  steps:
-#    - template: azure-tests.yml
-
-- job: macOS
+- job: Windows
   pool:
-    vmImage: "macOS-10.13"
+    vmImage: "vs2017-win2016"
   strategy:
     matrix:
     # SQLite3
@@ -30,6 +17,19 @@ jobs:
   steps:
     - template: azure-tests.yml
 
+- job: macOS
+  pool:
+    vmImage: "macOS-10.13"
+  strategy:
+    matrix:
+    # SQLite3
+#      go 1.12 (off) sqlite:
+#        go_version: "1.12"
+#        GO111MODULE: "off"
+#        SODA_DIALECT: "sqlite"
+  steps:
+    - template: azure-tests.yml
+
 - job: Linux
   pool:
     vmImage: "ubuntu-16.04"
@@ -37,27 +37,27 @@ jobs:
     maxParallel: 2
     matrix:
     # Postgres
-      go 1.10 postgres:
-        go_version: "1.10"
-        SODA_DIALECT: "postgres"
-      go 1.11 (off) postgres:
-        go_version: "1.11.5"
-        GO111MODULE: "off"
-        SODA_DIALECT: "postgres"
-      go 1.12 (off) postgres:
-        go_version: "1.12"
-        GO111MODULE: "off"
-        SODA_DIALECT: "postgres"
-    # Cockroach
-      go 1.12 (off) cockroach:
-        go_version: "1.12"
-        GO111MODULE: "off"
-        SODA_DIALECT: "cockroach"
-    # Cockroach SSL
-      go 1.12 (off) cockroach SSL:
-        go_version: "1.12"
-        GO111MODULE: "off"
-        SODA_DIALECT: "cockroach_ssl"
+#      go 1.10 postgres:
+#        go_version: "1.10"
+#        SODA_DIALECT: "postgres"
+#      go 1.11 (off) postgres:
+#        go_version: "1.11.5"
+#        GO111MODULE: "off"
+#        SODA_DIALECT: "postgres"
+#      go 1.12 (off) postgres:
+#        go_version: "1.12"
+#        GO111MODULE: "off"
+#        SODA_DIALECT: "postgres"
+#    # Cockroach
+#      go 1.12 (off) cockroach:
+#        go_version: "1.12"
+#        GO111MODULE: "off"
+#        SODA_DIALECT: "cockroach"
+#    # Cockroach SSL
+#      go 1.12 (off) cockroach SSL:
+#        go_version: "1.12"
+#        GO111MODULE: "off"
+#        SODA_DIALECT: "cockroach_ssl"
     # MySQL
       go 1.12 (off) mysql:
         go_version: "1.12"
@@ -65,9 +65,9 @@ jobs:
         SODA_DIALECT: "mysql"
         MYSQL_PORT: "3307"
     # SQLite3
-      go 1.12 (off) sqlite:
-        go_version: "1.12"
-        GO111MODULE: "off"
-        SODA_DIALECT: "sqlite"
+#      go 1.12 (off) sqlite:
+#        go_version: "1.12"
+#        GO111MODULE: "off"
+#        SODA_DIALECT: "sqlite"
   steps:
     - template: azure-tests.yml
