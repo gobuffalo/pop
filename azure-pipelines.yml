@@ -34,6 +34,7 @@ jobs:
   pool:
     vmImage: "ubuntu-16.04"
   strategy:
+    maxParallel: 4
     matrix:
     # Postgres
       go 1.10 postgres:
@@ -58,11 +59,11 @@ jobs:
         GO111MODULE: "off"
         SODA_DIALECT: "cockroach_ssl"
     # MySQL
-      go 1.12 (off) mysql:
-        go_version: "1.12"
-        GO111MODULE: "off"
-        SODA_DIALECT: "mysql"
-        MYSQL_PORT: "3307"
+#      go 1.12 (off) mysql:
+#        go_version: "1.12"
+#        GO111MODULE: "off"
+#        SODA_DIALECT: "mysql"
+#        MYSQL_PORT: "3307"
     # SQLite3
       go 1.12 (off) sqlite:
         go_version: "1.12"
