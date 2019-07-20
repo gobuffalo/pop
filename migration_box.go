@@ -1,8 +1,6 @@
 package pop
 
 import (
-	"fmt"
-
 	"github.com/gobuffalo/packd"
 	"github.com/pkg/errors"
 )
@@ -22,7 +20,24 @@ func NewMigrationBox(box packd.Walkable, c *Connection) (MigrationBox, error) {
 		Box:      box,
 	}
 
-	err := fm.findMigrations()
+	runner := func(f packd.File) func(mf Migration, tx *Connection) error {
+		return func(mf Migration, tx *Connection) error {
+			content, err := MigrationContent(mf, tx, f, true)
+			if err != nil {
+				return errors.Wrapf(err, "error processing %s", mf.Path)
+			}
+			if content == "" {
+				return nil
+			}
+			err = tx.RawQuery(content).Exec()
+			if err != nil {
+				return errors.Wrapf(err, "error executing %s, sql: %s", mf.Path, content)
+			}
+			return nil
+		}
+	}
+
+	err := fm.findMigrations(runner)
 	if err != nil {
 		return fm, err
 	}
@@ -30,49 +45,27 @@ func NewMigrationBox(box packd.Walkable, c *Connection) (MigrationBox, error) {
 	return fm, nil
 }
 
-func (fm *MigrationBox) findMigrations() error {
+func (fm *MigrationBox) findMigrations(runner func(f packd.File) func(mf Migration, tx *Connection) error) error {
 	return fm.Box.Walk(func(p string, f packd.File) error {
 		info, err := f.FileInfo()
 		if err != nil {
 			return err
 		}
-		matches := mrx.FindAllStringSubmatch(info.Name(), -1)
-		if len(matches) == 0 {
-			return nil
+		match, err := ParseMigrationFilename(info.Name())
+		if err != nil {
+			return err
 		}
-		m := matches[0]
-		var dbType string
-		if m[3] == "" {
-			dbType = "all"
-		} else {
-			dbType = normalizeSynonyms(m[3][1:])
-			if !DialectSupported(dbType) {
-				return fmt.Errorf("unsupported dialect %s", dbType)
-			}
+		if match == nil {
+			return nil
 		}
 		mf := Migration{
 			Path:      p,
-			Version:   m[1],
-			Name:      m[2],
-			DBType:    dbType,
-			Direction: m[4],
-			Type:      m[5],
-			Runner: func(mf Migration, tx *Connection) error {
-				content, err := migrationContent(mf, tx, f)
-				if err != nil {
-					return errors.Wrapf(err, "error processing %s", mf.Path)
-				}
-
-				if content == "" {
-					return nil
-				}
-
-				err = tx.RawQuery(content).Exec()
-				if err != nil {
-					return errors.Wrapf(err, "error executing %s, sql: %s", mf.Path, content)
-				}
-				return nil
-			},
+			Version:   match.Version,
+			Name:      match.Name,
+			DBType:    match.DBType,
+			Direction: match.Direction,
+			Type:      match.Type,
+			Runner:    runner(f),
 		}
 		fm.Migrations[mf.Direction] = append(fm.Migrations[mf.Direction], mf)
 		return nil

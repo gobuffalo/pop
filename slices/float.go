@@ -22,7 +22,7 @@ func (f Float) Interface() interface{} {
 func (f *Float) Scan(src interface{}) error {
 	b, ok := src.([]byte)
 	if !ok {
-		return errors.New("Scan source was not []byte")
+		return errors.New("scan source was not []byte")
 	}
 	str := string(b)
 	*f = strToFloat(str)

@@ -192,21 +192,28 @@ func (q *Query) eagerAssociations(model interface{}) error {
 
 	// eagerAssociations for a slice or array model passed as a param.
 	v := reflect.ValueOf(model)
-	if reflect.Indirect(v).Kind() == reflect.Slice ||
-		reflect.Indirect(v).Kind() == reflect.Array {
+	kind := reflect.Indirect(v).Kind()
+	if kind == reflect.Slice || kind == reflect.Array {
 		v = v.Elem()
 		for i := 0; i < v.Len(); i++ {
-			err = q.eagerAssociations(v.Index(i).Addr().Interface())
+			e := v.Index(i)
+			if e.Type().Kind() == reflect.Ptr {
+				// Already a pointer
+				err = q.eagerAssociations(e.Interface())
+			} else {
+				err = q.eagerAssociations(e.Addr().Interface())
+			}
 			if err != nil {
 				return err
 			}
 		}
-		return err
+		return nil
 	}
 
+	// eagerAssociations for a single element
 	assos, err := associations.ForStruct(model, q.eagerFields...)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "could not retrieve associations")
 	}
 
 	// disable eager mode for current connection.

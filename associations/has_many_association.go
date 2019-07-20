@@ -134,7 +134,7 @@ func (a *hasManyAssociation) AfterProcess() AssociationStatement {
 	ownerIDFieldName := "ID"
 	ownerID := reflect.Indirect(reflect.ValueOf(a.owner)).FieldByName(ownerIDFieldName).Interface()
 
-	ids := []interface{}{}
+	var ids []interface{}
 
 	for i := 0; i < v.Len(); i++ {
 		id := v.Index(i).FieldByName(belongingIDFieldName).Interface()

@@ -10,8 +10,8 @@ import (
 	"github.com/gobuffalo/genny"
 	"github.com/gobuffalo/pop"
 	"github.com/gobuffalo/pop/genny/config"
-	"github.com/markbates/going/defaults"
-	"github.com/markbates/oncer"
+	"github.com/gobuffalo/pop/internal/defaults"
+	"github.com/gobuffalo/pop/internal/oncer"
 	"github.com/spf13/cobra"
 )
 

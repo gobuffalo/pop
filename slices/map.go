@@ -20,7 +20,7 @@ func (m Map) Interface() interface{} {
 func (m *Map) Scan(src interface{}) error {
 	b, ok := src.([]byte)
 	if !ok {
-		return errors.New("Scan source was not []byte")
+		return errors.New("scan source was not []byte")
 	}
 	err := json.Unmarshal(b, m)
 	if err != nil {

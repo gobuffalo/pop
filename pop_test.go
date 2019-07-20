@@ -45,11 +45,18 @@ func init() {
 
 	dialect := os.Getenv("SODA_DIALECT")
 
-	var err error
-	PDB, err = Connect(dialect)
-	log(logging.Info, "Run test with dialect %v", dialect)
-	if err != nil {
-		stdlog.Panic(err)
+	if dialect != "" {
+		if err := LoadConfigFile(); err != nil {
+			stdlog.Panic(err)
+		}
+		var err error
+		PDB, err = Connect(dialect)
+		log(logging.Info, "Run test with dialect %v", dialect)
+		if err != nil {
+			stdlog.Panic(err)
+		}
+	} else {
+		log(logging.Info, "Skipping integration tests")
 	}
 }
 

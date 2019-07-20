@@ -1,13 +1,14 @@
 package associations
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 	"regexp"
 	"strings"
 
 	"github.com/gobuffalo/pop/columns"
-	"github.com/markbates/oncer"
+	"github.com/gobuffalo/pop/internal/oncer"
 )
 
 // If a field match with the regexp, it will be considered as a valid field definition.
@@ -40,14 +41,16 @@ func AssociationsForStruct(s interface{}, fields ...string) (Associations, error
 // it throws an error when it finds a field that does
 // not exist for a model.
 func ForStruct(s interface{}, fields ...string) (Associations, error) {
+	t, v := getModelDefinition(s)
+	if t.Kind() != reflect.Struct {
+		return nil, errors.New("could not get struct associations: not a struct")
+	}
+	fields = trimFields(fields)
 	associations := Associations{}
 	innerAssociations := InnerAssociations{}
 
-	t, v := getModelDefinition(s)
-	fields = trimFields(fields)
-
 	// validate if fields contains a non existing field in struct.
-	// and vefiry is it has inner associations.
+	// and verify is it has inner associations.
 	for i := range fields {
 		var innerField, field string
 
@@ -56,8 +59,9 @@ func ForStruct(s interface{}, fields ...string) (Associations, error) {
 		}
 
 		if strings.Contains(fields[i], ".") {
-			field = fields[i][:strings.Index(fields[i], ".")]
-			innerField = fields[i][strings.Index(fields[i], ".")+1:]
+			dotIndex := strings.Index(fields[i], ".")
+			field = fields[i][:dotIndex]
+			innerField = fields[i][dotIndex+1:]
 			fields[i] = field
 		}
 		if _, ok := t.FieldByName(fields[i]); !ok {

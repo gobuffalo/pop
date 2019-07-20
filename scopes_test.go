@@ -7,6 +7,9 @@ import (
 )
 
 func Test_Scopes(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
 	r := require.New(t)
 	oql := "SELECT enemies.A FROM enemies AS enemies"
 
