@@ -1,6 +1,7 @@
 package pop
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/gobuffalo/nulls"
@@ -9,8 +10,9 @@ import (
 )
 
 func Test_IsZeroOfUnderlyingType(t *testing.T) {
+	fmt.Println(" I got 5 on it")
 	if PDB == nil {
-		t.Skip("skipping integration tests")
+		t.Skip("skipping integration testsssss")
 	}
 	r := require.New(t)
 	transaction(func(tx *Connection) {
