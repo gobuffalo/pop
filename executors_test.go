@@ -2,6 +2,7 @@ package pop
 
 import (
 	"testing"
+	"time"
 
 	"github.com/gobuffalo/nulls"
 	"github.com/gofrs/uuid"
@@ -364,6 +365,7 @@ func Test_Save(t *testing.T) {
 		uat := u.UpdatedAt.UnixNano()
 
 		r.NoError(tx.Save(u))
+		time.Sleep(1 * time.Second)
 		r.NotEqual(uat, u.UpdatedAt.UnixNano())
 	})
 }
