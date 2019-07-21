@@ -362,11 +362,11 @@ func Test_Save(t *testing.T) {
 		r.NoError(tx.Save(u))
 		r.NotZero(u.ID)
 
-		uat := u.UpdatedAt
+		uat := u.UpdatedAt.UnixNano()
 
 		r.NoError(tx.Save(u))
 		time.Sleep(1 * time.Second)
-		r.NotEqual(uat, u.UpdatedAt)
+		r.NotEqual(uat, u.UpdatedAt.UnixNano())
 	})
 }
 

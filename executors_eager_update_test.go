@@ -10,6 +10,8 @@ import (
 
 func Test_Eager_Update_Many_Many_Create(t *testing.T) {
 
+	t.Skip("skipping tests for debugging ")
+
 	if PDB == nil {
 		t.Skip("skipping integration tests")
 	}
@@ -48,6 +50,7 @@ func Test_Eager_Update_Many_Many_Create(t *testing.T) {
 
 		r.NoError(err)
 		r.Equal(count+1, len(u2.Houses))
+
 	})
 }
 
@@ -276,7 +279,6 @@ func Test_Eager_Update_Has_One(t *testing.T) {
 func Test_Eager_Update_Many_To_Many(t *testing.T) {
 
 	t.Skip("skipping tests for debugging ")
-
 
 	if PDB == nil {
 		t.Skip("skipping integration tests")
