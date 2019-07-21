@@ -34,7 +34,6 @@ jobs:
   pool:
     vmImage: "ubuntu-16.04"
   strategy:
-    maxParallel: 2
     matrix:
     # Postgres
       go 1.10 postgres:
