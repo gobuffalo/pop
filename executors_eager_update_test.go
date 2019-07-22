@@ -10,8 +10,6 @@ import (
 
 func Test_Eager_Update_Many_Many_Create(t *testing.T) {
 
-	t.Skip("skipping tests for debugging ")
-
 	if PDB == nil {
 		t.Skip("skipping integration tests")
 	}
@@ -55,8 +53,6 @@ func Test_Eager_Update_Many_Many_Create(t *testing.T) {
 }
 
 func Test_Eager_Update_Has_Many_Add_Existing(t *testing.T) {
-
-	t.Skip("skipping tests for debugging ")
 
 	if PDB == nil {
 		t.Skip("skipping integration tests")
@@ -118,8 +114,6 @@ func Test_Eager_Update_Has_Many_Add_Existing(t *testing.T) {
 
 func Test_Eager_Update_Has_Many_Update_Existing(t *testing.T) {
 
-	t.Skip("skipping tests for debugging ")
-
 	if PDB == nil {
 		t.Skip("skipping integration tests")
 	}
@@ -169,8 +163,6 @@ func Test_Eager_Update_Has_Many_Update_Existing(t *testing.T) {
 }
 
 func Test_Eager_Update_Many_2_Many_Update_Existing(t *testing.T) {
-
-	t.Skip("skipping tests for debugging ")
 
 	if PDB == nil {
 		t.Skip("skipping integration tests")
@@ -224,8 +216,6 @@ func Test_Eager_Update_Many_2_Many_Update_Existing(t *testing.T) {
 
 func Test_Eager_Update_Has_One(t *testing.T) {
 
-	t.Skip("skipping tests for debugging ")
-
 	if PDB == nil {
 		t.Skip("skipping integration tests")
 	}
@@ -278,8 +268,6 @@ func Test_Eager_Update_Has_One(t *testing.T) {
 
 func Test_Eager_Update_Many_To_Many(t *testing.T) {
 
-	t.Skip("skipping tests for debugging ")
-
 	if PDB == nil {
 		t.Skip("skipping integration tests")
 	}
@@ -328,8 +316,6 @@ func Test_Eager_Update_Many_To_Many(t *testing.T) {
 }
 
 func Test_Eager_Update_Has_Many_Transfer(t *testing.T) {
-
-	t.Skip("skipping tests for debugging ")
 
 	if PDB == nil {
 		t.Skip("skipping integration tests")
@@ -402,8 +388,6 @@ func Test_Eager_Update_Has_Many_Transfer(t *testing.T) {
 }
 
 func Test_Eager_Update_Belongs_To(t *testing.T) {
-
-	t.Skip("skipping tests for debugging ")
 
 	if PDB == nil {
 		t.Skip("skipping integration tests")

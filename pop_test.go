@@ -3,7 +3,6 @@ package pop
 import (
 	stdlog "log"
 	"os"
-	"sync"
 	"testing"
 	"time"
 
@@ -16,8 +15,6 @@ import (
 )
 
 var PDB *Connection
-
-var Mutex sync.Mutex
 
 type PostgreSQLSuite struct {
 	suite.Suite
@@ -65,8 +62,6 @@ func init() {
 }
 
 func transaction(fn func(tx *Connection)) {
-	Mutex.Lock()
-	defer Mutex.Unlock()
 	err := PDB.Rollback(func(tx *Connection) {
 		fn(tx)
 	})
