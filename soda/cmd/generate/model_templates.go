@@ -11,6 +11,7 @@ import (
 	{{ end -}}
 )
 
+// {{.model_name}} model struct
 type {{.model_name}} struct {
 	{{range $a := .model.Attributes -}}
 	{{$a}}
