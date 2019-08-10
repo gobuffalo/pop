@@ -66,8 +66,8 @@ func AddLookupPaths(paths ...string) error {
 
 func findConfigPath() (string, error) {
 	for _, p := range LookupPaths() {
+		path, _ := filepath.Abs(filepath.Join(p, ConfigName))
 		for {
-			path, _ := filepath.Abs(filepath.Join(p, ConfigName))
 			log(logging.Debug, "Looking for config at path %s", path)
 
 			// If our path is outside of any goPath, stop looking.
