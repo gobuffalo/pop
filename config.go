@@ -20,7 +20,7 @@ import (
 // after looking for it.
 var ErrConfigFileNotFound = errors.New("unable to find pop config file")
 
-var lookupPaths = []string{"", "./config", "config"}
+var lookupPaths = []string{"", "./config", "/config", "../", "../config", "../..", "../../config"}
 
 // ConfigName is the name of the YAML databases config file
 var ConfigName = "database.yml"
