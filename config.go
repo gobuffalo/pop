@@ -2,7 +2,6 @@ package pop
 
 import (
 	"bytes"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
@@ -11,9 +10,10 @@ import (
 	"text/template"
 
 	"github.com/gobuffalo/envy"
-	"github.com/gobuffalo/pop/logging"
 	"github.com/pkg/errors"
 	"gopkg.in/yaml.v2"
+
+	"github.com/gobuffalo/pop/logging"
 )
 
 // ErrConfigFileNotFound is returned when the pop config file can't be found,
@@ -65,33 +65,34 @@ func AddLookupPaths(paths ...string) error {
 }
 
 func findConfigPath() (string, error) {
-	for pathPrepend := ""; ; {
-		for _, p := range LookupPaths() {
-			path, _ := filepath.Abs(filepath.Join(pathPrepend, p, ConfigName))
+	for _, p := range LookupPaths() {
+		for {
+			path, _ := filepath.Abs(filepath.Join(p, ConfigName))
 			log(logging.Debug, "Looking for config at path %s", path)
 
 			// If our path is outside of any goPath, stop looking.
-			if !inGoPath(path) {
-				return "", ErrConfigFileNotFound
+			if !pathInGoPath(path) {
+				break
 			}
 
 			if _, err := os.Stat(path); err == nil {
 				return path, err
 			}
+
+			path = filepath.Dir(path)
 		}
-		pathPrepend = fmt.Sprintf("%s%s%c", pathPrepend, "..", filepath.Separator)
 	}
+
+	return "", ErrConfigFileNotFound
 }
 
-func inGoPath(s string) bool {
-	inGoPath := false
+func pathInGoPath(path string) bool {
 	for _, p := range envy.GoPaths() {
-		if strings.HasPrefix(s, p) {
-			inGoPath = true
+		if strings.HasPrefix(path, p) {
+			return true
 		}
 	}
-
-	return inGoPath
+	return false
 }
 
 // LoadFrom reads a configuration from the reader and sets up the connections
