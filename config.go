@@ -20,7 +20,7 @@ import (
 // after looking for it.
 var ErrConfigFileNotFound = errors.New("unable to find pop config file")
 
-var lookupPaths = []string{"", "./config", "/config", "../", "../config", "../..", "../../config"}
+var lookupPaths = []string{"", "./config", "/config"}
 
 // ConfigName is the name of the YAML databases config file
 var ConfigName = "database.yml"
@@ -65,22 +65,30 @@ func AddLookupPaths(paths ...string) error {
 }
 
 func findConfigPath() (string, error) {
-	for _, p := range LookupPaths() {
-		path, _ := filepath.Abs(filepath.Join(p, ConfigName))
-		for {
-			log(logging.Debug, "Looking for config at path %s", path)
+	searchRoot, _ := os.Getwd()
+	for {
+		for _, p := range LookupPaths() {
+			path, _ := filepath.Abs(filepath.Join(searchRoot, p, ConfigName))
 
-			// If our path is outside of any goPath, stop looking.
-			if !pathInGoPath(path) {
-				break
-			}
+			log(logging.Debug, "Looking for config at path %s", path)
 
 			if _, err := os.Stat(path); err == nil {
 				return path, err
 			}
-
-			path = filepath.Dir(path)
 		}
+
+		if envy.Mods() {
+			// If we found the go.mod file, this is our last path.
+			goMod := filepath.Join(searchRoot, "go.mod")
+			if _, err := os.Stat(goMod); err == nil {
+				break
+			}
+		} else if !pathInGoPath(searchRoot) {
+			// If our searchRoot is outside of any goPath, stop looking.
+			break
+		}
+
+		searchRoot = filepath.Dir(searchRoot)
 	}
 
 	return "", ErrConfigFileNotFound
