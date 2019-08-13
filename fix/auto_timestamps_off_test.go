@@ -2,10 +2,10 @@ package fix
 
 import (
 	"io/ioutil"
-	"strings"
+	"regexp"
 	"testing"
 
-	packr "github.com/gobuffalo/packr/v2"
+	"github.com/gobuffalo/packr/v2"
 	"github.com/stretchr/testify/require"
 )
 
@@ -25,7 +25,16 @@ func Test_AutoTimestampsOff(t *testing.T) {
 			rr.NoError(err)
 			expected, err := boxPatched.FindString(path)
 			rr.NoError(err)
-			rr.Equal(strings.Replace(expected, "\r", "", -1), patched)
+
+			re := regexp.MustCompile(`(?m)([\n\r])+$`)
+
+			cleaned := re.ReplaceAllString(expected, "")
+			cleanedPatched := re.ReplaceAllString(patched, "")
+
+
+			rr.Equal(cleaned, cleanedPatched)
+
+
 		})
 		return nil
 	})

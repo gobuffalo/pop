@@ -8,7 +8,7 @@ import (
 
 	"github.com/gobuffalo/flect"
 	"github.com/gobuffalo/nulls"
-	"github.com/gobuffalo/x/defaults"
+	"github.com/gobuffalo/pop/internal/defaults"
 )
 
 // hasOneAssociation is a 1 to 1 kind of association. It's used on

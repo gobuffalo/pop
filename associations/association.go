@@ -131,7 +131,7 @@ func (a Associations) AssociationsBeforeCreatable() []AssociationBeforeCreatable
 	return before
 }
 
-// AssociationsBeforeUpdateable returns all associations the implement the AssociationBeforeUpdatable
+// AssociationsBeforeUpdatable returns all associations the implement the AssociationBeforeUpdatable
 // interface. Belongs To association is an example of this implementation.
 func (a Associations) AssociationsBeforeUpdatable() []AssociationBeforeUpdatable {
 	var before []AssociationBeforeUpdatable
@@ -179,6 +179,7 @@ func (a Associations) AssociationsCreatableStatement() []AssociationCreatableSta
 	return stm
 }
 
+// AssociationsDeletableStatement ...
 func (a Associations) AssociationsDeletableStatement() []AssociationDeletableStatement {
 	var stm []AssociationDeletableStatement
 	for i := range a {

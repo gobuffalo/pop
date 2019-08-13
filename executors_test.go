@@ -2,6 +2,7 @@ package pop
 
 import (
 	"testing"
+	"time"
 
 	"github.com/gobuffalo/nulls"
 	"github.com/gofrs/uuid"
@@ -9,6 +10,9 @@ import (
 )
 
 func Test_IsZeroOfUnderlyingType(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
 	r := require.New(t)
 	transaction(func(tx *Connection) {
 		car := &ValidatableCar{Name: "VW"}
@@ -39,6 +43,9 @@ func Test_IsZeroOfUnderlyingType(t *testing.T) {
 }
 
 func Test_ValidateAndSave(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
 	r := require.New(t)
 	validationLogs = []string{}
 	transaction(func(tx *Connection) {
@@ -70,6 +77,9 @@ func Test_ValidateAndSave(t *testing.T) {
 }
 
 func Test_ValidateAndSave_With_Slice(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
 	r := require.New(t)
 	validationLogs = []string{}
 	transaction(func(tx *Connection) {
@@ -113,6 +123,9 @@ func Test_ValidateAndSave_With_Slice(t *testing.T) {
 }
 
 func Test_ValidateAndCreate(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
 	r := require.New(t)
 	validationLogs = []string{}
 	transaction(func(tx *Connection) {
@@ -144,6 +157,9 @@ func Test_ValidateAndCreate(t *testing.T) {
 }
 
 func Test_Create_Single_Incremental_ID(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
 	r := require.New(t)
 	validationLogs = []string{}
 	transaction(func(tx *Connection) {
@@ -155,6 +171,9 @@ func Test_Create_Single_Incremental_ID(t *testing.T) {
 }
 
 func Test_ValidateAndCreate_With_Slice(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
 	r := require.New(t)
 	validationLogs = []string{}
 	transaction(func(tx *Connection) {
@@ -197,6 +216,9 @@ func Test_ValidateAndCreate_With_Slice(t *testing.T) {
 }
 
 func Test_ValidateAndUpdate(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
 	r := require.New(t)
 	validationLogs = []string{}
 	transaction(func(tx *Connection) {
@@ -235,6 +257,9 @@ func Test_ValidateAndUpdate(t *testing.T) {
 }
 
 func Test_ValidateAndUpdate_With_Slice(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
 	r := require.New(t)
 	validationLogs = []string{}
 	transaction(func(tx *Connection) {
@@ -281,6 +306,9 @@ func Test_ValidateAndUpdate_With_Slice(t *testing.T) {
 }
 
 func Test_Exec(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
 	transaction(func(tx *Connection) {
 		r := require.New(t)
 
@@ -300,6 +328,9 @@ func Test_Exec(t *testing.T) {
 }
 
 func Test_ExecCount(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
 	transaction(func(tx *Connection) {
 		r := require.New(t)
 
@@ -321,6 +352,9 @@ func Test_ExecCount(t *testing.T) {
 }
 
 func Test_Save(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
 	r := require.New(t)
 	transaction(func(tx *Connection) {
 		u := &User{Name: nulls.NewString("Mark")}
@@ -331,11 +365,15 @@ func Test_Save(t *testing.T) {
 		uat := u.UpdatedAt.UnixNano()
 
 		r.NoError(tx.Save(u))
+		time.Sleep(1 * time.Second)
 		r.NotEqual(uat, u.UpdatedAt.UnixNano())
 	})
 }
 
 func Test_Save_With_Slice(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
 	r := require.New(t)
 	transaction(func(tx *Connection) {
 		u := Users{
@@ -357,6 +395,9 @@ func Test_Save_With_Slice(t *testing.T) {
 }
 
 func Test_Create(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
 	transaction(func(tx *Connection) {
 		r := require.New(t)
 
@@ -378,6 +419,9 @@ func Test_Create(t *testing.T) {
 }
 
 func Test_Create_stringID(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
 	transaction(func(tx *Connection) {
 		r := require.New(t)
 
@@ -400,6 +444,9 @@ func Test_Create_stringID(t *testing.T) {
 }
 
 func Test_Create_With_Slice(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
 	transaction(func(tx *Connection) {
 		r := require.New(t)
 
@@ -418,6 +465,9 @@ func Test_Create_With_Slice(t *testing.T) {
 }
 
 func Test_Eager_Create_Has_Many(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
 	transaction(func(tx *Connection) {
 		r := require.New(t)
 		count, _ := tx.Count(&User{})
@@ -460,6 +510,9 @@ func Test_Eager_Create_Has_Many(t *testing.T) {
 }
 
 func Test_Eager_Create_Has_Many_With_Existing(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
 	transaction(func(tx *Connection) {
 		r := require.New(t)
 
@@ -518,6 +571,9 @@ func Test_Eager_Create_Has_Many_With_Existing(t *testing.T) {
 }
 
 func Test_Eager_Create_Has_Many_Reset_Eager_Mode_Connection(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
 	transaction(func(tx *Connection) {
 		r := require.New(t)
 		count, _ := tx.Count(&User{})
@@ -543,6 +599,9 @@ func Test_Eager_Create_Has_Many_Reset_Eager_Mode_Connection(t *testing.T) {
 }
 
 func Test_Eager_Validate_And_Create_Has_Many(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
 	r := require.New(t)
 	transaction(func(tx *Connection) {
 		user := User{
@@ -563,6 +622,9 @@ func Test_Eager_Validate_And_Create_Has_Many(t *testing.T) {
 }
 
 func Test_Eager_Validate_And_Create_Parental(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
 	r := require.New(t)
 	transaction(func(tx *Connection) {
 		user := User{
@@ -583,6 +645,9 @@ func Test_Eager_Validate_And_Create_Parental(t *testing.T) {
 }
 
 func Test_Eager_Validate_And_Create_Parental_With_Existing(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
 	r := require.New(t)
 	transaction(func(tx *Connection) {
 		addr := Address{HouseNumber: 42, Street: "Life"}
@@ -644,6 +709,9 @@ func Test_Eager_Validate_And_Create_Parental_With_Existing(t *testing.T) {
 }
 
 func Test_Eager_Validate_And_Create_Parental_With_Partial_Existing(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
 	r := require.New(t)
 	transaction(func(tx *Connection) {
 		addr := Address{HouseNumber: 42, Street: "Life"}
@@ -705,6 +773,9 @@ func Test_Eager_Validate_And_Create_Parental_With_Partial_Existing(t *testing.T)
 }
 
 func Test_Flat_Validate_And_Create_Parental_With_Existing(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
 	r := require.New(t)
 	transaction(func(tx *Connection) {
 		addr := Address{HouseNumber: 42, Street: "Life"}
@@ -795,6 +866,9 @@ func Test_Flat_Validate_And_Create_Parental_With_Existing(t *testing.T) {
 }
 
 func Test_Flat_Validate_And_Create_Parental_With_Partial_Existing(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
 	r := require.New(t)
 	transaction(func(tx *Connection) {
 		addr := Address{HouseNumber: 42, Street: "Life"}
@@ -873,6 +947,9 @@ func Test_Flat_Validate_And_Create_Parental_With_Partial_Existing(t *testing.T) 
 }
 
 func Test_Eager_Create_Belongs_To(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
 	transaction(func(tx *Connection) {
 		r := require.New(t)
 		book := Book{
@@ -914,6 +991,9 @@ func Test_Eager_Create_Belongs_To(t *testing.T) {
 }
 
 func Test_Eager_Create_Belongs_To_Pointers(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
 	transaction(func(tx *Connection) {
 		r := require.New(t)
 		// Create a body with a head
@@ -957,6 +1037,9 @@ func Test_Eager_Create_Belongs_To_Pointers(t *testing.T) {
 }
 
 func Test_Create_Belongs_To_Pointers(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
 	transaction(func(tx *Connection) {
 		r := require.New(t)
 		// Create a body without a head:
@@ -984,6 +1067,9 @@ func Test_Create_Belongs_To_Pointers(t *testing.T) {
 }
 
 func Test_Flat_Create_Belongs_To(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
 	transaction(func(tx *Connection) {
 		r := require.New(t)
 		user := User{
@@ -1032,6 +1118,9 @@ func Test_Flat_Create_Belongs_To(t *testing.T) {
 }
 
 func Test_Eager_Creation_Without_Associations(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
 	transaction(func(tx *Connection) {
 		r := require.New(t)
 		code := CourseCode{
@@ -1047,6 +1136,9 @@ func Test_Eager_Creation_Without_Associations(t *testing.T) {
 }
 
 func Test_Create_UUID(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
 	transaction(func(tx *Connection) {
 		r := require.New(t)
 
@@ -1067,6 +1159,9 @@ func Test_Create_UUID(t *testing.T) {
 }
 
 func Test_Create_Existing_UUID(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
 	transaction(func(tx *Connection) {
 		r := require.New(t)
 		id, err := uuid.NewV4()
@@ -1090,6 +1185,9 @@ func Test_Create_Existing_UUID(t *testing.T) {
 }
 
 func Test_Create_Timestamps(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
 	transaction(func(tx *Connection) {
 		r := require.New(t)
 
@@ -1110,6 +1208,9 @@ func Test_Create_Timestamps(t *testing.T) {
 }
 
 func Test_Update(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
 	transaction(func(tx *Connection) {
 		r := require.New(t)
 
@@ -1129,6 +1230,9 @@ func Test_Update(t *testing.T) {
 }
 
 func Test_Update_With_Slice(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
 	transaction(func(tx *Connection) {
 		r := require.New(t)
 
@@ -1157,6 +1261,9 @@ func Test_Update_With_Slice(t *testing.T) {
 }
 
 func Test_Update_UUID(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
 	transaction(func(tx *Connection) {
 		r := require.New(t)
 
@@ -1178,6 +1285,9 @@ func Test_Update_UUID(t *testing.T) {
 }
 
 func Test_Destroy(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
 	transaction(func(tx *Connection) {
 		r := require.New(t)
 
@@ -1201,6 +1311,9 @@ func Test_Destroy(t *testing.T) {
 }
 
 func Test_Destroy_With_Slice(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
 	transaction(func(tx *Connection) {
 		r := require.New(t)
 
@@ -1228,6 +1341,9 @@ func Test_Destroy_With_Slice(t *testing.T) {
 }
 
 func Test_Destroy_UUID(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
 	transaction(func(tx *Connection) {
 		r := require.New(t)
 
@@ -1250,27 +1366,30 @@ func Test_Destroy_UUID(t *testing.T) {
 	})
 }
 
-// func Test_TruncateAll(t *testing.T) {
-// 	count := int(0)
-// 	transaction(func(tx *Connection) {
-// 		r := require.New(t)
-//
-// 		var err error
-// 		count, err = tx.Count("users")
-// 		r.NoError(err)
-// 		user := User{Name: nulls.NewString("Mark")}
-// 		err = tx.Create(&user)
-// 		r.NoError(err)
-// 		r.NotEqual(user.ID, 0)
-//
-// 		ctx, err := tx.Count("users")
-// 		r.NoError(err)
-// 		r.Equal(count+1, ctx)
-//
-// 		err = tx.TruncateAll()
-// 		r.NoError(err)
-//
-// 		ctx, _ = tx.Count("users")
-// 		r.Equal(count, ctx)
-// 	})
-// }
+func Test_TruncateAll(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
+	count := int(0)
+	transaction(func(tx *Connection) {
+		r := require.New(t)
+
+		var err error
+		count, err = tx.Count("users")
+		r.NoError(err)
+		user := User{Name: nulls.NewString("Mark")}
+		err = tx.Create(&user)
+		r.NoError(err)
+		r.NotEqual(user.ID, 0)
+
+		ctx, err := tx.Count("users")
+		r.NoError(err)
+		r.Equal(count+1, ctx)
+
+		err = tx.TruncateAll()
+		r.NoError(err)
+
+		ctx, _ = tx.Count("users")
+		r.Equal(count, ctx)
+	})
+}

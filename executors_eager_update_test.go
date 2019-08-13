@@ -9,8 +9,12 @@ import (
 )
 
 func Test_Eager_Update_Many_Many_Create(t *testing.T) {
+
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
+	r := require.New(t)
 	transaction(func(tx *Connection) {
-		r := require.New(t)
 		count2, _ := tx.Count(&User{})
 		println("Count of user s in database: ", count2)
 
@@ -49,9 +53,12 @@ func Test_Eager_Update_Many_Many_Create(t *testing.T) {
 }
 
 func Test_Eager_Update_Has_Many_Add_Existing(t *testing.T) {
-	transaction(func(tx *Connection) {
-		r := require.New(t)
 
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
+	r := require.New(t)
+	transaction(func(tx *Connection) {
 		// Create User
 		user := User{
 			Name: nulls.NewString("Carl Lewis"),
@@ -66,7 +73,7 @@ func Test_Eager_Update_Has_Many_Add_Existing(t *testing.T) {
 
 		err := tx.Eager().Create(&user)
 
-		//Create Book
+		// Create Book
 
 		book := Book{Title: "The Life of Pi", Description: "Fiction", Isbn: "PB2"}
 
@@ -88,7 +95,8 @@ func Test_Eager_Update_Has_Many_Add_Existing(t *testing.T) {
 		u.Books = append(u.Books, book)
 
 		// Update user
-		tx.Eager().Update(&u)
+		err = tx.Eager().Update(&u)
+		r.NoError(err)
 
 		u2 := User{}
 		q2 := tx.Eager().Where("name = ?", "Carl Lewis")
@@ -105,9 +113,12 @@ func Test_Eager_Update_Has_Many_Add_Existing(t *testing.T) {
 }
 
 func Test_Eager_Update_Has_Many_Update_Existing(t *testing.T) {
-	transaction(func(tx *Connection) {
-		r := require.New(t)
 
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
+	r := require.New(t)
+	transaction(func(tx *Connection) {
 		// Create User
 		user := User{
 			Name: nulls.NewString("Carl Lewis"),
@@ -122,7 +133,7 @@ func Test_Eager_Update_Has_Many_Update_Existing(t *testing.T) {
 
 		err := tx.Eager().Create(&user)
 
-		//Create Book
+		// Create Book
 
 		// Find user
 		u := User{}
@@ -138,7 +149,8 @@ func Test_Eager_Update_Has_Many_Update_Existing(t *testing.T) {
 		u.Houses[0] = address
 
 		// Update user
-		tx.Eager().Update(&u)
+		err = tx.Eager().Update(&u)
+		r.NoError(err)
 
 		u2 := User{}
 		q2 := tx.Eager().Where("name = ?", "Carl Lewis")
@@ -151,9 +163,12 @@ func Test_Eager_Update_Has_Many_Update_Existing(t *testing.T) {
 }
 
 func Test_Eager_Update_Many_2_Many_Update_Existing(t *testing.T) {
-	transaction(func(tx *Connection) {
-		r := require.New(t)
 
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
+	r := require.New(t)
+	transaction(func(tx *Connection) {
 		// Create User
 		user := User{
 			Name: nulls.NewString("Carl Lewis"),
@@ -168,7 +183,7 @@ func Test_Eager_Update_Many_2_Many_Update_Existing(t *testing.T) {
 
 		err := tx.Eager().Create(&user)
 
-		//Create Address
+		// Create Address
 
 		addy2 := Address{HouseNumber: 33, Street: "Broad"}
 
@@ -184,7 +199,8 @@ func Test_Eager_Update_Many_2_Many_Update_Existing(t *testing.T) {
 		u.Houses = append(u.Houses, addy2)
 
 		// Update user
-		tx.Eager().Update(&u)
+		err = tx.Eager().Update(&u)
+		r.NoError(err)
 
 		u2 := User{}
 		q2 := tx.Eager().Where("name = ?", "Carl Lewis")
@@ -199,9 +215,12 @@ func Test_Eager_Update_Many_2_Many_Update_Existing(t *testing.T) {
 }
 
 func Test_Eager_Update_Has_One(t *testing.T) {
-	transaction(func(tx *Connection) {
-		r := require.New(t)
 
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
+	r := require.New(t)
+	transaction(func(tx *Connection) {
 		// Create User
 		user := User{
 			Name: nulls.NewString("Carl Lewis"),
@@ -227,7 +246,8 @@ func Test_Eager_Update_Has_One(t *testing.T) {
 		u.FavoriteSong = Song{Title: "Body - Brando"}
 
 		// Update user
-		tx.Eager().Update(&u)
+		err = tx.Eager().Update(&u)
+		r.NoError(err)
 
 		u2 := User{}
 		q2 := tx.Eager().Where("name = ?", "Carl Lewis")
@@ -247,8 +267,12 @@ func Test_Eager_Update_Has_One(t *testing.T) {
 }
 
 func Test_Eager_Update_Many_To_Many(t *testing.T) {
+
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
+	r := require.New(t)
 	transaction(func(tx *Connection) {
-		r := require.New(t)
 
 		user := User{
 			Name: nulls.NewString("Carl Lewis"),
@@ -278,7 +302,8 @@ func Test_Eager_Update_Many_To_Many(t *testing.T) {
 
 		u.Houses = u.Houses[1:]
 
-		tx.Eager().Update(&u)
+		err = tx.Eager().Update(&u)
+		r.NoError(err)
 
 		u2 := User{}
 		q2 := tx.Eager().Where("name = ?", "Carl Lewis")
@@ -291,9 +316,12 @@ func Test_Eager_Update_Many_To_Many(t *testing.T) {
 }
 
 func Test_Eager_Update_Has_Many_Transfer(t *testing.T) {
-	transaction(func(tx *Connection) {
-		r := require.New(t)
 
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
+	r := require.New(t)
+	transaction(func(tx *Connection) {
 		// Create Users
 		user := User{
 			Name: nulls.NewString("Carl Lewis"),
@@ -330,7 +358,8 @@ func Test_Eager_Update_Has_Many_Transfer(t *testing.T) {
 		u.Books = user.Books
 
 		// Update user
-		tx.Eager().Update(&u)
+		err = tx.Eager().Update(&u)
+		r.NoError(err)
 
 		u2 := User{}
 		q2 := tx.Eager().Where("name = ?", "Carl Lewis")
@@ -359,9 +388,12 @@ func Test_Eager_Update_Has_Many_Transfer(t *testing.T) {
 }
 
 func Test_Eager_Update_Belongs_To(t *testing.T) {
-	transaction(func(tx *Connection) {
-		r := require.New(t)
 
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
+	r := require.New(t)
+	transaction(func(tx *Connection) {
 		// Create Users
 		user := User{
 			Name: nulls.NewString("Carl Lewis"),

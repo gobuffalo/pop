@@ -22,7 +22,7 @@ func (i Int) Interface() interface{} {
 func (i *Int) Scan(src interface{}) error {
 	b, ok := src.([]byte)
 	if !ok {
-		return errors.New("Scan source was not []byte")
+		return errors.New("scan source was not []byte")
 	}
 	str := string(b)
 	*i = strToInt(str)

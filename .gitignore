@@ -30,7 +30,9 @@ gin-bin
 tsoda
 migrations/schema.sql
 .grifter/
-cockroach-data/
 vendor/
 go.mod
 go.sum
+
+# test data
+cockroach-data/

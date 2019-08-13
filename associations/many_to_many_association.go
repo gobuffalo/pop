@@ -10,7 +10,7 @@ import (
 	"github.com/jmoiron/sqlx"
 
 	"github.com/gobuffalo/flect"
-	"github.com/gobuffalo/x/defaults"
+	"github.com/gobuffalo/pop/internal/defaults"
 	"github.com/gofrs/uuid"
 )
 
@@ -101,6 +101,13 @@ func (m *manyToManyAssociation) OrderBy() string {
 }
 
 func (m *manyToManyAssociation) BeforeInterface() interface{} {
+	if m.fieldValue.Kind() == reflect.Ptr {
+		return m.fieldValue.Interface()
+	}
+	return m.fieldValue.Addr().Interface()
+}
+
+func (m *manyToManyAssociation) BeforeUpdateableInterface() interface{} {
 	if m.fieldValue.Kind() == reflect.Ptr {
 		return m.fieldValue.Interface()
 	}
