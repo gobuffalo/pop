@@ -3,8 +3,9 @@ package associations
 import (
 	"reflect"
 
+	"github.com/gobuffalo/nulls"
+
 	"github.com/gobuffalo/pop/columns"
-	"github.com/gobuffalo/pop/nulls"
 )
 
 // Association represents a definition of a model association
@@ -63,11 +64,10 @@ type AssociationBeforeCreatable interface {
 	Association
 }
 
-
-  // AssociationBeforeUpdatable allows an association to be updated before
-  // the parent structure.
+// AssociationBeforeUpdatable allows an association to be updated before
+// the parent structure.
 type AssociationBeforeUpdatable interface {
-	EagerBeforeInterface() interface{}
+	BeforeUpdateableInterface() interface{}
 	BeforeSetup() error
 	Association
 }
@@ -87,7 +87,6 @@ type AssociationAfterUpdatable interface {
 	AfterInterface() interface{}
 	AfterSetup() error
 	AfterFixRelationships() AssociationStatement
-	//AfterProcess() AssociationStatement
 	Association
 }
 

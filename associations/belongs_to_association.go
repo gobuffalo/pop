@@ -5,9 +5,10 @@ import (
 	"reflect"
 
 	"github.com/gobuffalo/flect"
-	"github.com/gobuffalo/pop/columns"
-	"github.com/gobuffalo/pop/nulls"
+	"github.com/gobuffalo/nulls"
 	"github.com/gobuffalo/x/defaults"
+
+	"github.com/gobuffalo/pop/columns"
 )
 
 // belongsToAssociation is the implementation for the belongs_to association type in a model.
@@ -91,11 +92,6 @@ func (b *belongsToAssociation) Interface() interface{} {
 func (b *belongsToAssociation) Constraint() (string, []interface{}) {
 	return fmt.Sprintf("%s = ?", b.primaryTableID), []interface{}{b.ownerID.Interface()}
 }
-// Wraps BeforeInterface
-func (b *belongsToAssociation) EagerBeforeInterface() interface {} {
-	b.skipped = true
-	return b.BeforeInterface()
-}
 
 func (b *belongsToAssociation) BeforeInterface() interface{} {
 	// if the owner field is set, don't try to create the association to prevent conflicts.
@@ -104,7 +100,31 @@ func (b *belongsToAssociation) BeforeInterface() interface{} {
 	}
 
 	m := b.ownerModel
-	if m.Kind() == reflect.Ptr {
+	if m.Kind() == reflect.Ptr && !m.IsNil() {
+		m = b.ownerModel.Elem()
+	}
+
+	if IsZeroOfUnderlyingType(m.Interface()) {
+		return nil
+	}
+
+	return m.Addr().Interface()
+}
+
+func (b *belongsToAssociation) BeforeUpdateableInterface() interface{} {
+
+	/*
+		In the case of belongsToAssociation  we should never create a the owner of the association.
+		Instead we should just update it. IF there is a different user that user usually should be
+		created before it's associated with the owned model. I can't think of many cases where the
+		thing to be owned would create it's owner. I could be wrong. Therefore we won't skip the updatd
+		if !b.skipped {
+			return nil
+		}
+	*/
+
+	m := b.ownerModel
+	if m.Kind() == reflect.Ptr && !m.IsNil() {
 		m = b.ownerModel.Elem()
 	}
 
@@ -116,12 +136,14 @@ func (b *belongsToAssociation) BeforeInterface() interface{} {
 }
 
 func (b *belongsToAssociation) BeforeSetup() error {
-	ownerID := reflect.Indirect(reflect.ValueOf(b.ownerModel.Interface())).FieldByName("ID").Interface()
+	ownerID := reflect.Indirect(reflect.ValueOf(b.ownerModel.Interface())).FieldByName("ID")
 	if b.ownerID.CanSet() {
 		if n := nulls.New(b.ownerID.Interface()); n != nil {
-			b.ownerID.Set(reflect.ValueOf(n.Parse(ownerID)))
+			b.ownerID.Set(reflect.ValueOf(n.Parse(ownerID.Interface())))
+		} else if b.ownerID.Kind() == reflect.Ptr {
+			b.ownerID.Set(ownerID.Addr())
 		} else {
-			b.ownerID.Set(reflect.ValueOf(ownerID))
+			b.ownerID.Set(ownerID)
 		}
 		return nil
 	}

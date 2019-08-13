@@ -24,6 +24,7 @@ import (
 
 type model struct {
 	Package               string
+	ModelPath             string
 	Imports               []string
 	Name                  nflect.Ident
 	attributesCache       map[string]struct{}
@@ -52,9 +53,9 @@ func (m model) Generate() error {
 	ctx["encoding_type"] = m.StructTag
 	ctx["encoding_type_char"] = nflect.Char(m.StructTag)
 
-	fname := filepath.Join(m.Package, m.Name.File(".go").String())
+	fname := filepath.Join(m.ModelPath, m.Name.File(".go").String())
 	g.Add(makr.NewFile(fname, modelTemplate))
-	tfname := filepath.Join(m.Package, m.Name.File("_test.go").String())
+	tfname := filepath.Join(m.ModelPath, m.Name.File("_test.go").String())
 	g.Add(makr.NewFile(tfname, modelTestTemplate))
 	return g.Run(".", ctx)
 }
@@ -75,7 +76,7 @@ func (m model) testPkgName() string {
 	pkg := m.Package
 
 	path, _ := os.Getwd()
-	path = filepath.Join(path, "models")
+	path = filepath.Join(path, m.ModelPath)
 
 	if _, err := os.Stat(path); err != nil {
 		return pkg
@@ -86,17 +87,17 @@ func (m model) testPkgName() string {
 
 			b, err := ioutil.ReadFile(p)
 			if err != nil {
-				return errors.WithStack(err)
+				return err
 			}
 			f, err := parser.ParseFile(fset, p, string(b), 0)
 			if err != nil {
-				return errors.WithStack(err)
+				return err
 			}
 
 			conf := types.Config{Importer: importer.Default()}
 			p, err := conf.Check("cmd/hello", fset, []*ast.File{f}, nil)
 			if err != nil {
-				return errors.WithStack(err)
+				return err
 			}
 			pkg = p.Name()
 
@@ -117,6 +118,7 @@ func (m *model) addAttribute(a attribute) error {
 	if a.Name.String() == "id" {
 		// No need to create a default ID
 		m.HasID = true
+		a.Primary = true
 		// Ensure ID is the first attribute
 		m.Attributes = append([]attribute{a}, m.Attributes...)
 	} else {
@@ -143,7 +145,7 @@ func (m *model) addID() {
 
 	if !m.HasUUID {
 		m.HasUUID = true
-		m.Imports = append(m.Imports, "github.com/gobuffalo/uuid")
+		m.Imports = append(m.Imports, "github.com/gofrs/uuid")
 	}
 
 	id := flect.New("id")
@@ -154,9 +156,9 @@ func (m *model) addID() {
 }
 
 func (m model) generateModelFile() error {
-	err := os.MkdirAll(m.Package, 0766)
+	err := os.MkdirAll(m.ModelPath, 0766)
 	if err != nil {
-		return errors.Wrapf(err, "couldn't create folder %s", m.Package)
+		return errors.Wrapf(err, "couldn't create folder %s", m.ModelPath)
 	}
 
 	return m.Generate()
@@ -201,6 +203,7 @@ func (m model) Fizz() string {
 			s = append(s, "\t"+col.String())
 		}
 	}
+	s = append(s, "\tt.Timestamps()")
 	s = append(s, "}")
 	return strings.Join(s, "\n")
 }
@@ -219,9 +222,10 @@ func (m model) GenerateSQLFromFizz(content string, f fizz.Translator) string {
 	return content
 }
 
-func newModel(name string, structTag string) (model, error) {
+func newModel(name, structTag, modelPath string) (model, error) {
 	m := model{
-		Package:               "models",
+		Package:               filepath.Base(modelPath),
+		ModelPath:             modelPath,
 		Imports:               []string{"time", "github.com/gobuffalo/pop", "github.com/gobuffalo/validate"},
 		Name:                  nflect.New(name),
 		Attributes:            []attribute{},

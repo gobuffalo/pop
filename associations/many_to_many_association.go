@@ -3,13 +3,15 @@ package associations
 import (
 	"bytes"
 	"fmt"
-	"github.com/jmoiron/sqlx"
 	"reflect"
 	"text/template"
 	"time"
 
+	"github.com/jmoiron/sqlx"
+
 	"github.com/gobuffalo/flect"
-	"github.com/gobuffalo/uuid"
+	"github.com/gobuffalo/x/defaults"
+	"github.com/gofrs/uuid"
 )
 
 type manyToManyAssociation struct {
@@ -75,24 +77,18 @@ func (m *manyToManyAssociation) Interface() interface{} {
 // Constraint returns the content for a where clause, and the args
 // needed to execute it.
 func (m *manyToManyAssociation) Constraint() (string, []interface{}) {
-	modelColumnID := fmt.Sprintf("%s%s", flect.Underscore(m.model.Type().Name()), "_id")
+	modelColumnID := defaults.String(m.primaryID, fmt.Sprintf("%s%s", flect.Underscore(m.model.Type().Name()), "_id"))
 
 	var columnFieldID string
 	i := reflect.Indirect(m.fieldValue)
+	t := i.Type()
 	if i.Kind() == reflect.Slice || i.Kind() == reflect.Array {
-		t := i.Type().Elem()
-		columnFieldID = fmt.Sprintf("%s%s", flect.Underscore(t.Name()), "_id")
-	} else {
-		columnFieldID = fmt.Sprintf("%s%s", flect.Underscore(i.Type().Name()), "_id")
+		t = t.Elem()
 	}
-
-	if m.fkID != "" {
-		columnFieldID = m.fkID
+	if t.Kind() == reflect.Ptr {
+		t = t.Elem()
 	}
-
-	if m.primaryID != "" {
-		modelColumnID = m.primaryID
-	}
+	columnFieldID = defaults.String(m.fkID, fmt.Sprintf("%s%s", flect.Underscore(t.Name()), "_id"))
 
 	subQuery := fmt.Sprintf("select %s from %s where %s = ?", columnFieldID, m.manyToManyTableName, modelColumnID)
 	modelIDValue := m.model.FieldByName("ID").Interface()
@@ -103,9 +99,6 @@ func (m *manyToManyAssociation) Constraint() (string, []interface{}) {
 func (m *manyToManyAssociation) OrderBy() string {
 	return m.orderBy
 }
-func (m* manyToManyAssociation) EagerBeforeInterface() interface{}{
-	return m.BeforeInterface()
-}
 
 func (m *manyToManyAssociation) BeforeInterface() interface{} {
 	if m.fieldValue.Kind() == reflect.Ptr {
@@ -114,8 +107,11 @@ func (m *manyToManyAssociation) BeforeInterface() interface{} {
 	return m.fieldValue.Addr().Interface()
 }
 
-
 func (m *manyToManyAssociation) BeforeSetup() error {
+	return nil
+}
+
+func (m *manyToManyAssociation) CreateDependencies() interface{} {
 	return nil
 }
 

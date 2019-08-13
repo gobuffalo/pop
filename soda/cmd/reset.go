@@ -4,7 +4,6 @@ import (
 	"os"
 
 	"github.com/gobuffalo/pop"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -63,7 +62,7 @@ func doReset(c *pop.Connection, f *os.File, useMigrations bool) error {
 	}
 	mig, err := pop.NewFileMigrator(migrationPath, getConn())
 	if err != nil {
-		return errors.WithStack(err)
+		return err
 	}
 	if useMigrations {
 		// Apply the migrations directly

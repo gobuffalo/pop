@@ -17,6 +17,12 @@ var PaginatorPageKey = "page"
 // to override the default one
 var PaginatorPerPageKey = "per_page"
 
+type paginable interface {
+	Paginate() string
+}
+
+var _ paginable = Paginator{}
+
 // Paginator is a type used to represent the pagination of records
 // from the database.
 type Paginator struct {
@@ -34,9 +40,14 @@ type Paginator struct {
 	TotalPages int `json:"total_pages"`
 }
 
-func (p Paginator) String() string {
+// Paginate implements the paginable interface.
+func (p Paginator) Paginate() string {
 	b, _ := json.Marshal(p)
 	return string(b)
+}
+
+func (p Paginator) String() string {
+	return p.Paginate()
 }
 
 // NewPaginator returns a new `Paginator` value with the appropriate

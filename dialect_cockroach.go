@@ -4,7 +4,9 @@ import (
 	"database/sql"
 	"fmt"
 	"io"
+	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 	"sync"
 
@@ -32,19 +34,20 @@ func init() {
 var _ dialect = &cockroach{}
 
 // ServerInfo holds informational data about connected database server.
-type ServerInfo struct {
+type cockroachInfo struct {
 	VersionString string `db:"version"`
-	Product       string `db:"-"`
-	License       string `db:"-"`
-	Version       string `db:"-"`
-	BuildInfo     string `db:"-"`
+	product       string `db:"-"`
+	license       string `db:"-"`
+	version       string `db:"-"`
+	buildInfo     string `db:"-"`
+	client        string `db:"-"`
 }
 
 type cockroach struct {
-	translateCache    map[string]string
-	mu                sync.Mutex
-	ConnectionDetails *ConnectionDetails
-	Server            ServerInfo
+	commonDialect
+	translateCache map[string]string
+	mu             sync.Mutex
+	info           cockroachInfo
 }
 
 func (p *cockroach) Name() string {
@@ -73,14 +76,14 @@ func (p *cockroach) Create(s store, model *Model, cols columns.Columns) error {
 		log(logging.SQL, query)
 		stmt, err := s.PrepareNamed(query)
 		if err != nil {
-			return errors.WithStack(err)
+			return err
 		}
 		err = stmt.Get(&id, model.Value)
 		if err != nil {
 			if err := stmt.Close(); err != nil {
 				return errors.WithMessage(err, "failed to close statement")
 			}
-			return errors.WithStack(err)
+			return err
 		}
 		model.setID(id.ID)
 		return errors.WithMessage(stmt.Close(), "failed to close statement")
@@ -94,11 +97,8 @@ func (p *cockroach) Update(s store, model *Model, cols columns.Columns) error {
 
 func (p *cockroach) Destroy(s store, model *Model) error {
 	stmt := p.TranslateSQL(fmt.Sprintf("DELETE FROM %s WHERE %s", model.TableName(), model.whereID()))
-	err := genericExec(s, stmt, model.ID())
-	if err != nil {
-		return errors.WithStack(err)
-	}
-	return nil
+	_, err := genericExec(s, stmt, model.ID())
+	return err
 }
 
 func (p *cockroach) SelectOne(s store, model *Model, query Query) error {
@@ -148,35 +148,19 @@ func (p *cockroach) DropDB() error {
 	return nil
 }
 
-func (p *cockroach) optionString() string {
-	c := p.ConnectionDetails
-
-	if c.RawOptions != "" {
-		return c.RawOptions
-	}
-
-	s := "application_name=cockroach"
-	if c.Options != nil {
-		for k := range c.Options {
-			s = fmt.Sprintf("%s&%s=%s", s, k, c.Options[k])
-		}
-	}
-	return s
-}
-
 func (p *cockroach) URL() string {
 	c := p.ConnectionDetails
 	if c.URL != "" {
 		return c.URL
 	}
 	s := "postgres://%s:%s@%s:%s/%s?%s"
-	return fmt.Sprintf(s, c.User, c.Password, c.Host, c.Port, c.Database, p.optionString())
+	return fmt.Sprintf(s, c.User, c.Password, c.Host, c.Port, c.Database, c.OptionsString(""))
 }
 
 func (p *cockroach) urlWithoutDb() string {
 	c := p.ConnectionDetails
 	s := "postgres://%s:%s@%s:%s/?%s"
-	return fmt.Sprintf(s, c.User, c.Password, c.Host, c.Port, p.optionString())
+	return fmt.Sprintf(s, c.User, c.Password, c.Host, c.Port, c.OptionsString(""))
 }
 
 func (p *cockroach) MigrationURL() string {
@@ -200,10 +184,6 @@ func (p *cockroach) FizzTranslator() fizz.Translator {
 	return translators.NewCockroach(p.URL(), p.Details().Database)
 }
 
-func (p *cockroach) Lock(fn func() error) error {
-	return fn()
-}
-
 func (p *cockroach) DumpSchema(w io.Writer) error {
 	cmd := exec.Command("cockroach", "dump", p.Details().Database, "--dump-mode=schema")
 
@@ -218,33 +198,13 @@ func (p *cockroach) LoadSchema(r io.Reader) error {
 	return genericLoadSchema(p.ConnectionDetails, p.MigrationURL(), r)
 }
 
-func (p *cockroach) FillServerInfo(tx *Connection) error {
-	if err := tx.RawQuery(`select version() AS "version"`).First(&p.Server); err != nil {
-		return err
-	}
-	if s := strings.Split(p.Server.VersionString, " "); len(s) > 3 {
-		p.Server.Product = s[0]
-		p.Server.License = s[1]
-		p.Server.Version = s[2]
-		p.Server.BuildInfo = s[3]
-	}
-	log(logging.Debug, "server: %v %v %v", p.Server.Product, p.Server.License, p.Server.Version)
-
-	return nil
-}
-
 func (p *cockroach) TruncateAll(tx *Connection) error {
 	type table struct {
 		TableName string `db:"table_name"`
 	}
 
-	// move it to `newCockroach()` if it need more
-	if err := p.FillServerInfo(tx); err != nil {
-		return err
-	}
-
 	tableQuery := "select table_name from information_schema.tables where table_schema = 'public' and table_type = 'BASE TABLE' and table_catalog = ?"
-	if strings.HasPrefix(p.Server.Version, "v1") {
+	if strings.HasPrefix(p.info.version, "v1") {
 		tableQuery = "select table_name from information_schema.tables where table_schema = ?"
 	}
 
@@ -272,16 +232,34 @@ func (p *cockroach) TruncateAll(tx *Connection) error {
 	// return tx3.RawQuery(fmt.Sprintf("truncate %s cascade;", strings.Join(tableNames, ", "))).Exec()
 }
 
+func (p *cockroach) AfterOpen(c *Connection) error {
+	if err := c.RawQuery(`select version() AS "version"`).First(&p.info); err != nil {
+		return err
+	}
+	if s := strings.Split(p.info.VersionString, " "); len(s) > 3 {
+		p.info.product = s[0]
+		p.info.license = s[1]
+		p.info.version = s[2]
+		p.info.buildInfo = s[3]
+	}
+	log(logging.Debug, "server: %v %v %v", p.info.product, p.info.license, p.info.version)
+
+	return nil
+}
+
 func newCockroach(deets *ConnectionDetails) (dialect, error) {
 	deets.Dialect = "postgres"
-	cd := &cockroach{
-		ConnectionDetails: deets,
-		translateCache:    map[string]string{},
-		mu:                sync.Mutex{},
+	d := &cockroach{
+		commonDialect:  commonDialect{ConnectionDetails: deets},
+		translateCache: map[string]string{},
+		mu:             sync.Mutex{},
 	}
-	return cd, nil
+	d.info.client = deets.Options["application_name"]
+	return d, nil
 }
 
 func finalizerCockroach(cd *ConnectionDetails) {
+	appName := filepath.Base(os.Args[0])
+	cd.Options["application_name"] = defaults.String(cd.Options["application_name"], appName)
 	cd.Port = defaults.String(cd.Port, portCockroach)
 }

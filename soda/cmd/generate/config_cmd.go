@@ -12,7 +12,6 @@ import (
 	"github.com/gobuffalo/pop/genny/config"
 	"github.com/markbates/going/defaults"
 	"github.com/markbates/oncer"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -45,7 +44,7 @@ var ConfigCmd = &cobra.Command{
 			Dialect:  dialect,
 		})
 		if err != nil {
-			return errors.WithStack(err)
+			return err
 		}
 		run.With(g)
 
@@ -78,7 +77,7 @@ func Config(cfgFile string, data map[string]interface{}) error {
 	})
 
 	if err != nil {
-		return errors.WithStack(err)
+		return err
 	}
 	run.With(g)
 

@@ -7,7 +7,7 @@ import (
 	"text/template"
 
 	"github.com/gobuffalo/flect"
-	"github.com/gobuffalo/pop/nulls"
+	"github.com/gobuffalo/nulls"
 	"github.com/gobuffalo/x/defaults"
 )
 
@@ -59,6 +59,9 @@ func hasOneAssociationBuilder(p associationParams) (Association, error) {
 }
 
 func (h *hasOneAssociation) Kind() reflect.Kind {
+	if h.ownedType.Kind() == reflect.Ptr {
+		return h.ownedType.Elem().Kind()
+	}
 	return h.ownedType.Kind()
 }
 

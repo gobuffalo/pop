@@ -3,8 +3,8 @@ package pop
 import (
 	"testing"
 
-	"github.com/gobuffalo/pop/nulls"
-	"github.com/gobuffalo/uuid"
+	"github.com/gobuffalo/nulls"
+	"github.com/gofrs/uuid"
 	"github.com/stretchr/testify/require"
 )
 
@@ -761,5 +761,22 @@ func Test_Exists(t *testing.T) {
 
 		t, _ = tx.Where("id = ?", user.ID).Exists("users")
 		r.True(t)
+	})
+}
+
+func Test_FindManyToMany(t *testing.T) {
+	transaction(func(tx *Connection) {
+		r := require.New(t)
+		parent := &Parent{}
+		r.NoError(tx.Create(parent))
+
+		student := &Student{}
+		r.NoError(tx.Create(student))
+
+		r.NoError(tx.RawQuery("INSERT INTO parents_students (student_id, parent_id) VALUES(?,?)", student.ID, parent.ID).Exec())
+
+		p := &Parent{}
+		err := tx.Eager("Students").Find(p, parent.ID)
+		r.NoError(err)
 	})
 }

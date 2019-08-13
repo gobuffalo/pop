@@ -3,8 +3,8 @@ package pop
 import (
 	"testing"
 
-	"github.com/gobuffalo/pop/nulls"
-	"github.com/gobuffalo/uuid"
+	"github.com/gobuffalo/nulls"
+	"github.com/gofrs/uuid"
 	"github.com/stretchr/testify/require"
 )
 
@@ -947,6 +947,39 @@ func Test_Eager_Create_Belongs_To_Pointers(t *testing.T) {
 
 		ctx, _ = tx.Count(&Head{})
 		r.Equal(1, ctx)
+
+		err = tx.Eager().Create(&Head{
+			BodyID: body.ID,
+			Body:   nil,
+		})
+		r.NoError(err)
+	})
+}
+
+func Test_Create_Belongs_To_Pointers(t *testing.T) {
+	transaction(func(tx *Connection) {
+		r := require.New(t)
+		// Create a body without a head:
+		body := Body{
+			Head: nil,
+		}
+
+		err := tx.Create(&body)
+		r.NoError(err)
+		r.NotZero(body.ID)
+		r.Nil(body.Head)
+
+		// Create a head with the associated model set but not the ID
+		created := HeadPtr{
+			Body: &body,
+		}
+		err = tx.Create(&created)
+		r.NoError(err)
+
+		found := HeadPtr{}
+		err = tx.Find(&found, created.ID)
+		r.NoError(err)
+		r.Equal(body.ID, *found.BodyID)
 	})
 }
 
@@ -1217,27 +1250,27 @@ func Test_Destroy_UUID(t *testing.T) {
 	})
 }
 
-func Test_TruncateAll(t *testing.T) {
-	count := int(0)
-	transaction(func(tx *Connection) {
-		r := require.New(t)
-
-		var err error
-		count, err = tx.Count("users")
-		r.NoError(err)
-		user := User{Name: nulls.NewString("Mark")}
-		err = tx.Create(&user)
-		r.NoError(err)
-		r.NotEqual(user.ID, 0)
-
-		ctx, err := tx.Count("users")
-		r.NoError(err)
-		r.Equal(count+1, ctx)
-
-		err = tx.TruncateAll()
-		r.NoError(err)
-
-		ctx, _ = tx.Count("users")
-		r.Equal(count, ctx)
-	})
-}
+// func Test_TruncateAll(t *testing.T) {
+// 	count := int(0)
+// 	transaction(func(tx *Connection) {
+// 		r := require.New(t)
+//
+// 		var err error
+// 		count, err = tx.Count("users")
+// 		r.NoError(err)
+// 		user := User{Name: nulls.NewString("Mark")}
+// 		err = tx.Create(&user)
+// 		r.NoError(err)
+// 		r.NotEqual(user.ID, 0)
+//
+// 		ctx, err := tx.Count("users")
+// 		r.NoError(err)
+// 		r.Equal(count+1, ctx)
+//
+// 		err = tx.TruncateAll()
+// 		r.NoError(err)
+//
+// 		ctx, _ = tx.Count("users")
+// 		r.Equal(count, ctx)
+// 	})
+// }
