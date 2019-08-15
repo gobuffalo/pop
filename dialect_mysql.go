@@ -13,9 +13,9 @@ import (
 	"github.com/gobuffalo/fizz"
 	"github.com/gobuffalo/fizz/translators"
 	"github.com/gobuffalo/pop/columns"
+	"github.com/gobuffalo/pop/internal/defaults"
+	"github.com/gobuffalo/pop/internal/oncer"
 	"github.com/gobuffalo/pop/logging"
-	"github.com/markbates/going/defaults"
-	"github.com/markbates/oncer"
 	"github.com/pkg/errors"
 )
 

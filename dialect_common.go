@@ -116,9 +116,9 @@ func genericExec(s store, stmt string, args ...interface{}) (sql.Result, error) 
 }
 
 func genericSelectOne(s store, model *Model, query Query) error {
-	sql, args := query.ToSQL(model)
-	log(logging.SQL, sql, args...)
-	err := s.Get(model.Value, sql, args...)
+	sqlQuery, args := query.ToSQL(model)
+	log(logging.SQL, sqlQuery, args...)
+	err := s.Get(model.Value, sqlQuery, args...)
 	if err != nil {
 		return err
 	}
@@ -126,9 +126,9 @@ func genericSelectOne(s store, model *Model, query Query) error {
 }
 
 func genericSelectMany(s store, models *Model, query Query) error {
-	sql, args := query.ToSQL(models)
-	log(logging.SQL, sql, args...)
-	err := s.Select(models.Value, sql, args...)
+	sqlQuery, args := query.ToSQL(models)
+	log(logging.SQL, sqlQuery, args...)
+	err := s.Select(models.Value, sqlQuery, args...)
 	if err != nil {
 		return err
 	}
