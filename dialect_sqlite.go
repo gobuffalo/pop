@@ -63,9 +63,9 @@ func (m *sqlite) Create(s store, model *Model, cols columns.Columns) error {
 			w := cols.Writeable()
 			var query string
 			if len(w.Cols) > 0 {
-				query = fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s)", model.TableName(), w.String(), w.SymbolizedString())
+				query = fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s)", m.Quote(model.TableName()), w.QuotedString(m), w.SymbolizedString())
 			} else {
-				query = fmt.Sprintf("INSERT INTO %s DEFAULT VALUES", model.TableName())
+				query = fmt.Sprintf("INSERT INTO %s DEFAULT VALUES", m.Quote(model.TableName()))
 			}
 			log(logging.SQL, query)
 			res, err := s.NamedExec(query, model.Value)
@@ -81,19 +81,19 @@ func (m *sqlite) Create(s store, model *Model, cols columns.Columns) error {
 			}
 			return nil
 		}
-		return errors.Wrap(genericCreate(s, model, cols), "sqlite create")
+		return errors.Wrap(genericCreate(s, model, cols, m), "sqlite create")
 	})
 }
 
 func (m *sqlite) Update(s store, model *Model, cols columns.Columns) error {
 	return m.locker(m.smGil, func() error {
-		return errors.Wrap(genericUpdate(s, model, cols), "sqlite update")
+		return errors.Wrap(genericUpdate(s, model, cols, m), "sqlite update")
 	})
 }
 
 func (m *sqlite) Destroy(s store, model *Model) error {
 	return m.locker(m.smGil, func() error {
-		return errors.Wrap(genericDestroy(s, model), "sqlite destroy")
+		return errors.Wrap(genericDestroy(s, model, m), "sqlite destroy")
 	})
 }
 
@@ -205,7 +205,7 @@ func (m *sqlite) TruncateAll(tx *Connection) error {
 	}
 	stmts := []string{}
 	for _, n := range names {
-		stmts = append(stmts, fmt.Sprintf("DELETE FROM %s", n.Name))
+		stmts = append(stmts, fmt.Sprintf("DELETE FROM %s", m.Quote(n.Name)))
 	}
 	return tx.RawQuery(strings.Join(stmts, "; ")).Exec()
 }
