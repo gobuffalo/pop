@@ -11,6 +11,8 @@ import (
 	"github.com/gofrs/uuid"
 )
 
+var nowFunc = time.Now
+
 var tableMap = map[string]string{}
 var tableMapMu = sync.RWMutex{}
 
@@ -142,9 +144,14 @@ func (m *Model) setID(i interface{}) {
 func (m *Model) touchCreatedAt() {
 	fbn, err := m.fieldByName("CreatedAt")
 	if err == nil {
-		now := time.Now()
-		switch fbn.Kind() {
-		case reflect.Int, reflect.Int64:
+		now := nowFunc().Truncate(time.Microsecond)
+		v := fbn.Interface()
+		if !IsZeroOfUnderlyingType(v) {
+			// Do not override already set CreatedAt
+			return
+		}
+		switch v.(type) {
+		case int, int64:
 			fbn.SetInt(now.Unix())
 		default:
 			fbn.Set(reflect.ValueOf(now))
@@ -155,9 +162,10 @@ func (m *Model) touchCreatedAt() {
 func (m *Model) touchUpdatedAt() {
 	fbn, err := m.fieldByName("UpdatedAt")
 	if err == nil {
-		now := time.Now()
-		switch fbn.Kind() {
-		case reflect.Int, reflect.Int64:
+		now := nowFunc().Truncate(time.Microsecond)
+		v := fbn.Interface()
+		switch v.(type) {
+		case int, int64:
 			fbn.SetInt(now.Unix())
 		default:
 			fbn.Set(reflect.ValueOf(now))
