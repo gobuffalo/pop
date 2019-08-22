@@ -1,16 +1,19 @@
-package pop_test
+package pop
 
 import (
 	"fmt"
 	"testing"
 
-	"github.com/gobuffalo/pop"
+	"github.com/gofrs/uuid"
 	"github.com/stretchr/testify/require"
 )
 
 func Test_Where(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
 	a := require.New(t)
-	m := &pop.Model{Value: &Enemy{}}
+	m := &Model{Value: &Enemy{}}
 
 	q := PDB.Where("id = ?", 1)
 	sql, _ := q.ToSQL(m)
@@ -30,8 +33,11 @@ func Test_Where(t *testing.T) {
 }
 
 func Test_Where_In(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
 	r := require.New(t)
-	transaction(func(tx *pop.Connection) {
+	transaction(func(tx *Connection) {
 		u1 := &Song{Title: "A"}
 		u2 := &Song{Title: "B"}
 		u3 := &Song{Title: "C"}
@@ -42,16 +48,19 @@ func Test_Where_In(t *testing.T) {
 		err = tx.Create(u3)
 		r.NoError(err)
 
-		songs := []Song{}
+		var songs []Song
 		err = tx.Where("id in (?)", u1.ID, u3.ID).All(&songs)
 		r.NoError(err)
 		r.Len(songs, 2)
 	})
 }
 
-func Test_Where_In_Complex(t *testing.T) {
+func Test_Where_In_Slice(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
 	r := require.New(t)
-	transaction(func(tx *pop.Connection) {
+	transaction(func(tx *Connection) {
 		u1 := &Song{Title: "A"}
 		u2 := &Song{Title: "A"}
 		u3 := &Song{Title: "A"}
@@ -62,7 +71,30 @@ func Test_Where_In_Complex(t *testing.T) {
 		err = tx.Create(u3)
 		r.NoError(err)
 
-		songs := []Song{}
+		var songs []Song
+		err = tx.Where("id in (?)", []uuid.UUID{u1.ID, u3.ID}).Where("title = ?", "A").All(&songs)
+		r.NoError(err)
+		r.Len(songs, 2)
+	})
+}
+
+func Test_Where_In_Complex(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
+	r := require.New(t)
+	transaction(func(tx *Connection) {
+		u1 := &Song{Title: "A"}
+		u2 := &Song{Title: "A"}
+		u3 := &Song{Title: "A"}
+		err := tx.Create(u1)
+		r.NoError(err)
+		err = tx.Create(u2)
+		r.NoError(err)
+		err = tx.Create(u3)
+		r.NoError(err)
+
+		var songs []Song
 		err = tx.Where("id in (?)", u1.ID, u3.ID).Where("title = ?", "A").All(&songs)
 		r.NoError(err)
 		r.Len(songs, 2)
@@ -70,9 +102,12 @@ func Test_Where_In_Complex(t *testing.T) {
 }
 
 func Test_Order(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
 	a := require.New(t)
 
-	m := &pop.Model{Value: &Enemy{}}
+	m := &Model{Value: &Enemy{}}
 	q := PDB.Order("id desc")
 	sql, _ := q.ToSQL(m)
 	a.Equal(ts("SELECT enemies.A FROM enemies AS enemies ORDER BY id desc"), sql)
@@ -83,9 +118,12 @@ func Test_Order(t *testing.T) {
 }
 
 func Test_GroupBy(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
 	a := require.New(t)
 
-	m := &pop.Model{Value: &Enemy{}}
+	m := &Model{Value: &Enemy{}}
 	q := PDB.Q()
 	q.GroupBy("A")
 	sql, _ := q.ToSQL(m)
@@ -116,13 +154,16 @@ func Test_GroupBy(t *testing.T) {
 }
 
 func Test_ToSQL(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
 	a := require.New(t)
-	transaction(func(tx *pop.Connection) {
-		user := &pop.Model{Value: &User{}}
+	transaction(func(tx *Connection) {
+		user := &Model{Value: &User{}}
 
-		s := "SELECT name as full_name, users.alive, users.bio, users.birth_date, users.created_at, users.email, users.id, users.name, users.price, users.updated_at FROM users AS users"
+		s := "SELECT name as full_name, users.alive, users.bio, users.birth_date, users.created_at, users.email, users.id, users.name, users.price, users.updated_at, users.user_name FROM users AS users"
 
-		query := pop.Q(tx)
+		query := Q(tx)
 		q, _ := query.ToSQL(user)
 		a.Equal(s, q)
 
@@ -130,10 +171,10 @@ func Test_ToSQL(t *testing.T) {
 		q, _ = query.ToSQL(user)
 		a.Equal(fmt.Sprintf("%s ORDER BY id desc", s), q)
 
-		q, _ = query.ToSQL(&pop.Model{Value: &User{}, As: "u"})
-		a.Equal("SELECT name as full_name, u.alive, u.bio, u.birth_date, u.created_at, u.email, u.id, u.name, u.price, u.updated_at FROM users AS u ORDER BY id desc", q)
+		q, _ = query.ToSQL(&Model{Value: &User{}, As: "u"})
+		a.Equal("SELECT name as full_name, u.alive, u.bio, u.birth_date, u.created_at, u.email, u.id, u.name, u.price, u.updated_at, u.user_name FROM users AS u ORDER BY id desc", q)
 
-		q, _ = query.ToSQL(&pop.Model{Value: &Family{}})
+		q, _ = query.ToSQL(&Model{Value: &Family{}})
 		a.Equal("SELECT family_members.created_at, family_members.first_name, family_members.id, family_members.last_name, family_members.updated_at FROM family.members AS family_members ORDER BY id desc", q)
 
 		query = tx.Where("id = 1")
@@ -161,7 +202,7 @@ func Test_ToSQL(t *testing.T) {
 		a.Equal(fmt.Sprintf("%s LIMIT 10 OFFSET 20", s), q)
 
 		// join must come first
-		query = pop.Q(tx).Where("id = ?", 1).Join("books b", "b.user_id=?", "xx").Order("name asc")
+		query = Q(tx).Where("id = ?", 1).Join("books b", "b.user_id=?", "xx").Order("name asc")
 		q, args := query.ToSQL(user)
 
 		if tx.Dialect.Details().Dialect == "postgres" {
@@ -173,52 +214,55 @@ func Test_ToSQL(t *testing.T) {
 		a.Equal(args[0], "xx")
 		a.Equal(args[1], 1)
 
-		query = pop.Q(tx)
+		query = Q(tx)
 		q, _ = query.ToSQL(user, "distinct on (users.name, users.email) users.*", "users.bio")
 		a.Equal("SELECT distinct on (users.name, users.email) users.*, users.bio FROM users AS users", q)
 
-		query = pop.Q(tx)
+		query = Q(tx)
 		q, _ = query.ToSQL(user, "distinct on (users.id) users.*", "users.bio")
 		a.Equal("SELECT distinct on (users.id) users.*, users.bio FROM users AS users", q)
 
-		query = pop.Q(tx)
+		query = Q(tx)
 		q, _ = query.ToSQL(user, "id,r", "users.bio,r", "users.email,w")
 		a.Equal("SELECT id, users.bio FROM users AS users", q)
 
-		query = pop.Q(tx)
+		query = Q(tx)
 		q, _ = query.ToSQL(user, "distinct on (id) id,r", "users.bio,r", "email,w")
 		a.Equal("SELECT distinct on (id) id, users.bio FROM users AS users", q)
 
-		query = pop.Q(tx)
+		query = Q(tx)
 		q, _ = query.ToSQL(user, "distinct id", "users.bio,r", "email,w")
 		a.Equal("SELECT distinct id, users.bio FROM users AS users", q)
 
-		query = pop.Q(tx)
+		query = Q(tx)
 		q, _ = query.ToSQL(user, "distinct id", "concat(users.name,'-',users.email)")
 		a.Equal("SELECT concat(users.name,'-',users.email), distinct id FROM users AS users", q)
 
-		query = pop.Q(tx)
+		query = Q(tx)
 		q, _ = query.ToSQL(user, "id", "concat(users.name,'-',users.email) name_email")
 		a.Equal("SELECT concat(users.name,'-',users.email) name_email, id FROM users AS users", q)
 
-		query = pop.Q(tx)
+		query = Q(tx)
 		q, _ = query.ToSQL(user, "distinct id", "concat(users.name,'-',users.email),r")
 		a.Equal("SELECT concat(users.name,'-',users.email), distinct id FROM users AS users", q)
 
-		query = pop.Q(tx)
+		query = Q(tx)
 		q, _ = query.ToSQL(user, "distinct id", "concat(users.name,'-',users.email) AS x")
 		a.Equal("SELECT concat(users.name,'-',users.email) AS x, distinct id FROM users AS users", q)
 
-		query = pop.Q(tx)
+		query = Q(tx)
 		q, _ = query.ToSQL(user, "distinct id", "users.name as english_name", "email private_email")
 		a.Equal("SELECT distinct id, email private_email, users.name as english_name FROM users AS users", q)
 	})
 }
 
 func Test_ToSQLInjection(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
 	a := require.New(t)
-	transaction(func(tx *pop.Connection) {
-		user := &pop.Model{Value: &User{}}
+	transaction(func(tx *Connection) {
+		user := &Model{Value: &User{}}
 		query := tx.Where("name = '?'", "\\\u0027 or 1=1 limit 1;\n-- ")
 		q, _ := query.ToSQL(user)
 		a.NotEqual("SELECT * FROM users AS users WHERE name = '\\'' or 1=1 limit 1;\n-- '", q)
@@ -226,8 +270,11 @@ func Test_ToSQLInjection(t *testing.T) {
 }
 
 func Test_ToSQL_RawQuery(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
 	a := require.New(t)
-	transaction(func(tx *pop.Connection) {
+	transaction(func(tx *Connection) {
 		query := tx.RawQuery("this is some ? raw ?", "random", "query")
 		q, args := query.ToSQL(nil)
 		a.Equal(q, tx.Dialect.TranslateSQL("this is some ? raw ?"))

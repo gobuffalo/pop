@@ -4,8 +4,8 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/gobuffalo/nulls"
 	"github.com/gobuffalo/pop/associations"
-	"github.com/gobuffalo/pop/nulls"
 	"github.com/stretchr/testify/require"
 )
 
@@ -48,6 +48,6 @@ func Test_Has_Many_SetValue(t *testing.T) {
 	ca, ok := as[0].(associations.AssociationAfterCreatable)
 	a.True(ok)
 
-	ca.AfterSetup()
+	a.NoError(ca.AfterSetup())
 	a.Equal(foo.ID, (*foo.BarHasManies)[0].FooHasManyID.Interface().(int))
 }

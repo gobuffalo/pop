@@ -4,11 +4,9 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/stretchr/testify/require"
-
 	"github.com/gobuffalo/pop/associations"
-
-	"github.com/gobuffalo/uuid"
+	"github.com/gofrs/uuid"
+	"github.com/stretchr/testify/require"
 )
 
 type fooBelongsTo struct {
@@ -38,4 +36,17 @@ func Test_Belongs_To_Association(t *testing.T) {
 	where, args := as[0].Constraint()
 	a.Equal("id = ?", where)
 	a.Equal(id, args[0].(uuid.UUID))
+
+	bar2 := barBelongsTo{FooID: uuid.Nil}
+	as, err = associations.ForStruct(&bar2, "Foo")
+
+	a.NoError(err)
+	a.Equal(len(as), 1)
+	a.Equal(reflect.Struct, as[0].Kind())
+
+	before := as.AssociationsBeforeCreatable()
+
+	for index := range before {
+		a.Equal(nil, before[index].BeforeInterface())
+	}
 }

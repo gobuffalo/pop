@@ -3,6 +3,8 @@ package pop
 import (
 	"fmt"
 	"strings"
+
+	"github.com/gobuffalo/pop/logging"
 )
 
 // Query is the main value that is used to build up a query
@@ -39,6 +41,7 @@ func (q *Query) Clone(targetQ *Query) {
 	targetQ.joinClauses = q.joinClauses
 	targetQ.groupClauses = q.groupClauses
 	targetQ.havingClauses = q.havingClauses
+	targetQ.addColumns = q.addColumns
 
 	if q.Paginator != nil {
 		paginator := *q.Paginator
@@ -70,12 +73,18 @@ func (q *Query) RawQuery(stmt string, args ...interface{}) *Query {
 	return q
 }
 
-// Eager will enable load associations of the model.
+// Eager will enable associations loading of the model.
 // by defaults loads all the associations on the model,
 // but can take a variadic list of associations to load.
 //
 // 	c.Eager().Find(model, 1) // will load all associations for model.
 // 	c.Eager("Books").Find(model, 1) // will load only Book association for model.
+//
+// Eager also enable nested models creation:
+//
+//	model := Parent{Child: Child{}, Parent: &Parent{}}
+//	c.Eager().Create(&model) // will create all associations for model.
+//	c.Eager("Child").Create(&model) // will only create the Child association for model.
 func (c *Connection) Eager(fields ...string) *Connection {
 	con := c.copy()
 	con.eager = true
@@ -118,7 +127,7 @@ func (c *Connection) Where(stmt string, args ...interface{}) *Query {
 // 	q.Where("id in (?)", 1, 2, 3)
 func (q *Query) Where(stmt string, args ...interface{}) *Query {
 	if q.RawSQL.Fragment != "" {
-		fmt.Println("Warning: Query is setup to use raw SQL")
+		log(logging.Warn, "Query is setup to use raw SQL")
 		return q
 	}
 	if inRegex.MatchString(stmt) {
@@ -145,19 +154,23 @@ func (c *Connection) Order(stmt string) *Query {
 // 	q.Order("name desc")
 func (q *Query) Order(stmt string) *Query {
 	if q.RawSQL.Fragment != "" {
-		fmt.Println("Warning: Query is setup to use raw SQL")
+		log(logging.Warn, "Query is setup to use raw SQL")
 		return q
 	}
 	q.orderClauses = append(q.orderClauses, clause{stmt, []interface{}{}})
 	return q
 }
 
-// Limit will add a limit clause to the query.
+// Limit will create a query and add a limit clause to it.
+//
+// 	c.Limit(10)
 func (c *Connection) Limit(limit int) *Query {
 	return Q(c).Limit(limit)
 }
 
 // Limit will add a limit clause to the query.
+//
+// 	q.Limit(10)
 func (q *Query) Limit(limit int) *Query {
 	q.limitResults = limit
 	return q

@@ -11,6 +11,7 @@ import (
 	{{ end -}}
 )
 
+// {{.model_name}} model struct
 type {{.model_name}} struct {
 	{{range $a := .model.Attributes -}}
 	{{$a}}
@@ -38,7 +39,7 @@ func ({{.char}} *{{.model_name}}) Validate(tx *pop.Connection) (*validate.Errors
 	{{ if .model.ValidatableAttributes -}}
 	return validate.Validate(
 		{{ range $a := .model.ValidatableAttributes -}}
-		&validators.{{capitalize $a.GoType}}IsPresent{Field: {{$.char}}.{{$a.Name.Camel}}, Name: "{{$a.Name.Camel}}"},
+		&validators.{{capitalize $a.GoType}}IsPresent{Field: {{$.char}}.{{$a.Name.Pascalize}}, Name: "{{$a.Name.Pascalize}}"},
 		{{end -}}
 	), nil
 	{{ else -}}

@@ -16,7 +16,7 @@ func (c GroupClause) String() string {
 }
 
 func (c groupClauses) String() string {
-	cs := []string{}
+	var cs []string
 	for _, cl := range c {
 		cs = append(cs, cl.String())
 	}

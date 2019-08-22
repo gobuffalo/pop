@@ -2,8 +2,10 @@ package generate
 
 import (
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
+	"path"
 	"path/filepath"
 	"testing"
 
@@ -11,8 +13,6 @@ import (
 )
 
 func Test_addAttribute(t *testing.T) {
-	r := require.New(t)
-
 	cases := []struct {
 		AttrInput string
 		HasID     bool
@@ -26,21 +26,25 @@ func Test_addAttribute(t *testing.T) {
 	}
 
 	for index, tcase := range cases {
-		t.Run(fmt.Sprintf("%v", index), func(t *testing.T) {
-			m := newModel("car")
-			a := newAttribute(tcase.AttrInput, &m)
-			m.addAttribute(a)
+		t.Run(fmt.Sprintf("%v", index), func(tt *testing.T) {
+			r := require.New(tt)
+			m, err := newModel("car", "json", "models")
+			r.NoError(err)
+			a, err := newAttribute(tcase.AttrInput, &m)
+			r.NoError(err)
+			err = m.addAttribute(a)
+			r.NoError(err)
 
-			r.Equal(m.HasID, tcase.HasID)
-			r.Equal(m.HasNulls, tcase.HasNulls)
+			r.Equal(tcase.HasID, m.HasID)
+			r.Equal(tcase.HasNulls, m.HasNulls)
 
 			if !tcase.Validable {
 				log.Println(m.ValidatableAttributes)
-				r.Equal(len(m.ValidatableAttributes), 0)
+				r.Equal(0, len(m.ValidatableAttributes))
 				return
 			}
 
-			r.Equal(m.ValidatableAttributes[0].Name, a.Name)
+			r.Equal(a.Name, m.ValidatableAttributes[0].Name)
 		})
 
 	}
@@ -50,31 +54,102 @@ func Test_addAttribute(t *testing.T) {
 func Test_model_addID(t *testing.T) {
 	r := require.New(t)
 
-	m := newModel("car")
+	m, err := newModel("car", "json", "models")
+	r.NoError(err)
 	m.addID()
 
 	r.Equal(m.HasID, true)
 	r.Equal(m.HasUUID, true)
-	r.Equal(string(m.Attributes[0].Name), "id")
+	r.Equal(m.Attributes[0].Name.String(), "id")
 	r.Equal(string(m.Attributes[0].GoType), "uuid.UUID")
 
-	m = newModel("car")
-	m.addAttribute(newAttribute("id:int", &m))
+	m, err = newModel("car", "json", "models")
+	r.NoError(err)
+	a, err := newAttribute("id:int", &m)
+	r.NoError(err)
+	err = m.addAttribute(a)
+	r.NoError(err)
 	m.addID()
 
 	r.Equal(m.HasID, true)
 	r.Equal(m.HasUUID, false)
-	r.Equal(string(m.Attributes[0].Name), "id")
+	r.Equal(m.Attributes[0].Name.String(), "id")
 	r.Equal(string(m.Attributes[0].GoType), "int")
+}
+
+func Test_model_addDuplicate(t *testing.T) {
+	r := require.New(t)
+
+	m, err := newModel("car", "json", "models")
+	r.NoError(err)
+	a, err := newAttribute("color:string", &m)
+	r.NoError(err)
+	err = m.addAttribute(a)
+	r.NoError(err)
+
+	a, err = newAttribute("color:string", &m)
+	r.NoError(err)
+	err = m.addAttribute(a)
+	r.Error(err)
+
+	a, err = newAttribute("color:int", &m)
+	r.NoError(err)
+	err = m.addAttribute(a)
+	r.Error(err)
+}
+
+func Test_package_paths(t *testing.T) {
+	cases := map[string]struct {
+		path            string
+		expectedPackage string
+	}{
+		"default": {
+			"models",
+			"models",
+		},
+		"alternate name": {
+			"entities",
+			"entities",
+		},
+		"nested folders": {
+			"pkg/models/admin",
+			"admin",
+		},
+	}
+
+	for desc, c := range cases {
+		t.Run(desc, func(t *testing.T) {
+			r := require.New(t)
+
+			inTempDir(r, func() {
+				m, err := newModel("car", "json", c.path)
+				r.NoError(err)
+
+				r.Equal(c.expectedPackage, m.Package)
+				r.Equal(c.path, m.ModelPath)
+
+				err = m.Generate()
+				r.NoError(err)
+
+				content, err := ioutil.ReadFile(path.Join(c.path, "car.go"))
+				r.NoError(err)
+
+				r.Contains(string(content), "package "+c.expectedPackage)
+			})
+		})
+	}
 }
 
 func Test_testPkgName(t *testing.T) {
 	r := require.New(t)
-	m := newModel("car")
+	m, err := newModel("car", "json", "models")
+	r.NoError(err)
 
 	r.Equal("models", m.testPkgName())
 
-	os.Mkdir("./models", 0755)
+	err = os.Mkdir("./models", 0755)
+	r.NoError(err)
+
 	defer os.RemoveAll("./models")
 
 	r.Equal("models", m.testPkgName())
@@ -95,4 +170,46 @@ func Test_testPkgName(t *testing.T) {
 	r.NoError(err)
 
 	r.Equal("models_test", m.testPkgName())
+}
+
+func Test_model_Fizz(t *testing.T) {
+	r := require.New(t)
+
+	m, err := newModel("car", "json", "models")
+
+	a, err := newAttribute("id:int", &m)
+	r.NoError(err)
+	err = m.addAttribute(a)
+	r.NoError(err)
+
+	a, err = newAttribute("brand:string", &m)
+	r.NoError(err)
+	err = m.addAttribute(a)
+	r.NoError(err)
+
+	a, err = newAttribute("owner:nulls.String", &m)
+	r.NoError(err)
+	err = m.addAttribute(a)
+	r.NoError(err)
+
+	expected := `create_table("cars") {
+	t.Column("id", "integer", {primary: true})
+	t.Column("brand", "string", {})
+	t.Column("owner", "string", {null: true})
+	t.Timestamps()
+}`
+	r.Equal(expected, m.Fizz())
+}
+
+func inTempDir(r *require.Assertions, fn func()) {
+	dir, err := ioutil.TempDir("", "tests")
+	r.NoError(err)
+	defer os.RemoveAll(dir)
+
+	cwd, err := os.Getwd()
+	r.NoError(err)
+	defer os.Chdir(cwd)
+
+	os.Chdir(dir)
+	fn()
 }

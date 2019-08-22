@@ -15,6 +15,10 @@ func Test_Attribute_String(t *testing.T) {
 		name string
 	}{
 		{
+			name: "id",
+			exp:  "\tID string `json:\"id\" db:\"id\"`",
+		},
+		{
 			name: "user_id",
 			exp:  "\tUserID string `json:\"user_id\" db:\"user_id\"`",
 		},
@@ -31,10 +35,6 @@ func Test_Attribute_String(t *testing.T) {
 			exp:  "\tUserID string `json:\"user_id\" db:\"user_id\"`",
 		},
 		{
-			name: "user-id",
-			exp:  "\tUserID string `json:\"user_id\" db:\"user_id\"`",
-		},
-		{
 			name: "expires",
 			exp:  "\tExpires string `json:\"expires\" db:\"expires\"`",
 		},
@@ -45,8 +45,10 @@ func Test_Attribute_String(t *testing.T) {
 	}
 
 	for _, c := range cases {
-		model := newModel("car")
-		a := newAttribute(c.name, &model)
+		model, err := newModel("car", "json", "models")
+		r.NoError(err)
+		a, err := newAttribute(c.name, &model)
+		r.NoError(err)
 		r.Equal(c.exp, a.String())
 	}
 }
@@ -60,6 +62,7 @@ func Test_newAttribute(t *testing.T) {
 		ModelHasUUID   bool
 		ModelHasNulls  bool
 		ModelHasSlices bool
+		Invalid        bool
 	}{
 		{
 			AttributeInput: "name",
@@ -106,13 +109,35 @@ func Test_newAttribute(t *testing.T) {
 			AttributeInput: "age:int:int64",
 			ResultType:     "int64",
 		},
+		{
+			AttributeInput: "111:int",
+			Invalid:        true,
+		},
+		{
+			AttributeInput: "admin/user",
+			Invalid:        true,
+		},
+		{
+			AttributeInput: "admin;user",
+			Invalid:        true,
+		},
+		{
+			AttributeInput: "_bread",
+			Invalid:        true,
+		},
 	}
 
 	for index, tcase := range cases {
 		t.Run(fmt.Sprintf("%d-%s", index, tcase.AttributeInput), func(tt *testing.T) {
 			r := require.New(tt)
-			model := newModel("car")
-			a := newAttribute(tcase.AttributeInput, &model)
+			model, err := newModel("car", "json", "models")
+			r.NoError(err)
+			a, err := newAttribute(tcase.AttributeInput, &model)
+			if tcase.Invalid {
+				r.Errorf(err, "%s should be an invalid attribute", tcase.AttributeInput)
+				return
+			}
+			r.NoError(err)
 
 			r.Equal(a.GoType, tcase.ResultType)
 			r.Equal(a.Nullable, tcase.Nullable)

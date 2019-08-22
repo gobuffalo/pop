@@ -3,8 +3,8 @@ package associations
 import (
 	"reflect"
 
+	"github.com/gobuffalo/nulls"
 	"github.com/gobuffalo/pop/columns"
-	"github.com/gobuffalo/pop/nulls"
 )
 
 // Association represents a definition of a model association
@@ -68,6 +68,7 @@ type AssociationBeforeCreatable interface {
 type AssociationAfterCreatable interface {
 	AfterInterface() interface{}
 	AfterSetup() error
+	AfterProcess() AssociationStatement
 	Association
 }
 
@@ -85,13 +86,18 @@ type AssociationStatement struct {
 	Args      []interface{}
 }
 
+// Empty is true if the containing Statement is empty.
+func (as AssociationStatement) Empty() bool {
+	return as.Statement == ""
+}
+
 // Associations a group of model associations.
 type Associations []Association
 
 // AssociationsBeforeCreatable returns all associations that implement AssociationBeforeCreatable
 // interface. Belongs To association is an example of this implementation.
 func (a Associations) AssociationsBeforeCreatable() []AssociationBeforeCreatable {
-	before := []AssociationBeforeCreatable{}
+	var before []AssociationBeforeCreatable
 	for i := range a {
 		if _, ok := a[i].(AssociationBeforeCreatable); ok {
 			before = append(before, a[i].(AssociationBeforeCreatable))
@@ -101,9 +107,9 @@ func (a Associations) AssociationsBeforeCreatable() []AssociationBeforeCreatable
 }
 
 // AssociationsAfterCreatable returns all associations that implement AssociationAfterCreatable
-// interface. Has Many and Has One associations are example of this implementation.
+// interface. Has Many and Has One associations are examples of this implementation.
 func (a Associations) AssociationsAfterCreatable() []AssociationAfterCreatable {
-	after := []AssociationAfterCreatable{}
+	var after []AssociationAfterCreatable
 	for i := range a {
 		if _, ok := a[i].(AssociationAfterCreatable); ok {
 			after = append(after, a[i].(AssociationAfterCreatable))
@@ -115,7 +121,7 @@ func (a Associations) AssociationsAfterCreatable() []AssociationAfterCreatable {
 // AssociationsCreatableStatement returns all associations that implement AssociationCreatableStament
 // interface. Many To Many association is an example of this implementation.
 func (a Associations) AssociationsCreatableStatement() []AssociationCreatableStatement {
-	stm := []AssociationCreatableStatement{}
+	var stm []AssociationCreatableStatement
 	for i := range a {
 		if _, ok := a[i].(AssociationCreatableStatement); ok {
 			stm = append(stm, a[i].(AssociationCreatableStatement))
@@ -146,10 +152,13 @@ func fieldIsNil(f reflect.Value) bool {
 	if n := nulls.New(f.Interface()); n != nil {
 		return n.Interface() == nil
 	}
+	if f.Kind() == reflect.Interface || f.Kind() == reflect.Ptr {
+		return f.IsNil()
+	}
 	return f.Interface() == nil
 }
 
-func isZero(i interface{}) bool {
-	v := reflect.ValueOf(i)
-	return v.Interface() == reflect.Zero(v.Type()).Interface()
+// IsZeroOfUnderlyingType will check if the value of anything is the equal to the Zero value of that type.
+func IsZeroOfUnderlyingType(x interface{}) bool {
+	return reflect.DeepEqual(x, reflect.Zero(reflect.TypeOf(x)).Interface())
 }

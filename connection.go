@@ -4,17 +4,16 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/gobuffalo/pop/internal/defaults"
+	"github.com/gobuffalo/pop/internal/randx"
 	"github.com/jmoiron/sqlx"
-	"github.com/markbates/going/defaults"
-	"github.com/markbates/going/randx"
 	"github.com/pkg/errors"
 )
 
-// Connections contains all of the available connections
+// Connections contains all available connections
 var Connections = map[string]*Connection{}
 
-// Connection represents all of the necessary details for
-// talking with a datastore
+// Connection represents all necessary details to talk with a datastore
 type Connection struct {
 	ID          string
 	Store       store
@@ -49,25 +48,20 @@ func (c *Connection) MigrationTableName() string {
 func NewConnection(deets *ConnectionDetails) (*Connection, error) {
 	err := deets.Finalize()
 	if err != nil {
-		return nil, errors.WithStack(err)
+		return nil, err
 	}
 	c := &Connection{
 		ID: randx.String(30),
 	}
-	switch deets.Dialect {
-	case "postgres":
-		c.Dialect = newPostgreSQL(deets)
-	case "cockroach":
-		c.Dialect = newCockroach(deets)
-	case "mysql":
-		c.Dialect = newMySQL(deets)
-	case "sqlite3":
-		c.Dialect, err = newSQLite(deets)
+
+	if nc, ok := newConnection[deets.Dialect]; ok {
+		c.Dialect, err = nc(deets)
 		if err != nil {
-			return c, errors.WithStack(err)
+			return c, errors.Wrap(err, "could not create new connection")
 		}
+		return c, nil
 	}
-	return c, nil
+	return nil, errors.Errorf("could not found connection creator for %v", deets.Dialect)
 }
 
 // Connect takes the name of a connection, default is "development", and will
@@ -79,13 +73,13 @@ func Connect(e string) (*Connection, error) {
 	if len(Connections) == 0 {
 		err := LoadConfigFile()
 		if err != nil {
-			return nil, errors.WithStack(err)
+			return nil, err
 		}
 	}
 	e = defaults.String(e, "development")
 	c := Connections[e]
 	if c == nil {
-		return c, errors.Errorf("Could not find connection named %s!", e)
+		return c, errors.Errorf("could not find connection named %s", e)
 	}
 	err := c.Open()
 	return c, errors.Wrapf(err, "couldn't open connection for %s", e)
@@ -96,14 +90,32 @@ func (c *Connection) Open() error {
 	if c.Store != nil {
 		return nil
 	}
-	details := c.Dialect.Details()
-	db, err := sqlx.Open(details.Dialect, c.Dialect.URL())
-	db.SetMaxOpenConns(details.Pool)
-	db.SetMaxIdleConns(details.IdlePool)
-	if err == nil {
-		c.Store = &dB{db}
+	if c.Dialect == nil {
+		return errors.New("invalid connection instance")
 	}
-	return errors.Wrap(err, "couldn't connect to database")
+	details := c.Dialect.Details()
+	driver := details.Dialect
+	if details.Driver != "" {
+		driver = details.Driver
+	}
+
+	db, err := sqlx.Open(driver, c.Dialect.URL())
+	if err != nil {
+		return errors.Wrap(err, "could not open database connection")
+	}
+	db.SetMaxOpenConns(details.Pool)
+	if details.IdlePool != 0 {
+		db.SetMaxIdleConns(details.IdlePool)
+	}
+	c.Store = &dB{db}
+
+	if d, ok := c.Dialect.(afterOpenable); ok {
+		err = d.AfterOpen(c)
+		if err != nil {
+			c.Store = nil
+		}
+	}
+	return errors.Wrap(err, "could not open database connection")
 }
 
 // Close destroys an active datasource connection
@@ -128,11 +140,22 @@ func (c *Connection) Transaction(fn func(tx *Connection) error) error {
 			dberr = cn.TX.Commit()
 		}
 		if err != nil {
-			return errors.WithStack(err)
+			return err
 		}
 		return errors.Wrap(dberr, "error committing or rolling back transaction")
 	})
 
+}
+
+// Rollback will open a new transaction and automatically rollback that transaction
+// when the inner function returns, regardless. This can be useful for tests, etc...
+func (c *Connection) Rollback(fn func(tx *Connection)) error {
+	cn, err := c.NewTransaction()
+	if err != nil {
+		return err
+	}
+	fn(cn)
+	return cn.TX.Rollback()
 }
 
 // NewTransaction starts a new transaction on the connection
@@ -164,28 +187,6 @@ func (c *Connection) copy() *Connection {
 	}
 }
 
-// Rollback will open a new transaction and automatically rollback that transaction
-// when the inner function returns, regardless. This can be useful for tests, etc...
-func (c *Connection) Rollback(fn func(tx *Connection)) error {
-	var cn *Connection
-	if c.TX == nil {
-		tx, err := c.Store.Transaction()
-		if err != nil {
-			return errors.Wrap(err, "couldn't start a new transaction")
-		}
-		cn = &Connection{
-			ID:      randx.String(30),
-			Store:   tx,
-			Dialect: c.Dialect,
-			TX:      tx,
-		}
-	} else {
-		cn = c
-	}
-	fn(cn)
-	return cn.TX.Rollback()
-}
-
 // Q creates a new "empty" query for the current connection.
 func (c *Connection) Q() *Query {
 	return Q(c)
@@ -207,7 +208,7 @@ func (c *Connection) timeFunc(name string, fn func() error) error {
 	err := fn()
 	atomic.AddInt64(&c.Elapsed, int64(time.Since(start)))
 	if err != nil {
-		return errors.WithStack(err)
+		return err
 	}
 	return nil
 }

@@ -5,8 +5,9 @@ import (
 	"reflect"
 	"time"
 
-	"github.com/gobuffalo/uuid"
-	"github.com/markbates/inflect"
+	"github.com/gobuffalo/flect"
+	"github.com/gobuffalo/pop/internal/defaults"
+	"github.com/gofrs/uuid"
 )
 
 type manyToManyAssociation struct {
@@ -17,6 +18,7 @@ type manyToManyAssociation struct {
 	owner               interface{}
 	fkID                string
 	orderBy             string
+	primaryID           string
 	*associationSkipable
 	*associationComposite
 }
@@ -38,6 +40,7 @@ func init() {
 			manyToManyTableName: p.popTags.Find("many_to_many").Value,
 			fkID:                p.popTags.Find("fk_id").Value,
 			orderBy:             p.popTags.Find("order_by").Value,
+			primaryID:           p.popTags.Find("primary_id").Value,
 			associationSkipable: &associationSkipable{
 				skipped: skipped,
 			},
@@ -70,20 +73,18 @@ func (m *manyToManyAssociation) Interface() interface{} {
 // Constraint returns the content for a where clause, and the args
 // needed to execute it.
 func (m *manyToManyAssociation) Constraint() (string, []interface{}) {
-	modelColumnID := fmt.Sprintf("%s%s", inflect.Underscore(m.model.Type().Name()), "_id")
+	modelColumnID := defaults.String(m.primaryID, fmt.Sprintf("%s%s", flect.Underscore(m.model.Type().Name()), "_id"))
 
 	var columnFieldID string
 	i := reflect.Indirect(m.fieldValue)
+	t := i.Type()
 	if i.Kind() == reflect.Slice || i.Kind() == reflect.Array {
-		t := i.Type().Elem()
-		columnFieldID = fmt.Sprintf("%s%s", inflect.Underscore(t.Name()), "_id")
-	} else {
-		columnFieldID = fmt.Sprintf("%s%s", inflect.Underscore(i.Type().Name()), "_id")
+		t = t.Elem()
 	}
-
-	if m.fkID != "" {
-		columnFieldID = m.fkID
+	if t.Kind() == reflect.Ptr {
+		t = t.Elem()
 	}
+	columnFieldID = defaults.String(m.fkID, fmt.Sprintf("%s%s", flect.Underscore(t.Name()), "_id"))
 
 	subQuery := fmt.Sprintf("select %s from %s where %s = ?", columnFieldID, m.manyToManyTableName, modelColumnID)
 	modelIDValue := m.model.FieldByName("ID").Interface()
@@ -107,35 +108,39 @@ func (m *manyToManyAssociation) BeforeSetup() error {
 }
 
 func (m *manyToManyAssociation) Statements() []AssociationStatement {
-	statements := []AssociationStatement{}
+	var statements []AssociationStatement
 
-	modelColumnID := fmt.Sprintf("%s%s", inflect.Underscore(m.model.Type().Name()), "_id")
+	modelColumnID := fmt.Sprintf("%s%s", flect.Underscore(m.model.Type().Name()), "_id")
 	var columnFieldID string
 	i := reflect.Indirect(m.fieldValue)
 	if i.Kind() == reflect.Slice || i.Kind() == reflect.Array {
 		t := i.Type().Elem()
-		columnFieldID = fmt.Sprintf("%s%s", inflect.Underscore(t.Name()), "_id")
+		columnFieldID = fmt.Sprintf("%s%s", flect.Underscore(t.Name()), "_id")
 	} else {
-		columnFieldID = fmt.Sprintf("%s%s", inflect.Underscore(i.Type().Name()), "_id")
+		columnFieldID = fmt.Sprintf("%s%s", flect.Underscore(i.Type().Name()), "_id")
 	}
 
 	for i := 0; i < m.fieldValue.Len(); i++ {
 		v := m.fieldValue.Index(i)
 		manyIDValue := v.FieldByName("ID").Interface()
 		modelIDValue := m.model.FieldByName("ID").Interface()
-		stm := "INSERT INTO %s (%s,%s,%s,%s) VALUES(?,?,?,?)"
+		stm := "INSERT INTO %s (%s,%s,%s,%s) SELECT ?,?,?,? WHERE NOT EXISTS (SELECT * FROM %s WHERE %s = ? AND %s = ?)"
+
+		if IsZeroOfUnderlyingType(manyIDValue) || IsZeroOfUnderlyingType(modelIDValue) {
+			continue
+		}
 
 		associationStm := AssociationStatement{
-			Statement: fmt.Sprintf(stm, m.manyToManyTableName, modelColumnID, columnFieldID, "created_at", "updated_at"),
-			Args:      []interface{}{modelIDValue, manyIDValue, time.Now(), time.Now()},
+			Statement: fmt.Sprintf(stm, m.manyToManyTableName, modelColumnID, columnFieldID, "created_at", "updated_at", m.manyToManyTableName, modelColumnID, columnFieldID),
+			Args:      []interface{}{modelIDValue, manyIDValue, time.Now(), time.Now(), modelIDValue, manyIDValue},
 		}
 
 		if m.model.FieldByName("ID").Type().Name() == "UUID" {
-			stm = "INSERT INTO %s (%s,%s,%s,%s,%s) VALUES(?,?,?,?,?)"
+			stm = "INSERT INTO %s (%s,%s,%s,%s,%s) SELECT ?,?,?,?,? WHERE NOT EXISTS (SELECT * FROM %s WHERE %s = ? AND %s = ?)"
 			id, _ := uuid.NewV4()
 			associationStm = AssociationStatement{
-				Statement: fmt.Sprintf(stm, m.manyToManyTableName, "id", modelColumnID, columnFieldID, "created_at", "updated_at"),
-				Args:      []interface{}{id, modelIDValue, manyIDValue, time.Now(), time.Now()},
+				Statement: fmt.Sprintf(stm, m.manyToManyTableName, "id", modelColumnID, columnFieldID, "created_at", "updated_at", m.manyToManyTableName, modelColumnID, columnFieldID),
+				Args:      []interface{}{id, modelIDValue, manyIDValue, time.Now(), time.Now(), modelIDValue, manyIDValue},
 			}
 		}
 

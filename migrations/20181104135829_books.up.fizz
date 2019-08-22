@@ -1,0 +1,7 @@
+create_table("books") {
+  t.Column("id", "int", {primary: true})
+  t.Column("title", "string", {})
+  t.Column("user_id", "int", {"null": true})
+  t.Column("isbn", "string", {"size": 50})
+  t.Timestamps()
+}

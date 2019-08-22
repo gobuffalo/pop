@@ -1,0 +1,1 @@
+drop_table("not_validatable_cars")

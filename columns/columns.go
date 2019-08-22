@@ -17,7 +17,7 @@ type Columns struct {
 
 // Add a column to the list.
 func (c *Columns) Add(names ...string) []*Column {
-	ret := []*Column{}
+	var ret []*Column
 	c.lock.Lock()
 
 	tableAlias := c.TableAlias
@@ -53,7 +53,6 @@ func (c *Columns) Add(names ...string) []*Column {
 		}
 
 		col = c.Cols[xs[0]]
-		//fmt.Printf("column: %v, col: %v, xs: %v, ss: %v\n", xs[0], col, xs, ss)
 		if col == nil {
 			if ss == "" {
 				ss = xs[0]
@@ -119,8 +118,22 @@ func (c Columns) Readable() *ReadableColumns {
 	return w
 }
 
+type quoter interface {
+	Quote(key string) string
+}
+
+// QuotedString gives the columns list quoted with the given quoter function.
+func (c Columns) QuotedString(quoter quoter) string {
+	var xs []string
+	for _, t := range c.Cols {
+		xs = append(xs, quoter.Quote(t.Name))
+	}
+	sort.Strings(xs)
+	return strings.Join(xs, ", ")
+}
+
 func (c Columns) String() string {
-	xs := []string{}
+	var xs []string
 	for _, t := range c.Cols {
 		xs = append(xs, t.Name)
 	}
@@ -131,7 +144,7 @@ func (c Columns) String() string {
 // SymbolizedString returns a list of tokens (:token) to bind
 // a value to an INSERT query.
 func (c Columns) SymbolizedString() string {
-	xs := []string{}
+	var xs []string
 	for _, t := range c.Cols {
 		xs = append(xs, ":"+t.Name)
 	}

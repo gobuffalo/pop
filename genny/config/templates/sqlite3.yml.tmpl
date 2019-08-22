@@ -1,0 +1,12 @@
+---
+development:
+  dialect: "sqlite3"
+  database: {{.opts.Root}}_{{.opts.Prefix}}_development.sqlite
+
+test:
+  dialect: "sqlite3"
+  database: {{.opts.Root}}_{{.opts.Prefix}}_test.sqlite
+
+production:
+  dialect: "sqlite3"
+  database: {{.opts.Root}}_{{.opts.Prefix}}_production.sqlite

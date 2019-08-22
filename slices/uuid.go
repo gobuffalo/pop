@@ -6,8 +6,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/gobuffalo/uuid"
-	"github.com/pkg/errors"
+	"errors"
+
+	"github.com/gofrs/uuid"
 )
 
 // For reading in arrays from postgres
@@ -25,13 +26,13 @@ func (s UUID) Interface() interface{} {
 func (s *UUID) Scan(src interface{}) error {
 	b, ok := src.([]byte)
 	if !ok {
-		return errors.New("Scan source was not []byte")
+		return errors.New("scan source was not []byte")
 	}
 	us, err := strSliceToUUIDSlice(strToUUID(string(b)))
 	if err != nil {
-		return errors.WithStack(err)
+		return err
 	}
-	(*s) = us
+	*s = us
 	return nil
 }
 
@@ -48,30 +49,30 @@ func (s UUID) Value() (driver.Value, error) {
 // UnmarshalJSON will unmarshall JSON value into
 // the UUID slice representation of this value.
 func (s *UUID) UnmarshalJSON(data []byte) error {
-	ss := []string{}
+	var ss []string
 	if err := json.Unmarshal(data, &ss); err != nil {
 		return err
 	}
 	us, err := strSliceToUUIDSlice(ss)
 	if err != nil {
-		return errors.WithStack(err)
+		return err
 	}
-	(*s) = us
+	*s = us
 	return nil
 }
 
 // UnmarshalText will unmarshall text value into
 // the UUID slice representation of this value.
 func (s *UUID) UnmarshalText(text []byte) error {
-	ss := []string{}
+	var ss []string
 	for _, x := range strings.Split(string(text), ",") {
 		ss = append(ss, strings.TrimSpace(x))
 	}
 	us, err := strSliceToUUIDSlice(ss)
 	if err != nil {
-		return errors.WithStack(err)
+		return err
 	}
-	(*s) = us
+	*s = us
 	return nil
 }
 
@@ -102,7 +103,7 @@ func strSliceToUUIDSlice(ss []string) (UUID, error) {
 		}
 		u, err := uuid.FromString(s)
 		if err != nil {
-			return UUID{}, errors.WithStack(err)
+			return UUID{}, err
 		}
 		us[i] = u
 	}

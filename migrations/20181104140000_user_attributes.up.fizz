@@ -1,0 +1,6 @@
+create_table("user_attributes") {
+  t.Column("id", "int", {primary: true})
+  t.Column("user_name", "string", {"size": 100})
+  t.Column("nick_name", "string", {})
+  t.DisableTimestamps()
+}

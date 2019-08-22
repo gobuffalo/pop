@@ -9,7 +9,8 @@ import (
 	"strings"
 
 	"github.com/gobuffalo/pop/associations"
-	"github.com/gobuffalo/uuid"
+	"github.com/gobuffalo/pop/logging"
+	"github.com/gofrs/uuid"
 	"github.com/pkg/errors"
 )
 
@@ -20,8 +21,7 @@ var rLimit = regexp.MustCompile("(?i)(limit [0-9]+)$")
 //
 //	c.Find(&User{}, 1)
 func (c *Connection) Find(model interface{}, id interface{}) error {
-	q := Q(c)
-	return q.Find(model, id)
+	return Q(c).Find(model, id)
 }
 
 // Find the first record of the model in the database with a particular id.
@@ -29,15 +29,22 @@ func (c *Connection) Find(model interface{}, id interface{}) error {
 //	q.Find(&User{}, 1)
 func (q *Query) Find(model interface{}, id interface{}) error {
 	m := &Model{Value: model}
-	idq := fmt.Sprintf("%s.id = ?", m.TableName())
+	idq := m.whereID()
 	switch t := id.(type) {
 	case uuid.UUID:
 		return q.Where(idq, t.String()).First(model)
 	case string:
-		var err error
-		id, err = strconv.Atoi(t)
-		if err != nil {
-			return q.Where(idq, t).First(model)
+		l := len(t)
+		if l > 0 {
+			// Handle leading '0':
+			// if the string have a leading '0' and is not "0", prevent parsing to int
+			if t[0] != '0' || l == 1 {
+				var err error
+				id, err = strconv.Atoi(t)
+				if err != nil {
+					return q.Where(idq, t).First(model)
+				}
+			}
 		}
 	}
 
@@ -48,8 +55,7 @@ func (q *Query) Find(model interface{}, id interface{}) error {
 //
 //	c.First(&User{})
 func (c *Connection) First(model interface{}) error {
-	q := Q(c)
-	return q.First(model)
+	return Q(c).First(model)
 }
 
 // First record of the model in the database that matches the query.
@@ -81,8 +87,7 @@ func (q *Query) First(model interface{}) error {
 //
 //	c.Last(&User{})
 func (c *Connection) Last(model interface{}) error {
-	q := Q(c)
-	return q.Last(model)
+	return Q(c).Last(model)
 }
 
 // Last record of the model in the database that matches the query.
@@ -116,8 +121,7 @@ func (q *Query) Last(model interface{}) error {
 //
 //	c.All(&[]User{})
 func (c *Connection) All(models interface{}) error {
-	q := Q(c)
-	return q.All(models)
+	return Q(c).All(models)
 }
 
 // All retrieves all of the records in the database that match the query.
@@ -138,7 +142,7 @@ func (q *Query) All(models interface{}) error {
 	})
 
 	if err != nil {
-		return err
+		return errors.Wrap(err, "unable to fetch records")
 	}
 
 	if q.eager {
@@ -163,7 +167,7 @@ func (q *Query) paginateModel(models interface{}) error {
 	q.Paginator.TotalEntriesSize = ct
 	st := reflect.ValueOf(models).Elem()
 	q.Paginator.CurrentEntriesSize = st.Len()
-	q.Paginator.TotalPages = (q.Paginator.TotalEntriesSize / q.Paginator.PerPage)
+	q.Paginator.TotalPages = q.Paginator.TotalEntriesSize / q.Paginator.PerPage
 	if q.Paginator.TotalEntriesSize%q.Paginator.PerPage > 0 {
 		q.Paginator.TotalPages = q.Paginator.TotalPages + 1
 	}
@@ -198,24 +202,31 @@ func (q *Query) eagerDefaultAssociations(model interface{}) error {
 
 	// eagerAssociations for a slice or array model passed as a param.
 	v := reflect.ValueOf(model)
-	if reflect.Indirect(v).Kind() == reflect.Slice ||
-		reflect.Indirect(v).Kind() == reflect.Array {
+	kind := reflect.Indirect(v).Kind()
+	if kind == reflect.Slice || kind == reflect.Array {
 		v = v.Elem()
 		for i := 0; i < v.Len(); i++ {
-			err = q.eagerAssociations(v.Index(i).Addr().Interface())
+			e := v.Index(i)
+			if e.Type().Kind() == reflect.Ptr {
+				// Already a pointer
+				err = q.eagerAssociations(e.Interface())
+			} else {
+				err = q.eagerAssociations(e.Addr().Interface())
+			}
 			if err != nil {
 				return err
 			}
 		}
-		return err
+		return nil
 	}
 
+	// eagerAssociations for a single element
 	assos, err := associations.ForStruct(model, q.eagerFields...)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "could not retrieve associations")
 	}
 
-	//disable eager mode for current connection.
+	// disable eager mode for current connection.
 	q.eager = false
 	q.Connection.eager = false
 
@@ -317,7 +328,7 @@ func (q *Query) Exists(model interface{}) (bool, error) {
 		}
 
 		existsQuery := fmt.Sprintf("SELECT EXISTS (%s)", query)
-		Log(existsQuery, args...)
+		log(logging.SQL, existsQuery, args...)
 		return q.Connection.Store.Get(&res, existsQuery, args...)
 	})
 	return res, err
@@ -363,7 +374,7 @@ func (q Query) CountByField(model interface{}, field string) (int, error) {
 		}
 
 		countQuery := fmt.Sprintf("SELECT COUNT(%s) AS row_count FROM (%s) a", field, query)
-		Log(countQuery, args...)
+		log(logging.SQL, countQuery, args...)
 		return q.Connection.Store.Get(res, countQuery, args...)
 	})
 	return res.Count, err

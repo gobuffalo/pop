@@ -1,6 +1,7 @@
 package nulls_test
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -8,8 +9,8 @@ import (
 	"testing"
 	"time"
 
-	. "github.com/gobuffalo/pop/nulls"
-	"github.com/gobuffalo/uuid"
+	. "github.com/gobuffalo/nulls"
+	"github.com/gofrs/uuid"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/stretchr/testify/require"
@@ -129,12 +130,14 @@ func Test_TypeSaveAndRetrieveProperly(t *testing.T) {
 	a := require.New(t)
 
 	initDB(func(db *sqlx.DB) {
+		// Test with invalid INSERT query
 		tx, err := db.Beginx()
 		a.NoError(err)
-		tx.Exec("insert into foos")
+		_, err = tx.Exec("insert into foos")
+		a.Error(err)
 
 		f := Foo{}
-		tx.Get(&f, "select * from foos")
+		a.Equal(sql.ErrNoRows, tx.Get(&f, "select * from foos"))
 		a.False(f.Alive.Valid)
 		a.False(f.Birth.Valid)
 		a.False(f.ID.Valid)
@@ -155,8 +158,9 @@ func Test_TypeSaveAndRetrieveProperly(t *testing.T) {
 		a.Equal(f.IntType.Int, 0)
 		a.Equal(f.Int32Type.Int32, int32(0))
 		a.Equal(f.UInt32Type.UInt32, uint32(0))
-		tx.Rollback()
+		a.NoError(tx.Rollback())
 
+		// Test with valid INSERT query
 		tx, err = db.Beginx()
 		a.NoError(err)
 
@@ -164,7 +168,7 @@ func Test_TypeSaveAndRetrieveProperly(t *testing.T) {
 		_, err = tx.NamedExec("INSERT INTO foos (id, name, alive, price, birth, price32, bytes, int_type, int32_type, uint32_type, uid) VALUES (:id, :name, :alive, :price, :birth, :price32, :bytes, :int_type, :int32_type, :uint32_type, :uid)", &f)
 		a.NoError(err)
 		f = Foo{}
-		tx.Get(&f, "select * from foos")
+		a.NoError(tx.Get(&f, "select * from foos"))
 		a.True(f.Alive.Valid)
 		a.True(f.Birth.Valid)
 		a.True(f.ID.Valid)
@@ -187,7 +191,7 @@ func Test_TypeSaveAndRetrieveProperly(t *testing.T) {
 		a.Equal(f.UInt32Type.UInt32, uint32(5))
 		a.Equal(uid.String(), f.UID.UUID.String())
 
-		tx.Rollback()
+		a.NoError(tx.Rollback())
 	})
 }
 

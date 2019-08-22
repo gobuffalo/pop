@@ -1,0 +1,13 @@
+create_table("callbacks_users") {
+  t.Column("id", "int", {primary: true})
+  t.Column("before_s", "string", {})
+  t.Column("before_c", "string", {})
+  t.Column("before_u", "string", {})
+  t.Column("before_d", "string", {})
+  t.Column("after_s", "string", {})
+  t.Column("after_c", "string", {})
+  t.Column("after_u", "string", {})
+  t.Column("after_d", "string", {})
+  t.Column("after_f", "string", {})
+  t.Timestamps()
+}

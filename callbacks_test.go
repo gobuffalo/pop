@@ -1,14 +1,16 @@
-package pop_test
+package pop
 
 import (
 	"testing"
 
-	"github.com/gobuffalo/pop"
 	"github.com/stretchr/testify/require"
 )
 
 func Test_Callbacks(t *testing.T) {
-	transaction(func(tx *pop.Connection) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
+	transaction(func(tx *Connection) {
 		r := require.New(t)
 
 		user := &CallbacksUser{
@@ -52,7 +54,10 @@ func Test_Callbacks(t *testing.T) {
 }
 
 func Test_Callbacks_on_Slice(t *testing.T) {
-	transaction(func(tx *pop.Connection) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
+	transaction(func(tx *Connection) {
 		r := require.New(t)
 		for i := 0; i < 2; i++ {
 			r.NoError(tx.Create(&CallbacksUser{}))

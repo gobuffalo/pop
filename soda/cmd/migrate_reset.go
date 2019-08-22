@@ -1,10 +1,8 @@
 package cmd
 
 import (
-	"fmt"
-
 	"github.com/gobuffalo/pop"
-	"github.com/pkg/errors"
+	"github.com/gobuffalo/pop/internal/oncer"
 	"github.com/spf13/cobra"
 )
 
@@ -13,10 +11,10 @@ var migrateResetCmd = &cobra.Command{
 	Use:   "reset",
 	Short: "The equivalent of running `migrate down` and then `migrate up`",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		fmt.Println("[POP] The `migrate reset` command has been deprecated! Use `reset` instead.")
+		oncer.Deprecate(0, "command `migrate reset`", "Use command `reset` instead.")
 		mig, err := pop.NewFileMigrator(migrationPath, getConn())
 		if err != nil {
-			return errors.WithStack(err)
+			return err
 		}
 		return mig.Reset()
 	},

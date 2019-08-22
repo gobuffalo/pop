@@ -13,7 +13,7 @@ type ReadableColumns struct {
 // SelectString returns the SQL column list part of the SELECT
 // query.
 func (c ReadableColumns) SelectString() string {
-	xs := []string{}
+	var xs []string
 	for _, t := range c.Cols {
 		xs = append(xs, t.SelectSQL)
 	}

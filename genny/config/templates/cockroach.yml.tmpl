@@ -1,0 +1,42 @@
+---
+development:
+  dialect: cockroach
+  database: {{.opts.Prefix}}_development
+  host: {{"{{"}} envOr "COCKROACH_HOST" "127.0.0.1"  }}
+  port: {{"{{"}} envOr "COCKROACH_PORT" "26257"  }}
+  user: {{"{{"}} envOr "COCKROACH_USER" "root"  }}
+  password: {{"{{"}} envOr "COCKROACH_PASSWORD" ""  }}
+  pool: 5
+  options:
+    sslmode: disable
+    #sslrootcert: {{"{{"}} envOr "COCKROACH_SSL_ROOTCERT" ""  }}
+    #sslcert: {{"{{"}} envOr "COCKROACH_SSL_CERT" ""  }}
+    #sslkey: {{"{{"}} envOr "COCKROACH_SSL_KEY" ""  }}
+
+test:
+  dialect: cockroach
+  database: {{.opts.Prefix}}_test
+  host: {{"{{"}} envOr "COCKROACH_HOST" "127.0.0.1"  }}
+  port: {{"{{"}} envOr "COCKROACH_PORT" "26257"  }}
+  user: {{"{{"}} envOr "COCKROACH_USER" "root"  }}
+  password: {{"{{"}} envOr "COCKROACH_PASSWORD" ""  }}
+  pool: 5
+  options:
+    sslmode: disable
+    #sslrootcert: {{"{{"}} envOr "COCKROACH_SSL_ROOTCERT" ""  }}
+    #sslcert: {{"{{"}} envOr "COCKROACH_SSL_CERT" ""  }}
+    #sslkey: {{"{{"}} envOr "COCKROACH_SSL_KEY" ""  }}
+
+production:
+  dialect: cockroach
+  database: {{.opts.Prefix}}_production
+  host: {{"{{"}} envOr "COCKROACH_HOST" "127.0.0.1"  }}
+  port: {{"{{"}} envOr "COCKROACH_PORT" "26257"  }}
+  user: {{"{{"}} envOr "COCKROACH_USER" "root"  }}
+  password: {{"{{"}} envOr "COCKROACH_PASSWORD" ""  }}
+  pool: 5
+  options:
+    sslmode: disable
+    #sslrootcert: {{"{{"}} envOr "COCKROACH_SSL_ROOTCERT" ""  }}
+    #sslcert: {{"{{"}} envOr "COCKROACH_SSL_CERT" ""  }}
+    #sslkey: {{"{{"}} envOr "COCKROACH_SSL_KEY" ""  }}

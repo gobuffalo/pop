@@ -6,10 +6,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/gobuffalo/uuid"
-	"github.com/markbates/inflect"
-	"github.com/pkg/errors"
+	"github.com/gobuffalo/flect"
+	nflect "github.com/gobuffalo/flect/name"
+	"github.com/gofrs/uuid"
 )
+
+var nowFunc = time.Now
 
 var tableMap = map[string]string{}
 var tableMapMu = sync.RWMutex{}
@@ -78,7 +80,7 @@ func (m *Model) TableName() string {
 	tableMapMu.Lock()
 
 	if tableMap[name] == "" {
-		m.tableName = inflect.Tableize(name)
+		m.tableName = nflect.Tableize(name)
 		tableMap[name] = m.tableName
 	}
 	return tableMap[name]
@@ -116,13 +118,13 @@ func (m *Model) fieldByName(s string) (reflect.Value, error) {
 	el := reflect.ValueOf(m.Value).Elem()
 	fbn := el.FieldByName(s)
 	if !fbn.IsValid() {
-		return fbn, errors.Errorf("Model does not have a field named %s", s)
+		return fbn, fmt.Errorf("model does not have a field named %s", s)
 	}
 	return fbn, nil
 }
 
 func (m *Model) associationName() string {
-	tn := inflect.Singularize(m.TableName())
+	tn := flect.Singularize(m.TableName())
 	return fmt.Sprintf("%s_id", tn)
 }
 
@@ -142,27 +144,41 @@ func (m *Model) setID(i interface{}) {
 func (m *Model) touchCreatedAt() {
 	fbn, err := m.fieldByName("CreatedAt")
 	if err == nil {
-		fbn.Set(reflect.ValueOf(time.Now()))
+		now := nowFunc().Truncate(time.Microsecond)
+		v := fbn.Interface()
+		if !IsZeroOfUnderlyingType(v) {
+			// Do not override already set CreatedAt
+			return
+		}
+		switch v.(type) {
+		case int, int64:
+			fbn.SetInt(now.Unix())
+		default:
+			fbn.Set(reflect.ValueOf(now))
+		}
 	}
 }
 
 func (m *Model) touchUpdatedAt() {
 	fbn, err := m.fieldByName("UpdatedAt")
 	if err == nil {
-		fbn.Set(reflect.ValueOf(time.Now()))
+		now := nowFunc().Truncate(time.Microsecond)
+		v := fbn.Interface()
+		switch v.(type) {
+		case int, int64:
+			fbn.SetInt(now.Unix())
+		default:
+			fbn.Set(reflect.ValueOf(now))
+		}
 	}
 }
 
 func (m *Model) whereID() string {
-	id := m.ID()
-	var value string
-	switch id.(type) {
-	case int, int64:
-		value = fmt.Sprintf("%s.id = %d", m.TableName(), id)
-	default:
-		value = fmt.Sprintf("%s.id ='%s'", m.TableName(), id)
-	}
-	return value
+	return fmt.Sprintf("%s.id = ?", m.TableName())
+}
+
+func (m *Model) whereNamedID() string {
+	return fmt.Sprintf("%s.id = :id", m.TableName())
 }
 
 func (m *Model) isSlice() bool {

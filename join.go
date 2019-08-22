@@ -25,7 +25,7 @@ func (c joinClause) String() string {
 }
 
 func (c joinClauses) String() string {
-	cs := []string{}
+	var cs []string
 	for _, cl := range c {
 		cs = append(cs, cl.String())
 	}

@@ -1,34 +1,33 @@
-package pop_test
+package pop
 
 import (
 	"testing"
 
-	"github.com/gobuffalo/pop"
 	"github.com/stretchr/testify/require"
 )
 
 func Test_ConnectionDetails_Finalize(t *testing.T) {
 	r := require.New(t)
 
-	cd := &pop.ConnectionDetails{
+	cd := &ConnectionDetails{
 		URL: "postgres://user:pass@host:port/database",
 	}
 	err := cd.Finalize()
 	r.NoError(err)
 
-	r.Equal(cd.Database, "database")
-	r.Equal(cd.Dialect, "postgres")
-	r.Equal(cd.Host, "host")
-	r.Equal(cd.Password, "pass")
-	r.Equal(cd.Port, "port")
-	r.Equal(cd.User, "user")
+	r.Equal("database", cd.Database)
+	r.Equal("postgres", cd.Dialect)
+	r.Equal("host", cd.Host)
+	r.Equal("pass", cd.Password)
+	r.Equal("port", cd.Port)
+	r.Equal("user", cd.User)
 }
 
-func Test_ConnectionDetails_Finalize_MySQL_DSN(t *testing.T) {
+func Test_ConnectionDetails_Finalize_MySQL_Standard(t *testing.T) {
 	r := require.New(t)
 
 	url := "mysql://user:pass@(host:port)/database?param1=value1&param2=value2"
-	cd := &pop.ConnectionDetails{
+	cd := &ConnectionDetails{
 		URL: url,
 	}
 	err := cd.Finalize()
@@ -43,93 +42,45 @@ func Test_ConnectionDetails_Finalize_MySQL_DSN(t *testing.T) {
 	r.Equal("database", cd.Database)
 }
 
-func Test_ConnectionDetails_Finalize_MySQL_DSN_collation(t *testing.T) {
+func Test_ConnectionDetails_Finalize_Cockroach(t *testing.T) {
 	r := require.New(t)
-
-	urls := []string{
-		"mysql://user:pass@(host:port)/database?collation=utf8mb4_general_ci",
-		"mysql://user:pass@(host:port)/database?collation=utf8mb4_general_ci&readTimeout=10s",
-		"mysql://user:pass@(host:port)/database?readTimeout=10s&collation=utf8mb4_general_ci",
-	}
-
-	for _, url := range urls {
-		cd := &pop.ConnectionDetails{
-			URL: url,
-		}
-		err := cd.Finalize()
-		r.NoError(err)
-
-		r.Equal(url, cd.URL)
-		r.Equal("mysql", cd.Dialect)
-		r.Equal("user", cd.User)
-		r.Equal("pass", cd.Password)
-		r.Equal("host", cd.Host)
-		r.Equal("port", cd.Port)
-		r.Equal("database", cd.Database)
-		r.Equal("utf8mb4_general_ci", cd.Encoding)
-	}
-}
-
-func Test_ConnectionDetails_Finalize_MySQL_DSN_Protocol(t *testing.T) {
-	r := require.New(t)
-
-	url := "mysql://user:pass@tcp(host:port)/protocol"
-	cd := &pop.ConnectionDetails{
-		URL: url,
+	cd := &ConnectionDetails{
+		Dialect: "cockroach",
+		URL:     "postgres://user:pass@host:port/database?sslmode=require&sslrootcert=certs/ca.crt&sslkey=certs/client.key&sslcert=certs/client.crt",
 	}
 	err := cd.Finalize()
 	r.NoError(err)
-
-	r.Equal(url, cd.URL)
-	r.Equal("mysql", cd.Dialect)
-	r.Equal("user", cd.User)
-	r.Equal("pass", cd.Password)
+	r.Equal("cockroach", cd.Dialect)
+	r.Equal("database", cd.Database)
 	r.Equal("host", cd.Host)
 	r.Equal("port", cd.Port)
-	r.Equal("protocol", cd.Database)
-}
-
-func Test_ConnectionDetails_Finalize_MySQL_DSN_Socket(t *testing.T) {
-	r := require.New(t)
-
-	url := "mysql://user:pass@unix(/path/to/socket)/socket"
-	cd := &pop.ConnectionDetails{
-		URL: url,
-	}
-	err := cd.Finalize()
-	r.NoError(err)
-
-	r.Equal(url, cd.URL)
-	r.Equal("mysql", cd.Dialect)
 	r.Equal("user", cd.User)
 	r.Equal("pass", cd.Password)
-	r.Equal("/path/to/socket", cd.Host)
-	r.Equal("socket", cd.Port)
-	r.Equal("socket", cd.Database)
 }
 
-func Test_ConnectionDetails_Finalize_UnknownDialect(t *testing.T) {
+func Test_ConnectionDetails_Finalize_UnknownSchemeURL(t *testing.T) {
 	r := require.New(t)
-	cd := &pop.ConnectionDetails{
+	cd := &ConnectionDetails{
 		URL: "unknown://user:pass@host:port/database",
 	}
 	err := cd.Finalize()
 	r.Error(err)
 }
 
-func Test_ConnectionDetails_Finalize_SQLite(t *testing.T) {
+func Test_ConnectionDetails_Finalize_UnknownDialect(t *testing.T) {
 	r := require.New(t)
-
-	cd := &pop.ConnectionDetails{
-		URL: "sqlite3:///tmp/foo.db",
+	cd := &ConnectionDetails{
+		Dialect: "unknown",
 	}
 	err := cd.Finalize()
-	r.NoError(err)
+	r.Error(err)
+}
 
-	r.Equal(cd.Database, "/tmp/foo.db")
-	r.Equal(cd.Dialect, "sqlite3")
-	r.Equal(cd.Host, "")
-	r.Equal(cd.Password, "")
-	r.Equal(cd.Port, "")
-	r.Equal(cd.User, "")
+func Test_ConnectionDetails_Finalize_NoDB_NoURL(t *testing.T) {
+	r := require.New(t)
+	cd := &ConnectionDetails{
+		Dialect: "sqlite3",
+	}
+	err := cd.Finalize()
+	r.Error(err)
 }

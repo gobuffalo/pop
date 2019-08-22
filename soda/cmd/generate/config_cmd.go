@@ -1,66 +1,85 @@
 package generate
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 
-	"github.com/gobuffalo/makr"
+	"github.com/gobuffalo/genny"
 	"github.com/gobuffalo/pop"
-	"github.com/markbates/going/defaults"
-	"github.com/pkg/errors"
+	"github.com/gobuffalo/pop/genny/config"
+	"github.com/gobuffalo/pop/internal/defaults"
+	"github.com/gobuffalo/pop/internal/oncer"
 	"github.com/spf13/cobra"
 )
 
 func init() {
-	ConfigCmd.Flags().StringVarP(&dialect, "type", "t", "postgres", fmt.Sprintf("What type of database do you want to use? (%s)", strings.Join(pop.AvailableDialects, ", ")))
+	ConfigCmd.Flags().StringVarP(&dialect, "type", "t", "postgres", fmt.Sprintf("The type of database you want to use (%s)", strings.Join(pop.AvailableDialects, ", ")))
 }
 
 var dialect string
 
-//ConfigCmd is the command to generate pop config files
+// ConfigCmd is the command to generate pop config files
 var ConfigCmd = &cobra.Command{
-	Use:   "config",
-	Short: "Generates a database.yml file for your project.",
+	Use:              "config",
+	Short:            "Generates a database.yml file for your project.",
+	PersistentPreRun: func(c *cobra.Command, args []string) {},
 	RunE: func(cmd *cobra.Command, args []string) error {
 		cflag := cmd.Flag("config")
-		cfgFile := defaults.String(cflag.Value.String(), "database.yml")
-		pwd, err := os.Getwd()
+		cflagVal := ""
+		if cflag != nil {
+			cflagVal = cflag.Value.String()
+		}
+		cfgFile := defaults.String(cflagVal, "database.yml")
+
+		run := genny.WetRunner(context.Background())
+
+		pwd, _ := os.Getwd()
+		g, err := config.New(&config.Options{
+			Root:     pwd,
+			Prefix:   filepath.Base(pwd),
+			FileName: cfgFile,
+			Dialect:  dialect,
+		})
 		if err != nil {
-			return errors.Wrap(err, "couldn't get the current directory")
+			return err
 		}
-		data := map[string]interface{}{
-			"dialect": dialect,
-			"name":    filepath.Base(pwd),
-		}
-		return GenerateConfig(cfgFile, data)
+		run.With(g)
+
+		return run.Run()
 	},
 }
 
 // GenerateConfig generates pop configuration files.
 //
-// Deprecated: use Config instead.
+// Deprecated: use github.com/gobuffalo/pop/genny/config instead.
 func GenerateConfig(cfgFile string, data map[string]interface{}) error {
-	fmt.Println(`Warning: GenerateConfig is deprecated, and will be removed in a future version. Please use Config instead.`)
+	oncer.Deprecate(0, "generate.GenerateConfig", "Use github.com/gobuffalo/pop/genny/config instead.")
 	return Config(cfgFile, data)
 }
 
 // Config generates pop configuration files.
+// Deprecated: use github.com/gobuffalo/pop/genny/config instead.
 func Config(cfgFile string, data map[string]interface{}) error {
+	oncer.Deprecate(0, "generate.Config", "Use github.com/gobuffalo/pop/genny/config instead.")
 	pwd, _ := os.Getwd()
-	if data["appPath"] == nil {
-		data["appPath"] = pwd
-	}
-	if data["sqlitePath"] == nil {
-		data["sqlitePath"] = pwd
-	}
 
-	dialect = strings.ToLower(data["dialect"].(string))
-	if t, ok := configTemplates[dialect]; ok {
-		g := makr.New()
-		g.Add(makr.NewFile(cfgFile, t))
-		return g.Run(".", data)
+	run := genny.WetRunner(context.Background())
+
+	d, _ := data["dialect"].(string)
+	g, err := config.New(&config.Options{
+		Root:     pwd,
+		Prefix:   filepath.Base(pwd),
+		FileName: cfgFile,
+		Dialect:  d,
+	})
+
+	if err != nil {
+		return err
 	}
-	return errors.Errorf("Could not initialize %s!", dialect)
+	run.With(g)
+
+	return run.Run()
 }

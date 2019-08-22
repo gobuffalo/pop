@@ -3,9 +3,8 @@ package slices
 import (
 	"database/sql/driver"
 	"encoding/json"
-	"fmt"
 
-	"github.com/pkg/errors"
+	"errors"
 )
 
 // Map is a map[string]interface.
@@ -21,11 +20,11 @@ func (m Map) Interface() interface{} {
 func (m *Map) Scan(src interface{}) error {
 	b, ok := src.([]byte)
 	if !ok {
-		return errors.New("Scan source was not []byte")
+		return errors.New("scan source was not []byte")
 	}
 	err := json.Unmarshal(b, m)
 	if err != nil {
-		return errors.WithStack(err)
+		return err
 	}
 	return nil
 }
@@ -35,7 +34,7 @@ func (m *Map) Scan(src interface{}) error {
 func (m Map) Value() (driver.Value, error) {
 	b, err := json.Marshal(m)
 	if err != nil {
-		return nil, errors.WithStack(err)
+		return nil, err
 	}
 	return string(b), nil
 }
@@ -57,10 +56,9 @@ func (m Map) UnmarshalJSON(b []byte) error {
 // UnmarshalText will unmarshall text value into
 // the map representation of this value.
 func (m Map) UnmarshalText(text []byte) error {
-	fmt.Println(string(text))
 	err := json.Unmarshal(text, &m)
 	if err != nil {
-		return errors.WithStack(err)
+		return err
 	}
 	return nil
 }

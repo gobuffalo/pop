@@ -1,37 +1,79 @@
 #!/bin/bash
+
+########################################################
+# test.sh is a wrapper to execute integration tests for
+# pop.
+########################################################
+
 set -e
 clear
 
-verbose=""
+VERBOSE=""
+DEBUG='NO'
 
-echo $@
+for i in "$@"
+do
+case $i in
+    -v)
+    VERBOSE="-v"
+    shift
+    ;;
+    -d)
+    DEBUG='YES'
+    shift
+    ;;
+    *)
+      # unknown option
+    ;;
+esac
+done
 
-if [[ "$@" == "-v" ]]
-then
-  verbose="-v"
-fi
+function cleanup {
+  echo "Cleanup resources..."
+  docker-compose down
+  rm tsoda
+  find ./sql_scripts/sqlite -name *.sqlite* -delete
+}
+# defer cleanup, so it will be executed even after premature exit
+trap cleanup EXIT
 
 docker-compose up -d
 sleep 4 # Ensure mysql is online
 
 go build -v -tags sqlite -o tsoda ./soda
 
+export GO111MODULE=on
+
 function test {
   echo "!!! Testing $1"
   export SODA_DIALECT=$1
   echo ./tsoda -v
+  echo "Setup..."
   ./tsoda drop -e $SODA_DIALECT -c ./database.yml
   ./tsoda create -e $SODA_DIALECT -c ./database.yml
   ./tsoda migrate -e $SODA_DIALECT -c ./database.yml
-  go test -tags sqlite $verbose $(go list ./... | grep -v /vendor/)
+  echo "Test..."
+  go test -race -tags sqlite $VERBOSE ./... -count=1
 }
 
-test "postgres"
-test "cockroach"
-test "mysql"
-test "sqlite"
+function debug_test {
+    echo "!!! Debug Testing $1"
+    export SODA_DIALECT=$1
+    echo ./tsoda -v
+    echo "Setup..."
+    ./tsoda drop -e $SODA_DIALECT -c ./database.yml
+    ./tsoda create -e $SODA_DIALECT -c ./database.yml
+    ./tsoda migrate -e $SODA_DIALECT -c ./database.yml
+    echo "Test and debug..."
+    dlv test github.com/gobuffalo/pop
+}
 
-docker-compose down
+dialects=("postgres" "cockroach" "mysql" "sqlite")
 
-rm tsoda
-find ./sql_scripts/sqlite -name *.sqlite* -delete
+for dialect in "${dialects[@]}" ; do
+  if [ $DEBUG = 'NO' ]; then
+  test ${dialect}
+  else
+  debug_test ${dialect}
+  fi
+done

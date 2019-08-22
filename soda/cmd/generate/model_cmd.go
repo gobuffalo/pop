@@ -1,74 +1,111 @@
 package generate
 
 import (
-	"regexp"
+	"strings"
 
-	"github.com/markbates/inflect"
+	"errors"
 
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
-var skipMigration bool
-var structTag string
-var migrationType string
-
-var nrx = regexp.MustCompile(`^nulls\.(.+)`)
-
-func init() {
-	ModelCmd.Flags().StringVarP(&structTag, "struct-tag", "", "json", "sets the struct tags for model (xml or json)")
-	ModelCmd.Flags().StringVarP(&migrationType, "migration-type", "", "fizz", "sets the type of migration files for model (sql or fizz)")
-	ModelCmd.Flags().BoolVarP(&skipMigration, "skip-migration", "s", false, "Skip creating a new fizz migration for this model.")
-
-	inflect.AddAcronym("ID")
-	inflect.AddAcronym("UUID")
+var modelCmdConfig struct {
+	SkipMigration bool
+	StructTag     string
+	MigrationType string
+	ModelPath     string
 }
 
-//ModelCmd is the cmd to generate a model
+func init() {
+	ModelCmd.Flags().StringVarP(&modelCmdConfig.StructTag, "struct-tag", "", "json", "sets the struct tags for model (xml or json)")
+	ModelCmd.Flags().StringVarP(&modelCmdConfig.MigrationType, "migration-type", "", "fizz", "sets the type of migration files for model (sql or fizz)")
+	ModelCmd.Flags().BoolVarP(&modelCmdConfig.SkipMigration, "skip-migration", "s", false, "Skip creating a new fizz migration for this model.")
+	ModelCmd.Flags().StringVarP(&modelCmdConfig.ModelPath, "models-path", "", "models", "the path the model will be created in")
+}
+
+// ModelCmd is the cmd to generate a model
 var ModelCmd = &cobra.Command{
 	Use:     "model [name]",
 	Aliases: []string{"m"},
 	Short:   "Generates a model for your database",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) == 0 {
-			return errors.New("You must supply a name for your model")
+			return errors.New("you must supply a name for your model")
 		}
 
-		model := newModel(args[0])
-
-		switch structTag {
-		case "json":
-			model.Imports = append(model.Imports, "encoding/json")
-		case "xml":
-			model.Imports = append(model.Imports, "encoding/xml")
-		default:
-			return errors.New("Invalid struct tags (use xml or json)")
+		p := cmd.Flag("path")
+		e := cmd.Flag("env")
+		data := map[string]interface{}{
+			"skipMigration": modelCmdConfig.SkipMigration,
+			"marshalType":   modelCmdConfig.StructTag,
+			"migrationType": modelCmdConfig.MigrationType,
+			"modelPath":     modelCmdConfig.ModelPath,
+			"path":          p.Value.String(),
+			"env":           e.Value.String(),
 		}
+		return Model(args[0], data, args[1:])
+	},
+}
 
-		for _, def := range args[1:] {
-			a := newAttribute(def, &model)
-			model.addAttribute(a)
-		}
+// Model generates new model files to work with pop.
+func Model(name string, opts map[string]interface{}, attributes []string) error {
+	if strings.TrimSpace(name) == "" {
+		return errors.New("model name can't be empty")
+	}
+	mt, found := opts["marshalType"].(string)
+	if !found {
+		return errors.New("marshalType option is required")
+	}
 
-		// Add a default UUID, if no custom ID is provided
-		model.addID()
+	pp, found := opts["modelPath"].(string)
+	if !found {
+		return errors.New("modelPath option is required")
+	}
 
-		err := model.generateModelFile()
+	model, err := newModel(name, mt, pp)
+	if err != nil {
+		return err
+	}
+
+	for _, def := range attributes {
+		a, err := newAttribute(def, &model)
 		if err != nil {
 			return err
 		}
-
-		if skipMigration {
-			return nil
+		if err := model.addAttribute(a); err != nil {
+			return err
 		}
+	}
 
-		switch migrationType {
-		case "sql":
-			err = model.generateSQL(cmd.Flag("path"), cmd.Flag("env"))
-		default:
-			err = model.generateFizz(cmd.Flag("path"))
-		}
+	// Add a default UUID, if no custom ID is provided
+	model.addID()
 
+	if err := model.generateModelFile(); err != nil {
 		return err
-	},
+	}
+
+	sm, found := opts["skipMigration"].(bool)
+	if found && sm {
+		return nil
+	}
+
+	p, found := opts["path"].(string)
+	if !found {
+		return errors.New("path option is required")
+	}
+
+	migrationT, found := opts["migrationType"].(string)
+	if !found {
+		return errors.New("migrationType option is required")
+	}
+	switch migrationT {
+	case "sql":
+		env, found := opts["env"].(string)
+		if !found {
+			return errors.New("env option is required")
+		}
+		err = model.generateSQL(p, env)
+	default:
+		err = model.generateFizz(p)
+	}
+	return err
 }

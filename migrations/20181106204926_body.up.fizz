@@ -1,0 +1,4 @@
+create_table("bodies") {
+ t.Column("id", "integer", {"primary": true})
+ t.DisableTimestamps()
+}

@@ -1,0 +1,84 @@
+builds:
+- binary: soda
+  main: soda/main.go
+  goos:
+    - darwin
+  goarch:
+    - amd64
+  env:
+    - CGO_ENABLED=1
+    - CC=o64-clang
+    - CXX=o64-clang++
+  flags:
+    - -tags
+    - sqlite
+
+- binary: soda
+  main: soda/main.go
+  env:
+    - CGO_ENABLED=1
+  flags:
+    - -tags
+    - sqlite
+  goos:
+    - linux
+  goarch:
+    - amd64
+    - 386
+
+- binary: soda
+  main: soda/main.go
+  ldflags:
+    - "-extldflags '-static'"
+  env:
+    - CGO_ENABLED=1
+    - CC=i686-w64-mingw32-gcc
+    - CXX=i686-w64-mingw32-g++
+  flags:
+    - -tags
+    - sqlite
+  goos:
+    - windows
+  goarch:
+    - 386
+
+- binary: soda
+  main: soda/main.go
+  ldflags:
+    - "-extldflags '-static'"
+  env:
+    - CGO_ENABLED=1
+    - CC=x86_64-w64-mingw32-gcc
+    - CXX=x86_64-w64-mingw32-g++
+  flags:
+    - -tags
+    - sqlite
+  goos:
+    - windows
+  goarch:
+    - amd64
+
+archive:
+  format: tar.gz
+  format_overrides:
+    - goos: windows
+      format: zip
+
+checksum:
+  name_template: 'checksums.txt'
+
+snapshot:
+  name_template: "{{ .Tag }}-next"
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+<%= if (brew) { %>
+brew:
+  github:
+    owner: gobuffalo
+    name: homebrew-tap
+<% } %>

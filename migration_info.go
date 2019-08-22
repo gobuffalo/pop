@@ -1,6 +1,6 @@
 package pop
 
-import "github.com/pkg/errors"
+import "fmt"
 
 // Migration handles the data for a given database migration
 type Migration struct {
@@ -24,7 +24,7 @@ type Migration struct {
 // no mf.Runner defined.
 func (mf Migration) Run(c *Connection) error {
 	if mf.Runner == nil {
-		return errors.Errorf("no runner defined for %s", mf.Path)
+		return fmt.Errorf("no runner defined for %s", mf.Path)
 	}
 	return mf.Runner(mf, c)
 }

@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/pkg/errors"
+	"errors"
 )
 
 // Float is a slice of float64.
@@ -22,10 +22,10 @@ func (f Float) Interface() interface{} {
 func (f *Float) Scan(src interface{}) error {
 	b, ok := src.([]byte)
 	if !ok {
-		return errors.New("Scan source was not []byte")
+		return errors.New("scan source was not []byte")
 	}
 	str := string(b)
-	(*f) = strToFloat(str)
+	*f = strToFloat(str)
 	return nil
 }
 
@@ -42,15 +42,15 @@ func (f Float) Value() (driver.Value, error) {
 // UnmarshalText will unmarshall text value into
 // the float slice representation of this value.
 func (f *Float) UnmarshalText(text []byte) error {
-	ss := []float64{}
+	var ss []float64
 	for _, x := range strings.Split(string(text), ",") {
 		f, err := strconv.ParseFloat(x, 64)
 		if err != nil {
-			return errors.WithStack(err)
+			return err
 		}
 		ss = append(ss, f)
 	}
-	(*f) = ss
+	*f = ss
 	return nil
 }
 

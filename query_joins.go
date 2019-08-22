@@ -1,11 +1,14 @@
 package pop
 
-import "fmt"
+import (
+	"github.com/gobuffalo/pop/internal/oncer"
+	"github.com/gobuffalo/pop/logging"
+)
 
 // Join will append a JOIN clause to the query
 func (q *Query) Join(table string, on string, args ...interface{}) *Query {
 	if q.RawSQL.Fragment != "" {
-		fmt.Println("Warning: Query is setup to use raw SQL")
+		log(logging.Warn, "Query is setup to use raw SQL")
 		return q
 	}
 	q.joinClauses = append(q.joinClauses, joinClause{"JOIN", table, on, args})
@@ -15,7 +18,7 @@ func (q *Query) Join(table string, on string, args ...interface{}) *Query {
 // LeftJoin will append a LEFT JOIN clause to the query
 func (q *Query) LeftJoin(table string, on string, args ...interface{}) *Query {
 	if q.RawSQL.Fragment != "" {
-		fmt.Println("Warning: Query is setup to use raw SQL")
+		log(logging.Warn, "Query is setup to use raw SQL")
 		return q
 	}
 	q.joinClauses = append(q.joinClauses, joinClause{"LEFT JOIN", table, on, args})
@@ -25,7 +28,7 @@ func (q *Query) LeftJoin(table string, on string, args ...interface{}) *Query {
 // RightJoin will append a RIGHT JOIN clause to the query
 func (q *Query) RightJoin(table string, on string, args ...interface{}) *Query {
 	if q.RawSQL.Fragment != "" {
-		fmt.Println("Warning: Query is setup to use raw SQL")
+		log(logging.Warn, "Query is setup to use raw SQL")
 		return q
 	}
 	q.joinClauses = append(q.joinClauses, joinClause{"RIGHT JOIN", table, on, args})
@@ -35,7 +38,7 @@ func (q *Query) RightJoin(table string, on string, args ...interface{}) *Query {
 // LeftOuterJoin will append a LEFT OUTER JOIN clause to the query
 func (q *Query) LeftOuterJoin(table string, on string, args ...interface{}) *Query {
 	if q.RawSQL.Fragment != "" {
-		fmt.Println("Warning: Query is setup to use raw SQL")
+		log(logging.Warn, "Query is setup to use raw SQL")
 		return q
 	}
 	q.joinClauses = append(q.joinClauses, joinClause{"LEFT OUTER JOIN", table, on, args})
@@ -45,29 +48,35 @@ func (q *Query) LeftOuterJoin(table string, on string, args ...interface{}) *Que
 // RightOuterJoin will append a RIGHT OUTER JOIN clause to the query
 func (q *Query) RightOuterJoin(table string, on string, args ...interface{}) *Query {
 	if q.RawSQL.Fragment != "" {
-		fmt.Println("Warning: Query is setup to use raw SQL")
+		log(logging.Warn, "Query is setup to use raw SQL")
 		return q
 	}
 	q.joinClauses = append(q.joinClauses, joinClause{"RIGHT OUTER JOIN", table, on, args})
 	return q
 }
 
-// LeftInnerJoin will append a LEFT INNER JOIN clause to the query
+// LeftInnerJoin will append an INNER JOIN clause to the query
+//
+// Deprecated: Use InnerJoin instead
 func (q *Query) LeftInnerJoin(table string, on string, args ...interface{}) *Query {
-	if q.RawSQL.Fragment != "" {
-		fmt.Println("Warning: Query is setup to use raw SQL")
-		return q
-	}
-	q.joinClauses = append(q.joinClauses, joinClause{"LEFT INNER JOIN", table, on, args})
-	return q
+	oncer.Deprecate(0, "pop.Query#LeftInnerJoin", "Use pop.Query#InnerJoin instead.")
+	return q.InnerJoin(table, on, args...)
 }
 
-// RightInnerJoin will append a RIGHT INNER JOIN clause to the query
+// RightInnerJoin will append an INNER JOIN clause to the query
+//
+// Deprecated: Use InnerJoin instead
 func (q *Query) RightInnerJoin(table string, on string, args ...interface{}) *Query {
+	oncer.Deprecate(0, "pop.Query#RightInnerJoin", "Use pop.Query#InnerJoin instead.")
+	return q.InnerJoin(table, on, args...)
+}
+
+// InnerJoin will append an INNER JOIN clause to the query
+func (q *Query) InnerJoin(table string, on string, args ...interface{}) *Query {
 	if q.RawSQL.Fragment != "" {
-		fmt.Println("Warning: Query is setup to use raw SQL")
+		log(logging.Warn, "Query is setup to use raw SQL")
 		return q
 	}
-	q.joinClauses = append(q.joinClauses, joinClause{"RIGHT INNER JOIN", table, on, args})
+	q.joinClauses = append(q.joinClauses, joinClause{"INNER JOIN", table, on, args})
 	return q
 }

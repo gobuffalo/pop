@@ -1,10 +1,10 @@
 package generate
 
 import (
-	"github.com/pkg/errors"
+	"errors"
 
 	"github.com/gobuffalo/pop"
-	"github.com/markbates/going/defaults"
+	"github.com/gobuffalo/pop/internal/defaults"
 	"github.com/spf13/cobra"
 )
 
@@ -15,7 +15,7 @@ var FizzCmd = &cobra.Command{
 	Short:   "Generates Up/Down migrations for your database using fizz.",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) == 0 {
-			return errors.New("You must supply a name for your migration")
+			return errors.New("you must supply a name for your migration")
 		}
 		cflag := cmd.Flag("path")
 		migrationPath := defaults.String(cflag.Value.String(), "./migrations")

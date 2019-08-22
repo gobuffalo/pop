@@ -5,13 +5,13 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/gobuffalo/packr"
+	"github.com/gobuffalo/packr/v2"
 	"github.com/stretchr/testify/require"
 )
 
 func Test_Anko(t *testing.T) {
 	r := require.New(t)
-	box := packr.NewBox("./fixtures")
+	box := packr.New("./fixtures/anko", "./fixtures/anko")
 	err := box.Walk(func(path string, info packr.File) error {
 		if strings.HasPrefix(path, "pass") {
 			t.Run(path, testPass(path, info))

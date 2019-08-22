@@ -1,18 +1,20 @@
 package slices
 
 import (
+	"bytes"
 	"database/sql/driver"
+	"encoding/csv"
 	"encoding/json"
-	"fmt"
+	"io"
 	"strings"
 
-	"github.com/pkg/errors"
+	"github.com/lib/pq"
 )
 
 // For reading in arrays from postgres
 
 // String is a slice of strings.
-type String []string
+type String pq.StringArray
 
 // Interface implements the nulls.nullable interface.
 func (s String) Interface() interface{} {
@@ -22,39 +24,49 @@ func (s String) Interface() interface{} {
 // Scan implements the sql.Scanner interface.
 // It allows to read the string slice from the database value.
 func (s *String) Scan(src interface{}) error {
-	b, ok := src.([]byte)
-	if !ok {
-		return errors.New("Scan source was not []byte")
-	}
-	(*s) = strToString(string(b))
-	return nil
+	ss := pq.StringArray(*s)
+	err := ss.Scan(src)
+	*s = String(ss)
+	return err
 }
 
 // Value implements the driver.Valuer interface.
 // It allows to convert the string slice to a driver.value.
 func (s String) Value() (driver.Value, error) {
-	return fmt.Sprintf("{%s}", strings.Join(s, ",")), nil
+	ss := pq.StringArray(s)
+	return ss.Value()
 }
 
 // UnmarshalJSON will unmarshall JSON value into
 // the string slice representation of this value.
 func (s *String) UnmarshalJSON(data []byte) error {
-	ss := []string{}
+	var ss pq.StringArray
 	if err := json.Unmarshal(data, &ss); err != nil {
 		return err
 	}
-	(*s) = String(ss)
+	*s = String(ss)
 	return nil
 }
 
 // UnmarshalText will unmarshall text value into
 // the string slice representation of this value.
 func (s *String) UnmarshalText(text []byte) error {
-	ss := []string{}
-	for _, x := range strings.Split(string(text), ",") {
-		ss = append(ss, strings.TrimSpace(x))
+	r := csv.NewReader(bytes.NewReader(text))
+
+	var words []string
+	for {
+		record, err := r.Read()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return err
+		}
+
+		words = append(words, record...)
 	}
-	(*s) = ss
+
+	*s = String(words)
 	return nil
 }
 
@@ -66,9 +78,4 @@ func (s String) TagValue() string {
 // Format presents the slice as a string, using a given separator.
 func (s String) Format(sep string) string {
 	return strings.Join([]string(s), sep)
-}
-
-func strToString(s string) []string {
-	r := strings.Trim(s, "{}")
-	return strings.Split(r, ",")
 }
