@@ -107,6 +107,9 @@ func (c *Connection) Open() error {
 	if details.IdlePool != 0 {
 		db.SetMaxIdleConns(details.IdlePool)
 	}
+	if details.ConnMaxLifetime > 0 {
+		db.SetConnMaxLifetime(details.ConnMaxLifetime)
+	}
 	c.Store = &dB{db}
 
 	if d, ok := c.Dialect.(afterOpenable); ok {
