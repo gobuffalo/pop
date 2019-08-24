@@ -1,6 +1,7 @@
 package model
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/gobuffalo/attrs"
@@ -9,6 +10,14 @@ import (
 	packr "github.com/gobuffalo/packr/v2"
 	"github.com/stretchr/testify/require"
 )
+
+func clean(s string) string {
+	s = strings.TrimSpace(s)
+	s = strings.Replace(s, "\n", "", -1)
+	s = strings.Replace(s, "\t", "", -1)
+	s = strings.Replace(s, "\r", "", -1)
+	return s
+}
 
 func Test_New(t *testing.T) {
 	r := require.New(t)
@@ -69,8 +78,7 @@ func Test_New_Standard(t *testing.T) {
 
 	bf, err = box.FindString(f.Name())
 	r.NoError(err)
-	r.Equal(bf, f.String())
-
+	r.Equal(clean(bf), clean(f.String()))
 }
 
 func Test_New_No_Attrs(t *testing.T) {
@@ -97,7 +105,7 @@ func Test_New_No_Attrs(t *testing.T) {
 	box := packr.New("Test_New_No_Attrs", "../model/_fixtures")
 	bf, err := box.FindString("models/widget_empty.go")
 	r.NoError(err)
-	r.Equal(bf, f.String())
+	r.Equal(clean(bf), clean(f.String()))
 }
 
 func Test_New_XML(t *testing.T) {
@@ -139,7 +147,7 @@ func Test_New_XML(t *testing.T) {
 
 	bf, err = box.FindString("models/widget_xml.go")
 	r.NoError(err)
-	r.Equal(bf, f.String())
+	r.Equal(clean(bf), clean(f.String()))
 }
 
 func Test_New_Package(t *testing.T) {
