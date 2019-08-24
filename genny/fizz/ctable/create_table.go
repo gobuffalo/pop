@@ -51,13 +51,13 @@ func New(opts *Options) (*genny.Generator, error) {
 		if err != nil {
 			return g, err
 		}
-		f = genny.NewFileS(filepath.Join(opts.Path, fmt.Sprintf("%s.up.%s.sql", opts.Name, translatorNameable.Name())), m)
+		f = genny.NewFileS(filepath.Join(opts.Path, fmt.Sprintf("%s.%s.up.sql", opts.Name, translatorNameable.Name())), m)
 		g.File(f)
 		m, err = fizz.AString(down, opts.Translator)
 		if err != nil {
 			return g, err
 		}
-		f = genny.NewFileS(filepath.Join(opts.Path, fmt.Sprintf("%s.down.%s.sql", opts.Name, translatorNameable.Name())), m)
+		f = genny.NewFileS(filepath.Join(opts.Path, fmt.Sprintf("%s.%s.down.sql", opts.Name, translatorNameable.Name())), m)
 		g.File(f)
 		return g, nil
 	}
