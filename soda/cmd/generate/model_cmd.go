@@ -50,11 +50,12 @@ var ModelCmd = &cobra.Command{
 
 		// Mount models generator
 		g, err := gmodel.New(&gmodel.Options{
-			Name:           name,
-			Attrs:          atts,
-			Path:           modelCmdConfig.ModelPath,
-			Encoding:       modelCmdConfig.StructTag,
-			ForceDefaultID: true,
+			Name:                   name,
+			Attrs:                  atts,
+			Path:                   modelCmdConfig.ModelPath,
+			Encoding:               modelCmdConfig.StructTag,
+			ForceDefaultID:         true,
+			ForceDefaultTimestamps: true,
 		})
 		if err != nil {
 			return err
@@ -76,11 +77,12 @@ var ModelCmd = &cobra.Command{
 			}
 
 			g, err = ctable.New(&ctable.Options{
-				TableName:  name,
-				Attrs:      atts,
-				Path:       p.Value.String(),
-				Type:       modelCmdConfig.MigrationType,
-				Translator: translator,
+				TableName:              name,
+				Attrs:                  atts,
+				Path:                   p.Value.String(),
+				Type:                   modelCmdConfig.MigrationType,
+				Translator:             translator,
+				ForceDefaultTimestamps: true,
 			})
 			if err != nil {
 				return err

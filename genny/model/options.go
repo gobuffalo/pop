@@ -10,13 +10,14 @@ import (
 
 // Options for generating a new model
 type Options struct {
-	Name           string      `json:"name"`
-	Attrs          attrs.Attrs `json:"props"`
-	Path           string      `json:"path"`
-	Package        string      `json:"package"`
-	TestPackage    string      `json:"test_package"`
-	Encoding       string      `json:"encoding"`
-	ForceDefaultID bool        `json:"force_default_id"`
+	Name                   string      `json:"name"`
+	Attrs                  attrs.Attrs `json:"props"`
+	Path                   string      `json:"path"`
+	Package                string      `json:"package"`
+	TestPackage            string      `json:"test_package"`
+	Encoding               string      `json:"encoding"`
+	ForceDefaultID         bool        `json:"force_default_id"`
+	ForceDefaultTimestamps bool        `json:"force_default_timestamps"`
 }
 
 // Validate that options are usuable
@@ -37,22 +38,45 @@ func (opts *Options) Validate() error {
 		opts.Encoding = "json"
 	}
 	opts.Encoding = strings.ToLower(opts.Encoding)
-	if opts.ForceDefaultID {
-		// Add a default UUID, if no custom ID is provided
-		var idFound bool
-		for _, a := range opts.Attrs {
-			if a.Name.String() == "id" {
-				idFound = true
-				break
-			}
+
+	return opts.forceDefaults()
+}
+
+func (opts *Options) forceDefaults() error {
+	var idFound, createdAtFound, updatedAtFound bool
+	for _, a := range opts.Attrs {
+		switch a.Name.Underscore().String() {
+		case "id":
+			idFound = true
+		case "created_at":
+			createdAtFound = true
+		case "updated_at":
+			updatedAtFound = true
 		}
-		if !idFound {
-			id, err := attrs.Parse("id:uuid")
-			if err != nil {
-				return err
-			}
-			opts.Attrs = append(opts.Attrs, id)
+	}
+	// Add a default UUID, if no custom ID is provided
+	if opts.ForceDefaultID && !idFound {
+		id, err := attrs.Parse("id:uuid")
+		if err != nil {
+			return err
 		}
+		opts.Attrs = append(opts.Attrs, id)
+	}
+
+	// Add default timestamp columns if they where not provided
+	if opts.ForceDefaultTimestamps && !createdAtFound {
+		createdAt, err := attrs.Parse("created_at:time")
+		if err != nil {
+			return err
+		}
+		opts.Attrs = append(opts.Attrs, createdAt)
+	}
+	if opts.ForceDefaultTimestamps && !updatedAtFound {
+		updatedAt, err := attrs.Parse("updated_at:time")
+		if err != nil {
+			return err
+		}
+		opts.Attrs = append(opts.Attrs, updatedAt)
 	}
 	return nil
 }

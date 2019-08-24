@@ -19,7 +19,9 @@ func New(opts *Options) (*genny.Generator, error) {
 		return g, errors.WithStack(err)
 	}
 
-	t := fizz.NewTable(opts.TableName, map[string]interface{}{})
+	t := fizz.NewTable(opts.TableName, map[string]interface{}{
+		"timestamps": opts.ForceDefaultTimestamps,
+	})
 	for _, attr := range opts.Attrs {
 		o := fizz.Options{}
 		name := attr.Name.Underscore().String()

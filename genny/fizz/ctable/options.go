@@ -25,6 +25,8 @@ type Options struct {
 	// Type is the type of migration to generate (sql or fizz).
 	// For sql migrations, you'll have to provide a valid Translator too.
 	Type string
+	// ForceDefaultTimestamps enables auto timestamping for the generated table.
+	ForceDefaultTimestamps bool `json:"force_default_timestamps"`
 }
 
 // Validate that options are usuable
