@@ -20,8 +20,9 @@ func Test_New(t *testing.T) {
 	}{
 		{
 			&Options{
-				TableName: "widgets",
-				Name:      "create_widgets",
+				TableName:              "widgets",
+				Name:                   "create_widgets",
+				ForceDefaultTimestamps: true,
 			},
 			`create_table("widgets") {
 	t.Timestamps()
@@ -29,9 +30,10 @@ func Test_New(t *testing.T) {
 		},
 		{
 			&Options{
-				TableName: "widgets",
-				Name:      "create_widgets",
-				Attrs:     ats,
+				TableName:              "widgets",
+				Name:                   "create_widgets",
+				Attrs:                  ats,
+				ForceDefaultTimestamps: true,
 			},
 			`create_table("widgets") {
 	t.Column("id", "uuid", {primary: true})
