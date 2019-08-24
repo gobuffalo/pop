@@ -53,6 +53,6 @@ func Test_ModelCmd_NameOnly(t *testing.T) {
 
 	r.DirExists(filepath.Join(tdir, "migrations"))
 	r.DirExists(filepath.Join(tdir, "models"))
-	r.FileExists(filepath.Join(tdir, "models", "users.go"))
-	r.FileExists(filepath.Join(tdir, "models", "users_test.go"))
+	r.FileExists(filepath.Join(tdir, "models", "user.go"))
+	r.FileExists(filepath.Join(tdir, "models", "user_test.go"))
 }
