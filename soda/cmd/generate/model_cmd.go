@@ -40,9 +40,15 @@ var ModelCmd = &cobra.Command{
 			name = args[0]
 		}
 
-		atts, err := attrs.ParseArgs(args[1:]...)
-		if err != nil {
-			return err
+		var (
+			atts attrs.Attrs
+			err  error
+		)
+		if len(args) > 1 {
+			atts, err = attrs.ParseArgs(args[1:]...)
+			if err != nil {
+				return err
+			}
 		}
 
 		run := genny.WetRunner(context.Background())
@@ -69,6 +75,10 @@ var ModelCmd = &cobra.Command{
 		// Mount migrations generator
 		if !modelCmdConfig.SkipMigration {
 			p := cmd.Flag("path")
+			path := ""
+			if p != nil {
+				path = p.Value.String()
+			}
 			e := cmd.Flag("env")
 			var translator fizz.Translator
 			if modelCmdConfig.MigrationType == "sql" {
@@ -82,7 +92,7 @@ var ModelCmd = &cobra.Command{
 			g, err = ctable.New(&ctable.Options{
 				TableName:              name,
 				Attrs:                  atts,
-				Path:                   p.Value.String(),
+				Path:                   path,
 				Type:                   modelCmdConfig.MigrationType,
 				Translator:             translator,
 				ForceDefaultTimestamps: true,
@@ -120,11 +130,12 @@ func Model(name string, opts map[string]interface{}, attributes []string) error 
 
 	// Mount models generator
 	g, err := gmodel.New(&gmodel.Options{
-		Name:           name,
-		Attrs:          atts,
-		Path:           pp,
-		Encoding:       mt,
-		ForceDefaultID: true,
+		Name:                   name,
+		Attrs:                  atts,
+		Path:                   pp,
+		Encoding:               mt,
+		ForceDefaultID:         true,
+		ForceDefaultTimestamps: true,
 	})
 	if err != nil {
 		return err
