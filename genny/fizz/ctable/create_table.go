@@ -33,12 +33,28 @@ func New(opts *Options) (*genny.Generator, error) {
 			return g, err
 		}
 	}
+	var f genny.File
+	up := t.Fizz()
+	down := t.UnFizz()
 	if opts.Type == "sql" {
-		return g, errors.New("sql migrations not yet supported")
+		m, err := fizz.AString(up, opts.Translator)
+		if err != nil {
+			return g, err
+		}
+		// TODO! Need to add driver name from somewhere
+		f = genny.NewFileS(filepath.Join(opts.Path, opts.Name+".up.sql"), m)
+		g.File(f)
+		m, err = fizz.AString(down, opts.Translator)
+		if err != nil {
+			return g, err
+		}
+		f = genny.NewFileS(filepath.Join(opts.Path, opts.Name+".down.sql"), m)
+		g.File(f)
+		return g, nil
 	}
-	f := genny.NewFileS(filepath.Join(opts.Path, opts.Name+".up.fizz"), t.Fizz())
+	f = genny.NewFileS(filepath.Join(opts.Path, opts.Name+".up.fizz"), up)
 	g.File(f)
-	f = genny.NewFileS(filepath.Join(opts.Path, opts.Name+".down.fizz"), t.UnFizz())
+	f = genny.NewFileS(filepath.Join(opts.Path, opts.Name+".down.fizz"), down)
 	g.File(f)
 	return g, nil
 }

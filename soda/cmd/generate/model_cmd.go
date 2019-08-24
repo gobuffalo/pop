@@ -50,7 +50,7 @@ var ModelCmd = &cobra.Command{
 		run := genny.WetRunner(context.Background())
 
 		// Mount models generator
-		g, err := gmodel.New(gmodel.Options{
+		g, err := gmodel.New(&gmodel.Options{
 			Name:           name,
 			Attrs:          atts,
 			Path:           modelCmdConfig.ModelPath,
@@ -76,12 +76,12 @@ var ModelCmd = &cobra.Command{
 				translator = db.Dialect.FizzTranslator()
 			}
 
-			g, err = ctable.New(ctable.Options{
-				TableName:      name,
-				Attrs:          atts,
-				Path:           p.Value.String(),
-				Type:           modelCmdConfig.MigrationType,
-				FizzTranslator: translator,
+			g, err = ctable.New(&ctable.Options{
+				TableName:  name,
+				Attrs:      atts,
+				Path:       p.Value.String(),
+				Type:       modelCmdConfig.MigrationType,
+				Translator: translator,
 			})
 			if err != nil {
 				return err
