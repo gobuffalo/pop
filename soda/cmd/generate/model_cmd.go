@@ -2,13 +2,12 @@ package generate
 
 import (
 	"context"
-
-	"github.com/gobuffalo/fizz"
-
 	"errors"
 
 	"github.com/gobuffalo/attrs"
+	"github.com/gobuffalo/fizz"
 	"github.com/gobuffalo/genny"
+	"github.com/gobuffalo/logger"
 	"github.com/gobuffalo/pop"
 	"github.com/gobuffalo/pop/genny/fizz/ctable"
 	gmodel "github.com/gobuffalo/pop/genny/model"
@@ -47,6 +46,10 @@ var ModelCmd = &cobra.Command{
 		}
 
 		run := genny.WetRunner(context.Background())
+
+		// Ensure the generator is as verbose as the old one.
+		lg := logger.New(logger.DebugLevel)
+		run.Logger = lg
 
 		// Mount models generator
 		g, err := gmodel.New(&gmodel.Options{

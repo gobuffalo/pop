@@ -16,7 +16,7 @@ func New(opts *Options) (*genny.Generator, error) {
 	g := genny.New()
 
 	if err := opts.Validate(); err != nil {
-		return g, errors.WithStack(err)
+		return g, err
 	}
 
 	t := fizz.NewTable(opts.TableName, map[string]interface{}{
