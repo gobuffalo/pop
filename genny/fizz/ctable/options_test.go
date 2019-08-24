@@ -18,6 +18,6 @@ func Test_Options_Validate(t *testing.T) {
 	err = opts.Validate()
 	r.NoError(err)
 
-	r.Contains(opts.Name, "_create_widgets.fizz")
+	r.Contains(opts.Name, "_create_widgets")
 	r.Equal("migrations", opts.Path)
 }

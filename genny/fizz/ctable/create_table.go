@@ -1,6 +1,7 @@
 package ctable
 
 import (
+	"path/filepath"
 	"strings"
 
 	"github.com/gobuffalo/fizz"
@@ -8,7 +9,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-// New creates a generator to make files for  a table based
+// New creates a generator to make files for a table based
 // on the given options.
 func New(opts *Options) (*genny.Generator, error) {
 	g := genny.New()
@@ -32,7 +33,9 @@ func New(opts *Options) (*genny.Generator, error) {
 			return g, err
 		}
 	}
-	f := genny.NewFileS(opts.Name, t.String())
+	f := genny.NewFileS(filepath.Join(opts.Path, opts.Name+".up.fizz"), t.Fizz())
+	g.File(f)
+	f = genny.NewFileS(filepath.Join(opts.Path, opts.Name+".down.fizz"), t.UnFizz())
 	g.File(f)
 	return g, nil
 }

@@ -21,7 +21,7 @@ func Test_New(t *testing.T) {
 		{
 			&Options{
 				TableName: "widgets",
-				Name:      "create_widgets.fizz",
+				Name:      "create_widgets",
 			},
 			`create_table("widgets") {
 	t.Timestamps()
@@ -30,7 +30,7 @@ func Test_New(t *testing.T) {
 		{
 			&Options{
 				TableName: "widgets",
-				Name:      "create_widgets.fizz",
+				Name:      "create_widgets",
 				Attrs:     ats,
 			},
 			`create_table("widgets") {
@@ -56,10 +56,14 @@ func Test_New(t *testing.T) {
 		res := run.Results()
 
 		r.Len(res.Commands, 0)
-		r.Len(res.Files, 1)
+		r.Len(res.Files, 2)
 
 		f := res.Files[0]
-		r.Equal("create_widgets.fizz", f.Name())
+		r.Equal("migrations/create_widgets.down.fizz", f.Name())
+		r.Equal(`drop_table("widgets")`, f.String())
+
+		f = res.Files[1]
+		r.Equal("migrations/create_widgets.up.fizz", f.Name())
 		r.Equal(c.Result, f.String())
 	}
 }

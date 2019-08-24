@@ -9,12 +9,16 @@ import (
 	"github.com/pkg/errors"
 )
 
-// Options for the table create generator
+// Options for the table create generator.
 type Options struct {
+	// TableName is the name of the table.
 	TableName string
-	Name      string
-	Path      string
-	Attrs     attrs.Attrs
+	// Name is the name of the generated file.
+	Name string
+	// Path is the dir path where to generate the migration files.
+	Path string
+	// Attrs is a slice of columns to add to the table.
+	Attrs attrs.Attrs
 }
 
 // Validate that options are usuable
@@ -26,7 +30,7 @@ func (opts *Options) Validate() error {
 		opts.Path = "migrations"
 	}
 	if len(opts.Name) == 0 {
-		opts.Name = fmt.Sprintf("%s_create_%s.fizz", time.Now().Format("YYYYMMDDHHmmSS"), name.New(opts.TableName).Tableize())
+		opts.Name = fmt.Sprintf("%s_create_%s", time.Now().Format("YYYYMMDDHHmmSS"), name.New(opts.TableName).Tableize())
 	}
 	return nil
 }
