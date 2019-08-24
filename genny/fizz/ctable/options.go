@@ -36,7 +36,8 @@ func (opts *Options) Validate() error {
 		opts.Path = "migrations"
 	}
 	if len(opts.Name) == 0 {
-		opts.Name = fmt.Sprintf("%s_create_%s", time.Now().Format("YYYYMMDDHHmmSS"), name.New(opts.TableName).Tableize())
+		timestamp := time.Now().UTC().Format("20060102150405")
+		opts.Name = fmt.Sprintf("%s_create_%s", timestamp, name.New(opts.TableName).Tableize())
 	}
 	if len(opts.Type) == 0 {
 		opts.Type = "fizz"
