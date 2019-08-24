@@ -1,6 +1,7 @@
 package ctable
 
 import (
+	"fmt"
 	"path/filepath"
 	"strings"
 
@@ -37,18 +38,24 @@ func New(opts *Options) (*genny.Generator, error) {
 	up := t.Fizz()
 	down := t.UnFizz()
 	if opts.Type == "sql" {
+		type nameable interface {
+			Name() string
+		}
+		translatorNameable, ok := opts.Translator.(nameable)
+		if !ok {
+			return g, errors.New("fizz translator needs a Name method")
+		}
 		m, err := fizz.AString(up, opts.Translator)
 		if err != nil {
 			return g, err
 		}
-		// TODO! Need to add driver name from somewhere
-		f = genny.NewFileS(filepath.Join(opts.Path, opts.Name+".up.sql"), m)
+		f = genny.NewFileS(filepath.Join(opts.Path, fmt.Sprintf("%s.up.%s.sql", opts.Name, translatorNameable.Name())), m)
 		g.File(f)
 		m, err = fizz.AString(down, opts.Translator)
 		if err != nil {
 			return g, err
 		}
-		f = genny.NewFileS(filepath.Join(opts.Path, opts.Name+".down.sql"), m)
+		f = genny.NewFileS(filepath.Join(opts.Path, fmt.Sprintf("%s.down.%s.sql", opts.Name, translatorNameable.Name())), m)
 		g.File(f)
 		return g, nil
 	}
