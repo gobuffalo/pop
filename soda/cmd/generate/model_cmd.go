@@ -1,10 +1,19 @@
 package generate
 
 import (
+	"context"
 	"strings"
+
+	"github.com/gobuffalo/fizz"
 
 	"errors"
 
+	"github.com/gobuffalo/attrs"
+	"github.com/gobuffalo/genny"
+	"github.com/gobuffalo/pop"
+	"github.com/gobuffalo/pop/genny/fizz/ctable"
+	gmodel "github.com/gobuffalo/pop/genny/model"
+	"github.com/gobuffalo/pop/internal/oncer"
 	"github.com/spf13/cobra"
 )
 
@@ -28,26 +37,65 @@ var ModelCmd = &cobra.Command{
 	Aliases: []string{"m"},
 	Short:   "Generates a model for your database",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		if len(args) == 0 {
-			return errors.New("you must supply a name for your model")
+		name := ""
+		if len(args) > 0 {
+			name = args[0]
 		}
 
-		p := cmd.Flag("path")
-		e := cmd.Flag("env")
-		data := map[string]interface{}{
-			"skipMigration": modelCmdConfig.SkipMigration,
-			"marshalType":   modelCmdConfig.StructTag,
-			"migrationType": modelCmdConfig.MigrationType,
-			"modelPath":     modelCmdConfig.ModelPath,
-			"path":          p.Value.String(),
-			"env":           e.Value.String(),
+		atts, err := attrs.ParseArgs(args[1:]...)
+		if err != nil {
+			return err
 		}
-		return Model(args[0], data, args[1:])
+
+		run := genny.WetRunner(context.Background())
+
+		// Mount models generator
+		g, err := gmodel.New(gmodel.Options{
+			Name:           name,
+			Attrs:          atts,
+			Path:           modelCmdConfig.ModelPath,
+			Encoding:       modelCmdConfig.StructTag,
+			ForceDefaultID: true,
+		})
+		if err != nil {
+			return err
+		}
+
+		run.With(g)
+
+		// Mount migrations generator
+		if !modelCmdConfig.SkipMigration {
+			p := cmd.Flag("path")
+			e := cmd.Flag("env")
+			var translator fizz.Translator
+			if modelCmdConfig.MigrationType == "sql" {
+				db, err := pop.Connect(e.Value.String())
+				if err != nil {
+					return err
+				}
+				translator = db.Dialect.FizzTranslator()
+			}
+
+			g, err = ctable.New(ctable.Options{
+				TableName:      name,
+				Attrs:          atts,
+				Path:           p.Value.String(),
+				Type:           modelCmdConfig.MigrationType,
+				FizzTranslator: translator,
+			})
+			if err != nil {
+				return err
+			}
+			run.With(g)
+		}
+
+		return run.Run()
 	},
 }
 
 // Model generates new model files to work with pop.
 func Model(name string, opts map[string]interface{}, attributes []string) error {
+	oncer.Deprecate(0, "generate.Model", "Use github.com/gobuffalo/pop/genny/model instead.")
 	if strings.TrimSpace(name) == "" {
 		return errors.New("model name can't be empty")
 	}

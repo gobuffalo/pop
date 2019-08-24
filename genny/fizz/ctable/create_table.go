@@ -33,6 +33,9 @@ func New(opts *Options) (*genny.Generator, error) {
 			return g, err
 		}
 	}
+	if opts.Type == "sql" {
+		return g, errors.New("sql migrations not yet supported")
+	}
 	f := genny.NewFileS(filepath.Join(opts.Path, opts.Name+".up.fizz"), t.Fizz())
 	g.File(f)
 	f = genny.NewFileS(filepath.Join(opts.Path, opts.Name+".down.fizz"), t.UnFizz())

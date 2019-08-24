@@ -17,4 +17,12 @@ func Test_Options_Validate(t *testing.T) {
 
 	err = opts.Validate()
 	r.NoError(err)
+	r.Equal(0, len(opts.Attrs))
+
+	// Force ID opt
+	opts.ForceDefaultID = true
+	err = opts.Validate()
+	r.NoError(err)
+	r.Equal(1, len(opts.Attrs))
+	r.Equal("id", opts.Attrs[0].Name.String())
 }
