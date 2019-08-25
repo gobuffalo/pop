@@ -320,6 +320,54 @@ func (c *Connection) ValidateAndUpdate(model interface{}, excludeColumns ...stri
 	if verrs.HasAny() {
 		return verrs, nil
 	}
+
+	if c.eager {
+		asos, err2 := associations.ForStruct(model, c.eagerFields...)
+
+		if err2 != nil {
+			return verrs, err2
+		}
+
+		if len(asos) == 0 {
+			c.disableEager()
+			return c.ValidateAndCreate(model, excludeColumns...)
+		}
+
+		before := asos.AssociationsBeforeUpdatable()
+		for index := range before {
+			i := before[index].BeforeUpdateableInterface()
+			if i == nil {
+				continue
+			}
+
+			sm := &Model{Value: i}
+			verrs, err := sm.validateAndOnlyUpdate(c)
+			if err != nil || verrs.HasAny() {
+				return verrs, err
+			}
+		}
+
+		after := asos.AssociationsAfterUpdatable()
+		for index := range after {
+			i := after[index].AfterInterface()
+			if i == nil {
+				continue
+			}
+
+			sm := &Model{Value: i}
+			verrs, err := sm.validateAndOnlyUpdate(c)
+			if err != nil || verrs.HasAny() {
+				return verrs, err
+			}
+		}
+
+		sm := &Model{Value: model}
+		verrs, err = sm.validateUpdate(c)
+		if err != nil || verrs.HasAny() {
+			return verrs, err
+		}
+
+	}
 	return verrs, c.Update(model, excludeColumns...)
 }
 
@@ -328,16 +376,69 @@ func (c *Connection) ValidateAndUpdate(model interface{}, excludeColumns ...stri
 //
 // If model is a slice, each item of the slice is updated in the database.
 func (c *Connection) Update(model interface{}, excludeColumns ...string) error {
+	var isEager = c.eager
+
+	c.disableEager()
+
 	sm := &Model{Value: model}
 	return sm.iterate(func(m *Model) error {
 		return c.timeFunc("Update", func() error {
-			var err error
+			var localIsEager = isEager
+			asos, err := associations.ForStruct(m.Value, c.eagerFields...)
+			if err != nil {
+				return err
+			}
+
+			if localIsEager {
+				if len(asos) == 0 {
+					localIsEager = false
+				}
+			}
 
 			if err = m.beforeSave(c); err != nil {
 				return err
 			}
 			if err = m.beforeUpdate(c); err != nil {
 				return err
+			}
+
+			processAssoc := len(asos) > 0
+
+			if processAssoc {
+				before := asos.AssociationsBeforeUpdatable()
+				for index := range before {
+					i := before[index].BeforeUpdateableInterface()
+					if i == nil {
+						continue
+					}
+					if localIsEager {
+						sm := &Model{Value: i}
+						err = sm.iterate(func(m *Model) error {
+							id, err := m.fieldByName("ID")
+							if err != nil {
+								return err
+							}
+
+							if IsZeroOfUnderlyingType(id.Interface()) {
+								return c.Create(m.Value)
+							} else {
+								return c.Update(m.Value)
+							}
+							return nil
+						})
+
+						if err != nil {
+							return err
+						}
+
+					}
+					err = before[index].BeforeSetup()
+					if err != nil {
+						return err
+					}
+
+				}
+
 			}
 
 			tn := m.TableName()
@@ -353,6 +454,103 @@ func (c *Connection) Update(model interface{}, excludeColumns ...string) error {
 			if err = c.Dialect.Update(c.Store, m, cols); err != nil {
 				return err
 			}
+
+			if processAssoc {
+				after := asos.AssociationsAfterUpdatable()
+				for index := range after {
+					if localIsEager {
+
+						err = after[index].AfterSetup()
+						if err != nil {
+							return err
+						}
+
+						i := after[index].AfterInterface()
+						if i == nil {
+							continue
+						}
+
+						sm := &Model{Value: i}
+						err = sm.iterate(func(m *Model) error {
+							fbn, err := m.fieldByName("ID")
+							if err != nil {
+								return err
+							}
+							id := fbn.Interface()
+							if IsZeroOfUnderlyingType(id) {
+								return c.Create(m.Value)
+							}
+							exists, errE := Q(c).Exists(i)
+							if errE != nil || !exists {
+								return c.Create(m.Value)
+							}
+							if errE == nil && exists {
+								return c.Update(m.Value)
+							}
+
+							return nil
+						})
+
+						if err != nil {
+							return err
+						}
+
+						stm := after[index].AfterFixRelationships()
+
+						if c.TX != nil {
+							_, err := c.TX.Exec(c.Dialect.TranslateSQL(stm.Statement), stm.Args...)
+							if err != nil {
+								return err
+							}
+							continue
+						}
+						_, err = c.Store.Exec(c.Dialect.TranslateSQL(stm.Statement), stm.Args...)
+						if err != nil {
+							return err
+						}
+
+						if err != nil {
+							return err
+						}
+					}
+				}
+
+				stms := asos.AssociationsCreatableStatement()
+				for index := range stms {
+					statements := stms[index].Statements()
+
+					// Create Associations
+					for _, stm := range statements {
+						if c.TX != nil {
+							_, err := c.TX.Exec(c.Dialect.TranslateSQL(stm.Statement), stm.Args...)
+							if err != nil {
+								return err
+							}
+							continue
+						}
+						_, err = c.Store.Exec(c.Dialect.TranslateSQL(stm.Statement), stm.Args...)
+						if err != nil {
+							return err
+						}
+					}
+					//	Delete Associations.µ
+				}
+
+				dStms := asos.AssociationsDeletableStatement()
+				for index := range dStms {
+					stm := dStms[index].DeleteStatements()
+
+					//	Delete Associations
+					if c.TX != nil {
+						_, err := c.TX.Exec(c.Dialect.TranslateSQL(stm.Statement), stm.Args...)
+						if err != nil {
+							return err
+						}
+						continue
+					}
+				}
+			}
+
 			if err = m.afterUpdate(c); err != nil {
 				return err
 			}
