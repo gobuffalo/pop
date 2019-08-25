@@ -1215,16 +1215,21 @@ func Test_Update(t *testing.T) {
 		r := require.New(t)
 
 		user := User{Name: nulls.NewString("Mark")}
-		tx.Create(&user)
+		err := tx.Create(&user)
+
+		r.NoError(err)
 
 		r.NotZero(user.CreatedAt)
 		r.NotZero(user.UpdatedAt)
 
 		user.Name.String = "Marky"
-		err := tx.Update(&user)
+		err = tx.Update(&user)
 		r.NoError(err)
 
-		r.NoError(tx.Reload(&user))
+		err = tx.Reload(&user)
+		r.NoError(err)
+
+
 		r.Equal(user.Name.String, "Marky")
 	})
 }
