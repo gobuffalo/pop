@@ -63,6 +63,14 @@ type AssociationBeforeCreatable interface {
 	Association
 }
 
+// AssociationBeforeUpdatable allows an association to be updated before
+// the parent structure.
+type AssociationBeforeUpdatable interface {
+	BeforeUpdateableInterface() interface{}
+	BeforeSetup() error
+	Association
+}
+
 // AssociationAfterCreatable allows an association to be created after
 // the parent structure.
 type AssociationAfterCreatable interface {
@@ -72,10 +80,26 @@ type AssociationAfterCreatable interface {
 	Association
 }
 
+// AssociationAfterUpdatable allows an association to be updated after
+// the parent structure.
+type AssociationAfterUpdatable interface {
+	AfterInterface() interface{}
+	AfterSetup() error
+	AfterFixRelationships() AssociationStatement
+	Association
+}
+
 // AssociationCreatableStatement a association that defines
 // create statements on database.
 type AssociationCreatableStatement interface {
 	Statements() []AssociationStatement
+	Association
+}
+
+// AssociationDeletableStatement a association that defines
+// delete statement on datqbase. Delete statement for Many to Many relationships.
+type AssociationDeletableStatement interface {
+	DeleteStatements() AssociationStatement
 	Association
 }
 
@@ -106,13 +130,37 @@ func (a Associations) AssociationsBeforeCreatable() []AssociationBeforeCreatable
 	return before
 }
 
-// AssociationsAfterCreatable returns all associations that implement AssociationAfterCreatable
+// AssociationsBeforeUpdatable returns all associations the implement the AssociationBeforeUpdatable
+// interface. Belongs To association is an example of this implementation.
+func (a Associations) AssociationsBeforeUpdatable() []AssociationBeforeUpdatable {
+	var before []AssociationBeforeUpdatable
+	for i := range a {
+		if _, ok := a[i].(AssociationBeforeUpdatable); ok {
+			before = append(before, a[i].(AssociationBeforeUpdatable))
+		}
+	}
+	return before
+}
+
+// AssociationsAfterCreatable returns all associations that implement the AssociationAfterCreatable
 // interface. Has Many and Has One associations are examples of this implementation.
 func (a Associations) AssociationsAfterCreatable() []AssociationAfterCreatable {
 	var after []AssociationAfterCreatable
 	for i := range a {
 		if _, ok := a[i].(AssociationAfterCreatable); ok {
 			after = append(after, a[i].(AssociationAfterCreatable))
+		}
+	}
+	return after
+}
+
+// AssociationsAfterUpdatable returns all associations that implement the AssociationAfterUpdatable
+// interface. Has Many and Has One associations are examples of this implementation.
+func (a Associations) AssociationsAfterUpdatable() []AssociationAfterUpdatable {
+	var after []AssociationAfterUpdatable
+	for i := range a {
+		if _, ok := a[i].(AssociationAfterUpdatable); ok {
+			after = append(after, a[i].(AssociationAfterUpdatable))
 		}
 	}
 	return after
@@ -125,6 +173,17 @@ func (a Associations) AssociationsCreatableStatement() []AssociationCreatableSta
 	for i := range a {
 		if _, ok := a[i].(AssociationCreatableStatement); ok {
 			stm = append(stm, a[i].(AssociationCreatableStatement))
+		}
+	}
+	return stm
+}
+
+// AssociationsDeletableStatement ...
+func (a Associations) AssociationsDeletableStatement() []AssociationDeletableStatement {
+	var stm []AssociationDeletableStatement
+	for i := range a {
+		if _, ok := a[i].(AssociationDeletableStatement); ok {
+			stm = append(stm, a[i].(AssociationDeletableStatement))
 		}
 	}
 	return stm
