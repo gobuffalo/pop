@@ -6,8 +6,12 @@ import (
 
 // String replaces sql.NullString with an implementation
 // that supports proper JSON encoding/decoding.
-type String nulls.String
+//
+// Deprecated: use github.com/gobuffalo/nulls#String instead.
+type String = nulls.String
 
 // NewString returns a new, properly instantiated
 // String object.
+//
+// Deprecated: use github.com/gobuffalo/nulls#NewString instead.
 var NewString = nulls.NewString
