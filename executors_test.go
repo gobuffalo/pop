@@ -352,7 +352,6 @@ func Test_ExecCount(t *testing.T) {
 }
 
 func Test_Save(t *testing.T) {
-	t.Skip("I am skipping this cause it's a bad test")
 	if PDB == nil {
 		t.Skip("skipping integration tests")
 	}
@@ -372,7 +371,6 @@ func Test_Save(t *testing.T) {
 }
 
 func Test_Save_With_Slice(t *testing.T) {
-	t.Skip("Skipping this Problematic test")
 	if PDB == nil {
 		t.Skip("skipping integration tests")
 	}

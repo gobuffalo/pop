@@ -58,6 +58,7 @@ func init() {
 	} else {
 		log(logging.Info, "Skipping integration tests")
 	}
+
 }
 
 func transaction(fn func(tx *Connection)) {
@@ -221,6 +222,8 @@ type Song struct {
 	ComposedByID int       `json:"composed_by_id" db:"composed_by_id"`
 	ComposedBy   Composer  `belongs_to:"composer"`
 }
+
+type Songs []Song
 
 type Composer struct {
 	ID        int       `db:"id"`
