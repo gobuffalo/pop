@@ -454,6 +454,103 @@ func (c *Connection) Update(model interface{}, excludeColumns ...string) error {
 			if err = c.Dialect.Update(c.Store, m, cols); err != nil {
 				return err
 			}
+
+			if processAssoc {
+				after := asos.AssociationsAfterUpdatable()
+				for index := range after {
+					if localIsEager {
+
+						err = after[index].AfterSetup()
+						if err != nil {
+							return err
+						}
+
+						i := after[index].AfterInterface()
+						if i == nil {
+							continue
+						}
+
+						sm := &Model{Value: i}
+						err = sm.iterate(func(m *Model) error {
+							fbn, err := m.fieldByName("ID")
+							if err != nil {
+								return err
+							}
+							id := fbn.Interface()
+							if IsZeroOfUnderlyingType(id) {
+								return c.Create(m.Value)
+							}
+							exists, errE := Q(c).Exists(i)
+							if errE != nil || !exists {
+								return c.Create(m.Value)
+							}
+							if errE == nil && exists {
+								return c.Update(m.Value)
+							}
+
+							return nil
+						})
+
+						if err != nil {
+							return err
+						}
+
+						stm := after[index].AfterFixRelationships()
+
+						if c.TX != nil {
+							_, err := c.TX.Exec(c.Dialect.TranslateSQL(stm.Statement), stm.Args...)
+							if err != nil {
+								return err
+							}
+							continue
+						}
+						_, err = c.Store.Exec(c.Dialect.TranslateSQL(stm.Statement), stm.Args...)
+						if err != nil {
+							return err
+						}
+
+						if err != nil {
+							return err
+						}
+					}
+				}
+
+				stms := asos.AssociationsCreatableStatement()
+				for index := range stms {
+					statements := stms[index].Statements()
+
+					// Create Associations
+					for _, stm := range statements {
+						if c.TX != nil {
+							_, err := c.TX.Exec(c.Dialect.TranslateSQL(stm.Statement), stm.Args...)
+							if err != nil {
+								return err
+							}
+							continue
+						}
+						_, err = c.Store.Exec(c.Dialect.TranslateSQL(stm.Statement), stm.Args...)
+						if err != nil {
+							return err
+						}
+					}
+					//	Delete Associations.µ
+				}
+
+				dStms := asos.AssociationsDeletableStatement()
+				for index := range dStms {
+					stm := dStms[index].DeleteStatements()
+
+					//	Delete Associations
+					if c.TX != nil {
+						_, err := c.TX.Exec(c.Dialect.TranslateSQL(stm.Statement), stm.Args...)
+						if err != nil {
+							return err
+						}
+						continue
+					}
+				}
+			}
+
 			if err = m.afterUpdate(c); err != nil {
 				return err
 			}
