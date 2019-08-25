@@ -320,6 +320,54 @@ func (c *Connection) ValidateAndUpdate(model interface{}, excludeColumns ...stri
 	if verrs.HasAny() {
 		return verrs, nil
 	}
+
+	if c.eager {
+		asos, err2 := associations.ForStruct(model, c.eagerFields...)
+
+		if err2 != nil {
+			return verrs, err2
+		}
+
+		if len(asos) == 0 {
+			c.disableEager()
+			return c.ValidateAndCreate(model, excludeColumns...)
+		}
+
+		before := asos.AssociationsBeforeUpdatable()
+		for index := range before {
+			i := before[index].BeforeUpdateableInterface()
+			if i == nil {
+				continue
+			}
+
+			sm := &Model{Value: i}
+			verrs, err := sm.validateAndOnlyUpdate(c)
+			if err != nil || verrs.HasAny() {
+				return verrs, err
+			}
+		}
+
+		after := asos.AssociationsAfterUpdatable()
+		for index := range after {
+			i := after[index].AfterInterface()
+			if i == nil {
+				continue
+			}
+
+			sm := &Model{Value: i}
+			verrs, err := sm.validateAndOnlyUpdate(c)
+			if err != nil || verrs.HasAny() {
+				return verrs, err
+			}
+		}
+
+		sm := &Model{Value: model}
+		verrs, err = sm.validateUpdate(c)
+		if err != nil || verrs.HasAny() {
+			return verrs, err
+		}
+
+	}
 	return verrs, c.Update(model, excludeColumns...)
 }
 
