@@ -4,6 +4,7 @@ import (
 	"reflect"
 
 	"github.com/gobuffalo/nulls"
+
 	"github.com/gobuffalo/pop/columns"
 )
 
