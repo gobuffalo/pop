@@ -177,7 +177,6 @@ func (a *hasManyAssociation) AfterFixRelationships() AssociationStatement {
 		v = v.Elem()
 	}
 
-	// belonging to the fiel
 	belongingIDFieldName := "ID"
 
 	ownerIDFieldName := "ID"
