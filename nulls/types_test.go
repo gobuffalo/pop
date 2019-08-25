@@ -9,7 +9,9 @@ import (
 	"testing"
 	"time"
 
-	. "github.com/gobuffalo/nulls"
+	"github.com/gobuffalo/nulls"
+
+	. "github.com/gobuffalo/pop/nulls"
 	"github.com/gofrs/uuid"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/mattn/go-sqlite3"
@@ -44,6 +46,8 @@ const schema = `CREATE TABLE "main"."foos" (
 	 "uid" uuid
 );`
 
+// Ensure legacy package is still compatible with new package types.
+var _ nulls.Bool = NewBool(true)
 var uid, _ = uuid.NewV4()
 var now = time.Now()
 
