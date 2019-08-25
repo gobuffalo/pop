@@ -8,7 +8,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-//FizzCmd generates a new fizz migration
+// FizzCmd generates a new fizz migration
 var FizzCmd = &cobra.Command{
 	Use:     "fizz [name]",
 	Aliases: []string{"migration"},
