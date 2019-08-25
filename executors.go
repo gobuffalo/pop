@@ -376,16 +376,69 @@ func (c *Connection) ValidateAndUpdate(model interface{}, excludeColumns ...stri
 //
 // If model is a slice, each item of the slice is updated in the database.
 func (c *Connection) Update(model interface{}, excludeColumns ...string) error {
+	var isEager = c.eager
+
+	c.disableEager()
+
 	sm := &Model{Value: model}
 	return sm.iterate(func(m *Model) error {
 		return c.timeFunc("Update", func() error {
-			var err error
+			var localIsEager = isEager
+			asos, err := associations.ForStruct(m.Value, c.eagerFields...)
+			if err != nil {
+				return err
+			}
+
+			if localIsEager {
+				if len(asos) == 0 {
+					localIsEager = false
+				}
+			}
 
 			if err = m.beforeSave(c); err != nil {
 				return err
 			}
 			if err = m.beforeUpdate(c); err != nil {
 				return err
+			}
+
+			processAssoc := len(asos) > 0
+
+			if processAssoc {
+				before := asos.AssociationsBeforeUpdatable()
+				for index := range before {
+					i := before[index].BeforeUpdateableInterface()
+					if i == nil {
+						continue
+					}
+					if localIsEager {
+						sm := &Model{Value: i}
+						err = sm.iterate(func(m *Model) error {
+							id, err := m.fieldByName("ID")
+							if err != nil {
+								return err
+							}
+
+							if IsZeroOfUnderlyingType(id.Interface()) {
+								return c.Create(m.Value)
+							} else {
+								return c.Update(m.Value)
+							}
+							return nil
+						})
+
+						if err != nil {
+							return err
+						}
+
+					}
+					err = before[index].BeforeSetup()
+					if err != nil {
+						return err
+					}
+
+				}
+
 			}
 
 			tn := m.TableName()
