@@ -58,3 +58,14 @@ func Test_New_No_Prefix(t *testing.T) {
 
 	r.Error(err)
 }
+
+func Test_New_BadDialect(t *testing.T) {
+	r := require.New(t)
+
+	_, err := New(&Options{
+		Prefix:  "foo",
+		Dialect: "unknown",
+	})
+
+	r.EqualError(err, "unable to find database.yml template for dialect unknown")
+}

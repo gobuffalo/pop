@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/gobuffalo/attrs"
 	"github.com/gobuffalo/fizz"
+
+	"github.com/gobuffalo/attrs"
 	"github.com/gobuffalo/flect/name"
 	"github.com/pkg/errors"
 )

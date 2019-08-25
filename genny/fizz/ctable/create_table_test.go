@@ -70,6 +70,40 @@ func Test_New(t *testing.T) {
 	}
 }
 
+func Test_New_SQL(t *testing.T) {
+	r := require.New(t)
+
+	ats, err := attrs.ParseArgs("id:uuid", "created_at:timestamp", "updated_at:timestamp", "name", "description:text", "age:int", "bar:nulls.String")
+	r.NoError(err)
+
+	g, err := New(&Options{
+		TableName:  "widgets",
+		Name:       "create_widgets",
+		Type:       "sql",
+		Translator: mockTranslator{},
+		Attrs:      ats,
+	})
+	r.NoError(err)
+
+	run := gentest.NewRunner()
+	run.With(g)
+
+	r.NoError(run.Run())
+
+	res := run.Results()
+
+	r.Len(res.Commands, 0)
+	r.Len(res.Files, 2)
+
+	f := res.Files[0]
+	r.Equal("migrations/create_widgets.test.down.sql", f.Name())
+	r.Equal("drop table;", f.String())
+
+	f = res.Files[1]
+	r.Equal("migrations/create_widgets.test.up.sql", f.Name())
+	r.Equal("create table;", f.String())
+}
+
 func Test_New_Fail(t *testing.T) {
 	r := require.New(t)
 

@@ -25,4 +25,13 @@ func Test_Options_Validate(t *testing.T) {
 	r.NoError(err)
 	r.Equal(1, len(opts.Attrs))
 	r.Equal("id", opts.Attrs[0].Name.String())
+
+	// Force default timestamps
+	opts.ForceDefaultTimestamps = true
+	err = opts.Validate()
+	r.NoError(err)
+
+	r.Equal(3, len(opts.Attrs))
+	r.Equal("created_at", opts.Attrs[1].Name.String())
+	r.Equal("updated_at", opts.Attrs[2].Name.String())
 }

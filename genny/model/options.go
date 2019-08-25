@@ -63,7 +63,7 @@ func (opts *Options) forceDefaults() error {
 		opts.Attrs = append(opts.Attrs, id)
 	}
 
-	// Add default timestamp columns if they where not provided
+	// Add default timestamp columns if they were not provided
 	if opts.ForceDefaultTimestamps && !createdAtFound {
 		createdAt, err := attrs.Parse("created_at:time")
 		if err != nil {
