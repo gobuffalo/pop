@@ -289,7 +289,7 @@ func Test_Eager_Update_Many_To_Many(t *testing.T) {
 		err := tx.Eager().Create(&user)
 
 		u := User{}
-		q := tx.Eager().Where("name = ?", "Carl Lewis")
+		q := tx.Eager().Where("name = ?", "Carl Lewis2")
 		err = q.First(&u)
 
 		count := len(u.Houses)
@@ -306,7 +306,7 @@ func Test_Eager_Update_Many_To_Many(t *testing.T) {
 		r.NoError(err)
 
 		u2 := User{}
-		q2 := tx.Eager().Where("name = ?", "Carl Lewis")
+		q2 := tx.Eager().Where("name = ?", "Carl Lewis2")
 		err = q2.First(&u2)
 
 		r.NoError(err)
