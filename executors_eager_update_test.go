@@ -275,7 +275,7 @@ func Test_Eager_Update_Many_To_Many(t *testing.T) {
 	transaction(func(tx *Connection) {
 
 		user := User{
-			Name: nulls.NewString("Carl Lewis"),
+			Name: nulls.NewString("Carl Lewis22"),
 			Books: Books{
 				{Title: "Pop Book", Description: "Pop Book", Isbn: "PB1"},
 			},
