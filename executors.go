@@ -1,7 +1,6 @@
 package pop
 
 import (
-	"fmt"
 	"reflect"
 
 	"github.com/gobuffalo/pop/associations"
@@ -538,19 +537,18 @@ func (c *Connection) Update(model interface{}, excludeColumns ...string) error {
 				}
 
 				dStms := asos.AssociationsDeletableStatement()
-				fmt.Println(dStms)
-				//for index := range dStms {
-				//	stm := dStms[index].DeleteStatements()
-				//
-				//	//	Delete Associations
-				//	if c.TX != nil {
-				//		_, err := c.TX.Exec(c.Dialect.TranslateSQL(stm.Statement), stm.Args...)
-				//		if err != nil {
-				//			return err
-				//		}
-				//		continue
-				//	}
-				//}
+				for index := range dStms {
+					stm := dStms[index].DeleteStatements()
+
+					//	Delete Associations
+					if c.TX != nil {
+						_, err := c.TX.Exec(c.Dialect.TranslateSQL(stm.Statement), stm.Args...)
+						if err != nil {
+							return err
+						}
+						continue
+					}
+				}
 			}
 
 			if err = m.afterUpdate(c); err != nil {
