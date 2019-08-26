@@ -517,26 +517,25 @@ func (c *Connection) Update(model interface{}, excludeColumns ...string) error {
 				}
 
 				stms := asos.AssociationsCreatableStatement()
-				fmt.Println(stms)
-				//for index := range stms {
-				//	statements := stms[index].Statements()
-				//
-				//	// Create Associations
-				//	for _, stm := range statements {
-				//		if c.TX != nil {
-				//			_, err := c.TX.Exec(c.Dialect.TranslateSQL(stm.Statement), stm.Args...)
-				//			if err != nil {
-				//				return err
-				//			}
-				//			continue
-				//		}
-				//		_, err = c.Store.Exec(c.Dialect.TranslateSQL(stm.Statement), stm.Args...)
-				//		if err != nil {
-				//			return err
-				//		}
-				//	}
-				//	//	Delete Associations.µ
-				//}
+				for index := range stms {
+					statements := stms[index].Statements()
+
+					// Create Associations
+					for _, stm := range statements {
+						if c.TX != nil {
+							_, err := c.TX.Exec(c.Dialect.TranslateSQL(stm.Statement), stm.Args...)
+							if err != nil {
+								return err
+							}
+							continue
+						}
+						_, err = c.Store.Exec(c.Dialect.TranslateSQL(stm.Statement), stm.Args...)
+						if err != nil {
+							return err
+						}
+					}
+					//	Delete Associations.µ
+				}
 
 				dStms := asos.AssociationsDeletableStatement()
 				fmt.Println(dStms)
