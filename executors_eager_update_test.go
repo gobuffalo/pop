@@ -1,6 +1,7 @@
 package pop
 
 import (
+	"github.com/gobuffalo/envy"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -388,7 +389,12 @@ func Test_Eager_Update_Has_Many_Transfer(t *testing.T) {
 }
 
 func Test_Eager_Update_Belongs_To(t *testing.T) {
-	// 	t.Skip("skipping for crashing mysql")
+	dialect := envy.Get("SODA_DIALECT", "")
+
+	if dialect == "mysql" {
+		t.Skip("Skipping this test for MySql")
+	}
+
 	if PDB == nil {
 		t.Skip("skipping integration tests")
 	}
@@ -419,7 +425,7 @@ func Test_Eager_Update_Belongs_To(t *testing.T) {
 		book.User.Alive = nulls.NewBool(true)
 
 		// Update book
-		// err = tx.Eager().Update(&book)
+		err = tx.Eager().Update(&book)
 		r.NoError(err)
 
 		// Find the book's user directly
