@@ -268,7 +268,13 @@ func Test_Eager_Update_Has_One(t *testing.T) {
 }
 
 func Test_Eager_Update_Many_To_Many(t *testing.T) {
-	t.Skip("skipping broken test")
+
+	dialect := envy.Get("SODA_DIALECT", "")
+
+	if dialect == "mysql" {
+		t.Skip("Skipping this test for MySql")
+	}
+
 	if PDB == nil {
 		t.Skip("skipping integration tests")
 	}
