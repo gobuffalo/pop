@@ -81,8 +81,12 @@ changelog:
       - '^docs:'
       - '^test:'
 <%= if (brew) { %>
-brew:
-  github:
-    owner: gobuffalo
-    name: homebrew-tap
+brews:
+  -
+    github:
+      owner: gobuffalo
+      name: homebrew-tap
+    homepage: "https://gobuffalo.io/docs/db/getting-started"
+    description: "A Tasty Treat For All Your Database Needs"
+    skip_upload: "auto"
 <% } %>
