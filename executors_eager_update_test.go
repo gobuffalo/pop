@@ -406,12 +406,7 @@ func Test_Eager_Update_Belongs_To(t *testing.T) {
 			},
 		}
 
-		user2 := User{
-			Name: nulls.NewString("Bran Stark"),
-		}
-
 		err := tx.Eager().Create(&user)
-		err = tx.Eager().Create(&user2)
 		r.NoError(err)
 
 		// Find Book
