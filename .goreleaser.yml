@@ -2,7 +2,8 @@
 # Edit .goreleaser.yml.plush instead
 
 builds:
-- binary: soda
+- id: pop_darwin
+  binary: soda
   main: soda/main.go
   goos:
     - darwin
@@ -16,7 +17,8 @@ builds:
     - -tags
     - sqlite
 
-- binary: soda
+- id: pop_linux
+  binary: soda
   main: soda/main.go
   env:
     - CGO_ENABLED=1
@@ -29,7 +31,8 @@ builds:
     - amd64
     - 386
 
-- binary: soda
+- id: pop_windows_i686
+  binary: soda
   main: soda/main.go
   ldflags:
     - "-extldflags '-static'"
@@ -45,7 +48,8 @@ builds:
   goarch:
     - 386
 
-- binary: soda
+- id: pop_windows_x64
+  binary: soda
   main: soda/main.go
   ldflags:
     - "-extldflags '-static'"
@@ -61,11 +65,11 @@ builds:
   goarch:
     - amd64
 
-archive:
-  format: tar.gz
-  format_overrides:
-    - goos: windows
-      format: zip
+archives:
+  -
+    format_overrides:
+      - goos: windows
+        format: zip
 
 checksum:
   name_template: 'checksums.txt'
