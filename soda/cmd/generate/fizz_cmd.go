@@ -3,9 +3,11 @@ package generate
 import (
 	"context"
 
+	"github.com/gobuffalo/attrs"
 	"github.com/gobuffalo/genny"
 	"github.com/gobuffalo/logger"
 	"github.com/gobuffalo/pop/genny/fizz/cempty"
+	"github.com/gobuffalo/pop/genny/fizz/ctable"
 	"github.com/spf13/cobra"
 )
 
@@ -19,6 +21,18 @@ var FizzCmd = &cobra.Command{
 		if len(args) > 0 {
 			name = args[0]
 		}
+
+		var (
+			atts attrs.Attrs
+			err  error
+		)
+		if len(args) > 1 {
+			atts, err = attrs.ParseArgs(args[1:]...)
+			if err != nil {
+				return err
+			}
+		}
+
 		run := genny.WetRunner(context.Background())
 
 		// Ensure the generator is as verbose as the old one.
@@ -31,15 +45,28 @@ var FizzCmd = &cobra.Command{
 			path = p.Value.String()
 		}
 
-		g, err := cempty.New(&cempty.Options{
-			TableName: name,
-			Path:      path,
-			Type:      "fizz",
-		})
-		if err != nil {
-			return err
+		if len(atts) == 0 {
+			g, err := cempty.New(&cempty.Options{
+				TableName: name,
+				Path:      path,
+				Type:      "fizz",
+			})
+			if err != nil {
+				return err
+			}
+			run.With(g)
+		} else {
+			g, err := ctable.New(&ctable.Options{
+				TableName: name,
+				Path:      path,
+				Type:      "fizz",
+				Attrs:     atts,
+			})
+			if err != nil {
+				return err
+			}
+			run.With(g)
 		}
-		run.With(g)
 
 		return run.Run()
 	},
