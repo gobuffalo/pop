@@ -4,14 +4,16 @@ import (
 	"context"
 	"errors"
 
+	"github.com/gobuffalo/attrs"
 	"github.com/gobuffalo/genny"
 	"github.com/gobuffalo/logger"
 	"github.com/gobuffalo/pop"
 	"github.com/gobuffalo/pop/genny/fizz/cempty"
+	"github.com/gobuffalo/pop/genny/fizz/ctable"
 	"github.com/spf13/cobra"
 )
 
-//SQLCmd generates a SQL migration
+// SQLCmd generates a SQL migration
 var SQLCmd = &cobra.Command{
 	Use:   "sql [name]",
 	Short: "Generates Up/Down migrations for your database using SQL.",
@@ -20,6 +22,18 @@ var SQLCmd = &cobra.Command{
 		if len(args) > 0 {
 			name = args[0]
 		}
+
+		var (
+			atts attrs.Attrs
+			err  error
+		)
+		if len(args) > 1 {
+			atts, err = attrs.ParseArgs(args[1:]...)
+			if err != nil {
+				return err
+			}
+		}
+
 		run := genny.WetRunner(context.Background())
 
 		// Ensure the generator is as verbose as the old one.
@@ -47,16 +61,30 @@ var SQLCmd = &cobra.Command{
 			return errors.New("invalid fizz translator")
 		}
 
-		g, err := cempty.New(&cempty.Options{
-			TableName:  name,
-			Path:       path,
-			Type:       "sql",
-			Translator: translator,
-		})
-		if err != nil {
-			return err
+		if len(atts) == 0 {
+			g, err := cempty.New(&cempty.Options{
+				TableName:  name,
+				Path:       path,
+				Type:       "sql",
+				Translator: translator,
+			})
+			if err != nil {
+				return err
+			}
+			run.With(g)
+		} else {
+			g, err := ctable.New(&ctable.Options{
+				TableName:  name,
+				Path:       path,
+				Type:       "sql",
+				Attrs:      atts,
+				Translator: t,
+			})
+			if err != nil {
+				return err
+			}
+			run.With(g)
 		}
-		run.With(g)
 
 		return run.Run()
 	},
