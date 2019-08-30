@@ -1,4 +1,4 @@
-package ctable
+package cempty
 
 import (
 	"testing"

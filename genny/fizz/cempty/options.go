@@ -1,19 +1,20 @@
-package ctable
+package cempty
 
 import (
 	"fmt"
 	"time"
 
-	"github.com/gobuffalo/fizz"
-
-	"github.com/gobuffalo/attrs"
 	"github.com/gobuffalo/flect/name"
 	"github.com/pkg/errors"
 )
 
 var nowFunc = time.Now
 
-// Options for the table create generator.
+type nameable interface {
+	Name() string
+}
+
+// Options for the empty migration generator.
 type Options struct {
 	// TableName is the name of the table.
 	TableName string
@@ -21,15 +22,10 @@ type Options struct {
 	Name string
 	// Path is the dir path where to generate the migration files.
 	Path string
-	// Attrs is a slice of columns to add to the table.
-	Attrs attrs.Attrs
 	// Translator is a Fizz translator to use when asking for SQL migrations.
-	Translator fizz.Translator
+	Translator nameable
 	// Type is the type of migration to generate (sql or fizz).
-	// For sql migrations, you'll have to provide a valid Translator too.
 	Type string
-	// ForceDefaultTimestamps enables auto timestamping for the generated table.
-	ForceDefaultTimestamps bool `json:"force_default_timestamps"`
 }
 
 // Validate that options are usuable
