@@ -150,6 +150,48 @@ func Test_New_XML(t *testing.T) {
 	r.Equal(clean(bf), clean(f.String()))
 }
 
+func Test_New_JSONAPI(t *testing.T) {
+	r := require.New(t)
+
+	ats, err := attrs.ParseArgs("id:uuid", "created_at:timestamp", "updated_at:timestamp", "name", "description:text", "age:int", "bar:nulls.String")
+	r.NoError(err)
+	g, err := New(&Options{
+		Name:     "widget",
+		Encoding: "jsonapi",
+		Attrs:    ats,
+	})
+
+	r.NoError(err)
+
+	run := gentest.NewRunner()
+	run.With(g)
+
+	r.NoError(run.Run())
+
+	res := run.Results()
+
+	r.Len(res.Commands, 0)
+	r.NoError(gentest.CompareFiles([]string{"models/widget.go", "models/widget_test.go"}, res.Files))
+
+	box := packr.New("Test_New_JSONAPI", "../model/_fixtures")
+
+	f, err := res.Find("models/widget_test.go")
+	r.NoError(err)
+	bf, err := box.FindString(f.Name())
+	r.NoError(err)
+	r.Equal(bf, f.String())
+
+	f, err = res.Find("models/widget.go")
+
+	tf := gogen.FmtTransformer()
+	f, err = tf.Transform(f)
+	r.NoError(err)
+
+	bf, err = box.FindString("models/widget_jsonapi.go")
+	r.NoError(err)
+	r.Equal(clean(bf), clean(f.String()))
+}
+
 func Test_New_Package(t *testing.T) {
 	r := require.New(t)
 

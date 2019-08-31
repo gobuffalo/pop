@@ -38,6 +38,9 @@ func (opts *Options) Validate() error {
 		opts.Encoding = "json"
 	}
 	opts.Encoding = strings.ToLower(opts.Encoding)
+	if opts.Encoding != "json" && opts.Encoding != "jsonapi" && opts.Encoding != "xml" {
+		return errors.Errorf("unsupported encoding option %s", opts.Encoding)
+	}
 
 	return opts.forceDefaults()
 }
