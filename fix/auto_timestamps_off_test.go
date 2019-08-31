@@ -31,9 +31,7 @@ func Test_AutoTimestampsOff(t *testing.T) {
 			cleaned := re.ReplaceAllString(expected, "")
 			cleanedPatched := re.ReplaceAllString(patched, "")
 
-
 			rr.Equal(cleaned, cleanedPatched)
-
 
 		})
 		return nil
