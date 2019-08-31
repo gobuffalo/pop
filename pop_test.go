@@ -240,7 +240,7 @@ type CourseCode struct {
 	CreatedAt time.Time `json:"created_at" db:"created_at"`
 	UpdatedAt time.Time `json:"updated_at" db:"updated_at"`
 	CourseID  uuid.UUID `json:"course_id" db:"course_id"`
-	Course    Course    `json:"-" db:"-"`
+	Course    Course    `json:"-" belongs_to:"course"`
 	// Course Course `belongs_to:"course"`
 }
 

@@ -117,7 +117,7 @@ func Test_Find_Eager_Has_Many(t *testing.T) {
 }
 
 func Test_All_Eager_Preload_Mode(t *testing.T) {
-	transaction(func(tx *pop.Connection) {
+	transaction(func(tx *Connection) {
 		r := require.New(t)
 
 		for _, name := range []string{"Mark", "Joe", "Jane"} {
