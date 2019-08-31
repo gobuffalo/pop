@@ -12,7 +12,7 @@ import (
 	"github.com/jmoiron/sqlx/reflectx"
 )
 
-// Creates the meta info details for the model passed
+// NewModelMetaInfo creates the meta info details for the model passed
 // as a parameter.
 func NewModelMetaInfo(model *Model) *ModelMetaInfo {
 	mmi := &ModelMetaInfo{}
@@ -21,7 +21,7 @@ func NewModelMetaInfo(model *Model) *ModelMetaInfo {
 	return mmi
 }
 
-// Creates the meta info details for the passed association.
+// NewAssociationMetaInfo creates the meta info details for the passed association.
 func NewAssociationMetaInfo(fi *reflectx.FieldInfo) *AssociationMetaInfo {
 	ami := &AssociationMetaInfo{}
 	ami.FieldInfo = fi
