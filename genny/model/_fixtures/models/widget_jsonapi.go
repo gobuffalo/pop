@@ -25,7 +25,7 @@ type Widget struct {
 // String is not required by pop and may be deleted
 func (w Widget) String() string {
 	var jb strings.Builder
-	_ = jsonapi.MarshalPayload(&jb, w)
+	_ = jsonapi.MarshalPayload(&jb, &w)
 	return jb.String()
 }
 
@@ -35,7 +35,7 @@ type Widgets []Widget
 // String is not required by pop and may be deleted
 func (w Widgets) String() string {
 	var jb strings.Builder
-	_ = jsonapi.MarshalPayload(&jb, w)
+	_ = jsonapi.MarshalPayload(&jb, &w)
 	return jb.String()
 }
 

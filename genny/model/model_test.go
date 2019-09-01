@@ -13,9 +13,9 @@ import (
 
 func clean(s string) string {
 	s = strings.TrimSpace(s)
-	s = strings.Replace(s, "\n", "", -1)
+	s = strings.Replace(s, "\r\n", "\n", -1)
+	s = strings.Replace(s, "\r", "\n", -1)
 	s = strings.Replace(s, "\t", "", -1)
-	s = strings.Replace(s, "\r", "", -1)
 	return s
 }
 

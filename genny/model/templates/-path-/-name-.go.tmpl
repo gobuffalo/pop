@@ -26,7 +26,7 @@ type {{.model.Name.Proper}} struct {
 func ({{.model.Name.Char}} {{.model.Name.Proper}}) String() string {
 {{- if eq $.model.Encoding.String "jsonapi"}}
 	var jb strings.Builder
-	_ = jsonapi.MarshalPayload(&jb, {{.model.Name.Char}})
+	_ = jsonapi.MarshalPayload(&jb, &{{.model.Name.Char}})
 	return jb.String()
 {{- else }}
 	{{.model.Encoding.Char}}{{.model.Name.Char}}, _ := {{.model.Encoding}}.Marshal({{.model.Name.Char}})
@@ -41,7 +41,7 @@ type {{.model.Name.Proper.Pluralize}} []{{.model.Name.Proper}}
 func ({{.model.Name.Char}} {{.model.Name.Proper.Pluralize}}) String() string {
 {{- if eq $.model.Encoding.String "jsonapi"}}
 	var jb strings.Builder
-	_ = jsonapi.MarshalPayload(&jb, {{.model.Name.Char}})
+	_ = jsonapi.MarshalPayload(&jb, &{{.model.Name.Char}})
 	return jb.String()
 {{- else }}
 	{{.model.Encoding.Char}}{{.model.Name.Char}}, _ := {{.model.Encoding}}.Marshal({{.model.Name.Char}})
