@@ -79,27 +79,27 @@ func (mmi *ModelMetaInfo) getDBFieldTaggedWith(value string) *reflectx.FieldInfo
 }
 
 func (mmi *ModelMetaInfo) preloadFields(fields ...string) ([]*reflectx.FieldInfo, error) {
-	if len(fields) > 0 {
-		var preloadFields []*reflectx.FieldInfo
-		for _, f := range fields {
-			if !validFieldRegexp.MatchString(f) {
-				return preloadFields, fmt.Errorf("association field '%s' does not match the format %s", f, "'<field>' or '<field>.<nested-field>'")
-			}
-			if strings.Contains(f, ".") {
-				mmi.nestedFields[f[:strings.Index(f, ".")]] = f[strings.Index(f, ".")+1:]
-				f = f[:strings.Index(f, ".")]
-			}
-
-			preloadField := mmi.GetByPath(f)
-			if preloadField == nil {
-				return preloadFields, fmt.Errorf("field %s does not exist in model %s", f, mmi.Model.TableName())
-			}
-			preloadFields = append(preloadFields, preloadField)
-		}
-		return preloadFields, nil
+	if len(fields) == 0 {
+		return mmi.Index, nil
 	}
 
-	return mmi.Index, nil
+	var preloadFields []*reflectx.FieldInfo
+	for _, f := range fields {
+		if !validFieldRegexp.MatchString(f) {
+			return preloadFields, fmt.Errorf("association field '%s' does not match the format %s", f, "'<field>' or '<field>.<nested-field>'")
+		}
+		if strings.Contains(f, ".") {
+			mmi.nestedFields[f[:strings.Index(f, ".")]] = f[strings.Index(f, ".")+1:]
+			f = f[:strings.Index(f, ".")]
+		}
+
+		preloadField := mmi.GetByPath(f)
+		if preloadField == nil {
+			return preloadFields, fmt.Errorf("field %s does not exist in model %s", f, mmi.Model.TableName())
+		}
+		preloadFields = append(preloadFields, preloadField)
+	}
+	return preloadFields, nil
 }
 
 // AssociationMetaInfo a type to abstract all field information
