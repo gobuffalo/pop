@@ -220,6 +220,10 @@ func preloadHasMany(tx *Connection, asoc *AssociationMetaInfo, mmi *ModelMetaInf
 		return nil
 	})
 
+	if len(ids) == 0 {
+		return nil
+	}
+
 	// 2) load all associations constraint by model ids.
 	fk := asoc.Field.Tag.Get("fk_id")
 	if fk == "" {
@@ -267,6 +271,10 @@ func preloadHasOne(tx *Connection, asoc *AssociationMetaInfo, mmi *ModelMetaInfo
 		ids = append(ids, m.ID())
 		return nil
 	})
+
+	if len(ids) == 0 {
+		return nil
+	}
 
 	// 2) load all associations constraint by model ids.
 	fk := asoc.Field.Tag.Get("fk_id")
@@ -316,6 +324,10 @@ func preloadBelongsTo(tx *Connection, asoc *AssociationMetaInfo, mmi *ModelMetaI
 		fkids = append(fkids, mmi.mapper.FieldByName(val, fi.Path).Interface())
 	})
 
+	if len(fkids) == 0 {
+		return nil
+	}
+
 	// 2) load all associations constraint by association fields ids.
 	fk := "id"
 
@@ -360,6 +372,10 @@ func preloadManyToMany(tx *Connection, asoc *AssociationMetaInfo, mmi *ModelMeta
 		ids = append(ids, m.ID())
 		return nil
 	})
+
+	if len(ids) == 0 {
+		return nil
+	}
 
 	// 2) load all associations.
 	// 2.1) In here I pick the label name from association.
