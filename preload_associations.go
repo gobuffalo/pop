@@ -3,6 +3,7 @@ package pop
 import (
 	"fmt"
 	"reflect"
+	"regexp"
 	"strings"
 
 	"github.com/gobuffalo/flect"
@@ -11,6 +12,8 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/jmoiron/sqlx/reflectx"
 )
+
+var validFieldRegexp = regexp.MustCompile(`^(([a-zA-Z0-9]*)(\.[a-zA-Z0-9]+)?)+$`)
 
 // NewModelMetaInfo creates the meta info details for the model passed
 // as a parameter.
@@ -34,8 +37,9 @@ func NewAssociationMetaInfo(fi *reflectx.FieldInfo) *AssociationMetaInfo {
 // database.
 type ModelMetaInfo struct {
 	*reflectx.StructMap
-	Model  *Model
-	mapper *reflectx.Mapper
+	Model        *Model
+	mapper       *reflectx.Mapper
+	nestedFields map[string]string
 }
 
 func (mmi *ModelMetaInfo) init() {
@@ -48,6 +52,7 @@ func (mmi *ModelMetaInfo) init() {
 	}
 
 	mmi.StructMap = m.TypeMap(t)
+	mmi.nestedFields = make(map[string]string)
 }
 
 func (mmi *ModelMetaInfo) iterate(fn func(reflect.Value)) {
@@ -71,6 +76,30 @@ func (mmi *ModelMetaInfo) getDBFieldTaggedWith(value string) *reflectx.FieldInfo
 		}
 	}
 	return nil
+}
+
+func (mmi *ModelMetaInfo) preloadFields(fields ...string) ([]*reflectx.FieldInfo, error) {
+	if len(fields) > 0 {
+		var preloadFields []*reflectx.FieldInfo
+		for _, f := range fields {
+			if !validFieldRegexp.MatchString(f) {
+				return preloadFields, fmt.Errorf("association field '%s' does not match the format %s", f, "'<field>' or '<field>.<nested-field>'")
+			}
+			if strings.Contains(f, ".") {
+				mmi.nestedFields[f[:strings.Index(f, ".")]] = f[strings.Index(f, ".")+1:]
+				f = f[:strings.Index(f, ".")]
+			}
+
+			preloadField := mmi.GetByPath(f)
+			if preloadField == nil {
+				return preloadFields, fmt.Errorf("field %s does not exist in model %s", f, mmi.Model.TableName())
+			}
+			preloadFields = append(preloadFields, preloadField)
+		}
+		return preloadFields, nil
+	}
+
+	return mmi.Index, nil
 }
 
 // AssociationMetaInfo a type to abstract all field information
@@ -126,11 +155,16 @@ func (ami *AssociationMetaInfo) fkName() string {
 
 // preload is the query mode used to load associations from database
 // similar to the active record default approach on Rails.
-func preload(tx *Connection, model interface{}) error {
+func preload(tx *Connection, model interface{}, fields ...string) error {
 	mmi := NewModelMetaInfo(&Model{Value: model})
 
+	preloadFields, err := mmi.preloadFields(fields...)
+	if err != nil {
+		return err
+	}
+
 	var associations []*AssociationMetaInfo
-	for _, fieldInfo := range mmi.Index {
+	for _, fieldInfo := range preloadFields {
 		if isFieldAssociation(fieldInfo.Field) && fieldInfo.Parent.Name == "" {
 			associations = append(associations, NewAssociationMetaInfo(fieldInfo))
 		}
@@ -199,6 +233,13 @@ func preloadHasMany(tx *Connection, asoc *AssociationMetaInfo, mmi *ModelMetaInf
 		return err
 	}
 
+	// 2.1) load all nested associations from this assoc.
+	if asocNestedFields, ok := mmi.nestedFields[asoc.Path]; ok {
+		if err := preload(tx, slice.Interface(), asocNestedFields); err != nil {
+			return err
+		}
+	}
+
 	// 3) iterate over every model and fill it with the assoc.
 	foreignField := asoc.getDBFieldTaggedWith(fk)
 	mmi.iterate(func(mvalue reflect.Value) {
@@ -240,6 +281,13 @@ func preloadHasOne(tx *Connection, asoc *AssociationMetaInfo, mmi *ModelMetaInfo
 		return err
 	}
 
+	// 2.1) load all nested associations from this assoc.
+	if asocNestedFields, ok := mmi.nestedFields[asoc.Path]; ok {
+		if err := preload(tx, slice.Interface(), asocNestedFields); err != nil {
+			return err
+		}
+	}
+
 	//  3) iterate over every model and fill it with the assoc.
 	foreignField := asoc.getDBFieldTaggedWith(fk)
 	mmi.iterate(func(mvalue reflect.Value) {
@@ -276,6 +324,13 @@ func preloadBelongsTo(tx *Connection, asoc *AssociationMetaInfo, mmi *ModelMetaI
 	err := q.Where(fmt.Sprintf("%s in (?)", fk), fkids).All(slice.Interface())
 	if err != nil {
 		return err
+	}
+
+	// 2.1) load all nested associations from this assoc.
+	if asocNestedFields, ok := mmi.nestedFields[asoc.Path]; ok {
+		if err := preload(tx, slice.Interface(), asocNestedFields); err != nil {
+			return err
+		}
 	}
 
 	// 3) iterate over every model and fill it with the assoc.
@@ -350,6 +405,13 @@ func preloadManyToMany(tx *Connection, asoc *AssociationMetaInfo, mmi *ModelMeta
 		q := tx.Q()
 		slice := asoc.toSlice()
 		q.Where("id in (?)", fkids).All(slice.Interface())
+
+		// 2.2) load all nested associations from this assoc.
+		if asocNestedFields, ok := mmi.nestedFields[asoc.Path]; ok {
+			if err := preload(tx, slice.Interface(), asocNestedFields); err != nil {
+				return err
+			}
+		}
 
 		// 3) iterate over every model and fill it with the assoc.
 		mmi.iterate(func(mvalue reflect.Value) {

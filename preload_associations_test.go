@@ -94,3 +94,79 @@ func Test_New_Implementation_For_Nplus1_With_UUID(t *testing.T) {
 		a.Equal(student.ID, parents[0].Students[0].ID)
 	})
 }
+
+func Test_New_Implementation_For_Nplus1_Single(t *testing.T) {
+	transaction(func(tx *Connection) {
+		a := require.New(t)
+		for _, name := range []string{"Mark", "Joe", "Jane"} {
+			user := User{Name: nulls.NewString(name)}
+			a.NoError(tx.Create(&user))
+
+			book := Book{UserID: nulls.NewInt(user.ID)}
+			a.NoError(tx.Create(&book))
+
+			writer := Writer{Name: "Larry", BookID: book.ID}
+			a.NoError(tx.Create(&writer))
+
+			if name == "Mark" {
+				song := Song{UserID: user.ID}
+				a.NoError(tx.Create(&song))
+
+				address := Address{Street: "Pop"}
+				a.NoError(tx.Create(&address))
+
+				home := UsersAddress{UserID: user.ID, AddressID: address.ID}
+				a.NoError(tx.Create(&home))
+			}
+		}
+
+		users := []User{}
+		a.NoError(tx.All(&users))
+
+		// FILL THE HAS-MANY and HAS_ONE
+		a.NoError(preload(tx, &users, "Books"))
+
+		a.Len(users[0].Books, 1)
+		a.Len(users[1].Books, 1)
+		a.Len(users[2].Books, 1)
+		a.Zero(users[0].FavoriteSong.UserID)
+		a.Len(users[0].Houses, 0)
+	})
+}
+
+func Test_New_Implementation_For_Nplus1_Nested(t *testing.T) {
+	transaction(func(tx *Connection) {
+		a := require.New(t)
+		var song Song
+		for _, name := range []string{"Mark", "Joe", "Jane"} {
+			user := User{Name: nulls.NewString(name)}
+			a.NoError(tx.Create(&user))
+
+			book := Book{UserID: nulls.NewInt(user.ID)}
+			a.NoError(tx.Create(&book))
+
+			if name == "Mark" {
+				song = Song{UserID: user.ID}
+				a.NoError(tx.Create(&song))
+
+				address := Address{Street: "Pop"}
+				a.NoError(tx.Create(&address))
+
+				home := UsersAddress{UserID: user.ID, AddressID: address.ID}
+				a.NoError(tx.Create(&home))
+			}
+		}
+
+		users := []User{}
+		a.NoError(tx.All(&users))
+
+		a.NoError(preload(tx, &users, "Houses", "Books.User.FavoriteSong"))
+		a.Len(users[0].Books, 1)
+		a.Len(users[1].Books, 1)
+		a.Len(users[2].Books, 1)
+		a.Len(users[0].Houses, 1)
+
+		a.Equal(users[0].ID, users[0].Books[0].User.ID)
+		a.Equal(song.ID, users[0].Books[0].User.FavoriteSong.ID)
+	})
+}
