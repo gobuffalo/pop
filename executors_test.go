@@ -1229,6 +1229,71 @@ func Test_Update(t *testing.T) {
 	})
 }
 
+func Test_UpdateColumns(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
+	transaction(func(tx *Connection) {
+		r := require.New(t)
+
+		user := User{Name: nulls.NewString("Mark")}
+		tx.Create(&user)
+
+		r.NotZero(user.CreatedAt)
+		r.NotZero(user.UpdatedAt)
+
+		user.Name.String = "Fulano"
+		user.UserName = "Fulano"
+		err := tx.UpdateColumns(&user, "user_name") // Update UserName field/column only
+		r.NoError(err)
+
+		r.NoError(tx.Reload(&user))
+		r.Equal(user.Name.String, "Mark") // Name column should not be updated
+		r.Equal(user.UserName, "Fulano")
+	})
+}
+
+func Test_UpdateColumns_With_Slice(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
+	transaction(func(tx *Connection) {
+		r := require.New(t)
+
+		user := Users{
+			{
+				Name:     nulls.NewString("Mark"),
+				UserName: "Ping",
+			},
+			{
+				Name:     nulls.NewString("Larry"),
+				UserName: "Pong",
+			},
+		}
+		tx.Create(&user)
+
+		r.NotZero(user[0].CreatedAt)
+		r.NotZero(user[0].UpdatedAt)
+
+		r.NotZero(user[1].CreatedAt)
+		r.NotZero(user[1].UpdatedAt)
+
+		user[0].Name.String = "Fulano"
+		user[0].UserName = "Thor"
+		user[1].Name.String = "Fulana"
+		user[1].UserName = "Freya"
+
+		err := tx.UpdateColumns(&user, "name") // Update Name field/column only
+		r.NoError(err)
+
+		r.NoError(tx.Reload(&user))
+		r.Equal(user[0].Name.String, "Fulano")
+		r.Equal(user[0].UserName, "Ping") // UserName should not be updated
+		r.Equal(user[1].Name.String, "Fulana")
+		r.Equal(user[1].UserName, "Pong") // UserName should not be updated
+	})
+}
+
 func Test_Update_With_Slice(t *testing.T) {
 	if PDB == nil {
 		t.Skip("skipping integration tests")
