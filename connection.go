@@ -1,6 +1,7 @@
 package pop
 
 import (
+	"context"
 	"sync/atomic"
 	"time"
 
@@ -179,6 +180,17 @@ func (c *Connection) NewTransaction() (*Connection, error) {
 		cn = c
 	}
 	return cn, nil
+}
+
+func (c *Connection) Ctx(ctx context.Context) *Connection {
+	cn := c.copy()
+	if sc, ok := cn.Store.(storeContext); ok {
+		cn.Store = contextStore{
+			storeContext: sc,
+			ctx:          ctx,
+		}
+	}
+	return cn
 }
 
 func (c *Connection) copy() *Connection {
