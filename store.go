@@ -1,6 +1,7 @@
 package pop
 
 import (
+	"context"
 	"database/sql"
 
 	"github.com/jmoiron/sqlx"
@@ -18,4 +19,41 @@ type store interface {
 	Rollback() error
 	Commit() error
 	Close() error
+}
+
+// StoreContext is an interface that must be implemented for Pop to be able to
+// use the value as a way of talking to a datastore, with a context.
+type storeContext interface {
+	SelectContext(context.Context, interface{}, string, ...interface{}) error
+	GetContext(context.Context, interface{}, string, ...interface{}) error
+	NamedExecContext(context.Context, string, interface{}) (sql.Result, error)
+	ExecContext(context.Context, string, ...interface{}) (sql.Result, error)
+	PrepareNamedContext(context.Context, string) (*sqlx.NamedStmt, error)
+	Transaction() (*Tx, error)
+	Rollback() error
+	Commit() error
+	Close() error
+}
+
+// ContextStore wraps a StoreContext with a Context, so it
+// implements ContextStore.
+type contextStore struct {
+	storeContext
+	ctx context.Context
+}
+
+func (s contextStore) Select(dest interface{}, query string, args ...interface{}) error {
+	return s.storeContext.SelectContext(s.ctx, dest, query, args)
+}
+func (s contextStore) Get(dest interface{}, query string, args ...interface{}) error {
+	return s.storeContext.GetContext(s.ctx, dest, query, args)
+}
+func (s contextStore) NamedExec(query string, arg interface{}) (sql.Result, error) {
+	return s.storeContext.NamedExecContext(s.ctx, query, arg)
+}
+func (s contextStore) Exec(query string, args ...interface{}) (sql.Result, error) {
+	return s.storeContext.ExecContext(s.ctx, query, args)
+}
+func (s contextStore) PrepareNamed(query string) (*sqlx.NamedStmt, error) {
+	return s.storeContext.PrepareNamedContext(s.ctx, query)
 }
