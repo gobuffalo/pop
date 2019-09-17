@@ -1,13 +1,21 @@
 package pop
 
-import "github.com/jmoiron/sqlx"
+import (
+	"context"
+
+	"github.com/jmoiron/sqlx"
+)
 
 type dB struct {
 	*sqlx.DB
 }
 
+func (db *dB) TransactionContext(ctx context.Context) (*Tx, error) {
+	return newTX(ctx, db)
+}
+
 func (db *dB) Transaction() (*Tx, error) {
-	return newTX(db)
+	return newTX(context.Background(), db)
 }
 
 func (db *dB) Rollback() error {
