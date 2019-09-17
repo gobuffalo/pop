@@ -170,9 +170,15 @@ func (c *Connection) NewTransaction() (*Connection, error) {
 		if err != nil {
 			return cn, errors.Wrap(err, "couldn't start a new transaction")
 		}
+		var store store = tx
+
+		// Rewrap the store if it was a context store
+		if cs, ok := c.Store.(contextStore); ok {
+			store = contextStore{store: store, ctx: cs.ctx}
+		}
 		cn = &Connection{
 			ID:      randx.String(30),
-			Store:   tx,
+			Store:   store,
 			Dialect: c.Dialect,
 			TX:      tx,
 		}
