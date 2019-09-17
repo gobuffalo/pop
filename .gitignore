@@ -33,6 +33,7 @@ migrations/schema.sql
 vendor/
 go.mod
 go.sum
+.env
 
 # test data
 cockroach-data/
