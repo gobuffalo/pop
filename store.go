@@ -19,41 +19,37 @@ type store interface {
 	Rollback() error
 	Commit() error
 	Close() error
-}
 
-// StoreContext is an interface that must be implemented for Pop to be able to
-// use the value as a way of talking to a datastore, with a context.
-type storeContext interface {
+	// Context versions to wrap with contextStore
 	SelectContext(context.Context, interface{}, string, ...interface{}) error
 	GetContext(context.Context, interface{}, string, ...interface{}) error
 	NamedExecContext(context.Context, string, interface{}) (sql.Result, error)
 	ExecContext(context.Context, string, ...interface{}) (sql.Result, error)
 	PrepareNamedContext(context.Context, string) (*sqlx.NamedStmt, error)
-	Transaction() (*Tx, error)
-	Rollback() error
-	Commit() error
-	Close() error
+	TransactionContext(context.Context) (*Tx, error)
 }
 
-// ContextStore wraps a StoreContext with a Context, so it
-// implements ContextStore.
+// ContextStore wraps a store with a Context, so passes it with the functions that don't take it.
 type contextStore struct {
-	storeContext
+	store
 	ctx context.Context
 }
 
+func (s contextStore) Transaction() (*Tx, error) {
+	return s.store.TransactionContext(s.ctx)
+}
 func (s contextStore) Select(dest interface{}, query string, args ...interface{}) error {
-	return s.storeContext.SelectContext(s.ctx, dest, query, args)
+	return s.store.SelectContext(s.ctx, dest, query, args)
 }
 func (s contextStore) Get(dest interface{}, query string, args ...interface{}) error {
-	return s.storeContext.GetContext(s.ctx, dest, query, args)
+	return s.store.GetContext(s.ctx, dest, query, args)
 }
 func (s contextStore) NamedExec(query string, arg interface{}) (sql.Result, error) {
-	return s.storeContext.NamedExecContext(s.ctx, query, arg)
+	return s.store.NamedExecContext(s.ctx, query, arg)
 }
 func (s contextStore) Exec(query string, args ...interface{}) (sql.Result, error) {
-	return s.storeContext.ExecContext(s.ctx, query, args)
+	return s.store.ExecContext(s.ctx, query, args)
 }
 func (s contextStore) PrepareNamed(query string) (*sqlx.NamedStmt, error) {
-	return s.storeContext.PrepareNamedContext(s.ctx, query)
+	return s.store.PrepareNamedContext(s.ctx, query)
 }

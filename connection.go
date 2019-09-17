@@ -184,11 +184,9 @@ func (c *Connection) NewTransaction() (*Connection, error) {
 
 func (c *Connection) Ctx(ctx context.Context) *Connection {
 	cn := c.copy()
-	if sc, ok := cn.Store.(storeContext); ok {
-		cn.Store = contextStore{
-			storeContext: sc,
-			ctx:          ctx,
-		}
+	cn.Store = contextStore{
+		store: cn.Store,
+		ctx:   ctx,
 	}
 	return cn
 }
