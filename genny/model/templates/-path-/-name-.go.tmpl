@@ -9,16 +9,29 @@ import (
 {{- end }}
 )
 
+{{- if eq $.model.Encoding.String "jsonapi"}}
+type {{.model.Name.Proper}} struct {
+{{- range $a := .opts.Attrs }}
+    {{$a.Name.Pascalize}} {{$a.GoType}} `jsonapi:"{{ if eq $a.Name.Underscore.String "id" }}primary{{ else }}attr{{ end }},{{$a.Name.Underscore}}" db:"{{$a.Name.Underscore}}"`
+{{- end }}
+{{- else }}
 type {{.model.Name.Proper}} struct {
 {{- range $a := .opts.Attrs }}
     {{$a.Name.Pascalize}} {{$a.GoType}} `{{$.model.Encoding}}:"{{$a.Name.Underscore}}" db:"{{$a.Name.Underscore}}"`
-{{- end}}
+{{- end }}
+{{- end }}
 }
 
 // String is not required by pop and may be deleted
 func ({{.model.Name.Char}} {{.model.Name.Proper}}) String() string {
+{{- if eq $.model.Encoding.String "jsonapi"}}
+	var jb strings.Builder
+	_ = jsonapi.MarshalPayload(&jb, &{{.model.Name.Char}})
+	return jb.String()
+{{- else }}
 	{{.model.Encoding.Char}}{{.model.Name.Char}}, _ := {{.model.Encoding}}.Marshal({{.model.Name.Char}})
 	return string({{.model.Encoding.Char}}{{.model.Name.Char}})
+{{- end }}
 }
 
 // {{.model.Name.Proper.Pluralize}} is not required by pop and may be deleted
@@ -26,8 +39,14 @@ type {{.model.Name.Proper.Pluralize}} []{{.model.Name.Proper}}
 
 // String is not required by pop and may be deleted
 func ({{.model.Name.Char}} {{.model.Name.Proper.Pluralize}}) String() string {
+{{- if eq $.model.Encoding.String "jsonapi"}}
+	var jb strings.Builder
+	_ = jsonapi.MarshalPayload(&jb, &{{.model.Name.Char}})
+	return jb.String()
+{{- else }}
 	{{.model.Encoding.Char}}{{.model.Name.Char}}, _ := {{.model.Encoding}}.Marshal({{.model.Name.Char}})
 	return string({{.model.Encoding.Char}}{{.model.Name.Char}})
+{{- end }}
 }
 
 // Validate gets run every time you call a "pop.Validate*" (pop.ValidateAndSave, pop.ValidateAndCreate, pop.ValidateAndUpdate) method.
