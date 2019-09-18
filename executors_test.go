@@ -1253,6 +1253,58 @@ func Test_UpdateColumns(t *testing.T) {
 	})
 }
 
+func Test_UpdateColumns_MultipleColumns(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
+	transaction(func(tx *Connection) {
+		r := require.New(t)
+
+		user := User{Name: nulls.NewString("Mark"), UserName: "Sagan", Email: "test@example.com"}
+		tx.Create(&user)
+
+		r.NotZero(user.CreatedAt)
+		r.NotZero(user.UpdatedAt)
+
+		user.Name.String = "Ping"
+		user.UserName = "Pong"
+		user.Email = "fulano@example"
+		err := tx.UpdateColumns(&user, "name", "user_name") // Update multiple columns
+		r.NoError(err)
+
+		r.NoError(tx.Reload(&user))
+		r.Equal(user.Name.String, "Ping")
+		r.Equal(user.UserName, "Pong")
+		r.Equal(user.Email, "test@example.com") // Email should not be updated
+	})
+}
+
+func Test_UpdateColumns_All(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
+	transaction(func(tx *Connection) {
+		r := require.New(t)
+
+		user := User{Name: nulls.NewString("Mark"), UserName: "Sagan"}
+		tx.Create(&user)
+
+		r.NotZero(user.CreatedAt)
+		r.NotZero(user.UpdatedAt)
+
+		user.Name.String = "Ping"
+		user.UserName = "Pong"
+		user.Email = "ping@pong.com"
+		err := tx.UpdateColumns(&user) // Update all columns
+		r.NoError(err)
+
+		r.NoError(tx.Reload(&user))
+		r.Equal(user.Name.String, "Ping")
+		r.Equal(user.UserName, "Pong")
+		r.Equal(user.Email, "ping@pong.com")
+	})
+}
+
 func Test_UpdateColumns_With_Slice(t *testing.T) {
 	if PDB == nil {
 		t.Skip("skipping integration tests")
