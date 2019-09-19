@@ -10,7 +10,12 @@ func buildImports(opts *Options) []string {
 	imps := map[string]bool{
 		"github.com/gobuffalo/validate": true,
 	}
-	imps[path.Join("encoding", strings.ToLower(opts.Encoding))] = true
+	if opts.Encoding == "jsonapi" {
+		imps["github.com/google/jsonapi"] = true
+		imps["strings"] = true
+	} else {
+		imps[path.Join("encoding", strings.ToLower(opts.Encoding))] = true
+	}
 	ats := opts.Attrs
 	for _, a := range ats {
 		switch a.GoType() {
