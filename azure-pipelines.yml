@@ -10,8 +10,8 @@ jobs:
   strategy:
     matrix:
     # SQLite3
-      go 1.12 (off) sqlite:
-        go_version: "1.12"
+      go 1.13 (off) sqlite:
+        go_version: "1.13"
         GO111MODULE: "off"
         SODA_DIALECT: "sqlite"
   steps:
@@ -23,8 +23,8 @@ jobs:
   strategy:
     matrix:
     # SQLite3
-      go 1.12 (off) sqlite:
-        go_version: "1.12"
+      go 1.13 (off) sqlite:
+        go_version: "1.13"
         GO111MODULE: "off"
         SODA_DIALECT: "sqlite"
   steps:
@@ -36,9 +36,6 @@ jobs:
   strategy:
     matrix:
     # Postgres
-      go 1.10 postgres:
-        go_version: "1.10"
-        SODA_DIALECT: "postgres"
       go 1.11 (off) postgres:
         go_version: "1.11.5"
         GO111MODULE: "off"
@@ -47,25 +44,29 @@ jobs:
         go_version: "1.12"
         GO111MODULE: "off"
         SODA_DIALECT: "postgres"
+      go 1.13 (off) postgres:
+        go_version: "1.13"
+        GO111MODULE: "off"
+        SODA_DIALECT: "postgres"
     # Cockroach
-      go 1.12 (off) cockroach:
-        go_version: "1.12"
+      go 1.13 (off) cockroach:
+        go_version: "1.13"
         GO111MODULE: "off"
         SODA_DIALECT: "cockroach"
     # Cockroach SSL
-      go 1.12 (off) cockroach SSL:
-        go_version: "1.12"
+      go 1.13 (off) cockroach SSL:
+        go_version: "1.13"
         GO111MODULE: "off"
         SODA_DIALECT: "cockroach_ssl"
     # MySQL
-      go 1.12 (off) mysql:
-        go_version: "1.12"
+      go 1.13 (off) mysql:
+        go_version: "1.13"
         GO111MODULE: "off"
         SODA_DIALECT: "mysql"
         MYSQL_PORT: "3307"
     # SQLite3
-      go 1.12 (off) sqlite:
-        go_version: "1.12"
+      go 1.13 (off) sqlite:
+        go_version: "1.13"
         GO111MODULE: "off"
         SODA_DIALECT: "sqlite"
   steps:
