@@ -48,6 +48,7 @@ func LoadConfigFile() error {
 	if err != nil {
 		return err
 	}
+	defer f.Close()
 	return LoadFrom(f)
 }
 

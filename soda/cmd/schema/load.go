@@ -28,6 +28,7 @@ var LoadCmd = &cobra.Command{
 		if err != nil {
 			return errors.WithMessage(err, "unable to load schema file")
 		}
+		defer f.Close()
 
 		c, err := pop.Connect(loadOptions.env)
 		if err != nil {
