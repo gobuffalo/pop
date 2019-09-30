@@ -55,7 +55,7 @@ func ({{.model.Name.Char}} *{{.model.Name.Proper}}) Validate(tx *pop.Connection)
 {{- if .model.Validations }}
 	return validate.Validate(
 		{{- range $a := .model.Validations }}
-		&validators.{{capitalize $a.GoType}}IsPresent{Field: {{$.model.Name.Char}}.{{$a.Name.Pascalize}}, Name: "{{$a.Name.Pascalize}}"},
+		&validators.{{capitalize (trim_package $a.GoType)}}IsPresent{Field: {{$.model.Name.Char}}.{{$a.Name.Pascalize}}, Name: "{{$a.Name.Pascalize}}"},
 		{{- end}}
 	), nil
 {{- else }}
