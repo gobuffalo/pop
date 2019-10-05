@@ -362,6 +362,50 @@ func (c *Connection) Update(model interface{}, excludeColumns ...string) error {
 	})
 }
 
+// UpdateColumns writes changes from an entry to the database, including only the given columns
+// or all columns if no column names are provided.
+// It updates the `updated_at` column automatically.
+//
+// If model is a slice, each item of the slice is updated in the database.
+func (c *Connection) UpdateColumns(model interface{}, columnNames ...string) error {
+	sm := &Model{Value: model}
+	return sm.iterate(func(m *Model) error {
+		return c.timeFunc("Update", func() error {
+			var err error
+
+			if err = m.beforeSave(c); err != nil {
+				return err
+			}
+			if err = m.beforeUpdate(c); err != nil {
+				return err
+			}
+
+			tn := m.TableName()
+
+			cols := columns.Columns{}
+			if len(columnNames) > 0 && tn == sm.TableName() {
+				cols = columns.NewColumnsWithAlias(tn, m.As)
+				cols.Add(columnNames...)
+
+			} else {
+				cols = columns.ForStructWithAlias(model, tn, m.As)
+			}
+			cols.Remove("id", "created_at")
+
+			m.touchUpdatedAt()
+
+			if err = c.Dialect.Update(c.Store, m, cols); err != nil {
+				return err
+			}
+			if err = m.afterUpdate(c); err != nil {
+				return err
+			}
+
+			return m.afterSave(c)
+		})
+	})
+}
+
 // Destroy deletes a given entry from the database.
 //
 // If model is a slice, each item of the slice is deleted from the database.
