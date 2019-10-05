@@ -1,6 +1,8 @@
 package model
 
 import (
+	"strings"
+
 	"github.com/gobuffalo/flect"
 	"github.com/gobuffalo/flect/name"
 	"github.com/gobuffalo/genny"
@@ -33,6 +35,13 @@ func New(opts *Options) (*genny.Generator, error) {
 	}
 	help := map[string]interface{}{
 		"capitalize": flect.Capitalize,
+		"trim_package": func(t string) string {
+			i := strings.LastIndex(t, ".")
+			if i == -1 {
+				return t
+			}
+			return t[i+1:]
+		},
 	}
 
 	t := gogen.TemplateTransformer(ctx, help)

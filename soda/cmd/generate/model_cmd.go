@@ -95,6 +95,7 @@ var ModelCmd = &cobra.Command{
 				Path:                   path,
 				Type:                   modelCmdConfig.MigrationType,
 				Translator:             translator,
+				ForceDefaultID:         true,
 				ForceDefaultTimestamps: true,
 			})
 			if err != nil {
