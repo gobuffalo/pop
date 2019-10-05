@@ -30,6 +30,8 @@ type Options struct {
 	Type string
 	// ForceDefaultTimestamps enables auto timestamping for the generated table.
 	ForceDefaultTimestamps bool `json:"force_default_timestamps"`
+	// ForceDefaultID enables auto UUID for the generated table.
+	ForceDefaultID bool `json:"force_default_id"`
 }
 
 // Validate that options are usuable
@@ -52,6 +54,23 @@ func (opts *Options) Validate() error {
 	}
 	if opts.Type == "sql" && opts.Translator == nil {
 		return errors.New("sql migrations require a fizz translator")
+	}
+	if opts.ForceDefaultID {
+		var idFound bool
+		for _, a := range opts.Attrs {
+			switch a.Name.Underscore().String() {
+			case "id":
+				idFound = true
+			}
+		}
+		if !idFound {
+			// Add a default UUID
+			id, err := attrs.Parse("id:uuid")
+			if err != nil {
+				return err
+			}
+			opts.Attrs = append([]attrs.Attr{id}, opts.Attrs...)
+		}
 	}
 	return nil
 }

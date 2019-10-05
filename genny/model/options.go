@@ -63,7 +63,7 @@ func (opts *Options) forceDefaults() error {
 		if err != nil {
 			return err
 		}
-		opts.Attrs = append(opts.Attrs, id)
+		opts.Attrs = append([]attrs.Attr{id}, opts.Attrs...)
 	}
 
 	// Add default timestamp columns if they were not provided
