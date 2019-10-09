@@ -113,7 +113,7 @@ func (p *postgresql) CreateDB() error {
 		return errors.Wrapf(err, "error creating PostgreSQL database %s", deets.Database)
 	}
 	defer db.Close()
-	query := fmt.Sprintf("CREATE DATABASE %s", p.Quote(deets.Database))
+	query := fmt.Sprintf("CREATE DATABASE %s", p.commonDialect.Quote(deets.Database))
 	log(logging.SQL, query)
 
 	_, err = db.Exec(query)
@@ -132,7 +132,7 @@ func (p *postgresql) DropDB() error {
 		return errors.Wrapf(err, "error dropping PostgreSQL database %s", deets.Database)
 	}
 	defer db.Close()
-	query := fmt.Sprintf("DROP DATABASE %s", p.Quote(deets.Database))
+	query := fmt.Sprintf("DROP DATABASE %s", p.commonDialect.Quote(deets.Database))
 	log(logging.SQL, query)
 
 	_, err = db.Exec(query)
