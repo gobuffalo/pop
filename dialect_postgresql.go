@@ -47,6 +47,10 @@ func (p *postgresql) Details() *ConnectionDetails {
 	return p.ConnectionDetails
 }
 
+func (p *postgresql) Quote(key string) string {
+	return key
+}
+
 func (p *postgresql) Create(s store, model *Model, cols columns.Columns) error {
 	keyType := model.PrimaryKeyType()
 	switch keyType {
