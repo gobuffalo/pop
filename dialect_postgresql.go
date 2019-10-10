@@ -48,7 +48,16 @@ func (p *postgresql) Details() *ConnectionDetails {
 }
 
 func (p *postgresql) Quote(key string) string {
-	return key
+	parts := strings.Split(key, ".")
+
+	for i, part := range parts {
+		part = strings.Trim(part, `"`)
+		part = strings.TrimSpace(part)
+
+		parts[i] = p.commonDialect.Quote(part)
+	}
+
+	return strings.Join(parts, ".")
 }
 
 func (p *postgresql) Create(s store, model *Model, cols columns.Columns) error {

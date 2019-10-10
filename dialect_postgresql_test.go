@@ -84,6 +84,8 @@ func Test_PostgreSQL_Quotable(t *testing.T) {
 	r := require.New(t)
 	p := postgresql{}
 
-	r.Equal(`schema.table_name`, p.Quote("schema.table_name"))
+	r.Equal(`"table_name"`, p.Quote("table_name"))
+	r.Equal(`"schema"."table_name"`, p.Quote("schema.table_name"))
+	r.Equal(`"schema"."table name"`, p.Quote(`"schema"."table name"`))
 	r.Equal(`"schema.table_name"`, p.commonDialect.Quote("schema.table_name"))
 }
