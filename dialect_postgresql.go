@@ -47,19 +47,6 @@ func (p *postgresql) Details() *ConnectionDetails {
 	return p.ConnectionDetails
 }
 
-func (p *postgresql) Quote(key string) string {
-	parts := strings.Split(key, ".")
-
-	for i, part := range parts {
-		part = strings.Trim(part, `"`)
-		part = strings.TrimSpace(part)
-
-		parts[i] = p.commonDialect.Quote(part)
-	}
-
-	return strings.Join(parts, ".")
-}
-
 func (p *postgresql) Create(s store, model *Model, cols columns.Columns) error {
 	keyType := model.PrimaryKeyType()
 	switch keyType {
@@ -122,7 +109,7 @@ func (p *postgresql) CreateDB() error {
 		return errors.Wrapf(err, "error creating PostgreSQL database %s", deets.Database)
 	}
 	defer db.Close()
-	query := fmt.Sprintf("CREATE DATABASE %s", p.commonDialect.Quote(deets.Database))
+	query := fmt.Sprintf("CREATE DATABASE %s", p.Quote(deets.Database))
 	log(logging.SQL, query)
 
 	_, err = db.Exec(query)
@@ -141,7 +128,7 @@ func (p *postgresql) DropDB() error {
 		return errors.Wrapf(err, "error dropping PostgreSQL database %s", deets.Database)
 	}
 	defer db.Close()
-	query := fmt.Sprintf("DROP DATABASE %s", p.commonDialect.Quote(deets.Database))
+	query := fmt.Sprintf("DROP DATABASE %s", p.Quote(deets.Database))
 	log(logging.SQL, query)
 
 	_, err = db.Exec(query)
