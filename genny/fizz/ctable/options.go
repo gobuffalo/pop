@@ -39,12 +39,13 @@ func (opts *Options) Validate() error {
 	if len(opts.TableName) == 0 {
 		return errors.New("you must set a name for your table")
 	}
+	opts.TableName = name.New(opts.TableName).Tableize().String()
 	if len(opts.Path) == 0 {
 		opts.Path = "migrations"
 	}
 	if len(opts.Name) == 0 {
 		timestamp := nowFunc().UTC().Format("20060102150405")
-		opts.Name = fmt.Sprintf("%s_create_%s", timestamp, name.New(opts.TableName).Tableize())
+		opts.Name = fmt.Sprintf("%s_create_%s", timestamp, opts.TableName)
 	}
 	if len(opts.Type) == 0 {
 		opts.Type = "fizz"
