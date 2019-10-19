@@ -23,8 +23,8 @@ import (
 const nameCockroach = "cockroach"
 const portCockroach = "26257"
 
-const selectTablesQueryCockroach = "select table_name from information_schema.tables where table_schema = 'public' and table_type = 'BASE TABLE' and table_catalog = ?"
-const selectTablesQueryCockroachV1 = "select table_name from information_schema.tables where table_schema = ?"
+const selectTablesQueryCockroach = "select table_name from information_schema.tables where table_schema = 'public' and table_type = 'BASE TABLE' and table_name <> ? and table_catalog = ?"
+const selectTablesQueryCockroachV1 = "select table_name from information_schema.tables where table_name <> ? and table_schema = ?"
 
 func init() {
 	AvailableDialects = append(AvailableDialects, nameCockroach)
@@ -209,7 +209,7 @@ func (p *cockroach) TruncateAll(tx *Connection) error {
 	tableQuery := p.tablesQuery()
 
 	var tables []table
-	if err := tx.RawQuery(tableQuery, tx.Dialect.Details().Database).All(&tables); err != nil {
+	if err := tx.RawQuery(tableQuery, tx.MigrationTableName(), tx.Dialect.Details().Database).All(&tables); err != nil {
 		return err
 	}
 

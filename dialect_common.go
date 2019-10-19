@@ -31,7 +31,16 @@ func (commonDialect) Lock(fn func() error) error {
 }
 
 func (commonDialect) Quote(key string) string {
-	return fmt.Sprintf(`"%s"`, key)
+	parts := strings.Split(key, ".")
+
+	for i, part := range parts {
+		part = strings.Trim(part, `"`)
+		part = strings.TrimSpace(part)
+
+		parts[i] = fmt.Sprintf(`"%v"`, part)
+	}
+
+	return strings.Join(parts, ".")
 }
 
 func genericCreate(s store, model *Model, cols columns.Columns, quoter quotable) error {
