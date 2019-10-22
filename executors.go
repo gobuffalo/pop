@@ -52,6 +52,9 @@ func (q *Query) ExecWithCount() (int, error) {
 // If model is a slice, each item of the slice is validated then saved in the database.
 func (c *Connection) ValidateAndSave(model interface{}, excludeColumns ...string) (*validate.Errors, error) {
 	sm := &Model{Value: model}
+	if err := sm.beforeValidate(c); err != nil {
+		return nil, err
+	}
 	verrs, err := sm.validateSave(c)
 	if err != nil {
 		return verrs, err
@@ -93,6 +96,9 @@ func (c *Connection) Save(model interface{}, excludeColumns ...string) error {
 // If model is a slice, each item of the slice is validated then created in the database.
 func (c *Connection) ValidateAndCreate(model interface{}, excludeColumns ...string) (*validate.Errors, error) {
 	sm := &Model{Value: model}
+	if err := sm.beforeValidate(c); err != nil {
+		return nil, err
+	}
 	verrs, err := sm.validateCreate(c)
 	if err != nil {
 		return verrs, err
@@ -313,6 +319,9 @@ func (c *Connection) Create(model interface{}, excludeColumns ...string) error {
 // If model is a slice, each item of the slice is validated then updated in the database.
 func (c *Connection) ValidateAndUpdate(model interface{}, excludeColumns ...string) (*validate.Errors, error) {
 	sm := &Model{Value: model}
+	if err := sm.beforeValidate(c); err != nil {
+		return nil, err
+	}
 	verrs, err := sm.validateUpdate(c)
 	if err != nil {
 		return verrs, err
