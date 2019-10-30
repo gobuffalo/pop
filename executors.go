@@ -373,7 +373,7 @@ func (c *Connection) Update(model interface{}, excludeColumns ...string) error {
 
 // UpdateColumns writes changes from an entry to the database, including only the given columns
 // or all columns if no column names are provided.
-// It updates the `updated_at` column automatically.
+// It updates the `updated_at` column automatically if you include `updated_at` in columnNames.
 //
 // If model is a slice, each item of the slice is updated in the database.
 func (c *Connection) UpdateColumns(model interface{}, columnNames ...string) error {
