@@ -49,9 +49,9 @@ function test {
   export SODA_DIALECT=$1
   echo ./tsoda -v
   echo "Setup..."
-  ./tsoda drop -e $SODA_DIALECT -c ./database.yml
-  ./tsoda create -e $SODA_DIALECT -c ./database.yml
-  ./tsoda migrate -e $SODA_DIALECT -c ./database.yml
+  ./tsoda drop -e $SODA_DIALECT -c ./database.yml -p ./testdata/migrations
+  ./tsoda create -e $SODA_DIALECT -c ./database.yml -p ./testdata/migrations
+  ./tsoda migrate -e $SODA_DIALECT -c ./database.yml -p ./testdata/migrations
   echo "Test..."
   go test -race -tags sqlite $VERBOSE ./... -count=1
 }
