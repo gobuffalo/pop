@@ -1,0 +1,49 @@
+---
+development:
+  dialect: "mariadb"
+  database: "{{.opts.Prefix}}_development"
+  host: "localhost"
+  port: "3306"
+  user: "root"
+  password: "root"
+
+test:
+  dialect: "mariadb"
+  #
+  # You can use a single URL string for the same configuration:
+  #
+  #url: "mysql://root:root@(localhost:3306)/{{.opts.Prefix}}_test?parseTime=true&multiStatements=true&readTimeout=3s"
+  #
+  # Note that if you use `url`, other configurations are silently ignored.
+  # In this case, the URL must contain all required connection parameters.
+  #
+  database: "{{.opts.Prefix}}_test"
+  host: "localhost"
+  port: "3306"
+  user: "root"
+  password: "root"
+
+production:
+  #
+  # You can also use environmental variables to override values in this config.
+  #
+  #url: {{"{{"}}envOr "DATABASE_URL" "mysql://root:root@(localhost:3306)/{{.opts.Prefix}}_production?parseTime=true&multiStatements=true&readTimeout=3s"}}
+  #
+  dialect: "mariadb"
+  database: "{{.opts.Prefix}}_production"
+  host: {{"{{"}}envOr "DATABASE_HOST" "localhost"}}
+  port: {{"{{"}}envOr "DATABASE_PORT" "3306"}}
+  user: {{"{{"}}envOr "DATABASE_USER" "root"}}
+  password: {{"{{"}}envOr "DATABASE_PASSWORD" "root"}}
+  #
+  # And you can also override connection parameters by setting it under options.
+  #
+  #options:
+  #  parseTime: true
+  #  multiStatements: true
+  #  readTimeout: 3s
+  #  collation: "utf8mb4_general_ci"
+  #
+  # CAUTION!
+  #   `parseTime` and` multiStatements` must be set to `true` to work properly.
+  #   If you are not sure, do not change (or set) these values.
