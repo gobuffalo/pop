@@ -1,6 +1,7 @@
 package pop
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"io"
@@ -61,7 +62,7 @@ func (p *cockroach) Details() *ConnectionDetails {
 	return p.ConnectionDetails
 }
 
-func (p *cockroach) Create(s store, model *Model, cols columns.Columns) error {
+func (p *cockroach) Create(ctx context.Context, s store, model *Model, cols columns.Columns) error {
 	keyType := model.PrimaryKeyType()
 	switch keyType {
 	case "int", "int64":
