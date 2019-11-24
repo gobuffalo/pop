@@ -13,7 +13,7 @@ type dB struct {
 }
 
 func (db *dB) TransactionContext(context.Context) (*Tx, error) {
-	return newTX(context.Background(), db)
+	return newTX(ctx, db)
 }
 
 func (db *dB) Transaction() (*Tx, error) {
