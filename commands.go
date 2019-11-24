@@ -3,7 +3,7 @@ package pop
 import (
 	"fmt"
 
-	"github.com/gobuffalo/pop/logging"
+	"github.com/gobuffalo/pop/v4/logging"
 	"github.com/pkg/errors"
 )
 

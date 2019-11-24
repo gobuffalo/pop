@@ -4,7 +4,7 @@ import (
 	"reflect"
 
 	"github.com/gobuffalo/nulls"
-	"github.com/gobuffalo/pop/columns"
+	"github.com/gobuffalo/pop/v4/columns"
 )
 
 // Association represents a definition of a model association

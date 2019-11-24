@@ -11,9 +11,9 @@ import (
 
 	"github.com/gobuffalo/fizz"
 	"github.com/gobuffalo/fizz/translators"
-	"github.com/gobuffalo/pop/columns"
-	"github.com/gobuffalo/pop/internal/defaults"
-	"github.com/gobuffalo/pop/logging"
+	"github.com/gobuffalo/pop/v4/columns"
+	"github.com/gobuffalo/pop/v4/internal/defaults"
+	"github.com/gobuffalo/pop/v4/logging"
 	"github.com/jmoiron/sqlx"
 	pg "github.com/lib/pq"
 	"github.com/pkg/errors"

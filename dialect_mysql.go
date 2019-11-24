@@ -12,10 +12,10 @@ import (
 	_mysql "github.com/go-sql-driver/mysql"
 	"github.com/gobuffalo/fizz"
 	"github.com/gobuffalo/fizz/translators"
-	"github.com/gobuffalo/pop/columns"
-	"github.com/gobuffalo/pop/internal/defaults"
-	"github.com/gobuffalo/pop/internal/oncer"
-	"github.com/gobuffalo/pop/logging"
+	"github.com/gobuffalo/pop/v4/columns"
+	"github.com/gobuffalo/pop/v4/internal/defaults"
+	"github.com/gobuffalo/pop/v4/internal/oncer"
+	"github.com/gobuffalo/pop/v4/logging"
 	"github.com/pkg/errors"
 )
 

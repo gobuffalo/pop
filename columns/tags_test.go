@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/gobuffalo/pop/columns"
+	"github.com/gobuffalo/pop/v4/columns"
 
 	"github.com/stretchr/testify/require"
 )

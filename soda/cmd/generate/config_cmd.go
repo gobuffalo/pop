@@ -9,9 +9,9 @@ import (
 
 	"github.com/gobuffalo/genny"
 	"github.com/gobuffalo/pop"
-	"github.com/gobuffalo/pop/genny/config"
-	"github.com/gobuffalo/pop/internal/defaults"
-	"github.com/gobuffalo/pop/internal/oncer"
+	"github.com/gobuffalo/pop/v4/genny/config"
+	"github.com/gobuffalo/pop/v4/internal/defaults"
+	"github.com/gobuffalo/pop/v4/internal/oncer"
 	"github.com/spf13/cobra"
 )
 

@@ -3,9 +3,9 @@ package pop
 import (
 	"reflect"
 
-	"github.com/gobuffalo/pop/associations"
-	"github.com/gobuffalo/pop/columns"
-	"github.com/gobuffalo/pop/logging"
+	"github.com/gobuffalo/pop/v4/associations"
+	"github.com/gobuffalo/pop/v4/columns"
+	"github.com/gobuffalo/pop/v4/logging"
 	"github.com/gobuffalo/validate"
 	"github.com/gofrs/uuid"
 	"github.com/pkg/errors"

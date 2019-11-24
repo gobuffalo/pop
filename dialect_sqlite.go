@@ -14,9 +14,9 @@ import (
 
 	"github.com/gobuffalo/fizz"
 	"github.com/gobuffalo/fizz/translators"
-	"github.com/gobuffalo/pop/columns"
-	"github.com/gobuffalo/pop/internal/defaults"
-	"github.com/gobuffalo/pop/logging"
+	"github.com/gobuffalo/pop/v4/columns"
+	"github.com/gobuffalo/pop/v4/internal/defaults"
+	"github.com/gobuffalo/pop/v4/logging"
 	_ "github.com/mattn/go-sqlite3" // Load SQLite3 CGo driver
 	"github.com/pkg/errors"
 )

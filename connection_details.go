@@ -8,9 +8,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gobuffalo/pop/internal/defaults"
-	"github.com/gobuffalo/pop/internal/oncer"
-	"github.com/gobuffalo/pop/logging"
+	"github.com/gobuffalo/pop/v4/internal/defaults"
+	"github.com/gobuffalo/pop/v4/internal/oncer"
+	"github.com/gobuffalo/pop/v4/logging"
 	"github.com/pkg/errors"
 )
 

@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/gobuffalo/pop/associations"
+	"github.com/gobuffalo/pop/v4/associations"
 	"github.com/gofrs/uuid"
 	"github.com/stretchr/testify/require"
 )

@@ -1,6 +1,6 @@
 package pop
 
-import "github.com/gobuffalo/pop/logging"
+import "github.com/gobuffalo/pop/v4/logging"
 
 // Having will append a HAVING clause to the query
 func (q *Query) Having(condition string, args ...interface{}) *Query {

@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/gobuffalo/pop"
-	"github.com/gobuffalo/pop/internal/defaults"
+	"github.com/gobuffalo/pop/v4/internal/defaults"
 	"github.com/spf13/cobra"
 )
 
