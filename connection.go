@@ -188,7 +188,8 @@ func (c *Connection) NewTransaction() (*Connection, error) {
 	return cn, nil
 }
 
-func (c *Connection) Ctx(ctx context.Context) *Connection {
+// WithContext returns a copy of the connection, wrapped with a context.
+func (c *Connection) WithContext(ctx context.Context) *Connection {
 	cn := c.copy()
 	cn.Store = contextStore{
 		store: cn.Store,
