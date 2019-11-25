@@ -26,7 +26,7 @@ func Test_ConnectionDetails_Finalize(t *testing.T) {
 func Test_ConnectionDetails_Finalize_MySQL_Standard(t *testing.T) {
 	r := require.New(t)
 
-	url := "mysql://user:pass@(host:1234)/database?param1=value1&param2=value2"
+	url := "mysql://user:pass@(host:1337)/database?param1=value1&param2=value2"
 	cd := &ConnectionDetails{
 		URL: url,
 	}
@@ -38,7 +38,7 @@ func Test_ConnectionDetails_Finalize_MySQL_Standard(t *testing.T) {
 	r.Equal("user", cd.User)
 	r.Equal("pass", cd.Password)
 	r.Equal("host", cd.Host)
-	r.Equal("1234", cd.Port)
+	r.Equal("1337", cd.Port)
 	r.Equal("database", cd.Database)
 }
 
@@ -61,7 +61,7 @@ func Test_ConnectionDetails_Finalize_Cockroach(t *testing.T) {
 func Test_ConnectionDetails_Finalize_UnknownSchemeURL(t *testing.T) {
 	r := require.New(t)
 	cd := &ConnectionDetails{
-		URL: "unknown://user:pass@host:1234/database",
+		URL: "unknown://user:pass@host:1337/database",
 	}
 	err := cd.Finalize()
 	r.Error(err)
