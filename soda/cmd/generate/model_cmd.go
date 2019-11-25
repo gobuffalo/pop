@@ -23,7 +23,7 @@ var modelCmdConfig struct {
 }
 
 func init() {
-	ModelCmd.Flags().StringVarP(&modelCmdConfig.StructTag, "struct-tag", "", "json", "sets the struct tags for model (xml or json)")
+	ModelCmd.Flags().StringVarP(&modelCmdConfig.StructTag, "struct-tag", "", "json", "sets the struct tags for model (xml/json/jsonapi)")
 	ModelCmd.Flags().StringVarP(&modelCmdConfig.MigrationType, "migration-type", "", "fizz", "sets the type of migration files for model (sql or fizz)")
 	ModelCmd.Flags().BoolVarP(&modelCmdConfig.SkipMigration, "skip-migration", "s", false, "Skip creating a new fizz migration for this model.")
 	ModelCmd.Flags().StringVarP(&modelCmdConfig.ModelPath, "models-path", "", "models", "the path the model will be created in")
@@ -95,6 +95,7 @@ var ModelCmd = &cobra.Command{
 				Path:                   path,
 				Type:                   modelCmdConfig.MigrationType,
 				Translator:             translator,
+				ForceDefaultID:         true,
 				ForceDefaultTimestamps: true,
 			})
 			if err != nil {

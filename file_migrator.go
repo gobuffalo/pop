@@ -1,9 +1,10 @@
 package pop
 
 import (
-	"github.com/pkg/errors"
 	"os"
 	"path/filepath"
+
+	"github.com/pkg/errors"
 )
 
 // FileMigrator is a migrator for SQL and Fizz
@@ -26,6 +27,7 @@ func NewFileMigrator(path string, c *Connection) (FileMigrator, error) {
 		if err != nil {
 			return err
 		}
+		defer f.Close()
 		content, err := MigrationContent(mf, tx, f, true)
 		if err != nil {
 			return errors.Wrapf(err, "error processing %s", mf.Path)

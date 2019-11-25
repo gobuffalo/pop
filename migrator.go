@@ -39,6 +39,13 @@ type Migrator struct {
 	Migrations map[string]Migrations
 }
 
+func (m Migrator) migrationIsCompatible(d dialect, mi Migration) bool {
+	if mi.DBType == "all" || mi.DBType == d.Name() {
+		return true
+	}
+	return false
+}
+
 // UpLogOnly insert pending "up" migrations logs only, without applying the patch.
 // It's used when loading the schema dump, instead of the migrations.
 func (m Migrator) UpLogOnly() error {
@@ -49,8 +56,7 @@ func (m Migrator) UpLogOnly() error {
 		sort.Sort(mfs)
 		return c.Transaction(func(tx *Connection) error {
 			for _, mi := range mfs {
-				if mi.DBType != "all" && mi.DBType != c.Dialect.Name() {
-					// Skip migration for non-matching dialect
+				if !m.migrationIsCompatible(c.Dialect, mi) {
 					continue
 				}
 				exists, err := c.Where("version = ?", mi.Version).Exists(mtn)
@@ -79,8 +85,7 @@ func (m Migrator) Up() error {
 		sort.Sort(mfs)
 		applied := 0
 		for _, mi := range mfs {
-			if mi.DBType != "all" && mi.DBType != c.Dialect.Name() {
-				// Skip migration for non-matching dialect
+			if !m.migrationIsCompatible(c.Dialect, mi) {
 				continue
 			}
 			exists, err := c.Where("version = ?", mi.Version).Exists(mtn)
@@ -123,7 +128,7 @@ func (m Migrator) Down(step int) error {
 		}
 		mfs := m.Migrations["down"]
 		sort.Sort(sort.Reverse(mfs))
-		// skip all runned migration
+		// skip all ran migration
 		if len(mfs) > count {
 			mfs = mfs[len(mfs)-count:]
 		}

@@ -10,7 +10,7 @@ func Test_ConnectionDetails_Finalize(t *testing.T) {
 	r := require.New(t)
 
 	cd := &ConnectionDetails{
-		URL: "postgres://user:pass@host:1234/database",
+		URL: "postgres://user:pass@host:1337/database",
 	}
 	err := cd.Finalize()
 	r.NoError(err)
@@ -19,7 +19,7 @@ func Test_ConnectionDetails_Finalize(t *testing.T) {
 	r.Equal("postgres", cd.Dialect)
 	r.Equal("host", cd.Host)
 	r.Equal("pass", cd.Password)
-	r.Equal("1234", cd.Port)
+	r.Equal("1337", cd.Port)
 	r.Equal("user", cd.User)
 }
 
@@ -46,14 +46,14 @@ func Test_ConnectionDetails_Finalize_Cockroach(t *testing.T) {
 	r := require.New(t)
 	cd := &ConnectionDetails{
 		Dialect: "cockroach",
-		URL:     "postgres://user:pass@host:1234/database?sslmode=require&sslrootcert=certs/ca.crt&sslkey=certs/client.key&sslcert=certs/client.crt",
+		URL:     "postgres://user:pass@host:1337/database?sslmode=require&sslrootcert=certs/ca.crt&sslkey=certs/client.key&sslcert=certs/client.crt",
 	}
 	err := cd.Finalize()
 	r.NoError(err)
 	r.Equal("cockroach", cd.Dialect)
 	r.Equal("database", cd.Database)
 	r.Equal("host", cd.Host)
-	r.Equal("1234", cd.Port)
+	r.Equal("1337", cd.Port)
 	r.Equal("user", cd.User)
 	r.Equal("pass", cd.Password)
 }

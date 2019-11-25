@@ -38,6 +38,9 @@ func (opts *Options) Validate() error {
 		opts.Encoding = "json"
 	}
 	opts.Encoding = strings.ToLower(opts.Encoding)
+	if opts.Encoding != "json" && opts.Encoding != "jsonapi" && opts.Encoding != "xml" {
+		return errors.Errorf("unsupported encoding option %s", opts.Encoding)
+	}
 
 	return opts.forceDefaults()
 }
@@ -60,7 +63,7 @@ func (opts *Options) forceDefaults() error {
 		if err != nil {
 			return err
 		}
-		opts.Attrs = append(opts.Attrs, id)
+		opts.Attrs = append([]attrs.Attr{id}, opts.Attrs...)
 	}
 
 	// Add default timestamp columns if they were not provided

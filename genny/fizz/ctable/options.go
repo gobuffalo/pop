@@ -30,6 +30,8 @@ type Options struct {
 	Type string
 	// ForceDefaultTimestamps enables auto timestamping for the generated table.
 	ForceDefaultTimestamps bool `json:"force_default_timestamps"`
+	// ForceDefaultID enables auto UUID for the generated table.
+	ForceDefaultID bool `json:"force_default_id"`
 }
 
 // Validate that options are usuable
@@ -37,12 +39,13 @@ func (opts *Options) Validate() error {
 	if len(opts.TableName) == 0 {
 		return errors.New("you must set a name for your table")
 	}
+	opts.TableName = name.New(opts.TableName).Tableize().String()
 	if len(opts.Path) == 0 {
 		opts.Path = "migrations"
 	}
 	if len(opts.Name) == 0 {
 		timestamp := nowFunc().UTC().Format("20060102150405")
-		opts.Name = fmt.Sprintf("%s_create_%s", timestamp, name.New(opts.TableName).Tableize())
+		opts.Name = fmt.Sprintf("%s_create_%s", timestamp, opts.TableName)
 	}
 	if len(opts.Type) == 0 {
 		opts.Type = "fizz"
@@ -52,6 +55,23 @@ func (opts *Options) Validate() error {
 	}
 	if opts.Type == "sql" && opts.Translator == nil {
 		return errors.New("sql migrations require a fizz translator")
+	}
+	if opts.ForceDefaultID {
+		var idFound bool
+		for _, a := range opts.Attrs {
+			switch a.Name.Underscore().String() {
+			case "id":
+				idFound = true
+			}
+		}
+		if !idFound {
+			// Add a default UUID
+			id, err := attrs.Parse("id:uuid")
+			if err != nil {
+				return err
+			}
+			opts.Attrs = append([]attrs.Attr{id}, opts.Attrs...)
+		}
 	}
 	return nil
 }
