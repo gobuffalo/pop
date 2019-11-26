@@ -48,7 +48,7 @@ jobs:
     - name: Test
       env:
         SODA_DIALECT: "postgres"
-        POSTGRESQL_URL: "postgres://postgres:postgres@${{.job.services.postgres.host}}:${{ job.services.postgres.ports[5432] }}/pop_test?sslmode=disable"
+        POSTGRESQL_URL: "postgres://postgres:postgres@${{job.services.postgres.host}}:${{ job.services.postgres.ports[5432] }}/pop_test?sslmode=disable"
       run: |
         go mod tidy -v
         go test -race ./...
