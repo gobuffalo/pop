@@ -1,18 +1,37 @@
 name: Tests
 on: [push]
 jobs:
-  services:
-    postgres:
-      image: postgres:10.8
+  container-job:
+    runs-on: ubuntu-latest
+
+    # runs all of the steps inside the specified container rather than on the VM host.
+    # Because of this the network configuration changes from host based network to a container network.
+    container:
+      image:  golang:latest
+
+    services:
+      postgres:
+        image: postgres:10.8
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+        - 5432:5432
+        # needed because the postgres container does not provide a healthcheck
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+
+    steps:
+    - uses: actions/checkout@v1
+    - run: npm ci
+      working-directory: ./postgres
+    - run: node client.js
+      working-directory: ./postgres
       env:
-        POSTGRES_USER: postgres
-        POSTGRES_PASSWORD: postgres
-        POSTGRES_DB: postgres
-      ports:
-      # will assign a random free host port
-      - 5432/tcp
-      # needed because the postgres container does not provide a healthcheck
-      options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+        # use postgres for the host here because we have specified a container for the job.
+        # If we were running the job on the VM this would be localhost
+        POSTGRES_HOST: postgres
+        POSTGRES_PORT: ${{ job.services.postgres.ports[5432] }}
 
   pg-tests:
     name: ${{matrix.go-version}} ${{matrix.os}}
@@ -29,7 +48,7 @@ jobs:
     - name: Test
       env:
         SODA_DIALECT: "postgres"
-        POSTGRESQL_URL: "postgres://postgres:postgres@127.0.0.1:${{ job.services.postgres.ports[5432] }}/pop_test?sslmode=disable"
+        POSTGRESQL_URL: "postgres://postgres:postgres@${{.job.services.postgres.host}}:${{ job.services.postgres.ports[5432] }}/pop_test?sslmode=disable"
       run: |
         go mod tidy -v
         go test -race ./...
