@@ -1,22 +1,22 @@
 name: Tests
 on: [push]
 jobs:
+  services:
+    postgres:
+      image: postgres:10.8
+      env:
+        POSTGRES_USER: postgres
+        POSTGRES_PASSWORD: postgres
+        POSTGRES_DB: postgres
+      ports:
+      # will assign a random free host port
+      - 5432/tcp
+      # needed because the postgres container does not provide a healthcheck
+      options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
 
   pg-tests:
     name: ${{matrix.go-version}} ${{matrix.os}}
     runs-on: ${{ matrix.os }}
-    services:
-      postgres:
-        image: postgres:10.8
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: postgres
-        ports:
-        # will assign a random free host port
-        - 5432/tcp
-        # needed because the postgres container does not provide a healthcheck
-        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
     strategy:
       matrix:
         go-version: [1.12.x, 1.13.x]
