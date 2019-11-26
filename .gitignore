@@ -31,8 +31,5 @@ tsoda
 testdata/migrations/schema.sql
 .grifter/
 vendor/
-go.mod
-go.sum
-
 # test data
 cockroach-data/
