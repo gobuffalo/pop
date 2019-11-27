@@ -115,7 +115,7 @@ func (a *hasManyAssociation) AfterSetup() error {
 				fval.Set(reflect.ValueOf(ownerID))
 			}
 		} else {
-			return fmt.Errorf("could not set '%s' in '%s'", ownerID, fval)
+			return fmt.Errorf("could not set field '%s' in table '%s' to value '%s' for 'has_many' relation", a.ownerName+"ID", a.tableName, ownerID)
 		}
 	}
 	return nil
