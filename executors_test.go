@@ -1253,6 +1253,29 @@ func Test_UpdateColumns(t *testing.T) {
 	})
 }
 
+func Test_UpdateColumns_UpdatedAt(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
+	transaction(func(tx *Connection) {
+		r := require.New(t)
+
+		user := User{Name: nulls.NewString("Foo")}
+		tx.Create(&user)
+
+		r.NotZero(user.CreatedAt)
+		r.NotZero(user.UpdatedAt)
+		updatedAtBefore := user.UpdatedAt
+
+		user.Name.String = "Bar"
+		err := tx.UpdateColumns(&user, "name", "updated_at") // Update name and updated_at
+		r.NoError(err)
+
+		r.NoError(tx.Reload(&user))
+		r.NotEqual(user.UpdatedAt, updatedAtBefore) // UpdatedAt should be updated automatically
+	})
+}
+
 func Test_UpdateColumns_MultipleColumns(t *testing.T) {
 	if PDB == nil {
 		t.Skip("skipping integration tests")

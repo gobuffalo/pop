@@ -42,6 +42,20 @@ func (m *Model) ID() interface{} {
 	return fbn.Interface()
 }
 
+// IDField returns the name of the DB field used for the ID.
+// By default, it will return "id".
+func (m *Model) IDField() string {
+	field, ok := reflect.TypeOf(m.Value).Elem().FieldByName("ID")
+	if !ok {
+		return "id"
+	}
+	dbField := field.Tag.Get("db")
+	if dbField == "" {
+		return "id"
+	}
+	return dbField
+}
+
 // PrimaryKeyType gives the primary key type of the `Model`.
 func (m *Model) PrimaryKeyType() string {
 	fbn, err := m.fieldByName("ID")
@@ -178,11 +192,11 @@ func (m *Model) touchUpdatedAt() {
 }
 
 func (m *Model) whereID() string {
-	return fmt.Sprintf("%s.id = ?", m.TableName())
+	return fmt.Sprintf("%s.%s = ?", m.TableName(), m.IDField())
 }
 
 func (m *Model) whereNamedID() string {
-	return fmt.Sprintf("%s.id = :id", m.TableName())
+	return fmt.Sprintf("%s.%s = :id", m.TableName(), m.IDField())
 }
 
 func (m *Model) isSlice() bool {
