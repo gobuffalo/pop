@@ -6,7 +6,7 @@ import (
 	"github.com/gobuffalo/pop"
 	"github.com/gobuffalo/validate"
 )
-
+// Widget ...
 type Widget struct {
 }
 
