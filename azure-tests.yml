@@ -58,9 +58,9 @@ steps:
     workingDirectory: "$(modulePath)"          
     displayName: "Install soda"
   - script: |
-      $(GOBIN)/soda drop -e $(SODA_DIALECT)
-      $(GOBIN)/soda create -e $(SODA_DIALECT)
-      $(GOBIN)/soda migrate -e $(SODA_DIALECT)
+      $(GOBIN)/soda drop -e $(SODA_DIALECT) -p ./testdata/migrations
+      $(GOBIN)/soda create -e $(SODA_DIALECT) -p ./testdata/migrations
+      $(GOBIN)/soda migrate -e $(SODA_DIALECT) -p ./testdata/migrations
     workingDirectory: "$(modulePath)"         
     displayName: "Create DB & run migrations"
   - script: |

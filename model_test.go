@@ -130,3 +130,19 @@ func Test_Touch_Unix_Timestamp_With_Existing_Value(t *testing.T) {
 	r.Equal(createdAt, v.CreatedAt)
 	r.Equal(int(t0.Unix()), v.UpdatedAt)
 }
+
+func Test_IDField(t *testing.T) {
+	r := require.New(t)
+
+	type testCustomID struct {
+		ID int `db:"custom_id"`
+	}
+	m := Model{Value: &testCustomID{ID: 1}}
+	r.Equal("custom_id", m.IDField())
+
+	type testNormalID struct {
+		ID int
+	}
+	m = Model{Value: &testNormalID{ID: 1}}
+	r.Equal("id", m.IDField())
+}
