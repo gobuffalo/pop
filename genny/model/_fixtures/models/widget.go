@@ -10,7 +10,7 @@ import (
 	"github.com/gobuffalo/validate/validators"
 	"github.com/gofrs/uuid"
 )
-
+// Widget ...
 type Widget struct {
 	ID          uuid.UUID    `json:"id" db:"id"`
 	CreatedAt   time.Time    `json:"created_at" db:"created_at"`
