@@ -88,19 +88,23 @@ func (m *Model) TableName() string {
 	}
 
 	t := reflect.TypeOf(m.Value)
-	name := m.typeName(t)
+	name, cacheKey := m.typeName(t)
 
 	defer tableMapMu.Unlock()
 	tableMapMu.Lock()
 
-	if tableMap[name] == "" {
+	if tableMap[cacheKey] == "" {
 		m.tableName = nflect.Tableize(name)
-		tableMap[name] = m.tableName
+		tableMap[cacheKey] = m.tableName
 	}
-	return tableMap[name]
+	return tableMap[cacheKey]
 }
 
-func (m *Model) typeName(t reflect.Type) string {
+func (m *Model) cacheKey(t reflect.Type) string {
+	return t.PkgPath() + "." + t.Name()
+}
+
+func (m *Model) typeName(t reflect.Type) (name, cacheKey string) {
 	if t.Kind() == reflect.Ptr {
 		t = t.Elem()
 	}
@@ -117,14 +121,14 @@ func (m *Model) typeName(t reflect.Type) string {
 			v := reflect.New(el)
 			out := v.MethodByName("TableName").Call([]reflect.Value{})
 			name := out[0].String()
-			if tableMap[el.Name()] == "" {
-				tableMap[el.Name()] = name
+			if tableMap[m.cacheKey(el)] == "" {
+				tableMap[m.cacheKey(el)] = name
 			}
 		}
 
-		return el.Name()
+		return el.Name(), m.cacheKey(el)
 	default:
-		return t.Name()
+		return t.Name(), m.cacheKey(t)
 	}
 }
 
