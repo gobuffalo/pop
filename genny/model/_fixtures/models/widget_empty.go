@@ -7,6 +7,7 @@ import (
 	"github.com/gobuffalo/validate"
 )
 
+// Widget ...
 type Widget struct {
 }
 

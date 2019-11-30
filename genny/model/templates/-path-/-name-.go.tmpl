@@ -8,7 +8,7 @@ import (
 	"github.com/gobuffalo/validate/validators"
 {{- end }}
 )
-
+// {{.model.Name.Proper}} ...
 {{- if eq $.model.Encoding.String "jsonapi"}}
 type {{.model.Name.Proper}} struct {
 {{- range $a := .opts.Attrs }}

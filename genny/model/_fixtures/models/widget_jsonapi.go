@@ -12,6 +12,7 @@ import (
 	"github.com/google/jsonapi"
 )
 
+// Widget ...
 type Widget struct {
 	ID          uuid.UUID    `jsonapi:"primary,id" db:"id"`
 	CreatedAt   time.Time    `jsonapi:"attr,created_at" db:"created_at"`
