@@ -8,7 +8,7 @@ import (
 	"github.com/gobuffalo/validate/validators"
 {{- end }}
 )
-// {{.model.Name.Proper}} ...
+// {{.model.Name.Proper}} is used by pop to map your .model.Name.Proper.Pluralize.Underscore database table to your go code.
 {{- if eq $.model.Encoding.String "jsonapi"}}
 type {{.model.Name.Proper}} struct {
 {{- range $a := .opts.Attrs }}

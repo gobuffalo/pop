@@ -7,7 +7,7 @@ import (
 	"github.com/gobuffalo/validate"
 )
 
-// Widget ...
+// Widget is used by pop to map your widgets database table to your go code.
 type Widget struct {
 }
 
