@@ -13,11 +13,12 @@ import (
 	_ "github.com/cockroachdb/cockroach-go/crdb" // Load CockroachdbQL/postgres Go driver which also loads github.com/lib/pq
 	"github.com/gobuffalo/fizz"
 	"github.com/gobuffalo/fizz/translators"
+	"github.com/jmoiron/sqlx"
+	"github.com/pkg/errors"
+
 	"github.com/gobuffalo/pop/columns"
 	"github.com/gobuffalo/pop/internal/defaults"
 	"github.com/gobuffalo/pop/logging"
-	"github.com/jmoiron/sqlx"
-	"github.com/pkg/errors"
 )
 
 const nameCockroach = "cockroach"
@@ -32,6 +33,7 @@ func init() {
 	dialectSynonyms["crdb"] = nameCockroach
 	finalizer[nameCockroach] = finalizerCockroach
 	newConnection[nameCockroach] = newCockroach
+	// urlParser[nameCockroach] = urlParserCockroachDB
 }
 
 var _ dialect = &cockroach{}
@@ -220,7 +222,7 @@ func (p *cockroach) TruncateAll(tx *Connection) error {
 	tableNames := make([]string, len(tables))
 	for i, t := range tables {
 		tableNames[i] = t.TableName
-		//! work around for current limitation of DDL and DML at the same transaction.
+		// ! work around for current limitation of DDL and DML at the same transaction.
 		//  it should be fixed when cockroach support it or with other approach.
 		//  https://www.cockroachlabs.com/docs/stable/known-limitations.html#schema-changes-within-transactions
 		if err := tx.RawQuery(fmt.Sprintf("delete from %s", p.Quote(t.TableName))).Exec(); err != nil {
@@ -262,6 +264,9 @@ func finalizerCockroach(cd *ConnectionDetails) {
 	appName := filepath.Base(os.Args[0])
 	cd.Options["application_name"] = defaults.String(cd.Options["application_name"], appName)
 	cd.Port = defaults.String(cd.Port, portCockroach)
+	if cd.URL != "" {
+		cd.URL = "postgres://" + trimCockroachPrefix(cd.URL)
+	}
 }
 
 func (p *cockroach) tablesQuery() string {
@@ -271,4 +276,11 @@ func (p *cockroach) tablesQuery() string {
 		tableQuery = selectTablesQueryCockroachV1
 	}
 	return tableQuery
+}
+
+func trimCockroachPrefix(u string) string {
+	for _, s := range []string{"cockroachdb", "crdb", nameCockroach} {
+		u = strings.TrimPrefix(u, s+"://")
+	}
+	return u
 }
