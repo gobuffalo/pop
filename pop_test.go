@@ -287,6 +287,7 @@ type CallbacksUser struct {
 	BeforeC   string    `db:"before_c"`
 	BeforeU   string    `db:"before_u"`
 	BeforeD   string    `db:"before_d"`
+	BeforeV   string    `db:"before_v"`
 	AfterS    string    `db:"after_s"`
 	AfterC    string    `db:"after_c"`
 	AfterU    string    `db:"after_u"`
@@ -315,6 +316,11 @@ func (u *CallbacksUser) BeforeCreate(tx *Connection) error {
 
 func (u *CallbacksUser) BeforeDestroy(tx *Connection) error {
 	u.BeforeD = "BeforeDestroy"
+	return nil
+}
+
+func (u *CallbacksUser) BeforeValidate(tx *Connection) error {
+	u.BeforeV = "BeforeValidate"
 	return nil
 }
 

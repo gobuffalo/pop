@@ -28,7 +28,7 @@ bin/*
 gin-bin
 *.sqlite
 tsoda
-migrations/schema.sql
+testdata/migrations/schema.sql
 .grifter/
 vendor/
 go.mod
