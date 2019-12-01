@@ -11,6 +11,7 @@ import (
 	"github.com/gofrs/uuid"
 )
 
+// Widget is used by pop to map your widgets database table to your go code.
 type Widget struct {
 	ID          uuid.UUID    `json:"id" db:"id"`
 	CreatedAt   time.Time    `json:"created_at" db:"created_at"`

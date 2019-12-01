@@ -12,6 +12,7 @@ import (
 	"github.com/google/jsonapi"
 )
 
+// Widget is used by pop to map your widgets database table to your go code.
 type Widget struct {
 	ID          uuid.UUID    `jsonapi:"primary,id" db:"id"`
 	CreatedAt   time.Time    `jsonapi:"attr,created_at" db:"created_at"`
