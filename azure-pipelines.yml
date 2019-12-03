@@ -35,11 +35,6 @@ jobs:
     vmImage: "ubuntu-16.04"
   strategy:
     matrix:
-    # Cockroach
-      go 1.13 (off) cockroach:
-        go_version: "1.13"
-        GO111MODULE: "off"
-        SODA_DIALECT: "cockroach"
     # Cockroach SSL
       go 1.13 (off) cockroach SSL:
         go_version: "1.13"

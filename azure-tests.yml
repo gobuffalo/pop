@@ -28,14 +28,6 @@ steps:
       envVars: |
         MYSQL_ROOT_PASSWORD=root
     condition: and(succeeded(), eq(variables['SODA_DIALECT'], 'mysql'))
-  - task: Docker@1
-    displayName: Run cockroach image
-    inputs:
-      command: run
-      imageName: cockroachdb/cockroach:v1.1.1
-      ports: "26257:26257"
-      containerCommand: start --insecure
-    condition: and(succeeded(), eq(variables['SODA_DIALECT'], 'cockroach'))
   - task: Bash@3
     displayName: Install Cockroach SSL
     inputs:
