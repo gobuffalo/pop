@@ -84,7 +84,7 @@ jobs:
         image: cockroachdb/cockroach:latest
         ports:
           - 26257:26257
-        options: --entrypoint "start --insecure"
+        options: --entrypoint "/cockroach/cockroach.sh start --insecure"
 
     steps:
       - name: Set up Go
