@@ -33,4 +33,8 @@ jobs:
           POSTGRESQL_URL: "postgres://postgres:postgres@${{job.services.postgres.host}}:${{ job.services.postgres.ports[5432] }}/pop_test?sslmode=disable"
         run: |
           go mod tidy -v
+          go install -v -tags sqlite ./soda
+          $(GOBIN)/soda drop -e $(SODA_DIALECT) -p ./testdata/migrations
+          $(GOBIN)/soda create -e $(SODA_DIALECT) -p ./testdata/migrations
+          $(GOBIN)/soda migrate -e $(SODA_DIALECT) -p ./testdata/migrations
           go test -tags sqlite -race ./...
