@@ -1,0 +1,42 @@
+name: Tests
+on: [push]
+jobs:
+  container-job:
+    runs-on: ubuntu-latest
+
+    # runs all of the steps inside the specified container rather than on the VM host.
+    # Because of this the network configuration changes from host based network to a container network.
+    container:
+      image:  golang:latest
+
+    services:
+      postgres:
+        image: postgres:10.8
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        # needed because the postgres container does not provide a healthcheck
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+
+  pg-tests:
+    name: ${{matrix.go-version}} ${{matrix.os}}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        go-version: [1.12.x, 1.13.x]
+        os: [macos-latest, windows-latest, ubuntu-latest]
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v1
+        with:
+          fetch-depth: 1
+      - name: Test
+        env:
+          SODA_DIALECT: "postgres"
+          POSTGRESQL_URL: "postgres://postgres:postgres@${{job.services.postgres.host}}:${{ job.services.postgres.ports[5432] }}/pop_test?sslmode=disable"
+        run: |
+          go mod tidy -v
+          go test -race ./...
