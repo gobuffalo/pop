@@ -84,8 +84,8 @@ jobs:
         image: cockroachdb/cockroach:latest
         ports:
           - 26257:26257
-        run: |
-          start --insecure
+        with:
+          args: start --insecure
 
     steps:
       - name: Set up Go
