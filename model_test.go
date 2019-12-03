@@ -7,8 +7,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/gobuffalo/pop/testdata/models/a"
-	"github.com/gobuffalo/pop/testdata/models/b"
+	"github.com/gobuffalo/pop/v5/testdata/models/a"
+	"github.com/gobuffalo/pop/v5/testdata/models/b"
 )
 
 func Test_Model_TableName(t *testing.T) {

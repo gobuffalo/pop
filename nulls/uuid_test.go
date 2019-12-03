@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/gobuffalo/pop/nulls"
+	"github.com/gobuffalo/pop/v5/nulls"
 	"github.com/gofrs/uuid"
 	"github.com/stretchr/testify/require"
 )

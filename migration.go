@@ -8,7 +8,7 @@ import (
 
 	"github.com/gobuffalo/genny"
 
-	"github.com/gobuffalo/pop/internal/oncer"
+	"github.com/gobuffalo/pop/v5/internal/oncer"
 )
 
 // MigrationCreate writes contents for a given migration in normalized files

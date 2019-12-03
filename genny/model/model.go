@@ -18,7 +18,7 @@ func New(opts *Options) (*genny.Generator, error) {
 		return g, err
 	}
 
-	if err := g.Box(packr.New("github.com/gobuffalo/pop/genny/model/templates", "../model/templates")); err != nil {
+	if err := g.Box(packr.New("github.com/gobuffalo/pop/v5/genny/model/templates", "../model/templates")); err != nil {
 		return g, err
 	}
 
