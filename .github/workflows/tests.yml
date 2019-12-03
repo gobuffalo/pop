@@ -11,7 +11,7 @@ jobs:
         env:
           MYSQL_ROOT_PASSWORD: root
         ports:
-          - 3306:3306
+          - 3307:3306
         # needed because the mysql container does not provide a healthcheck
         options: --health-cmd "mysqladmin ping -h localhost" --health-interval 10s --health-timeout 5s --health-retries 5
 
@@ -28,6 +28,7 @@ jobs:
       - name: Test
         env:
           SODA_DIALECT: "mysql"
+          MYSQL_PORT: 3307
         run: |
           go mod tidy -v
           go build -v -tags sqlite -o tsoda ./soda
