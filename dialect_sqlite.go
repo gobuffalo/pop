@@ -18,9 +18,9 @@ import (
 	_ "github.com/mattn/go-sqlite3" // Load SQLite3 CGo driver
 	"github.com/pkg/errors"
 
-	"github.com/gobuffalo/pop/columns"
-	"github.com/gobuffalo/pop/internal/defaults"
-	"github.com/gobuffalo/pop/logging"
+	"github.com/gobuffalo/pop/v5/columns"
+	"github.com/gobuffalo/pop/v5/internal/defaults"
+	"github.com/gobuffalo/pop/v5/logging"
 )
 
 const nameSQLite3 = "sqlite3"

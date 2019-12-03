@@ -8,10 +8,10 @@ import (
 	"github.com/gobuffalo/fizz"
 	"github.com/gobuffalo/genny"
 	"github.com/gobuffalo/logger"
-	"github.com/gobuffalo/pop"
-	"github.com/gobuffalo/pop/genny/fizz/ctable"
-	gmodel "github.com/gobuffalo/pop/genny/model"
-	"github.com/gobuffalo/pop/internal/oncer"
+	"github.com/gobuffalo/pop/v5"
+	"github.com/gobuffalo/pop/v5/genny/fizz/ctable"
+	gmodel "github.com/gobuffalo/pop/v5/genny/model"
+	"github.com/gobuffalo/pop/v5/internal/oncer"
 	"github.com/spf13/cobra"
 )
 
@@ -110,7 +110,7 @@ var ModelCmd = &cobra.Command{
 
 // Model generates new model files to work with pop.
 func Model(name string, opts map[string]interface{}, attributes []string) error {
-	oncer.Deprecate(0, "generate.Model", "Use github.com/gobuffalo/pop/genny/model instead.")
+	oncer.Deprecate(0, "generate.Model", "Use github.com/gobuffalo/pop/v5/genny/model instead.")
 
 	mt, found := opts["marshalType"].(string)
 	if !found {
