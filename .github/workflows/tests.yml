@@ -80,11 +80,12 @@ jobs:
     runs-on: ubuntu-latest
 
     services:
-      postgres:
+      cockroach:
         image: cockroachdb/cockroach:latest
         ports:
           - 26257:26257
-        options: --entrypoint "/cockroach/cockroach.sh start --insecure"
+        run: |
+          start --insecure
 
     steps:
       - name: Set up Go
