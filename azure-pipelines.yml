@@ -45,12 +45,6 @@ jobs:
         go_version: "1.13"
         GO111MODULE: "off"
         SODA_DIALECT: "cockroach_ssl"
-    # MySQL
-      go 1.13 (off) mysql:
-        go_version: "1.13"
-        GO111MODULE: "off"
-        SODA_DIALECT: "mysql"
-        MYSQL_PORT: "3307"
     # SQLite3
       go 1.13 (off) sqlite:
         go_version: "1.13"
