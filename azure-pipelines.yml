@@ -35,19 +35,6 @@ jobs:
     vmImage: "ubuntu-16.04"
   strategy:
     matrix:
-    # Postgres
-      go 1.11 (off) postgres:
-        go_version: "1.11.5"
-        GO111MODULE: "off"
-        SODA_DIALECT: "postgres"
-      go 1.12 (off) postgres:
-        go_version: "1.12"
-        GO111MODULE: "off"
-        SODA_DIALECT: "postgres"
-      go 1.13 (off) postgres:
-        go_version: "1.13"
-        GO111MODULE: "off"
-        SODA_DIALECT: "postgres"
     # Cockroach
       go 1.13 (off) cockroach:
         go_version: "1.13"

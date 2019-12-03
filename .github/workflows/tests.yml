@@ -5,11 +5,6 @@ jobs:
     name: PostgreSQL tests
     runs-on: ubuntu-latest
 
-    # runs all of the steps inside the specified container rather than on the VM host.
-    # Because of this the network configuration changes from host based network to a container network.
-    container:
-      image:  golang:latest
-
     services:
       postgres:
         image: postgres:10.8
@@ -23,6 +18,11 @@ jobs:
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
 
     steps:
+      - name: Set up Go
+        uses: actions/setup-go@v1
+        with:
+          go-version: 1.13
+        id: go
       - name: Checkout Code
         uses: actions/checkout@v1
         with:
@@ -33,4 +33,4 @@ jobs:
           POSTGRESQL_URL: "postgres://postgres:postgres@${{job.services.postgres.host}}:${{ job.services.postgres.ports[5432] }}/pop_test?sslmode=disable"
         run: |
           go mod tidy -v
-          go test -race ./...
+          go test -tags sqlite -race ./...
