@@ -26,11 +26,11 @@ jobs:
         with:
           fetch-depth: 1
       - name: Get dependencies
-          run: |
-            go get -v -tags sqlite -t -d ./...
-          env:
-            GO111MODULE: "on"
-            GOPROXY: "https://proxy.golang.org"
+        run: |
+          go get -v -tags sqlite -t -d ./...
+        env:
+          GO111MODULE: "on"
+          GOPROXY: "https://proxy.golang.org"
       - name: Test
         env:
           SODA_DIALECT: "mysql"
@@ -69,11 +69,11 @@ jobs:
         with:
           fetch-depth: 1
       - name: Get dependencies
-          run: |
-            go get -v -tags sqlite -t -d ./...
-          env:
-            GO111MODULE: "on"
-            GOPROXY: "https://proxy.golang.org"
+        run: |
+          go get -v -tags sqlite -t -d ./...
+        env:
+          GO111MODULE: "on"
+          GOPROXY: "https://proxy.golang.org"
       - name: Test
         env:
           SODA_DIALECT: "postgres"
@@ -103,11 +103,11 @@ jobs:
         with:
           fetch-depth: 1
       - name: Get dependencies
-          run: |
-            go get -v -tags sqlite -d ./...
-          env:
-            GO111MODULE: "on"
-            GOPROXY: "https://proxy.golang.org"
+        run: |
+          go get -v -tags sqlite -d ./...
+        env:
+          GO111MODULE: "on"
+          GOPROXY: "https://proxy.golang.org"
       - name: Test
         env:
           SODA_DIALECT: "sqlite"
