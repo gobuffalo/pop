@@ -81,7 +81,6 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macOS-latest, windows-latest]
-        go: 1.13
 
     steps:
       - name: Set up Go
