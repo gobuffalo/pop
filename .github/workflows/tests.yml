@@ -75,16 +75,13 @@ jobs:
           ./tsoda migrate -e $SODA_DIALECT -p ./testdata/migrations
           go test -tags sqlite -race ./...
 
-  cockroach-tests:
-    name: Cockroach tests
-    runs-on: ubuntu-latest
-
-    services:
-      cockroach:
-        image: cockroachdb/cockroach:latest
-        ports:
-          - 26257:26257
-        options: --entrypoint "/cockroach/cockroach.sh start --insecure"
+  sqlite-tests:
+    name: SQLite tests
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macOS-latest, windows-latest]
+        go: 1.13
 
     steps:
       - name: Set up Go
@@ -98,7 +95,7 @@ jobs:
           fetch-depth: 1
       - name: Test
         env:
-          SODA_DIALECT: "cockroach"
+          SODA_DIALECT: "sqlite"
         run: |
           go mod tidy -v
           go build -v -tags sqlite -o tsoda ./soda
