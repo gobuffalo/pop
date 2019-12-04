@@ -25,12 +25,17 @@ jobs:
         uses: actions/checkout@v1
         with:
           fetch-depth: 1
+      - name: Get dependencies
+          run: |
+            go get -v -tags sqlite -t -d ./...
+          env:
+            GO111MODULE: "on"
+            GOPROXY: "https://proxy.golang.org"
       - name: Test
         env:
           SODA_DIALECT: "mysql"
           MYSQL_PORT: 3307
         run: |
-          go mod tidy -v
           go build -v -tags sqlite -o tsoda ./soda
           ./tsoda drop -e $SODA_DIALECT -p ./testdata/migrations
           ./tsoda create -e $SODA_DIALECT -p ./testdata/migrations
@@ -63,12 +68,17 @@ jobs:
         uses: actions/checkout@v1
         with:
           fetch-depth: 1
+      - name: Get dependencies
+          run: |
+            go get -v -tags sqlite -t -d ./...
+          env:
+            GO111MODULE: "on"
+            GOPROXY: "https://proxy.golang.org"
       - name: Test
         env:
           SODA_DIALECT: "postgres"
           POSTGRESQL_URL: "postgres://postgres:postgres@${{job.services.postgres.host}}:${{ job.services.postgres.ports[5432] }}/pop_test?sslmode=disable"
         run: |
-          go mod tidy -v
           go build -v -tags sqlite -o tsoda ./soda
           ./tsoda drop -e $SODA_DIALECT -p ./testdata/migrations
           ./tsoda create -e $SODA_DIALECT -p ./testdata/migrations
@@ -92,11 +102,16 @@ jobs:
         uses: actions/checkout@v1
         with:
           fetch-depth: 1
+      - name: Get dependencies
+          run: |
+            go get -v -tags sqlite -d ./...
+          env:
+            GO111MODULE: "on"
+            GOPROXY: "https://proxy.golang.org"
       - name: Test
         env:
           SODA_DIALECT: "sqlite"
         run: |
-          go mod tidy -v
           go build -v -tags sqlite -o tsoda ./soda
           ./tsoda drop -e $SODA_DIALECT -p ./testdata/migrations
           ./tsoda create -e $SODA_DIALECT -p ./testdata/migrations
