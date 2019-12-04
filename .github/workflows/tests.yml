@@ -35,6 +35,8 @@ jobs:
         env:
           SODA_DIALECT: "mysql"
           MYSQL_PORT: 3307
+          GO111MODULE: "on"
+          GOPROXY: "https://proxy.golang.org"
         run: |
           go build -v -tags sqlite -o tsoda ./soda
           ./tsoda drop -e $SODA_DIALECT -p ./testdata/migrations
@@ -78,6 +80,8 @@ jobs:
         env:
           SODA_DIALECT: "postgres"
           POSTGRESQL_URL: "postgres://postgres:postgres@${{job.services.postgres.host}}:${{ job.services.postgres.ports[5432] }}/pop_test?sslmode=disable"
+          GO111MODULE: "on"
+          GOPROXY: "https://proxy.golang.org"
         run: |
           go build -v -tags sqlite -o tsoda ./soda
           ./tsoda drop -e $SODA_DIALECT -p ./testdata/migrations
@@ -111,6 +115,8 @@ jobs:
       - name: Test
         env:
           SODA_DIALECT: "sqlite"
+          GO111MODULE: "on"
+          GOPROXY: "https://proxy.golang.org"
         run: |
           go build -v -tags sqlite -o tsoda ./soda
           ./tsoda drop -e $SODA_DIALECT -p ./testdata/migrations
