@@ -28,7 +28,7 @@ jobs:
       - name: Get dependencies
         run: |
           go get -v -tags sqlite -t -d ./...
-      - name: Test
+      - name: Build and run soda
         env:
           SODA_DIALECT: "mysql"
           MYSQL_PORT: 3307
@@ -37,6 +37,11 @@ jobs:
           ./tsoda drop -e $SODA_DIALECT -p ./testdata/migrations
           ./tsoda create -e $SODA_DIALECT -p ./testdata/migrations
           ./tsoda migrate -e $SODA_DIALECT -p ./testdata/migrations
+      - name: Test
+        env:
+          SODA_DIALECT: "mysql"
+          MYSQL_PORT: 3307
+        run: |
           go test -tags sqlite -race ./...
 
   pg-tests:
@@ -68,6 +73,15 @@ jobs:
       - name: Get dependencies
         run: |
           go get -v -tags sqlite -t -d ./...
+      - name: Build and run soda
+        env:
+          SODA_DIALECT: "postgres"
+          POSTGRESQL_URL: "postgres://postgres:postgres@${{job.services.postgres.host}}:${{ job.services.postgres.ports[5432] }}/pop_test?sslmode=disable"
+        run: |
+          go build -v -tags sqlite -o tsoda ./soda
+          ./tsoda drop -e $SODA_DIALECT -p ./testdata/migrations
+          ./tsoda create -e $SODA_DIALECT -p ./testdata/migrations
+          ./tsoda migrate -e $SODA_DIALECT -p ./testdata/migrations
       - name: Test
         env:
           SODA_DIALECT: "postgres"
@@ -100,9 +114,9 @@ jobs:
           SODA_DIALECT: "sqlite"
         run: |
           go build -v -tags sqlite -o tsoda ./soda
-          ./tsoda drop -e $SODA_DIALECT -p ./testdata/migrations
-          ./tsoda create -e $SODA_DIALECT -p ./testdata/migrations
-          ./tsoda migrate -e $SODA_DIALECT -p ./testdata/migrations
+          tsoda drop -e $SODA_DIALECT -p ./testdata/migrations
+          tsoda create -e $SODA_DIALECT -p ./testdata/migrations
+          tsoda migrate -e $SODA_DIALECT -p ./testdata/migrations
       - name: Test
         env:
           SODA_DIALECT: "sqlite"
