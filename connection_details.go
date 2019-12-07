@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/gobuffalo/pop/v5/internal/defaults"
-	"github.com/gobuffalo/pop/v5/internal/oncer"
 	"github.com/gobuffalo/pop/v5/logging"
 	"github.com/pkg/errors"
 )
@@ -130,14 +129,6 @@ func (cd *ConnectionDetails) Finalize() error {
 		return errors.New("no database or URL specified")
 	}
 	return errors.Errorf("unsupported dialect '%v'", cd.Dialect)
-}
-
-// Parse cleans up the connection details by normalizing names,
-// filling in default values, etc...
-// Deprecated: use ConnectionDetails.Finalize() instead.
-func (cd *ConnectionDetails) Parse(port string) error {
-	oncer.Deprecate(0, "pop.ConnectionDetails#Parse", "pop.ConnectionDetails#Finalize")
-	return cd.Finalize()
 }
 
 // RetrySleep returns the amount of time to wait between two connection retries

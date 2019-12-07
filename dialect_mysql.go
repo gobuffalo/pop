@@ -14,7 +14,6 @@ import (
 	"github.com/gobuffalo/fizz/translators"
 	"github.com/gobuffalo/pop/v5/columns"
 	"github.com/gobuffalo/pop/v5/internal/defaults"
-	"github.com/gobuffalo/pop/v5/internal/oncer"
 	"github.com/gobuffalo/pop/v5/logging"
 	"github.com/pkg/errors"
 )
@@ -251,13 +250,6 @@ func finalizerMySQL(cd *ConnectionDetails) {
 		if cd.URL != "" && !strings.Contains(cd.URL, k+"="+v) {
 			log(logging.Warn, "IMPORTANT! '%s=%s' option is required to work properly. Please add it to the database URL in the config!", k, v)
 		} // or fix user specified url?
-	}
-
-	if cd.Encoding != "" {
-		//! DEPRECATED, 2018-11-06
-		// when user still uses `encoding:` in database.yml
-		oncer.Deprecate(0, "Encoding", "use options.collation")
-		cd.Options["collation"] = cd.Encoding
 	}
 }
 
