@@ -1,8 +1,7 @@
 package pop
 
 import (
-	"github.com/gobuffalo/pop/internal/oncer"
-	"github.com/gobuffalo/pop/logging"
+	"github.com/gobuffalo/pop/v5/logging"
 )
 
 // Join will append a JOIN clause to the query
@@ -53,22 +52,6 @@ func (q *Query) RightOuterJoin(table string, on string, args ...interface{}) *Qu
 	}
 	q.joinClauses = append(q.joinClauses, joinClause{"RIGHT OUTER JOIN", table, on, args})
 	return q
-}
-
-// LeftInnerJoin will append an INNER JOIN clause to the query
-//
-// Deprecated: Use InnerJoin instead
-func (q *Query) LeftInnerJoin(table string, on string, args ...interface{}) *Query {
-	oncer.Deprecate(0, "pop.Query#LeftInnerJoin", "Use pop.Query#InnerJoin instead.")
-	return q.InnerJoin(table, on, args...)
-}
-
-// RightInnerJoin will append an INNER JOIN clause to the query
-//
-// Deprecated: Use InnerJoin instead
-func (q *Query) RightInnerJoin(table string, on string, args ...interface{}) *Query {
-	oncer.Deprecate(0, "pop.Query#RightInnerJoin", "Use pop.Query#InnerJoin instead.")
-	return q.InnerJoin(table, on, args...)
 }
 
 // InnerJoin will append an INNER JOIN clause to the query

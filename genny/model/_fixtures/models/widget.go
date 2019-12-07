@@ -5,12 +5,13 @@ import (
 	"time"
 
 	"github.com/gobuffalo/nulls"
-	"github.com/gobuffalo/pop"
+	"github.com/gobuffalo/pop/v5"
 	"github.com/gobuffalo/validate"
 	"github.com/gobuffalo/validate/validators"
 	"github.com/gofrs/uuid"
 )
 
+// Widget is used by pop to map your widgets database table to your go code.
 type Widget struct {
 	ID          uuid.UUID    `json:"id" db:"id"`
 	CreatedAt   time.Time    `json:"created_at" db:"created_at"`

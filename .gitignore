@@ -31,8 +31,6 @@ tsoda
 testdata/migrations/schema.sql
 .grifter/
 vendor/
-go.mod
-go.sum
 .env
 
 # test data
