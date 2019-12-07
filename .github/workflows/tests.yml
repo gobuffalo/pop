@@ -107,16 +107,16 @@ jobs:
         run: |
           go get -v -tags sqlite -t -d ./...
       - name: Install Cockroach SSL
-          run: |
-            mkdir -p crdb/certs
-            pushd crdb
-            wget -qO- https://binaries.cockroachdb.com/cockroach-v2.1.0.linux-amd64.tgz | tar  zxv
-            mv cockroach-v2.1.0.linux-amd64/cockroach .
-            ./cockroach cert create-ca --certs-dir certs --ca-key key
-            ./cockroach cert create-client root --certs-dir certs --ca-key key
-            ./cockroach cert create-node localhost 127.0.0.1 `hostname -s` `hostname -f` --certs-dir certs --ca-key key
-            ./cockroach start --certs-dir certs --listen-addr localhost --port 26259 --http-port 8089 --background
-            popd
+        run: |
+          mkdir -p crdb/certs
+          pushd crdb
+          wget -qO- https://binaries.cockroachdb.com/cockroach-v2.1.0.linux-amd64.tgz | tar  zxv
+          mv cockroach-v2.1.0.linux-amd64/cockroach .
+          ./cockroach cert create-ca --certs-dir certs --ca-key key
+          ./cockroach cert create-client root --certs-dir certs --ca-key key
+          ./cockroach cert create-node localhost 127.0.0.1 `hostname -s` `hostname -f` --certs-dir certs --ca-key key
+          ./cockroach start --certs-dir certs --listen-addr localhost --port 26259 --http-port 8089 --background
+          popd
       - name: Build and run soda
         env:
           SODA_DIALECT: "cockroach_ssl"
