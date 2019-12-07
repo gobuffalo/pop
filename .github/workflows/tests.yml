@@ -1,0 +1,125 @@
+name: Tests
+on: [push]
+jobs:
+  mysql-tests:
+    name: MySQL tests
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:5.7
+        env:
+          MYSQL_ROOT_PASSWORD: root
+        ports:
+          - 3307:3306
+        # needed because the mysql container does not provide a healthcheck
+        options: --health-cmd "mysqladmin ping -h localhost" --health-interval 10s --health-timeout 5s --health-retries 5
+
+    steps:
+      - name: Set up Go
+        uses: actions/setup-go@v1
+        with:
+          go-version: 1.13
+        id: go
+      - name: Checkout Code
+        uses: actions/checkout@v1
+        with:
+          fetch-depth: 1
+      - name: Get dependencies
+        run: |
+          go get -v -tags sqlite -t -d ./...
+      - name: Build and run soda
+        env:
+          SODA_DIALECT: "mysql"
+          MYSQL_PORT: 3307
+        run: |
+          go build -v -tags sqlite -o tsoda ./soda
+          ./tsoda drop -e $SODA_DIALECT -p ./testdata/migrations
+          ./tsoda create -e $SODA_DIALECT -p ./testdata/migrations
+          ./tsoda migrate -e $SODA_DIALECT -p ./testdata/migrations
+      - name: Test
+        env:
+          SODA_DIALECT: "mysql"
+          MYSQL_PORT: 3307
+        run: |
+          go test -tags sqlite -race ./...
+
+  pg-tests:
+    name: PostgreSQL tests
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:10.8
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        # needed because the postgres container does not provide a healthcheck
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+
+    steps:
+      - name: Set up Go
+        uses: actions/setup-go@v1
+        with:
+          go-version: 1.13
+        id: go
+      - name: Checkout Code
+        uses: actions/checkout@v1
+        with:
+          fetch-depth: 1
+      - name: Get dependencies
+        run: |
+          go get -v -tags sqlite -t -d ./...
+      - name: Build and run soda
+        env:
+          SODA_DIALECT: "postgres"
+          POSTGRESQL_URL: "postgres://postgres:postgres@${{job.services.postgres.host}}:${{ job.services.postgres.ports[5432] }}/pop_test?sslmode=disable"
+        run: |
+          go build -v -tags sqlite -o tsoda ./soda
+          ./tsoda drop -e $SODA_DIALECT -p ./testdata/migrations
+          ./tsoda create -e $SODA_DIALECT -p ./testdata/migrations
+          ./tsoda migrate -e $SODA_DIALECT -p ./testdata/migrations
+      - name: Test
+        env:
+          SODA_DIALECT: "postgres"
+          POSTGRESQL_URL: "postgres://postgres:postgres@${{job.services.postgres.host}}:${{ job.services.postgres.ports[5432] }}/pop_test?sslmode=disable"
+        run: |
+          go test -tags sqlite -race ./...
+
+  sqlite-tests:
+    name: SQLite tests
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macOS-latest, windows-latest]
+
+    steps:
+      - name: Set up Go
+        uses: actions/setup-go@v1
+        with:
+          go-version: 1.13
+        id: go
+      - name: Checkout Code
+        uses: actions/checkout@v1
+        with:
+          fetch-depth: 1
+      - name: Get dependencies
+        run: |
+          go get -v -tags sqlite -t -d ./...
+      - name: Build and run soda
+        env:
+          SODA_DIALECT: "sqlite"
+        run: |
+          go build -v -tags sqlite -o tsoda ./soda
+          ./tsoda drop -e $SODA_DIALECT -p ./testdata/migrations
+          ./tsoda create -e $SODA_DIALECT -p ./testdata/migrations
+          ./tsoda migrate -e $SODA_DIALECT -p ./testdata/migrations
+        shell: bash
+      - name: Test
+        env:
+          SODA_DIALECT: "sqlite"
+        run: |
+          go test -tags sqlite -race ./...
