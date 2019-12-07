@@ -89,7 +89,7 @@ jobs:
         run: |
           go test -tags sqlite -race ./...
 
-  crdb-tests:
+  crdbssl-tests:
     name: Cockroach SSL tests
     runs-on: ubuntu-latest
 
@@ -128,6 +128,44 @@ jobs:
       - name: Test
         env:
           SODA_DIALECT: "cockroach_ssl"
+        run: |
+          go test -tags sqlite -race ./...
+
+  crdb-tests:
+    name: Cockroach SSL tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Set up Go
+        uses: actions/setup-go@v1
+        with:
+          go-version: 1.13
+        id: go
+      - name: Checkout Code
+        uses: actions/checkout@v1
+        with:
+          fetch-depth: 1
+      - name: Get dependencies
+        run: |
+          go get -v -tags sqlite -t -d ./...
+      - name: Install Cockroach
+        run: |
+          pushd crdb
+          wget -qO- https://binaries.cockroachdb.com/cockroach-v2.1.0.linux-amd64.tgz | tar  zxv
+          mv cockroach-v2.1.0.linux-amd64/cockroach .
+          ./cockroach start --insecure --background
+          popd
+      - name: Build and run soda
+        env:
+          SODA_DIALECT: "cockroach"
+        run: |
+          go build -v -tags sqlite -o tsoda ./soda
+          ./tsoda drop -e $SODA_DIALECT -p ./testdata/migrations
+          ./tsoda create -e $SODA_DIALECT -p ./testdata/migrations
+          ./tsoda migrate -e $SODA_DIALECT -p ./testdata/migrations
+      - name: Test
+        env:
+          SODA_DIALECT: "cockroach"
         run: |
           go test -tags sqlite -race ./...
 
