@@ -2,6 +2,7 @@ package pop
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -197,13 +198,13 @@ func (m Migrator) CreateSchemaMigrations() error {
 }
 
 // Status prints out the status of applied/pending migrations.
-func (m Migrator) Status() error {
+func (m Migrator) Status(out io.Writer) error {
 	err := m.CreateSchemaMigrations()
 	if err != nil {
 		return err
 	}
-	w := tabwriter.NewWriter(os.Stdout, 0, 0, 3, ' ', tabwriter.TabIndent)
-	fmt.Fprintln(w, "Version\tName\tStatus\t")
+	w := tabwriter.NewWriter(out, 0, 0, 3, ' ', tabwriter.TabIndent)
+	_, _ = fmt.Fprintln(w, "Version\tName\tStatus\t")
 	for _, mf := range m.Migrations["up"] {
 		exists, err := m.Connection.Where("version = ?", mf.Version).Exists(m.Connection.MigrationTableName())
 		if err != nil {
@@ -213,7 +214,7 @@ func (m Migrator) Status() error {
 		if exists {
 			state = "Applied"
 		}
-		fmt.Fprintf(w, "%s\t%s\t%s\t\n", mf.Version, mf.Name, state)
+		_, _ = fmt.Fprintf(w, "%s\t%s\t%s\t\n", mf.Version, mf.Name, state)
 	}
 	return w.Flush()
 }
