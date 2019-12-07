@@ -6,12 +6,10 @@ import (
 	"os"
 
 	"github.com/fatih/color"
-	"github.com/gobuffalo/pop/v5/internal/oncer"
 	"github.com/gobuffalo/pop/v5/logging"
 )
 
 type logger func(lvl logging.Level, s string, args ...interface{})
-type legacyLogger func(s string, args ...interface{})
 
 // Debug mode, to toggle verbose log traces
 var Debug = false
@@ -23,12 +21,6 @@ var log logger
 
 var defaultStdLogger = stdlog.New(os.Stdout, "[POP] ", stdlog.LstdFlags)
 var defaultLogger = func(lvl logging.Level, s string, args ...interface{}) {
-	// Handle legacy logger
-	if Log != nil {
-		oncer.Deprecate(0, "pop.Log", "Use pop.SetLogger instead.")
-		Log(s, args...)
-		return
-	}
 	if !Debug && lvl <= logging.Debug {
 		return
 	}
@@ -64,7 +56,3 @@ var defaultLogger = func(lvl logging.Level, s string, args ...interface{}) {
 func SetLogger(l logger) {
 	log = l
 }
-
-// Log defines the pop logger. Override it to customize pop logs handling.
-// Deprecated: use SetLogger instead
-var Log legacyLogger

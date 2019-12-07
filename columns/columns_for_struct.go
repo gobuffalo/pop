@@ -2,27 +2,7 @@ package columns
 
 import (
 	"reflect"
-
-	"github.com/gobuffalo/pop/v5/internal/oncer"
 )
-
-// ColumnsForStruct returns a Columns instance for
-// the struct passed in.
-//
-// Deprecated: use ForStruct instead.
-func ColumnsForStruct(s interface{}, tableName string) (columns Columns) {
-	oncer.Deprecate(0, "columns.ColumnsForStruct", "Use columns.ForStruct instead.")
-	return ForStruct(s, tableName)
-}
-
-// ColumnsForStructWithAlias returns a Columns instance for the struct passed in.
-// If the tableAlias is not empty, it will be used.
-//
-// Deprecated: use ForStructWithAlias instead.
-func ColumnsForStructWithAlias(s interface{}, tableName string, tableAlias string) (columns Columns) {
-	oncer.Deprecate(0, "columns.ColumnsForStructWithAlias", "Use columns.ForStructWithAlias instead.")
-	return ForStructWithAlias(s, tableName, tableAlias)
-}
 
 // ForStruct returns a Columns instance for
 // the struct passed in.

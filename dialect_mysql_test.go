@@ -244,13 +244,3 @@ func (s *MySQLSuite) Test_MySQL_DDL_Schema() {
 	err = PDB.Dialect.DumpSchema(f)
 	r.Error(err)
 }
-
-//** DEPRECATED: preserve test cases below while deprecated codes alive
-func Test_MySQL_Deprecated_CD_Encoding(t *testing.T) {
-	r := require.New(t)
-	cd := &ConnectionDetails{Encoding: "myEncoding"}
-	finalizerMySQL(cd)
-	r.NotNil(cd.Options)
-	r.Equal("myEncoding", cd.Encoding)
-	r.Equal("myEncoding", cd.Options["collation"])
-}
