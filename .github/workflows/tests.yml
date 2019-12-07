@@ -132,7 +132,7 @@ jobs:
           go test -tags sqlite -race ./...
 
   crdb-tests:
-    name: Cockroach SSL tests
+    name: Cockroach tests
     runs-on: ubuntu-latest
 
     steps:
