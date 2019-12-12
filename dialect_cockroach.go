@@ -262,6 +262,17 @@ func finalizerCockroach(cd *ConnectionDetails) {
 	appName := filepath.Base(os.Args[0])
 	cd.Options["application_name"] = defaults.String(cd.Options["application_name"], appName)
 	cd.Port = defaults.String(cd.Port, portCockroach)
+	if cd.URL != "" {
+		cd.URL = "postgres://" + trimCockroachPrefix(cd.URL)
+	}
+}
+
+func trimCockroachPrefix(u string) string {
+	parts := strings.Split(u, "://")
+	if len(parts) != 2 {
+		return u
+	}
+	return parts[1]
 }
 
 func (p *cockroach) tablesQuery() string {
