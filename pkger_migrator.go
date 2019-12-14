@@ -57,10 +57,8 @@ func (fm *PkgerMigrator) findMigrations(runner func(mf Migration, tx *Connection
 		return nil
 	}
 	return pkger.Walk(dir, func(p string, info os.FileInfo, err error) error {
-		//	fmt.Printf("walking %v: %v", p, info)
 		if !info.IsDir() {
 			match, err := ParseMigrationFilename(info.Name())
-			//		fmt.Printf("match: %v, err: %v", match, err)
 			if err != nil {
 				return err
 			}
