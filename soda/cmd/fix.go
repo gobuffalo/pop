@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -29,42 +28,12 @@ func fixFizz(path string) error {
 	if ext != ".fizz" {
 		return nil
 	}
-
-	b, err := ioutil.ReadFile(path)
+	f, err := os.Open(path)
 	if err != nil {
 		return err
 	}
-
-	content := string(b)
-
-	// Old anko format
-	fixed, err := fix.Anko(content)
-	if err != nil {
-		return err
-	}
-	if strings.TrimSpace(fixed) != strings.TrimSpace(content) {
-		content = fixed
-	}
-
-	// Rewrite migrations to use t.Timestamps() if necessary
-	fixed, err = fix.AutoTimestampsOff(content)
-	if err != nil {
-		return err
-	}
-
-	if strings.TrimSpace(fixed) != strings.TrimSpace(content) {
-		f, err := os.Create(path)
-		if err != nil {
-			return err
-		}
-		if _, err := f.WriteString(fixed); err != nil {
-			return err
-		}
-		if err := f.Close(); err != nil {
-			return err
-		}
-	}
-	return nil
+	defer f.Close()
+	return fix.Fizz(f, f)
 }
 
 func init() {
