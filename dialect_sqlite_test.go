@@ -3,6 +3,7 @@
 package pop
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -143,4 +144,22 @@ func Test_ConnectionDetails_FinalizeOSPath(t *testing.T) {
 	r.NoError(cd.Finalize())
 	r.Equal("sqlite3", cd.Dialect)
 	r.EqualValues(p, cd.Database)
+}
+
+func TestSqlite_CreateDB(t *testing.T) {
+	r := require.New(t)
+	dir, err := ioutil.TempDir("", "")
+	r.NoError(err)
+	p := filepath.Join(dir, "testdb.sqlite")
+	defer os.RemoveAll(p)
+	cd := &ConnectionDetails{
+		Dialect:  "sqlite",
+		Database: p,
+	}
+	dialect, err := newSQLite(cd)
+	r.NoError(err)
+	r.NoError(dialect.CreateDB())
+
+	// Creating DB twice should produce an error
+	r.EqualError(dialect.CreateDB(), fmt.Sprintf("could not create SQLite database '%s'; database exists", p))
 }
