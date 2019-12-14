@@ -20,6 +20,13 @@ type Migration struct {
 	Runner func(Migration, *Connection) error
 }
 
+// Migration with an indication of its state
+type MigrationWithState struct {
+	Migration
+	// State of the migration
+	Applied bool
+}
+
 // Run the migration. Returns an error if there is
 // no mf.Runner defined.
 func (mf Migration) Run(c *Connection) error {

@@ -204,19 +204,46 @@ func (m Migrator) Status(out io.Writer) error {
 		return err
 	}
 	w := tabwriter.NewWriter(out, 0, 0, 3, ' ', tabwriter.TabIndent)
+
+	migrations, err := m.MigrationsWithState("up")
+	if err != nil {
+		return errors.Wrapf(err, "problem with migration")
+	}
+
 	_, _ = fmt.Fprintln(w, "Version\tName\tStatus\t")
-	for _, mf := range m.Migrations["up"] {
-		exists, err := m.Connection.Where("version = ?", mf.Version).Exists(m.Connection.MigrationTableName())
-		if err != nil {
-			return errors.Wrapf(err, "problem with migration")
-		}
+	for _, mf := range migrations {
 		state := "Pending"
-		if exists {
+		if mf.Applied {
 			state = "Applied"
 		}
 		_, _ = fmt.Fprintf(w, "%s\t%s\t%s\t\n", mf.Version, mf.Name, state)
 	}
 	return w.Flush()
+}
+
+// Get migrations with indication of whether they are applied or not.
+func (m Migrator) MigrationsWithState(migrationType string) ([]MigrationWithState, error) {
+	var ret []MigrationWithState
+
+	if migrations, ok := m.Migrations[migrationType]; !ok {
+		return nil, errors.Errorf("unknown type of migration: %s", migrationType)
+	} else {
+		for _, mf := range migrations {
+			exists, err := m.Connection.Where("version = ?", mf.Version).Exists(m.Connection.MigrationTableName())
+			if err != nil {
+				return nil, err
+			}
+
+			mws := MigrationWithState{Migration: mf, Applied: false}
+			if exists {
+				mws.Applied = true
+			}
+
+			ret = append(ret, mws)
+		}
+	}
+
+	return ret, nil
 }
 
 // DumpMigrationSchema will generate a file of the current database schema
