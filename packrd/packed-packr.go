@@ -47,6 +47,5 @@ var _ = func() error {
 		b.SetResolver("postgres.yml.tmpl", packr.Pointer{ForwardBox: gk, ForwardPath: "793e1955dae01f2888949d22a97bc7af"})
 		b.SetResolver("sqlite3.yml.tmpl", packr.Pointer{ForwardBox: gk, ForwardPath: "d6126d474cf9b7af331e89fba0c6f146"})
 	}()
-
 	return nil
 }()
