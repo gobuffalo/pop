@@ -133,17 +133,21 @@ func (m *sqlite) locker(l *sync.Mutex, fn func() error) error {
 }
 
 func (m *sqlite) CreateDB() error {
-	d := filepath.Dir(m.ConnectionDetails.Database)
-	err := os.MkdirAll(d, 0766)
+	_, err := os.Stat(m.ConnectionDetails.Database)
+	if err == nil {
+		return errors.Errorf("could not create SQLite database '%s'; database exists", m.ConnectionDetails.Database)
+	}
+	dir := filepath.Dir(m.ConnectionDetails.Database)
+	err = os.MkdirAll(dir, 0766)
 	if err != nil {
-		return errors.Wrapf(err, "could not create SQLite database %s", m.ConnectionDetails.Database)
+		return errors.Wrapf(err, "could not create SQLite database '%s'", m.ConnectionDetails.Database)
 	}
 	_, err = os.Create(m.ConnectionDetails.Database)
 	if err != nil {
-		return errors.Wrapf(err, "could not create SQLite database %s", m.ConnectionDetails.Database)
+		return errors.Wrapf(err, "could not create SQLite database '%s'", m.ConnectionDetails.Database)
 	}
 
-	log(logging.Info, "created database %s", m.ConnectionDetails.Database)
+	log(logging.Info, "created database '%s'", m.ConnectionDetails.Database)
 	return nil
 }
 
@@ -152,7 +156,7 @@ func (m *sqlite) DropDB() error {
 	if err != nil {
 		return errors.Wrapf(err, "could not drop SQLite database %s", m.ConnectionDetails.Database)
 	}
-	log(logging.Info, "dropped database %s", m.ConnectionDetails.Database)
+	log(logging.Info, "dropped database '%s'", m.ConnectionDetails.Database)
 	return nil
 }
 
