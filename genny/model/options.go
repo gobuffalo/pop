@@ -21,7 +21,7 @@ type Options struct {
 	ForceDefaultTimestamps bool        `json:"force_default_timestamps"`
 }
 
-// Validate that options are usuable
+// Validate that options are usable
 func (opts *Options) Validate() error {
 	if len(opts.Name) == 0 {
 		return errors.New("you must set a name for your model")

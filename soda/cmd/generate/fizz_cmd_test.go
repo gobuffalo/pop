@@ -23,5 +23,5 @@ func Test_FizzCmd_NoArg(t *testing.T) {
 	defer os.Chdir(pwd)
 
 	err = c.Execute()
-	r.EqualError(err, "you must set a name for your table")
+	r.EqualError(err, "you must set a name for your migration")
 }

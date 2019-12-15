@@ -17,6 +17,7 @@ type nameable interface {
 // Options for the empty migration generator.
 type Options struct {
 	// TableName is the name of the table.
+	// Deprecated: use Name directly since TableName doesn't make sense in this generator.
 	TableName string
 	// Name is the name of the generated file.
 	Name string
@@ -28,18 +29,17 @@ type Options struct {
 	Type string
 }
 
-// Validate that options are usuable
+// Validate that options are usable
 func (opts *Options) Validate() error {
-	if len(opts.TableName) == 0 {
-		return errors.New("you must set a name for your table")
+	if len(opts.Name) == 0 {
+		return errors.New("you must set a name for your migration")
 	}
 	if len(opts.Path) == 0 {
 		opts.Path = "migrations"
 	}
-	if len(opts.Name) == 0 {
-		timestamp := nowFunc().UTC().Format("20060102150405")
-		opts.Name = fmt.Sprintf("%s_create_%s", timestamp, name.New(opts.TableName).Tableize())
-	}
+	timestamp := nowFunc().UTC().Format("20060102150405")
+	opts.Name = fmt.Sprintf("%s_%s", timestamp, name.New(opts.Name).Underscore())
+
 	if len(opts.Type) == 0 {
 		opts.Type = "fizz"
 	}

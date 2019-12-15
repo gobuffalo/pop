@@ -18,7 +18,7 @@ func Test_Options_Validate(t *testing.T) {
 	err := opts.Validate()
 	r.Error(err)
 
-	opts.TableName = "widget"
+	opts.Name = "create_widgets"
 
 	err = opts.Validate()
 	r.NoError(err)
@@ -31,7 +31,7 @@ func Test_Options_Validate(t *testing.T) {
 	err = opts.Validate()
 	r.NoError(err)
 
-	r.Equal(opts.Name, "custom_migration")
+	r.Equal(opts.Name, "20190828074602_custom_migration")
 	r.Equal("migrations", opts.Path)
 }
 
@@ -39,8 +39,8 @@ func Test_Options_Validate_Errors(t *testing.T) {
 	r := require.New(t)
 
 	opts := &Options{
-		TableName: "widget",
-		Type:      "sql",
+		Name: "create_widget",
+		Type: "sql",
 	}
 	err := opts.Validate()
 	r.EqualError(err, "sql migrations require a fizz translator")
