@@ -16,7 +16,8 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@master
-        fetch-depth: 0
+        with:
+          fetch-depth: 0
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v1
         with:
