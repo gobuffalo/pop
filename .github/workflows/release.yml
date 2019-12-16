@@ -18,8 +18,6 @@ jobs:
         uses: actions/checkout@master
         fetch-depth: 0
       - name: Run GoReleaser
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         uses: goreleaser/goreleaser-action@v1
         with:
           version: latest
