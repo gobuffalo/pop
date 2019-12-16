@@ -1,11 +1,9 @@
 name: Release
 
-#on:
-#  create:
-#    tags:
-#      - v*.*.*
-
-on: [push]
+on:
+  create:
+    tags:
+      - v*.*.*
 
 jobs:
   release:
@@ -24,4 +22,4 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           version: latest
-          args: release --snapshot --rm-dist --skip-publish
+          args: release --rm-dist
