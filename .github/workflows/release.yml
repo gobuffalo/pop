@@ -20,6 +20,8 @@ jobs:
           fetch-depth: 0
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           version: latest
           args: release --snapshot --rm-dist --skip-publish
