@@ -1,0 +1,25 @@
+name: Release
+#on:
+#  create:
+#    tags:
+#      - v*.*.*
+
+on: [push]
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    container:
+      image: stanislasm/ci-goreleaser:1.13-1
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@master
+        fetch-depth: 0
+      - name: Run GoReleaser
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: goreleaser/goreleaser-action@v1
+        with:
+          version: latest
+          args: release --snapshot --rm-dist --skip-publish
