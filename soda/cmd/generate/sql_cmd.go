@@ -63,7 +63,7 @@ var SQLCmd = &cobra.Command{
 
 		if len(atts) == 0 {
 			g, err := cempty.New(&cempty.Options{
-				TableName:  name,
+				Name:       name,
 				Path:       path,
 				Type:       "sql",
 				Translator: translator,

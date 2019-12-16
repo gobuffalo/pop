@@ -34,7 +34,7 @@ type Options struct {
 	ForceDefaultID bool `json:"force_default_id"`
 }
 
-// Validate that options are usuable
+// Validate that options are usable
 func (opts *Options) Validate() error {
 	if len(opts.TableName) == 0 {
 		return errors.New("you must set a name for your table")
