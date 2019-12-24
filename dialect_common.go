@@ -11,8 +11,8 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/gobuffalo/pop/columns"
-	"github.com/gobuffalo/pop/logging"
+	"github.com/gobuffalo/pop/v5/columns"
+	"github.com/gobuffalo/pop/v5/logging"
 	"github.com/gofrs/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
@@ -31,14 +31,19 @@ func (commonDialect) Lock(fn func() error) error {
 }
 
 func (commonDialect) Quote(key string) string {
-	return fmt.Sprintf(`"%s"`, key)
+	parts := strings.Split(key, ".")
+
+	for i, part := range parts {
+		part = strings.Trim(part, `"`)
+		part = strings.TrimSpace(part)
+
+		parts[i] = fmt.Sprintf(`"%v"`, part)
+	}
+
+	return strings.Join(parts, ".")
 }
 
-type quoter interface {
-	Quote(key string) string
-}
-
-func genericCreate(s store, model *Model, cols columns.Columns, quoter quoter) error {
+func genericCreate(s store, model *Model, cols columns.Columns, quoter quotable) error {
 	keyType := model.PrimaryKeyType()
 	switch keyType {
 	case "int", "int64":
@@ -90,7 +95,7 @@ func genericCreate(s store, model *Model, cols columns.Columns, quoter quoter) e
 	return errors.Errorf("can not use %s as a primary key type!", keyType)
 }
 
-func genericUpdate(s store, model *Model, cols columns.Columns, quoter quoter) error {
+func genericUpdate(s store, model *Model, cols columns.Columns, quoter quotable) error {
 	stmt := fmt.Sprintf("UPDATE %s SET %s WHERE %s", quoter.Quote(model.TableName()), cols.Writeable().QuotedUpdateString(quoter), model.whereNamedID())
 	log(logging.SQL, stmt, model.ID())
 	_, err := s.NamedExec(stmt, model.Value)
@@ -100,7 +105,7 @@ func genericUpdate(s store, model *Model, cols columns.Columns, quoter quoter) e
 	return nil
 }
 
-func genericDestroy(s store, model *Model, quoter quoter) error {
+func genericDestroy(s store, model *Model, quoter quotable) error {
 	stmt := fmt.Sprintf("DELETE FROM %s WHERE %s", quoter.Quote(model.TableName()), model.whereID())
 	_, err := genericExec(s, stmt, model.ID())
 	if err != nil {

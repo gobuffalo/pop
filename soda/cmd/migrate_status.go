@@ -1,8 +1,9 @@
 package cmd
 
 import (
-	"github.com/gobuffalo/pop"
+	"github.com/gobuffalo/pop/v5"
 	"github.com/spf13/cobra"
+	"os"
 )
 
 var migrateStatusCmd = &cobra.Command{
@@ -13,7 +14,7 @@ var migrateStatusCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		return mig.Status()
+		return mig.Status(os.Stdout)
 	},
 }
 

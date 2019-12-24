@@ -13,7 +13,7 @@ func Test_MigrationBox(t *testing.T) {
 	}
 	r := require.New(t)
 
-	b, err := NewMigrationBox(packr.New("./migrations/multiple", "./migrations/multiple"), PDB)
+	b, err := NewMigrationBox(packr.New("./testdata/migrations/multiple", "./testdata/migrations/multiple"), PDB)
 	r.NoError(err)
 	r.Equal(4, len(b.Migrations["up"]))
 	r.Equal("mysql", b.Migrations["up"][0].DBType)

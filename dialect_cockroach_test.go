@@ -11,13 +11,13 @@ func Test_Cockroach_URL_Raw(t *testing.T) {
 	r := require.New(t)
 	cd := &ConnectionDetails{
 		Dialect: "cockroach",
-		URL:     "scheme://user:pass@host:port/database?option1=value1",
+		URL:     "cockroach://user:pass@host:1234/database?option1=value1",
 	}
 	err := cd.Finalize()
 	r.NoError(err)
 	m := &cockroach{commonDialect: commonDialect{ConnectionDetails: cd}}
-	r.Equal("scheme://user:pass@host:port/database?option1=value1", m.URL())
-	r.Equal("postgres://user:pass@host:port/?option1=value1", m.urlWithoutDb())
+	r.Equal("postgres://user:pass@host:1234/database?option1=value1", m.URL())
+	r.Equal("postgres://user:pass@host:1234/?option1=value1", m.urlWithoutDb())
 }
 
 func Test_Cockroach_URL_Build(t *testing.T) {
@@ -84,4 +84,16 @@ func Test_Cockroach_tableQuery(t *testing.T) {
 
 	cr.info.version = "v20.1.1"
 	r.Equal(selectTablesQueryCockroach, cr.tablesQuery())
+}
+
+func Test_Cockroach_URL_Only(t *testing.T) {
+	r := require.New(t)
+	cd := &ConnectionDetails{
+		URL: "cockroach://user:pass@host:1337/database?option1=value1",
+	}
+	err := cd.Finalize()
+	r.NoError(err)
+	m := &cockroach{commonDialect: commonDialect{ConnectionDetails: cd}}
+	r.Equal("postgres://user:pass@host:1337/database?option1=value1", m.URL())
+	r.Equal("postgres://user:pass@host:1337/?option1=value1", m.urlWithoutDb())
 }

@@ -4,7 +4,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/gobuffalo/pop/v5/testdata/models/a"
+	"github.com/gobuffalo/pop/v5/testdata/models/b"
 )
 
 func Test_Model_TableName(t *testing.T) {
@@ -34,6 +38,15 @@ type tn struct{}
 
 func (tn) TableName() string {
 	return "this is my table name"
+}
+
+// A failing test case for #477
+func Test_TableNameCache(t *testing.T) {
+	r := assert.New(t)
+	r.Equal("usera", (&Model{Value: a.User{}}).TableName())
+	r.Equal("userb", (&Model{Value: b.User{}}).TableName())
+	r.Equal("usera", (&Model{Value: []a.User{}}).TableName())
+	r.Equal("userb", (&Model{Value: []b.User{}}).TableName())
 }
 
 func Test_TableName(t *testing.T) {
@@ -129,4 +142,20 @@ func Test_Touch_Unix_Timestamp_With_Existing_Value(t *testing.T) {
 	v := m.Value.(*UnixTimestamp)
 	r.Equal(createdAt, v.CreatedAt)
 	r.Equal(int(t0.Unix()), v.UpdatedAt)
+}
+
+func Test_IDField(t *testing.T) {
+	r := require.New(t)
+
+	type testCustomID struct {
+		ID int `db:"custom_id"`
+	}
+	m := Model{Value: &testCustomID{ID: 1}}
+	r.Equal("custom_id", m.IDField())
+
+	type testNormalID struct {
+		ID int
+	}
+	m = Model{Value: &testNormalID{ID: 1}}
+	r.Equal("id", m.IDField())
 }

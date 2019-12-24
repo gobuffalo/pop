@@ -118,37 +118,41 @@ func (c Columns) Readable() *ReadableColumns {
 	return w
 }
 
+// colNames returns a slice of column names in a deterministic order
+func (c Columns) colNames() []string {
+	var xs []string
+	for _, t := range c.Cols {
+		xs = append(xs, t.Name)
+	}
+	sort.Strings(xs)
+	return xs
+}
+
 type quoter interface {
 	Quote(key string) string
 }
 
 // QuotedString gives the columns list quoted with the given quoter function.
 func (c Columns) QuotedString(quoter quoter) string {
-	var xs []string
-	for _, t := range c.Cols {
-		xs = append(xs, quoter.Quote(t.Name))
+	xs := c.colNames()
+	for i, n := range xs {
+		xs[i] = quoter.Quote(n)
 	}
-	sort.Strings(xs)
 	return strings.Join(xs, ", ")
 }
 
 func (c Columns) String() string {
-	var xs []string
-	for _, t := range c.Cols {
-		xs = append(xs, t.Name)
-	}
-	sort.Strings(xs)
+	xs := c.colNames()
 	return strings.Join(xs, ", ")
 }
 
 // SymbolizedString returns a list of tokens (:token) to bind
 // a value to an INSERT query.
 func (c Columns) SymbolizedString() string {
-	var xs []string
-	for _, t := range c.Cols {
-		xs = append(xs, ":"+t.Name)
+	xs := c.colNames()
+	for i, n := range xs {
+		xs[i] = ":" + n
 	}
-	sort.Strings(xs)
 	return strings.Join(xs, ", ")
 }
 

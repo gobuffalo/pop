@@ -8,9 +8,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gobuffalo/pop/internal/defaults"
-	"github.com/gobuffalo/pop/internal/oncer"
-	"github.com/gobuffalo/pop/logging"
+	"github.com/gobuffalo/pop/v5/internal/defaults"
+	"github.com/gobuffalo/pop/v5/logging"
 	"github.com/pkg/errors"
 )
 
@@ -41,7 +40,9 @@ type ConnectionDetails struct {
 	Pool int
 	// Defaults to 2. See https://golang.org/pkg/database/sql/#DB.SetMaxIdleConns
 	IdlePool int
-	Options  map[string]string
+	// Defaults to 0 "unlimited". See https://golang.org/pkg/database/sql/#DB.SetConnMaxLifetime
+	ConnMaxLifetime time.Duration
+	Options         map[string]string
 	// Query string encoded options from URL. Example: "sslmode=disable"
 	RawOptions string
 }
@@ -128,14 +129,6 @@ func (cd *ConnectionDetails) Finalize() error {
 		return errors.New("no database or URL specified")
 	}
 	return errors.Errorf("unsupported dialect '%v'", cd.Dialect)
-}
-
-// Parse cleans up the connection details by normalizing names,
-// filling in default values, etc...
-// Deprecated: use ConnectionDetails.Finalize() instead.
-func (cd *ConnectionDetails) Parse(port string) error {
-	oncer.Deprecate(0, "pop.ConnectionDetails#Parse", "pop.ConnectionDetails#Finalize")
-	return cd.Finalize()
 }
 
 // RetrySleep returns the amount of time to wait between two connection retries

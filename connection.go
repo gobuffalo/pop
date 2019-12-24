@@ -1,11 +1,12 @@
 package pop
 
 import (
+	"context"
 	"sync/atomic"
 	"time"
 
-	"github.com/gobuffalo/pop/internal/defaults"
-	"github.com/gobuffalo/pop/internal/randx"
+	"github.com/gobuffalo/pop/v5/internal/defaults"
+	"github.com/gobuffalo/pop/v5/internal/randx"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 )
@@ -107,6 +108,9 @@ func (c *Connection) Open() error {
 	if details.IdlePool != 0 {
 		db.SetMaxIdleConns(details.IdlePool)
 	}
+	if details.ConnMaxLifetime > 0 {
+		db.SetConnMaxLifetime(details.ConnMaxLifetime)
+	}
 	c.Store = &dB{db}
 
 	if d, ok := c.Dialect.(afterOpenable); ok {
@@ -166,9 +170,15 @@ func (c *Connection) NewTransaction() (*Connection, error) {
 		if err != nil {
 			return cn, errors.Wrap(err, "couldn't start a new transaction")
 		}
+		var store store = tx
+
+		// Rewrap the store if it was a context store
+		if cs, ok := c.Store.(contextStore); ok {
+			store = contextStore{store: store, ctx: cs.ctx}
+		}
 		cn = &Connection{
 			ID:      randx.String(30),
-			Store:   tx,
+			Store:   store,
 			Dialect: c.Dialect,
 			TX:      tx,
 		}
@@ -176,6 +186,16 @@ func (c *Connection) NewTransaction() (*Connection, error) {
 		cn = c
 	}
 	return cn, nil
+}
+
+// WithContext returns a copy of the connection, wrapped with a context.
+func (c *Connection) WithContext(ctx context.Context) *Connection {
+	cn := c.copy()
+	cn.Store = contextStore{
+		store: cn.Store,
+		ctx:   ctx,
+	}
+	return cn
 }
 
 func (c *Connection) copy() *Connection {
