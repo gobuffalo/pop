@@ -1,7 +1,7 @@
-package models
+package models_test
 
 import "testing"
 
-func Test_Widget(t *testing.T) {
-	t.Fatal("This test needs to be implemented!")
+func (ms *ModelSuite) Test_Widget() {
+	ms.Fail("This test needs to be implemented!")
 }

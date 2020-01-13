@@ -1,6 +1,7 @@
 package model
 
 import (
+	"fmt"
 	"path/filepath"
 	"strings"
 
@@ -20,7 +21,7 @@ type Options struct {
 	ForceDefaultTimestamps bool        `json:"force_default_timestamps"`
 }
 
-// Validate that options are usuable
+// Validate that options are usable
 func (opts *Options) Validate() error {
 	if len(opts.Name) == 0 {
 		return errors.New("you must set a name for your model")
@@ -32,12 +33,15 @@ func (opts *Options) Validate() error {
 		opts.Package = filepath.Base(opts.Path)
 	}
 	if len(opts.TestPackage) == 0 {
-		opts.TestPackage = opts.Package
+		opts.TestPackage = fmt.Sprintf("%s_%s", opts.Package, "test")
 	}
 	if len(opts.Encoding) == 0 {
 		opts.Encoding = "json"
 	}
 	opts.Encoding = strings.ToLower(opts.Encoding)
+	if opts.Encoding != "json" && opts.Encoding != "jsonapi" && opts.Encoding != "xml" {
+		return errors.Errorf("unsupported encoding option %s", opts.Encoding)
+	}
 
 	return opts.forceDefaults()
 }
@@ -60,7 +64,7 @@ func (opts *Options) forceDefaults() error {
 		if err != nil {
 			return err
 		}
-		opts.Attrs = append(opts.Attrs, id)
+		opts.Attrs = append([]attrs.Attr{id}, opts.Attrs...)
 	}
 
 	// Add default timestamp columns if they were not provided

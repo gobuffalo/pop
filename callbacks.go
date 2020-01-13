@@ -97,6 +97,20 @@ func (m *Model) beforeDestroy(c *Connection) error {
 	return nil
 }
 
+// BeforeValidateable callback will be called before a record is
+// validated during
+// ValidateAndCreate, ValidateAndUpdate, or ValidateAndSave
+type BeforeValidateable interface {
+	BeforeValidate(*Connection) error
+}
+
+func (m *Model) beforeValidate(c *Connection) error {
+	if x, ok := m.Value.(BeforeValidateable); ok {
+		return x.BeforeValidate(c)
+	}
+	return nil
+}
+
 // AfterDestroyable callback will be called after a record is
 // destroyed in the database.
 type AfterDestroyable interface {

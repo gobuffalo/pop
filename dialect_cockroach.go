@@ -13,9 +13,9 @@ import (
 	_ "github.com/cockroachdb/cockroach-go/crdb" // Load CockroachdbQL/postgres Go driver which also loads github.com/lib/pq
 	"github.com/gobuffalo/fizz"
 	"github.com/gobuffalo/fizz/translators"
-	"github.com/gobuffalo/pop/columns"
-	"github.com/gobuffalo/pop/internal/defaults"
-	"github.com/gobuffalo/pop/logging"
+	"github.com/gobuffalo/pop/v5/columns"
+	"github.com/gobuffalo/pop/v5/internal/defaults"
+	"github.com/gobuffalo/pop/v5/logging"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 )
@@ -23,8 +23,8 @@ import (
 const nameCockroach = "cockroach"
 const portCockroach = "26257"
 
-const selectTablesQueryCockroach = "select table_name from information_schema.tables where table_schema = 'public' and table_type = 'BASE TABLE' and table_catalog = ?"
-const selectTablesQueryCockroachV1 = "select table_name from information_schema.tables where table_schema = ?"
+const selectTablesQueryCockroach = "select table_name from information_schema.tables where table_schema = 'public' and table_type = 'BASE TABLE' and table_name <> ? and table_catalog = ?"
+const selectTablesQueryCockroachV1 = "select table_name from information_schema.tables where table_name <> ? and table_schema = ?"
 
 func init() {
 	AvailableDialects = append(AvailableDialects, nameCockroach)
@@ -209,7 +209,7 @@ func (p *cockroach) TruncateAll(tx *Connection) error {
 	tableQuery := p.tablesQuery()
 
 	var tables []table
-	if err := tx.RawQuery(tableQuery, tx.Dialect.Details().Database).All(&tables); err != nil {
+	if err := tx.RawQuery(tableQuery, tx.MigrationTableName(), tx.Dialect.Details().Database).All(&tables); err != nil {
 		return err
 	}
 
@@ -262,6 +262,17 @@ func finalizerCockroach(cd *ConnectionDetails) {
 	appName := filepath.Base(os.Args[0])
 	cd.Options["application_name"] = defaults.String(cd.Options["application_name"], appName)
 	cd.Port = defaults.String(cd.Port, portCockroach)
+	if cd.URL != "" {
+		cd.URL = "postgres://" + trimCockroachPrefix(cd.URL)
+	}
+}
+
+func trimCockroachPrefix(u string) string {
+	parts := strings.Split(u, "://")
+	if len(parts) != 2 {
+		return u
+	}
+	return parts[1]
 }
 
 func (p *cockroach) tablesQuery() string {

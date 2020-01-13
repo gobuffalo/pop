@@ -6,7 +6,6 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/gobuffalo/envy"
 	"github.com/stretchr/testify/require"
 )
 
@@ -15,10 +14,7 @@ func Test_ModelCmd_NoArg(t *testing.T) {
 	c := ModelCmd
 	c.SetArgs([]string{})
 
-	gp, err := envy.MustGet("GOPATH")
-	r.NoError(err)
-	cpath := filepath.Join(gp, "src", "github.com", "gobuffalo")
-	tdir, err := ioutil.TempDir(cpath, "testapp")
+	tdir, err := ioutil.TempDir("", "testapp")
 	r.NoError(err)
 	defer os.RemoveAll(tdir)
 
@@ -36,10 +32,7 @@ func Test_ModelCmd_NameOnly(t *testing.T) {
 	c := ModelCmd
 	c.SetArgs([]string{"users"})
 
-	gp, err := envy.MustGet("GOPATH")
-	r.NoError(err)
-	cpath := filepath.Join(gp, "src", "github.com", "gobuffalo")
-	tdir, err := ioutil.TempDir(cpath, "testapp")
+	tdir, err := ioutil.TempDir("", "testapp")
 	r.NoError(err)
 	defer os.RemoveAll(tdir)
 

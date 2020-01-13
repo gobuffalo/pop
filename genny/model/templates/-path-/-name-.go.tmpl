@@ -8,17 +8,30 @@ import (
 	"github.com/gobuffalo/validate/validators"
 {{- end }}
 )
-
+// {{.model.Name.Proper}} is used by pop to map your {{.model.Name.Proper.Pluralize.Underscore}} database table to your go code.
+{{- if eq $.model.Encoding.String "jsonapi"}}
+type {{.model.Name.Proper}} struct {
+{{- range $a := .opts.Attrs }}
+    {{$a.Name.Pascalize}} {{$a.GoType}} `jsonapi:"{{ if eq $a.Name.Underscore.String "id" }}primary{{ else }}attr{{ end }},{{$a.Name.Underscore}}" db:"{{$a.Name.Underscore}}"`
+{{- end }}
+{{- else }}
 type {{.model.Name.Proper}} struct {
 {{- range $a := .opts.Attrs }}
     {{$a.Name.Pascalize}} {{$a.GoType}} `{{$.model.Encoding}}:"{{$a.Name.Underscore}}" db:"{{$a.Name.Underscore}}"`
-{{- end}}
+{{- end }}
+{{- end }}
 }
 
 // String is not required by pop and may be deleted
 func ({{.model.Name.Char}} {{.model.Name.Proper}}) String() string {
+{{- if eq $.model.Encoding.String "jsonapi"}}
+	var jb strings.Builder
+	_ = jsonapi.MarshalPayload(&jb, &{{.model.Name.Char}})
+	return jb.String()
+{{- else }}
 	{{.model.Encoding.Char}}{{.model.Name.Char}}, _ := {{.model.Encoding}}.Marshal({{.model.Name.Char}})
 	return string({{.model.Encoding.Char}}{{.model.Name.Char}})
+{{- end }}
 }
 
 // {{.model.Name.Proper.Pluralize}} is not required by pop and may be deleted
@@ -26,8 +39,14 @@ type {{.model.Name.Proper.Pluralize}} []{{.model.Name.Proper}}
 
 // String is not required by pop and may be deleted
 func ({{.model.Name.Char}} {{.model.Name.Proper.Pluralize}}) String() string {
+{{- if eq $.model.Encoding.String "jsonapi"}}
+	var jb strings.Builder
+	_ = jsonapi.MarshalPayload(&jb, &{{.model.Name.Char}})
+	return jb.String()
+{{- else }}
 	{{.model.Encoding.Char}}{{.model.Name.Char}}, _ := {{.model.Encoding}}.Marshal({{.model.Name.Char}})
 	return string({{.model.Encoding.Char}}{{.model.Name.Char}})
+{{- end }}
 }
 
 // Validate gets run every time you call a "pop.Validate*" (pop.ValidateAndSave, pop.ValidateAndCreate, pop.ValidateAndUpdate) method.
@@ -36,7 +55,7 @@ func ({{.model.Name.Char}} *{{.model.Name.Proper}}) Validate(tx *pop.Connection)
 {{- if .model.Validations }}
 	return validate.Validate(
 		{{- range $a := .model.Validations }}
-		&validators.{{capitalize $a.GoType}}IsPresent{Field: {{$.model.Name.Char}}.{{$a.Name.Pascalize}}, Name: "{{$a.Name.Pascalize}}"},
+		&validators.{{capitalize (trim_package $a.GoType)}}IsPresent{Field: {{$.model.Name.Char}}.{{$a.Name.Pascalize}}, Name: "{{$a.Name.Pascalize}}"},
 		{{- end}}
 	), nil
 {{- else }}

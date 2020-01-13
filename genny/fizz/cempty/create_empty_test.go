@@ -2,6 +2,7 @@ package cempty
 
 import (
 	"testing"
+	"time"
 
 	"github.com/gobuffalo/genny/gentest"
 	"github.com/stretchr/testify/require"
@@ -10,8 +11,11 @@ import (
 func Test_New(t *testing.T) {
 	r := require.New(t)
 
+	t0, _ := time.Parse(time.RFC3339, "2019-08-28T07:46:02Z")
+	nowFunc = func() time.Time { return t0 }
+	defer func() { nowFunc = time.Now }()
+
 	g, err := New(&Options{
-		TableName: "widgets",
 		Name:      "create_widgets",
 	})
 	r.NoError(err)
@@ -27,10 +31,10 @@ func Test_New(t *testing.T) {
 	r.Len(res.Files, 2)
 
 	f := res.Files[0]
-	r.Equal("migrations/create_widgets.down.fizz", f.Name())
+	r.Equal("migrations/20190828074602_create_widgets.down.fizz", f.Name())
 	r.Equal("", f.String())
 
 	f = res.Files[1]
-	r.Equal("migrations/create_widgets.up.fizz", f.Name())
+	r.Equal("migrations/20190828074602_create_widgets.up.fizz", f.Name())
 	r.Equal("", f.String())
 }

@@ -3,10 +3,11 @@ package models
 import (
 	"encoding/json"
 
-	"github.com/gobuffalo/pop"
+	"github.com/gobuffalo/pop/v5"
 	"github.com/gobuffalo/validate"
 )
 
+// Widget is used by pop to map your widgets database table to your go code.
 type Widget struct {
 }
 
