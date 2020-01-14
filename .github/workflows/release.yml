@@ -16,6 +16,9 @@ jobs:
         uses: actions/checkout@master
         with:
           fetch-depth: 0
+      - name: Fetch tags
+        uses: actions/checkout@v2
+        run: git fetch --depth=1 origin +refs/tags/*:refs/tags/*
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v1
         env:

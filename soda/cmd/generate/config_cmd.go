@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/gobuffalo/genny"
+	"github.com/gobuffalo/genny/v2"
 	"github.com/gobuffalo/pop/v5"
 	"github.com/gobuffalo/pop/v5/genny/config"
 	"github.com/gobuffalo/pop/v5/internal/defaults"

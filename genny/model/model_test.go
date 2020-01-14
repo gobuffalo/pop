@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/gobuffalo/attrs"
-	"github.com/gobuffalo/genny/gentest"
-	"github.com/gobuffalo/gogen"
+	"github.com/gobuffalo/genny/v2/gentest"
+	"github.com/gobuffalo/genny/v2/gogen"
 	packr "github.com/gobuffalo/packr/v2"
 	"github.com/stretchr/testify/require"
 )
