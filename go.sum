@@ -37,6 +37,7 @@ github.com/gobuffalo/flect v0.1.5/go.mod h1:W3K3X9ksuZfir8f/LrfVtWmCDQFfayuylOJ7
 github.com/gobuffalo/flect v0.2.0 h1:EWCvMGGxOjsgwlWaP+f4+Hh6yrrte7JeFL2S6b+0hdM=
 github.com/gobuffalo/flect v0.2.0/go.mod h1:W3K3X9ksuZfir8f/LrfVtWmCDQFfayuylOJ7sz/Fj80=
 github.com/gobuffalo/genny v0.2.0/go.mod h1:rWs4Z12d1Zbf19rlsn0nurr75KqhYp52EAGGxTbBhNk=
+github.com/gobuffalo/genny v0.3.0 h1:eHQpmPmH3ozcAIZ/krOTqQuDy3FxPMmI7pahFrDP3As=
 github.com/gobuffalo/genny v0.3.0/go.mod h1:ywJ2CoXrTZj7rbS8HTbzv7uybnLKlsNSBhEQ+yFI3E8=
 github.com/gobuffalo/genny/v2 v2.0.1 h1:ODYh+YVv1ey1HBqm1NAHqlmDnzwBSjgBZd+cqAY/U7g=
 github.com/gobuffalo/genny/v2 v2.0.1/go.mod h1:mH6G7nUBGNRW5C+gA8w8TkAQFCJmR8LTJvkcOP+NWTU=
