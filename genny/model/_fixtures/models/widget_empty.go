@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 
 	"github.com/gobuffalo/pop/v5"
-	"github.com/gobuffalo/validate"
+	"github.com/gobuffalo/validate/v3"
 )
 
 // Widget is used by pop to map your widgets database table to your go code.

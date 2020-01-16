@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/gobuffalo/genny/gentest"
+	"github.com/gobuffalo/genny/v2/gentest"
 	"github.com/stretchr/testify/require"
 )
 
@@ -16,7 +16,7 @@ func Test_New(t *testing.T) {
 	defer func() { nowFunc = time.Now }()
 
 	g, err := New(&Options{
-		Name:      "create_widgets",
+		Name: "create_widgets",
 	})
 	r.NoError(err)
 

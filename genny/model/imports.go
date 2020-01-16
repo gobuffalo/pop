@@ -8,8 +8,8 @@ import (
 
 func buildImports(opts *Options) []string {
 	imps := map[string]bool{
-		"github.com/gobuffalo/validate": true,
-		"github.com/gobuffalo/pop/v5":   true,
+		"github.com/gobuffalo/validate/v3": true,
+		"github.com/gobuffalo/pop/v5":      true,
 	}
 	if opts.Encoding == "jsonapi" {
 		imps["github.com/google/jsonapi"] = true
