@@ -3,8 +3,8 @@ package fix
 import (
 	"strings"
 
-	"github.com/gobuffalo/plush/ast"
-	"github.com/gobuffalo/plush/parser"
+	"github.com/gobuffalo/plush/v4/ast"
+	"github.com/gobuffalo/plush/v4/parser"
 )
 
 // AutoTimestampsOff adds a t.Timestamps() statement to fizz migrations

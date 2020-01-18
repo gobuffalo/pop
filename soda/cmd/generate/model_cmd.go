@@ -2,6 +2,7 @@ package generate
 
 import (
 	"context"
+
 	"github.com/gobuffalo/attrs"
 	"github.com/gobuffalo/fizz"
 	"github.com/gobuffalo/genny/v2"

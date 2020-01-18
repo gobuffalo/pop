@@ -5,7 +5,7 @@ import (
 	"{{$i}}"
 {{- end }}
 {{- if .model.Validations }}
-	"github.com/gobuffalo/validate/validators"
+	"github.com/gobuffalo/validate/v3/validators"
 {{- end }}
 )
 // {{.model.Name.Proper}} is used by pop to map your {{.model.Name.Proper.Pluralize.Underscore}} database table to your go code.
