@@ -2,6 +2,7 @@ package pop
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -9,11 +10,11 @@ import (
 	"text/tabwriter"
 	"time"
 
-	"github.com/gobuffalo/pop/logging"
+	"github.com/gobuffalo/pop/v5/logging"
 	"github.com/pkg/errors"
 )
 
-var mrx = regexp.MustCompile(`^(\d+)_([^\.]+)(\.[a-z0-9]+)?\.(up|down)\.(sql|fizz)$`)
+var mrx = regexp.MustCompile(`^(\d+)_([^.]+)(\.[a-z0-9]+)?\.(up|down)\.(sql|fizz)$`)
 
 // NewMigrator returns a new "blank" migrator. It is recommended
 // to use something like MigrationBox or FileMigrator. A "blank"
@@ -23,8 +24,8 @@ func NewMigrator(c *Connection) Migrator {
 	return Migrator{
 		Connection: c,
 		Migrations: map[string]Migrations{
-			"up":   Migrations{},
-			"down": Migrations{},
+			"up":   {},
+			"down": {},
 		},
 	}
 }
@@ -39,6 +40,13 @@ type Migrator struct {
 	Migrations map[string]Migrations
 }
 
+func (m Migrator) migrationIsCompatible(d dialect, mi Migration) bool {
+	if mi.DBType == "all" || mi.DBType == d.Name() {
+		return true
+	}
+	return false
+}
+
 // UpLogOnly insert pending "up" migrations logs only, without applying the patch.
 // It's used when loading the schema dump, instead of the migrations.
 func (m Migrator) UpLogOnly() error {
@@ -49,8 +57,7 @@ func (m Migrator) UpLogOnly() error {
 		sort.Sort(mfs)
 		return c.Transaction(func(tx *Connection) error {
 			for _, mi := range mfs {
-				if mi.DBType != "all" && mi.DBType != c.Dialect.Name() {
-					// Skip migration for non-matching dialect
+				if !m.migrationIsCompatible(c.Dialect, mi) {
 					continue
 				}
 				exists, err := c.Where("version = ?", mi.Version).Exists(mtn)
@@ -77,9 +84,9 @@ func (m Migrator) Up() error {
 		mtn := c.MigrationTableName()
 		mfs := m.Migrations["up"]
 		sort.Sort(mfs)
+		applied := 0
 		for _, mi := range mfs {
-			if mi.DBType != "all" && mi.DBType != c.Dialect.Name() {
-				// Skip migration for non-matching dialect
+			if !m.migrationIsCompatible(c.Dialect, mi) {
 				continue
 			}
 			exists, err := c.Where("version = ?", mi.Version).Exists(mtn)
@@ -98,9 +105,13 @@ func (m Migrator) Up() error {
 				return errors.Wrapf(err, "problem inserting migration version %s", mi.Version)
 			})
 			if err != nil {
-				return errors.WithStack(err)
+				return err
 			}
 			log(logging.Info, "> %s", mi.Name)
+			applied++
+		}
+		if applied == 0 {
+			log(logging.Info, "Migrations already up to date, nothing to apply")
 		}
 		return nil
 	})
@@ -118,7 +129,7 @@ func (m Migrator) Down(step int) error {
 		}
 		mfs := m.Migrations["down"]
 		sort.Sort(sort.Reverse(mfs))
-		// skip all runned migration
+		// skip all ran migration
 		if len(mfs) > count {
 			mfs = mfs[len(mfs)-count:]
 		}
@@ -153,7 +164,7 @@ func (m Migrator) Down(step int) error {
 func (m Migrator) Reset() error {
 	err := m.Down(-1)
 	if err != nil {
-		return errors.WithStack(err)
+		return err
 	}
 	return m.Up()
 }
@@ -180,20 +191,20 @@ func (m Migrator) CreateSchemaMigrations() error {
 		}
 		err = tx.RawQuery(smSQL).Exec()
 		if err != nil {
-			return errors.WithStack(errors.Wrap(err, smSQL))
+			return errors.Wrap(err, smSQL)
 		}
 		return nil
 	})
 }
 
 // Status prints out the status of applied/pending migrations.
-func (m Migrator) Status() error {
+func (m Migrator) Status(out io.Writer) error {
 	err := m.CreateSchemaMigrations()
 	if err != nil {
-		return errors.WithStack(err)
+		return err
 	}
-	w := tabwriter.NewWriter(os.Stdout, 0, 0, 3, ' ', tabwriter.TabIndent)
-	fmt.Fprintln(w, "Version\tName\tStatus\t")
+	w := tabwriter.NewWriter(out, 0, 0, 3, ' ', tabwriter.TabIndent)
+	_, _ = fmt.Fprintln(w, "Version\tName\tStatus\t")
 	for _, mf := range m.Migrations["up"] {
 		exists, err := m.Connection.Where("version = ?", mf.Version).Exists(m.Connection.MigrationTableName())
 		if err != nil {
@@ -203,7 +214,7 @@ func (m Migrator) Status() error {
 		if exists {
 			state = "Applied"
 		}
-		fmt.Fprintf(w, "%s\t%s\t%s\t\n", mf.Version, mf.Name, state)
+		_, _ = fmt.Fprintf(w, "%s\t%s\t%s\t\n", mf.Version, mf.Name, state)
 	}
 	return w.Flush()
 }
@@ -215,21 +226,27 @@ func (m Migrator) DumpMigrationSchema() error {
 		return nil
 	}
 	c := m.Connection
-	f, err := os.Create(filepath.Join(m.SchemaPath, "schema.sql"))
+	schema := filepath.Join(m.SchemaPath, "schema.sql")
+	f, err := os.Create(schema)
 	if err != nil {
-		return errors.WithStack(err)
+		return err
 	}
 	err = c.Dialect.DumpSchema(f)
 	if err != nil {
-
-		return errors.WithStack(err)
+		os.RemoveAll(schema)
+		return err
 	}
 	return nil
 }
 
 func (m Migrator) exec(fn func() error) error {
 	now := time.Now()
-	defer m.DumpMigrationSchema()
+	defer func() {
+		err := m.DumpMigrationSchema()
+		if err != nil {
+			log(logging.Warn, "Migrator: unable to dump schema: %v", err)
+		}
+	}()
 	defer printTimer(now)
 
 	err := m.CreateSchemaMigrations()

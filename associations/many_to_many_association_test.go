@@ -4,14 +4,14 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/gobuffalo/pop/associations"
-	"github.com/gobuffalo/uuid"
+	"github.com/gobuffalo/pop/v5/associations"
+	"github.com/gofrs/uuid"
 	"github.com/stretchr/testify/require"
 )
 
 type fooManyToMany struct {
-	ID                  uuid.UUID       `db:"id"`
-	BarManyToManies     barManyToManies `many_to_many:"foos_and_bars"`
+	ID              uuid.UUID       `db:"id"`
+	BarManyToManies barManyToManies `many_to_many:"foos_and_bars"`
 }
 
 type fooManyToMany2 struct {

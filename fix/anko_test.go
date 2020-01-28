@@ -1,17 +1,18 @@
 package fix
 
 import (
+	"io"
 	"io/ioutil"
 	"strings"
 	"testing"
 
-	"github.com/gobuffalo/packr"
+	"github.com/gobuffalo/packr/v2"
 	"github.com/stretchr/testify/require"
 )
 
 func Test_Anko(t *testing.T) {
 	r := require.New(t)
-	box := packr.NewBox("./fixtures")
+	box := packr.New("./fixtures/anko", "./fixtures/anko")
 	err := box.Walk(func(path string, info packr.File) error {
 		if strings.HasPrefix(path, "pass") {
 			t.Run(path, testPass(path, info))
@@ -23,7 +24,7 @@ func Test_Anko(t *testing.T) {
 	r.NoError(err)
 }
 
-func testPass(path string, info packr.File) func(*testing.T) {
+func testPass(path string, info io.Reader) func(*testing.T) {
 	return func(t *testing.T) {
 		r := require.New(t)
 		b, err := ioutil.ReadAll(info)
@@ -40,7 +41,7 @@ func testPass(path string, info packr.File) func(*testing.T) {
 	}
 }
 
-func testFail(path string, info packr.File) func(*testing.T) {
+func testFail(path string, info io.Reader) func(*testing.T) {
 	return func(t *testing.T) {
 		r := require.New(t)
 		b, err := ioutil.ReadAll(info)

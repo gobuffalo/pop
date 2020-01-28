@@ -7,6 +7,9 @@ import (
 )
 
 func Test_Callbacks(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
 	transaction(func(tx *Connection) {
 		r := require.New(t)
 
@@ -15,6 +18,7 @@ func Test_Callbacks(t *testing.T) {
 			BeforeC: "BC",
 			BeforeU: "BU",
 			BeforeD: "BD",
+			BeforeV: "BV",
 			AfterS:  "AS",
 			AfterC:  "AC",
 			AfterU:  "AU",
@@ -47,10 +51,17 @@ func Test_Callbacks(t *testing.T) {
 		r.Equal("BeforeDestroy", user.BeforeD)
 		r.Equal("AfterDestroy", user.AfterD)
 
+		verrs, err := tx.ValidateAndSave(user)
+		r.False(verrs.HasAny())
+		r.NoError(err)
+		r.Equal("BeforeValidate", user.BeforeV)
 	})
 }
 
 func Test_Callbacks_on_Slice(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
 	transaction(func(tx *Connection) {
 		r := require.New(t)
 		for i := 0; i < 2; i++ {

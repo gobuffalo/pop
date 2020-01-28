@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	uuid "github.com/gobuffalo/uuid"
+	"github.com/gofrs/uuid"
 	"github.com/stretchr/testify/require"
 )
 

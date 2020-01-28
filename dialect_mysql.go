@@ -5,32 +5,42 @@ import (
 	"database/sql"
 	"fmt"
 	"io"
-	"os"
 	"os/exec"
 	"strings"
 
 	// Load MySQL Go driver
-	_ "github.com/go-sql-driver/mysql"
+	_mysql "github.com/go-sql-driver/mysql"
 	"github.com/gobuffalo/fizz"
 	"github.com/gobuffalo/fizz/translators"
-	"github.com/gobuffalo/pop/columns"
-	"github.com/gobuffalo/pop/logging"
-	"github.com/markbates/going/defaults"
+	"github.com/gobuffalo/pop/v5/columns"
+	"github.com/gobuffalo/pop/v5/internal/defaults"
+	"github.com/gobuffalo/pop/v5/logging"
 	"github.com/pkg/errors"
 )
 
+const nameMySQL = "mysql"
+const hostMySQL = "localhost"
+const portMySQL = "3306"
+
 func init() {
-	AvailableDialects = append(AvailableDialects, "mysql")
+	AvailableDialects = append(AvailableDialects, nameMySQL)
+	urlParser[nameMySQL] = urlParserMySQL
+	finalizer[nameMySQL] = finalizerMySQL
+	newConnection[nameMySQL] = newMySQL
 }
 
 var _ dialect = &mysql{}
 
 type mysql struct {
-	ConnectionDetails *ConnectionDetails
+	commonDialect
 }
 
 func (m *mysql) Name() string {
-	return "mysql"
+	return nameMySQL
+}
+
+func (mysql) Quote(key string) string {
+	return fmt.Sprintf("`%s`", key)
 }
 
 func (m *mysql) Details() *ConnectionDetails {
@@ -38,30 +48,31 @@ func (m *mysql) Details() *ConnectionDetails {
 }
 
 func (m *mysql) URL() string {
-	deets := m.ConnectionDetails
-	if deets.URL != "" {
-		// Force multiStatements=true, migrations can fail otherwise.
-		if !strings.Contains(deets.URL, "multiStatements=true") {
-			log(logging.Warn, "multiStatements=true option is required to work with pop migrations. Please add it to the database URL in the config")
-			deets.URL += "&multiStatements=true"
-		}
-		return strings.TrimPrefix(deets.URL, "mysql://")
+	cd := m.ConnectionDetails
+	if cd.URL != "" {
+		return strings.TrimPrefix(cd.URL, "mysql://")
 	}
-	encoding := defaults.String(deets.Encoding, "utf8mb4_general_ci")
-	s := "%s:%s@(%s:%s)/%s?parseTime=true&multiStatements=true&readTimeout=1s&collation=%s"
-	return fmt.Sprintf(s, deets.User, deets.Password, deets.Host, deets.Port, deets.Database, encoding)
+
+	user := fmt.Sprintf("%s:%s@", cd.User, cd.Password)
+	user = strings.Replace(user, ":@", "@", 1)
+	if user == "@" || strings.HasPrefix(user, ":") {
+		user = ""
+	}
+
+	addr := fmt.Sprintf("(%s:%s)", cd.Host, cd.Port)
+	// in case of unix domain socket, tricky.
+	// it is better to check Host is not valid inet address or has '/'.
+	if cd.Port == "socket" {
+		addr = fmt.Sprintf("unix(%s)", cd.Host)
+	}
+
+	s := "%s%s/%s?%s"
+	return fmt.Sprintf(s, user, addr, cd.Database, cd.OptionsString(""))
 }
 
 func (m *mysql) urlWithoutDb() string {
-	deets := m.ConnectionDetails
-	if deets.URL != "" {
-		// respect user's own URL definition (with options).
-		url := strings.TrimPrefix(deets.URL, "mysql://")
-		return strings.Replace(url, "/"+deets.Database+"?", "/?", 1)
-	}
-	encoding := defaults.String(deets.Encoding, "utf8mb4_general_ci")
-	s := "%s:%s@(%s:%s)/?parseTime=true&multiStatements=true&readTimeout=1s&collation=%s"
-	return fmt.Sprintf(s, deets.User, deets.Password, deets.Host, deets.Port, encoding)
+	cd := m.ConnectionDetails
+	return strings.Replace(m.URL(), "/"+cd.Database+"?", "/?", 1)
 }
 
 func (m *mysql) MigrationURL() string {
@@ -69,15 +80,15 @@ func (m *mysql) MigrationURL() string {
 }
 
 func (m *mysql) Create(s store, model *Model, cols columns.Columns) error {
-	return errors.Wrap(genericCreate(s, model, cols), "mysql create")
+	return errors.Wrap(genericCreate(s, model, cols, m), "mysql create")
 }
 
 func (m *mysql) Update(s store, model *Model, cols columns.Columns) error {
-	return errors.Wrap(genericUpdate(s, model, cols), "mysql update")
+	return errors.Wrap(genericUpdate(s, model, cols, m), "mysql update")
 }
 
 func (m *mysql) Destroy(s store, model *Model) error {
-	return errors.Wrap(genericDestroy(s, model), "mysql destroy")
+	return errors.Wrap(genericDestroy(s, model, m), "mysql destroy")
 }
 
 func (m *mysql) SelectOne(s store, model *Model, query Query) error {
@@ -96,7 +107,7 @@ func (m *mysql) CreateDB() error {
 		return errors.Wrapf(err, "error creating MySQL database %s", deets.Database)
 	}
 	defer db.Close()
-	encoding := defaults.String(deets.Encoding, "utf8mb4_general_ci")
+	encoding := defaults.String(deets.Options["collation"], "utf8mb4_general_ci")
 	query := fmt.Sprintf("CREATE DATABASE `%s` DEFAULT COLLATE `%s`", deets.Database, encoding)
 	log(logging.SQL, query)
 
@@ -138,27 +149,13 @@ func (m *mysql) FizzTranslator() fizz.Translator {
 	return t
 }
 
-func (m *mysql) Lock(fn func() error) error {
-	return fn()
-}
-
 func (m *mysql) DumpSchema(w io.Writer) error {
 	deets := m.Details()
 	cmd := exec.Command("mysqldump", "-d", "-h", deets.Host, "-P", deets.Port, "-u", deets.User, fmt.Sprintf("--password=%s", deets.Password), deets.Database)
 	if deets.Port == "socket" {
 		cmd = exec.Command("mysqldump", "-d", "-S", deets.Host, "-u", deets.User, fmt.Sprintf("--password=%s", deets.Password), deets.Database)
 	}
-	log(logging.SQL, strings.Join(cmd.Args, " "))
-	cmd.Stdout = w
-	cmd.Stderr = os.Stderr
-
-	err := cmd.Run()
-	if err != nil {
-		return err
-	}
-
-	log(logging.Info, "dumped schema for %s", m.Details().Database)
-	return nil
+	return genericDumpSchema(deets, cmd, w)
 }
 
 // LoadSchema executes a schema sql file against the configured database.
@@ -168,7 +165,7 @@ func (m *mysql) LoadSchema(r io.Reader) error {
 
 // TruncateAll truncates all tables for the given connection.
 func (m *mysql) TruncateAll(tx *Connection) error {
-	stmts := []string{}
+	var stmts []string
 	err := tx.RawQuery(mysqlTruncate, m.Details().Database).All(&stmts)
 	if err != nil {
 		return err
@@ -187,12 +184,73 @@ func (m *mysql) TruncateAll(tx *Connection) error {
 	return tx.RawQuery(qb.String()).Exec()
 }
 
-func newMySQL(deets *ConnectionDetails) dialect {
+func newMySQL(deets *ConnectionDetails) (dialect, error) {
 	cd := &mysql{
-		ConnectionDetails: deets,
+		commonDialect: commonDialect{ConnectionDetails: deets},
+	}
+	return cd, nil
+}
+
+func urlParserMySQL(cd *ConnectionDetails) error {
+	cfg, err := _mysql.ParseDSN(strings.TrimPrefix(cd.URL, "mysql://"))
+	if err != nil {
+		return errors.Wrapf(err, "the URL '%s' is not supported by MySQL driver", cd.URL)
 	}
 
-	return cd
+	cd.User = cfg.User
+	cd.Password = cfg.Passwd
+	cd.Database = cfg.DBName
+	if cd.Options == nil { // prevent panic
+		cd.Options = make(map[string]string)
+	}
+	// NOTE: use cfg.Params if want to fill options with full parameters
+	cd.Options["collation"] = cfg.Collation
+	if cfg.Net == "unix" {
+		cd.Port = "socket" // trick. see: `URL()`
+		cd.Host = cfg.Addr
+	} else {
+		tmp := strings.Split(cfg.Addr, ":")
+		cd.Host = tmp[0]
+		if len(tmp) > 1 {
+			cd.Port = tmp[1]
+		}
+	}
+
+	return nil
+}
+
+func finalizerMySQL(cd *ConnectionDetails) {
+	cd.Host = defaults.String(cd.Host, hostMySQL)
+	cd.Port = defaults.String(cd.Port, portMySQL)
+
+	defs := map[string]string{
+		"readTimeout": "3s",
+		"collation":   "utf8mb4_general_ci",
+	}
+	forced := map[string]string{
+		"parseTime":       "true",
+		"multiStatements": "true",
+	}
+
+	if cd.Options == nil { // prevent panic
+		cd.Options = make(map[string]string)
+	}
+
+	for k, v := range defs {
+		cd.Options[k] = defaults.String(cd.Options[k], v)
+	}
+
+	for k, v := range forced {
+		// respect user specified options but print warning!
+		cd.Options[k] = defaults.String(cd.Options[k], v)
+		if cd.Options[k] != v { // when user-defined option exists
+			log(logging.Warn, "IMPORTANT! '%s: %s' option is required to work properly but your current setting is '%v: %v'.", k, v, k, cd.Options[k])
+			log(logging.Warn, "It is highly recommended to remove '%v: %v' option from your config!", k, cd.Options[k])
+		} // or override with `cd.Options[k] = v`?
+		if cd.URL != "" && !strings.Contains(cd.URL, k+"="+v) {
+			log(logging.Warn, "IMPORTANT! '%s=%s' option is required to work properly. Please add it to the database URL in the config!", k, v)
+		} // or fix user specified url?
+	}
 }
 
 const mysqlTruncate = "SELECT concat('TRUNCATE TABLE `', TABLE_NAME, '`;') as stmt FROM INFORMATION_SCHEMA.TABLES WHERE table_schema = ? AND table_type <> 'VIEW'"

@@ -1,22 +1,24 @@
 package pop
 
 import (
+	"fmt"
 	"net/url"
 	"regexp"
 	"strconv"
 	"strings"
 	"time"
 
-	_mysql "github.com/go-sql-driver/mysql"
-	"github.com/markbates/going/defaults"
-	"github.com/markbates/oncer"
+	"github.com/gobuffalo/pop/v5/internal/defaults"
+	"github.com/gobuffalo/pop/v5/logging"
 	"github.com/pkg/errors"
 )
 
 // ConnectionDetails stores the data needed to connect to a datasource
 type ConnectionDetails struct {
-	// Example: "postgres" or "sqlite3" or "mysql"
+	// Dialect is the pop dialect to use. Example: "postgres" or "sqlite3" or "mysql"
 	Dialect string
+	// Driver specifies the database driver to use (optional)
+	Driver string
 	// The name of your database. Example: "foo_development"
 	Database string
 	// The host of your database. Example: "127.0.0.1"
@@ -36,98 +38,97 @@ type ConnectionDetails struct {
 	URL string
 	// Defaults to 0 "unlimited". See https://golang.org/pkg/database/sql/#DB.SetMaxOpenConns
 	Pool int
-	// Defaults to 0 "unlimited". See https://golang.org/pkg/database/sql/#DB.SetMaxIdleConns
+	// Defaults to 2. See https://golang.org/pkg/database/sql/#DB.SetMaxIdleConns
 	IdlePool int
-	Options  map[string]string
+	// Defaults to 0 "unlimited". See https://golang.org/pkg/database/sql/#DB.SetConnMaxLifetime
+	ConnMaxLifetime time.Duration
+	Options         map[string]string
+	// Query string encoded options from URL. Example: "sslmode=disable"
+	RawOptions string
 }
 
-var dialectX = regexp.MustCompile(`\s+:\/\/`)
+var dialectX = regexp.MustCompile(`\S+://`)
+
+// withURL parses and overrides all connection details with values
+// from standard URL except Dialect. It also calls dialect specific
+// URL parser if exists.
+func (cd *ConnectionDetails) withURL() error {
+	ul := cd.URL
+	if cd.Dialect == "" {
+		if dialectX.MatchString(ul) {
+			// Guess the dialect from the scheme
+			dialect := ul[:strings.Index(ul, ":")]
+			cd.Dialect = normalizeSynonyms(dialect)
+		} else {
+			return errors.New("no dialect provided, and could not guess it from URL")
+		}
+	} else if !dialectX.MatchString(ul) {
+		ul = cd.Dialect + "://" + ul
+	}
+
+	if !DialectSupported(cd.Dialect) {
+		return errors.Errorf("unsupported dialect '%s'", cd.Dialect)
+	}
+
+	// warning message is required to prevent confusion
+	// even though this behavior was documented.
+	if cd.Database+cd.Host+cd.Port+cd.User+cd.Password != "" {
+		log(logging.Warn, "One or more of connection details are specified in database.yml. Override them with values in URL.")
+	}
+
+	if up, ok := urlParser[cd.Dialect]; ok {
+		return up(cd)
+	}
+
+	// Fallback on generic parsing if no URL parser was found for the dialect.
+	u, err := url.Parse(ul)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't parse %s", ul)
+	}
+	cd.Database = strings.TrimPrefix(u.Path, "/")
+
+	hp := strings.Split(u.Host, ":")
+	cd.Host = hp[0]
+	if len(hp) > 1 {
+		cd.Port = hp[1]
+	}
+
+	if u.User != nil {
+		cd.User = u.User.Username()
+		cd.Password, _ = u.User.Password()
+	}
+	cd.RawOptions = u.RawQuery
+
+	return nil
+}
 
 // Finalize cleans up the connection details by normalizing names,
 // filling in default values, etc...
 func (cd *ConnectionDetails) Finalize() error {
+	cd.Dialect = normalizeSynonyms(cd.Dialect)
+
+	if cd.Options == nil { // for safety
+		cd.Options = make(map[string]string)
+	}
+
+	// Process the database connection string, if provided.
 	if cd.URL != "" {
-		ul := cd.URL
-		if cd.Dialect != "" {
-			if !dialectX.MatchString(ul) {
-				ul = cd.Dialect + "://" + ul
-			}
+		if err := cd.withURL(); err != nil {
+			return err
 		}
-		cd.Database = cd.URL
-		if !strings.HasPrefix(cd.Dialect, "sqlite") {
-			u, err := url.Parse(ul)
-			if err != nil {
-				return errors.Wrapf(err, "couldn't parse %s", ul)
-			}
-			cd.Dialect = u.Scheme
-			cd.Database = u.Path
-
-			hp := strings.Split(u.Host, ":")
-			cd.Host = hp[0]
-			if len(hp) > 1 {
-				cd.Port = hp[1]
-			}
-
-			if u.User != nil {
-				cd.User = u.User.Username()
-				cd.Password, _ = u.User.Password()
-			}
-		}
-
 	}
-	switch strings.ToLower(cd.Dialect) {
-	case "postgres", "postgresql", "pg":
-		cd.Dialect = "postgres"
-		cd.Port = defaults.String(cd.Port, "5432")
-		cd.Database = strings.TrimPrefix(cd.Database, "/")
-	case "cockroach", "cockroachdb", "crdb":
-		cd.Dialect = "cockroach"
-		cd.Port = defaults.String(cd.Port, "26257")
-		cd.Database = strings.TrimPrefix(cd.Database, "/")
-	case "mysql":
-		// parse and verify whether URL is supported by underlying driver or not.
-		if cd.URL != "" {
-			cfg, err := _mysql.ParseDSN(strings.TrimPrefix(cd.URL, "mysql://"))
-			if err != nil {
-				return errors.Errorf("The URL is not supported by MySQL driver.")
-			}
-			cd.User = cfg.User
-			cd.Password = cfg.Passwd
-			cd.Database = cfg.DBName
-			cd.Encoding = defaults.String(cfg.Collation, "utf8_general_ci")
-			addr := strings.TrimSuffix(strings.TrimPrefix(cfg.Addr, "("), ")")
-			if cfg.Net == "unix" {
-				cd.Port = "socket"
-				cd.Host = addr
-			} else {
-				tmp := strings.Split(addr, ":")
-				switch len(tmp) {
-				case 1:
-					cd.Host = tmp[0]
-					cd.Port = "3306"
-				case 2:
-					cd.Host = tmp[0]
-					cd.Port = tmp[1]
-				}
-			}
-		} else {
-			cd.Port = defaults.String(cd.Port, "3306")
-			cd.Database = strings.TrimPrefix(cd.Database, "/")
-		}
-	case "sqlite", "sqlite3":
-		cd.Dialect = "sqlite3"
-	default:
-		return errors.Errorf("unknown dialect %s", cd.Dialect)
-	}
-	return nil
-}
 
-// Parse cleans up the connection details by normalizing names,
-// filling in default values, etc...
-// Deprecated: use ConnectionDetails.Finalize() instead.
-func (cd *ConnectionDetails) Parse(port string) error {
-	oncer.Deprecate(0, "pop.ConnectionDetails#Parse", "pop.ConnectionDetails#Finalize")
-	return cd.Finalize()
+	if fin, ok := finalizer[cd.Dialect]; ok {
+		fin(cd)
+	}
+
+	if DialectSupported(cd.Dialect) {
+		if cd.Database != "" || cd.URL != "" {
+			return nil
+		}
+		return errors.New("no database or URL specified")
+	}
+	return errors.Errorf("unsupported dialect '%v'", cd.Dialect)
 }
 
 // RetrySleep returns the amount of time to wait between two connection retries
@@ -151,4 +152,17 @@ func (cd *ConnectionDetails) RetryLimit() int {
 // MigrationTableName returns the name of the table to track migrations
 func (cd *ConnectionDetails) MigrationTableName() string {
 	return defaults.String(cd.Options["migration_table_name"], "schema_migration")
+}
+
+// OptionsString returns URL parameter encoded string from options.
+func (cd *ConnectionDetails) OptionsString(s string) string {
+	if cd.RawOptions != "" {
+		return cd.RawOptions
+	}
+	if cd.Options != nil {
+		for k, v := range cd.Options {
+			s = fmt.Sprintf("%s&%s=%s", s, k, v)
+		}
+	}
+	return strings.TrimLeft(s, "&")
 }

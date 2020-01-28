@@ -3,7 +3,6 @@ package pop
 import (
 	"reflect"
 
-	"github.com/pkg/errors"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -16,7 +15,7 @@ type AfterFindable interface {
 func (m *Model) afterFind(c *Connection) error {
 	if x, ok := m.Value.(AfterFindable); ok {
 		if err := x.AfterFind(c); err != nil {
-			return errors.WithStack(err)
+			return err
 		}
 	}
 
@@ -94,6 +93,20 @@ type BeforeDestroyable interface {
 func (m *Model) beforeDestroy(c *Connection) error {
 	if x, ok := m.Value.(BeforeDestroyable); ok {
 		return x.BeforeDestroy(c)
+	}
+	return nil
+}
+
+// BeforeValidateable callback will be called before a record is
+// validated during
+// ValidateAndCreate, ValidateAndUpdate, or ValidateAndSave
+type BeforeValidateable interface {
+	BeforeValidate(*Connection) error
+}
+
+func (m *Model) beforeValidate(c *Connection) error {
+	if x, ok := m.Value.(BeforeValidateable); ok {
+		return x.BeforeValidate(c)
 	}
 	return nil
 }

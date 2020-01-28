@@ -1,0 +1,6 @@
+create_table("addresses") {
+  t.Column("id", "int", {primary: true})
+  t.Column("street", "string", {})
+  t.Column("house_number", "int", {})
+  t.Timestamps()
+}

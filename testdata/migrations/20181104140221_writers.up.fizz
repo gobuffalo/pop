@@ -1,0 +1,6 @@
+create_table("writers") {
+  t.Column("id", "int", {primary: true})
+  t.Column("name", "string", {})
+  t.Column("book_id", "int", {})
+  t.Timestamps()
+}

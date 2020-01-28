@@ -1,67 +1,97 @@
-project_name: pop
-release:
-  github:
-    owner: gobuffalo
-    name: pop
-  name_template: '{{.Tag}}'
-brew:
-  commit_author:
-    name: goreleaserbot
-    email: goreleaser@carlosbecker.com
-  install: bin.install "soda"
+# GoReleaser config
+
+before:
+  hooks:
+    - go mod tidy
+
 builds:
+- id: pop_darwin
+  binary: soda
+  main: soda/main.go
+  goos:
+    - darwin
+  goarch:
+    - amd64
+  env:
+    - CGO_ENABLED=1
+    - CC=o64-clang
+    - CXX=o64-clang++
+  flags:
+    - -tags
+    - sqlite
+
+- id: pop_linux
+  binary: soda
+  main: soda/main.go
+  env:
+    - CGO_ENABLED=1
+  flags:
+    - -tags
+    - sqlite
+  goos:
+    - linux
+  goarch:
+    - amd64
+    - 386
+
+- id: pop_windows_i686
+  binary: soda
+  main: soda/main.go
+  ldflags:
+    - "-extldflags '-static'"
+  env:
+    - CGO_ENABLED=1
+    - CC=i686-w64-mingw32-gcc
+    - CXX=i686-w64-mingw32-g++
+  flags:
+    - -tags
+    - sqlite
+  goos:
+    - windows
+  goarch:
+    - 386
+
+- id: pop_windows_x64
+  binary: soda
+  main: soda/main.go
+  ldflags:
+    - "-extldflags '-static'"
+  env:
+    - CGO_ENABLED=1
+    - CC=x86_64-w64-mingw32-gcc
+    - CXX=x86_64-w64-mingw32-g++
+  flags:
+    - -tags
+    - sqlite
+  goos:
+    - windows
+  goarch:
+    - amd64
+
+archives:
   -
-    goos:
-      - linux
-      - darwin
-      - windows
-    goarch:
-      - amd64
-    goarm:
-      - "6"
-    main: ./soda/main.go
-    binary: soda-no-sqlite
-  -
-    goos:
-      - darwin
-    goarch:
-      - amd64
-    goarm:
-      - "6"
-    main: ./soda/main.go
-    binary: soda-with-sqlite
-    flags: -tags sqlite
-archive:
-  name_template: '{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}{{ if .Arm
-    }}v{{ .Arm }}{{ end }}'
-  format: tar.gz
-  files:
-  - licence*
-  - LICENCE*
-  - license*
-  - LICENSE*
-  - readme*
-  - README*
-  - changelog*
-  - CHANGELOG*
-fpm:
-  name_template: '{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}{{ if .Arm
-    }}v{{ .Arm }}{{ end }}'
-  bindir: /usr/local/bin
-snapcraft:
-  name_template: '{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}{{ if .Arm
-    }}v{{ .Arm }}{{ end }}'
-snapshot:
-  name_template: SNAPSHOT-{{ .Commit }}
+    format_overrides:
+      - goos: windows
+        format: zip
+
 checksum:
-  name_template: '{{ .ProjectName }}_{{ .Version }}_checksums.txt'
-dist: dist
-sign:
-  cmd: gpg
-  args:
-  - --output
-  - $signature
-  - --detach-sig
-  - $artifact
-  signature: ${artifact}.sig
-  artifacts: none
+  name_template: 'checksums.txt'
+
+snapshot:
+  name_template: "{{ .Tag }}-next"
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+
+brews:
+  -
+    github:
+      owner: gobuffalo
+      name: homebrew-tap
+    homepage: "https://gobuffalo.io/docs/db/getting-started"
+    description: "A Tasty Treat For All Your Database Needs"
+    skip_upload: "auto"

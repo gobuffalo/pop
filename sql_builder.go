@@ -6,8 +6,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/gobuffalo/pop/columns"
-	"github.com/gobuffalo/pop/logging"
+	"github.com/gobuffalo/pop/v5/columns"
+	"github.com/gobuffalo/pop/v5/logging"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -88,9 +88,10 @@ func (sq *sqlBuilder) compile() {
 		}
 
 		if inRegex.MatchString(sq.sql) {
-			s, _, err := sqlx.In(sq.sql, sq.Args())
+			s, args, err := sqlx.In(sq.sql, sq.Args()...)
 			if err == nil {
 				sq.sql = s
+				sq.args = args
 			}
 		}
 		sq.sql = sq.Query.Connection.Dialect.TranslateSQL(sq.sql)

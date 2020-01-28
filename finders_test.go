@@ -3,46 +3,41 @@ package pop
 import (
 	"testing"
 
-	"github.com/gobuffalo/pop/nulls"
-	"github.com/gobuffalo/uuid"
+	"github.com/gobuffalo/nulls"
+	"github.com/gofrs/uuid"
 	"github.com/stretchr/testify/require"
 )
 
 func Test_Find(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
 	transaction(func(tx *Connection) {
 		r := require.New(t)
+		tCases := []string{
+			"Mark",
+			"💩",
+		}
 
-		user := User{Name: nulls.NewString("Mark")}
-		err := tx.Create(&user)
-		r.NoError(err)
+		for _, tc := range tCases {
+			user := User{Name: nulls.NewString(tc)}
+			err := tx.Create(&user)
+			r.NoError(err)
 
-		u := User{}
-		err = tx.Find(&u, user.ID)
-		r.NoError(err)
+			u := User{}
+			err = tx.Find(&u, user.ID)
+			r.NoError(err)
 
-		r.NotEqual(u.ID, 0)
-		r.Equal(u.Name.String, "Mark")
-	})
-}
-
-func Test_Find_UTF8(t *testing.T) {
-	transaction(func(tx *Connection) {
-		r := require.New(t)
-
-		user := User{Name: nulls.NewString("💩")}
-		err := tx.Create(&user)
-		r.NoError(err)
-
-		u := User{}
-		err = tx.Find(&u, user.ID)
-		r.NoError(err)
-
-		r.NotEqual(u.ID, 0)
-		r.Equal(u.Name.String, "💩")
+			r.NotEqual(u.ID, 0)
+			r.Equal(u.Name.String, tc)
+		}
 	})
 }
 
 func Test_Find_LeadingZeros(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
 	transaction(func(tx *Connection) {
 		r := require.New(t)
 
@@ -68,6 +63,9 @@ func Test_Find_LeadingZeros(t *testing.T) {
 }
 
 func Test_Select(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
 	transaction(func(tx *Connection) {
 		r := require.New(t)
 
@@ -92,6 +90,9 @@ func Test_Select(t *testing.T) {
 }
 
 func Test_Find_Eager_Has_Many(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
 	transaction(func(tx *Connection) {
 		r := require.New(t)
 
@@ -116,6 +117,9 @@ func Test_Find_Eager_Has_Many(t *testing.T) {
 }
 
 func Test_Find_Eager_Has_Many_Order_By(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
 	transaction(func(tx *Connection) {
 		r := require.New(t)
 
@@ -141,6 +145,9 @@ func Test_Find_Eager_Has_Many_Order_By(t *testing.T) {
 }
 
 func Test_Find_Eager_Belongs_To(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
 	transaction(func(tx *Connection) {
 		r := require.New(t)
 
@@ -172,6 +179,9 @@ func Test_Find_Eager_Belongs_To(t *testing.T) {
 }
 
 func Test_Find_Eager_Belongs_To_Nulls(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
 	transaction(func(tx *Connection) {
 		r := require.New(t)
 
@@ -189,7 +199,31 @@ func Test_Find_Eager_Belongs_To_Nulls(t *testing.T) {
 	})
 }
 
+func Test_Find_Eager_Belongs_To_Pointers(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
+	transaction(func(tx *Connection) {
+		r := require.New(t)
+
+		body := Body{}
+		err := tx.Create(&body)
+		r.NoError(err)
+
+		head := Head{BodyID: body.ID}
+		err = tx.Create(&head)
+		r.NoError(err)
+
+		b := Body{}
+		err = tx.Eager().Find(&b, body.ID)
+		r.NoError(err)
+	})
+}
+
 func Test_Find_Eager_Has_One(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
 	transaction(func(tx *Connection) {
 		r := require.New(t)
 
@@ -223,6 +257,9 @@ func Test_Find_Eager_Has_One(t *testing.T) {
 }
 
 func Test_Find_Eager_Has_One_With_Inner_Associations_Struct(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
 	transaction(func(tx *Connection) {
 		r := require.New(t)
 
@@ -250,6 +287,9 @@ func Test_Find_Eager_Has_One_With_Inner_Associations_Struct(t *testing.T) {
 }
 
 func Test_Find_Eager_Has_One_With_Inner_Associations_Slice(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
 	transaction(func(tx *Connection) {
 		r := require.New(t)
 
@@ -281,6 +321,9 @@ func Test_Find_Eager_Has_One_With_Inner_Associations_Slice(t *testing.T) {
 }
 
 func Test_Eager_Bad_Format(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
 	transaction(func(tx *Connection) {
 		r := require.New(t)
 
@@ -304,6 +347,9 @@ func Test_Eager_Bad_Format(t *testing.T) {
 }
 
 func Test_Find_Eager_Many_To_Many(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
 	transaction(func(tx *Connection) {
 		r := require.New(t)
 
@@ -367,6 +413,9 @@ func Test_Find_Eager_Many_To_Many(t *testing.T) {
 }
 
 func Test_Load_Associations_Loaded_Model(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
 	transaction(func(tx *Connection) {
 		r := require.New(t)
 
@@ -393,6 +442,9 @@ func Test_Load_Associations_Loaded_Model(t *testing.T) {
 }
 
 func Test_First(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
 	transaction(func(tx *Connection) {
 		r := require.New(t)
 
@@ -413,6 +465,9 @@ func Test_First(t *testing.T) {
 }
 
 func Test_Last(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
 	transaction(func(tx *Connection) {
 		r := require.New(t)
 
@@ -433,6 +488,9 @@ func Test_Last(t *testing.T) {
 }
 
 func Test_All(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
 	transaction(func(tx *Connection) {
 		r := require.New(t)
 
@@ -455,6 +513,9 @@ func Test_All(t *testing.T) {
 }
 
 func Test_All_Eager_Slice_With_All(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
 	transaction(func(tx *Connection) {
 		r := require.New(t)
 
@@ -480,6 +541,9 @@ func Test_All_Eager_Slice_With_All(t *testing.T) {
 }
 
 func Test_All_Eager(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
 	transaction(func(tx *Connection) {
 		r := require.New(t)
 
@@ -504,6 +568,9 @@ func Test_All_Eager(t *testing.T) {
 }
 
 func Test_All_Eager_For_Query(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
 	transaction(func(tx *Connection) {
 		r := require.New(t)
 
@@ -525,6 +592,9 @@ func Test_All_Eager_For_Query(t *testing.T) {
 }
 
 func Test_All_Eager_Field_Not_Found_Error(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
 	transaction(func(tx *Connection) {
 		r := require.New(t)
 
@@ -535,11 +605,14 @@ func Test_All_Eager_Field_Not_Found_Error(t *testing.T) {
 		u := Users{}
 		err = tx.Eager("FieldNotFound").Where("name = 'Mark'").All(&u)
 		r.Error(err)
-		r.Equal("field FieldNotFound does not exist in model User", err.Error())
+		r.Equal("could not retrieve associations: field FieldNotFound does not exist in model User", err.Error())
 	})
 }
 
 func Test_All_Eager_Allow_Chain_Call(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
 	transaction(func(tx *Connection) {
 		r := require.New(t)
 
@@ -565,6 +638,9 @@ func Test_All_Eager_Allow_Chain_Call(t *testing.T) {
 }
 
 func Test_Count(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
 	transaction(func(tx *Connection) {
 		r := require.New(t)
 
@@ -594,6 +670,9 @@ func Test_Count(t *testing.T) {
 }
 
 func Test_Count_Disregards_Pagination(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
 	transaction(func(tx *Connection) {
 		r := require.New(t)
 
@@ -619,13 +698,13 @@ func Test_Count_Disregards_Pagination(t *testing.T) {
 		secondUsers := Users{}
 
 		q := tx.Paginate(1, 3)
-		q.All(&firstUsers)
+		r.NoError(q.All(&firstUsers))
 		r.Equal(len(names), q.Paginator.TotalEntriesSize) //ensure paginator populates count
 		r.Equal(3, len(firstUsers))
 
 		firstUsers = Users{}
 		q = tx.RawQuery("select * from users").Paginate(1, 3)
-		q.All(&firstUsers)
+		r.NoError(q.All(&firstUsers))
 		r.Equal(1, q.Paginator.Page)
 		r.Equal(3, q.Paginator.PerPage)
 		r.Equal(len(names), q.Paginator.TotalEntriesSize) //ensure paginator populates count
@@ -634,7 +713,7 @@ func Test_Count_Disregards_Pagination(t *testing.T) {
 		totalFirstPage := q.Paginator.TotalPages
 
 		q = tx.Paginate(2, 3)
-		q.All(&secondUsers)
+		r.NoError(q.All(&secondUsers))
 
 		r.Equal(3, len(secondUsers))
 		totalSecondPage := q.Paginator.TotalPages
@@ -701,6 +780,9 @@ func Test_Count_Disregards_Pagination(t *testing.T) {
 }
 
 func Test_Count_RawQuery(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
 	transaction(func(tx *Connection) {
 		r := require.New(t)
 
@@ -731,6 +813,9 @@ func Test_Count_RawQuery(t *testing.T) {
 }
 
 func Test_Exists(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
 	transaction(func(tx *Connection) {
 		r := require.New(t)
 
@@ -743,5 +828,25 @@ func Test_Exists(t *testing.T) {
 
 		t, _ = tx.Where("id = ?", user.ID).Exists("users")
 		r.True(t)
+	})
+}
+
+func Test_FindManyToMany(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
+	transaction(func(tx *Connection) {
+		r := require.New(t)
+		parent := &Parent{}
+		r.NoError(tx.Create(parent))
+
+		student := &Student{}
+		r.NoError(tx.Create(student))
+
+		r.NoError(tx.RawQuery("INSERT INTO parents_students (student_id, parent_id) VALUES(?,?)", student.ID, parent.ID).Exec())
+
+		p := &Parent{}
+		err := tx.Eager("Students").Find(p, parent.ID)
+		r.NoError(err)
 	})
 }

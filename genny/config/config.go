@@ -1,26 +1,26 @@
 package config
 
 import (
+	"fmt"
 	"path/filepath"
 
-	"github.com/gobuffalo/genny"
-	"github.com/gobuffalo/genny/movinglater/gotools"
-	"github.com/gobuffalo/packr"
-	"github.com/pkg/errors"
+	"github.com/gobuffalo/genny/v2"
+	"github.com/gobuffalo/genny/v2/gogen"
+	"github.com/gobuffalo/packr/v2"
 )
 
-var templates = packr.NewBox("../config/templates")
+var templates = packr.New("pop:genny:config", "../config/templates")
 
 // New generator to create a database.yml file
 func New(opts *Options) (*genny.Generator, error) {
 	g := genny.New()
 	if err := opts.Validate(); err != nil {
-		return g, errors.WithStack(err)
+		return g, err
 	}
 
 	f, err := templates.Open(opts.Dialect + ".yml.tmpl")
 	if err != nil {
-		return g, errors.Errorf("unknown dialect %s", opts.Dialect)
+		return g, fmt.Errorf("unable to find database.yml template for dialect %s", opts.Dialect)
 	}
 
 	name := filepath.Join(opts.Root, opts.FileName+".tmpl")
@@ -31,7 +31,7 @@ func New(opts *Options) (*genny.Generator, error) {
 		"opts": opts,
 	}
 
-	t := gotools.TemplateTransformer(data, gotools.TemplateHelpers)
+	t := gogen.TemplateTransformer(data, gogen.TemplateHelpers)
 	g.Transformer(t)
 	g.Transformer(genny.Dot())
 
