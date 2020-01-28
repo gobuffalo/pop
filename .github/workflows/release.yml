@@ -16,10 +16,12 @@ jobs:
         uses: actions/checkout@master
         with:
           fetch-depth: 0
+      - name: Fetch tags
+        run: git fetch --depth=1 origin +refs/tags/*:refs/tags/*
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GORELEASER_GITHUB_TOKEN }}
         with:
           version: latest
           args: release --rm-dist

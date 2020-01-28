@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/gobuffalo/fizz"
-	"github.com/gobuffalo/genny"
+	"github.com/gobuffalo/genny/v2"
 	"github.com/pkg/errors"
 )
 
