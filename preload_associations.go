@@ -8,7 +8,7 @@ import (
 
 	"github.com/gobuffalo/flect"
 	"github.com/gobuffalo/pop/internal/defaults"
-	"github.com/gobuffalo/pop/logging"
+	"github.com/gobuffalo/pop/v5/logging"
 	"github.com/jmoiron/sqlx"
 	"github.com/jmoiron/sqlx/reflectx"
 )

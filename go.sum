@@ -73,8 +73,8 @@ github.com/gobuffalo/plush v3.8.3+incompatible/go.mod h1:rQ4zdtUUyZNqULlc6bqd5sc
 github.com/gobuffalo/plush/v4 v4.0.0 h1:ZHdmfr2R7DQ77XzWZK2PGKJOXm9NRy21EZ6Rw7FhuNw=
 github.com/gobuffalo/plush/v4 v4.0.0/go.mod h1:ErFS3UxKqEb8fpFJT7lYErfN/Nw6vHGiDMTjxpk5bQ0=
 github.com/gobuffalo/plushgen v0.1.2/go.mod h1:3U71v6HWZpVER1nInTXeAwdoRNsRd4W8aeIa1Lyp+Bk=
-github.com/gobuffalo/pop v4.13.0+incompatible h1:sE2C/dmCENwLhSfXyFXk3re4dzBbSkH/Ut62g6N1zDw=
-github.com/gobuffalo/pop v4.13.0+incompatible/go.mod h1:DwBz3SD5SsHpTZiTubcsFWcVDpJWGsxjVjMPnkiThWg=
+github.com/gobuffalo/pop v4.13.1+incompatible h1:AhbqPxNOBN/DBb2DBaiBqzOXIBQXxEYzngHHJ+ytP4g=
+github.com/gobuffalo/pop v4.13.1+incompatible/go.mod h1:DwBz3SD5SsHpTZiTubcsFWcVDpJWGsxjVjMPnkiThWg=
 github.com/gobuffalo/syncx v0.0.0-20190224160051-33c29581e754/go.mod h1:HhnNqWY95UYwwW3uSASeV7vtgYkT2t16hJgV3AEPUpw=
 github.com/gobuffalo/tags v2.1.0+incompatible h1:qQjj3n2RtHxfooqXQ4/A9SsEfZ7/7guv8cp/GdAPa+Y=
 github.com/gobuffalo/tags v2.1.0+incompatible/go.mod h1:9XmhOkyaB7UzvuY4UoZO4s67q8/xRMVJEaakauVQYeY=
