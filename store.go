@@ -39,16 +39,16 @@ func (s contextStore) Transaction() (*Tx, error) {
 	return s.store.TransactionContext(s.ctx)
 }
 func (s contextStore) Select(dest interface{}, query string, args ...interface{}) error {
-	return s.store.SelectContext(s.ctx, dest, query, args)
+	return s.store.SelectContext(s.ctx, dest, query, args...)
 }
 func (s contextStore) Get(dest interface{}, query string, args ...interface{}) error {
-	return s.store.GetContext(s.ctx, dest, query, args)
+	return s.store.GetContext(s.ctx, dest, query, args...)
 }
 func (s contextStore) NamedExec(query string, arg interface{}) (sql.Result, error) {
 	return s.store.NamedExecContext(s.ctx, query, arg)
 }
 func (s contextStore) Exec(query string, args ...interface{}) (sql.Result, error) {
-	return s.store.ExecContext(s.ctx, query, args)
+	return s.store.ExecContext(s.ctx, query, args...)
 }
 func (s contextStore) PrepareNamed(query string) (*sqlx.NamedStmt, error) {
 	return s.store.PrepareNamedContext(s.ctx, query)
