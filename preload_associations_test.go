@@ -160,7 +160,7 @@ func Test_New_Implementation_For_Nplus1_Nested(t *testing.T) {
 		users := []User{}
 		a.NoError(tx.All(&users))
 
-		a.NoError(preload(tx, &users, "Houses", "Books.User.FavoriteSong"))
+		a.NoError(preload(tx, &users, "Houses", "Books", "Books.User.FavoriteSong"))
 		a.Len(users[0].Books, 1)
 		a.Len(users[1].Books, 1)
 		a.Len(users[2].Books, 1)

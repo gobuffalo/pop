@@ -97,7 +97,16 @@ func (mmi *ModelMetaInfo) preloadFields(fields ...string) ([]*reflectx.FieldInfo
 		if preloadField == nil {
 			return preloadFields, fmt.Errorf("field %s does not exist in model %s", f, mmi.Model.TableName())
 		}
-		preloadFields = append(preloadFields, preloadField)
+
+		var exist bool
+		for _, pf := range preloadFields {
+			if pf.Path == preloadField.Path {
+				exist = true
+			}
+		}
+		if !exist {
+			preloadFields = append(preloadFields, preloadField)
+		}
 	}
 	return preloadFields, nil
 }
