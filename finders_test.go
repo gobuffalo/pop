@@ -133,7 +133,7 @@ func Test_All_Eager_Preload_Mode(t *testing.T) {
 		}
 
 		u := Users{}
-		err := tx.Preload().All(&u)
+		err := tx.EagerPreload().All(&u)
 		r.NoError(err)
 		r.Equal(len(u), 3)
 		r.Equal(len(u[0].Books), 1)

@@ -176,28 +176,13 @@ func (q *Query) Limit(limit int) *Query {
 	return q
 }
 
-// SetEagerMode activates the Eager Mode passed as a parameter.
-// this will change the default loading associations strategy for
-// this specific query, not the ones used overall.
-func (c *Connection) SetEagerMode(eagerMode EagerMode) *Query {
-	return Q(c).SetEagerMode(eagerMode)
-}
-
-// SetEagerMode activates the Eager Mode passed as a parameter.
-// this will change the default loading associations strategy for
-// this specific query, not the ones used overall.
-func (q *Query) SetEagerMode(eagerMode EagerMode) *Query {
-	q.eagerMode = eagerMode
-	return q
+// Preload activates preload eager Mode automatically.
+func (c *Connection) EagerPreload(fields ...string) *Query {
+	return Q(c).EagerPreload(fields...)
 }
 
 // Preload activates preload eager Mode automatically.
-func (c *Connection) Preload(fields ...string) *Query {
-	return Q(c).Preload(fields...)
-}
-
-// Preload activates preload eager Mode automatically.
-func (q *Query) Preload(fields ...string) *Query {
+func (q *Query) EagerPreload(fields ...string) *Query {
 	q.Eager(fields...)
 	q.eagerMode = EagerPreload
 	return q
