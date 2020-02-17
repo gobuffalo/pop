@@ -240,6 +240,9 @@ func preloadHasMany(tx *Connection, asoc *AssociationMetaInfo, mmi *ModelMetaInf
 	}
 
 	q := tx.Q()
+	q.eager = false
+	q.eagerFields = []string{}
+
 	slice := asoc.toSlice()
 	err := q.Where(fmt.Sprintf("%s in (?)", fk), ids).All(slice.Interface())
 	if err != nil {
@@ -292,6 +295,9 @@ func preloadHasOne(tx *Connection, asoc *AssociationMetaInfo, mmi *ModelMetaInfo
 	}
 
 	q := tx.Q()
+	q.eager = false
+	q.eagerFields = []string{}
+
 	slice := asoc.toSlice()
 	err := q.Where(fmt.Sprintf("%s in (?)", fk), ids).All(slice.Interface())
 	if err != nil {
@@ -341,6 +347,9 @@ func preloadBelongsTo(tx *Connection, asoc *AssociationMetaInfo, mmi *ModelMetaI
 	fk := "id"
 
 	q := tx.Q()
+	q.eager = false
+	q.eagerFields = []string{}
+
 	slice := asoc.toSlice()
 	err := q.Where(fmt.Sprintf("%s in (?)", fk), fkids).All(slice.Interface())
 	if err != nil {
@@ -428,6 +437,9 @@ func preloadManyToMany(tx *Connection, asoc *AssociationMetaInfo, mmi *ModelMeta
 		}
 
 		q := tx.Q()
+		q.eager = false
+		q.eagerFields = []string{}
+
 		slice := asoc.toSlice()
 		q.Where("id in (?)", fkids).All(slice.Interface())
 

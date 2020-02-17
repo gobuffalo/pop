@@ -157,10 +157,9 @@ func Test_New_Implementation_For_Nplus1_Nested(t *testing.T) {
 			}
 		}
 
+		SetEagerMode(EagerPreload)
 		users := []User{}
-		a.NoError(tx.All(&users))
-
-		a.NoError(preload(tx, &users, "Houses", "Books", "Books.User.FavoriteSong"))
+		a.NoError(tx.Eager("Houses", "Books", "Books.User.FavoriteSong").All(&users))
 		a.Len(users[0].Books, 1)
 		a.Len(users[1].Books, 1)
 		a.Len(users[2].Books, 1)
@@ -168,5 +167,6 @@ func Test_New_Implementation_For_Nplus1_Nested(t *testing.T) {
 
 		a.Equal(users[0].ID, users[0].Books[0].User.ID)
 		a.Equal(song.ID, users[0].Books[0].User.FavoriteSong.ID)
+		SetEagerMode(EagerDefault)
 	})
 }
