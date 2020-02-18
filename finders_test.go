@@ -126,9 +126,11 @@ func Test_All_Eager_Preload_Mode(t *testing.T) {
 			r.NoError(err)
 
 			if name == "Mark" {
-				book := Book{Title: "Pop Book", Isbn: "PB1", UserID: nulls.NewInt(user.ID)}
-				err = tx.Create(&book)
-				r.NoError(err)
+				for _, title := range []string{"Pop Book", "My Pop Book", "Asociations Book"} {
+					book := Book{Title: title, Isbn: "PB1", UserID: nulls.NewInt(user.ID)}
+					err = tx.Create(&book)
+					r.NoError(err)
+				}
 			}
 		}
 
@@ -136,7 +138,10 @@ func Test_All_Eager_Preload_Mode(t *testing.T) {
 		err := tx.EagerPreload().All(&u)
 		r.NoError(err)
 		r.Equal(len(u), 3)
-		r.Equal(len(u[0].Books), 1)
+		r.Equal(len(u[0].Books), 3)
+		r.Equal(u[0].Books[0].Title, "Asociations Book")
+		r.Equal(u[0].Books[1].Title, "My Pop Book")
+		r.Equal(u[0].Books[2].Title, "Pop Book")
 	})
 }
 

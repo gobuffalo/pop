@@ -244,6 +244,11 @@ func preloadHasMany(tx *Connection, asoc *AssociationMetaInfo, mmi *ModelMetaInf
 	q.eagerFields = []string{}
 
 	slice := asoc.toSlice()
+
+	if strings.TrimSpace(asoc.Field.Tag.Get("order_by")) != "" {
+		q.Order(asoc.Field.Tag.Get("order_by"))
+	}
+
 	err := q.Where(fmt.Sprintf("%s in (?)", fk), ids).All(slice.Interface())
 	if err != nil {
 		return err
@@ -439,6 +444,10 @@ func preloadManyToMany(tx *Connection, asoc *AssociationMetaInfo, mmi *ModelMeta
 		q := tx.Q()
 		q.eager = false
 		q.eagerFields = []string{}
+
+		if strings.TrimSpace(asoc.Field.Tag.Get("order_by")) != "" {
+			q.Order(asoc.Field.Tag.Get("order_by"))
+		}
 
 		slice := asoc.toSlice()
 		q.Where("id in (?)", fkids).All(slice.Interface())
