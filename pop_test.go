@@ -387,3 +387,9 @@ type Parent struct {
 	UpdatedAt time.Time  `json:"updated_at" db:"updated_at"`
 	Students  []*Student `many_to_many:"parents_students"`
 }
+
+type VehiclePart struct {
+	ID int `db:"vehicle_part_id"`
+	CreatedAt time.Time  `json:"created_at" db:"created_at"`
+	UpdatedAt time.Time  `json:"updated_at" db:"updated_at"`
+}

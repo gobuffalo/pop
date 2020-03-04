@@ -418,6 +418,24 @@ func Test_Create(t *testing.T) {
 	})
 }
 
+func Test_Create_With_Custom_PK(t *testing.T) {
+	if PDB == nil || !(PDB.Dialect.Name() == namePostgreSQL || PDB.Dialect.Name() == nameCockroach) {
+		t.Skip("skipping integration tests - ONLY Postgres and Cockroach Supported")
+	}
+	transaction(func(tx *Connection){
+		r := require.New(t)
+
+		vp := &VehiclePart{ID: 1234}
+		err := tx.Create(vp)
+		r.NoError(err)
+
+		fetchVP := &VehiclePart{}
+		err = tx.Find(fetchVP, 1234)
+		r.NoError(err)
+		r.Equal(1234, fetchVP.ID)
+	})
+}
+
 func Test_Create_stringID(t *testing.T) {
 	if PDB == nil {
 		t.Skip("skipping integration tests")
