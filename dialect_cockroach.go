@@ -72,9 +72,9 @@ func (p *cockroach) Create(s store, model *Model, cols columns.Columns) error {
 		w := cols.Writeable()
 		var query string
 		if len(w.Cols) > 0 {
-			query = fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s) returning id", p.Quote(model.TableName()), w.QuotedString(p), w.SymbolizedString())
+			query = fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s) returning %s AS id", p.Quote(model.TableName()), w.QuotedString(p), w.SymbolizedString(), p.Quote(model.IDField()))
 		} else {
-			query = fmt.Sprintf("INSERT INTO %s DEFAULT VALUES returning id", p.Quote(model.TableName()))
+			query = fmt.Sprintf("INSERT INTO %s DEFAULT VALUES returning %s AS id", p.Quote(model.TableName()), p.Quote(model.IDField()))
 		}
 		log(logging.SQL, query)
 		stmt, err := s.PrepareNamed(query)
