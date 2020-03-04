@@ -70,7 +70,7 @@ func (sq *sqlBuilder) Args() []interface{} {
 	return sq.args
 }
 
-var inRegex = regexp.MustCompile(`(?i)in\s*\(\s*\?\s*\)`)
+var inRegex = regexp.MustCompile(`(?i)in\s*\(\?\)`)
 
 func (sq *sqlBuilder) compile() {
 	if sq.sql == "" {
