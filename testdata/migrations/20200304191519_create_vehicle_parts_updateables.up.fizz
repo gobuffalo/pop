@@ -1,0 +1,5 @@
+create_table("vehicle_part_updateables") {
+	t.Column("vehicle_part_id", "integer", { "primary": true })
+	t.Column("vehicle_owner", "string")
+	t.Timestamps()
+}

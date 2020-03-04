@@ -1,0 +1,1 @@
+drop_table("vehicle_part_updateables")
