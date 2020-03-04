@@ -1,0 +1,4 @@
+create_table("vehicle_parts") {
+	t.Column("vehicle_part_id", "integer", { "primary": true })
+	t.Timestamps()
+}
