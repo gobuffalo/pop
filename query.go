@@ -1,9 +1,6 @@
 package pop
 
 import (
-	"fmt"
-	"strings"
-
 	"github.com/gobuffalo/pop/v5/logging"
 )
 
@@ -128,14 +125,6 @@ func (q *Query) Where(stmt string, args ...interface{}) *Query {
 	if q.RawSQL.Fragment != "" {
 		log(logging.Warn, "Query is setup to use raw SQL")
 		return q
-	}
-	if inRegex.MatchString(stmt) {
-		var inq []string
-		for i := 0; i < len(args); i++ {
-			inq = append(inq, "?")
-		}
-		qs := fmt.Sprintf("(%s)", strings.Join(inq, ","))
-		stmt = strings.Replace(stmt, "(?)", qs, 1)
 	}
 	q.whereClauses = append(q.whereClauses, clause{stmt, args})
 	return q
