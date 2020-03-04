@@ -49,7 +49,7 @@ func Test_Where_In(t *testing.T) {
 		r.NoError(err)
 
 		var songs []Song
-		err = tx.Where("id in (?)", u1.ID, u3.ID).All(&songs)
+		err = tx.Where("id in (?)", []interface{}{u1.ID, u3.ID}).All(&songs)
 		r.NoError(err)
 		r.Len(songs, 2)
 	})
@@ -95,7 +95,7 @@ func Test_Where_In_Complex(t *testing.T) {
 		r.NoError(err)
 
 		var songs []Song
-		err = tx.Where("id in (?)", u1.ID, u3.ID).Where("title = ?", "A").All(&songs)
+		err = tx.Where("id in (?)", []interface{}{u1.ID, u3.ID}).Where("title = ?", "A").All(&songs)
 		r.NoError(err)
 		r.Len(songs, 2)
 	})
