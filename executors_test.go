@@ -422,7 +422,7 @@ func Test_Create_With_Custom_PK(t *testing.T) {
 	if PDB == nil || !(PDB.Dialect.Name() == namePostgreSQL || PDB.Dialect.Name() == nameCockroach) {
 		t.Skip("skipping integration tests - ONLY Postgres and Cockroach Supported")
 	}
-	transaction(func(tx *Connection){
+	transaction(func(tx *Connection) {
 		r := require.New(t)
 
 		vp := &VehiclePart{ID: 1234}
@@ -1244,6 +1244,42 @@ func Test_Update(t *testing.T) {
 
 		r.NoError(tx.Reload(&user))
 		r.Equal(user.Name.String, "Marky")
+	})
+}
+
+func Test_Update_With_Custom_PK(t *testing.T) {
+	if PDB == nil || !(PDB.Dialect.Name() == namePostgreSQL || PDB.Dialect.Name() == nameCockroach) {
+		t.Skip("skipping integration tests - ONLY Postgres and Cockroach Supported")
+	}
+	transaction(func(tx *Connection) {
+		r := require.New(t)
+
+		// New Record
+		vp := &VehiclePartUpdateable{ID: 1234, VehicleOwner: "Popo"}
+		err := tx.Create(vp)
+		r.NoError(err)
+
+		fetchVP := &VehiclePartUpdateable{}
+		err = tx.Find(fetchVP, 1234)
+		r.NoError(err)
+		r.Equal(1234, fetchVP.ID)
+		r.Equal("Popo", fetchVP.VehicleOwner)
+
+		// Existing Record
+		updatedVP := &VehiclePartUpdateable{ID: 1234, VehicleOwner: "Yolo"}
+		err = tx.Update(updatedVP)
+		r.NoError(err)
+		fetchUpdatedVP := &VehiclePartUpdateable{}
+		err = tx.Find(fetchUpdatedVP, 1234)
+		r.NoError(err)
+		r.Equal(1234, fetchUpdatedVP.ID)
+		r.Equal("Yolo", fetchUpdatedVP.VehicleOwner)
+
+		// Confirm that tests ran on the same record
+		allVP := &[]VehiclePartUpdateable{}
+		err = tx.All(allVP)
+		r.NoError(err)
+		r.Equal(1, len(*allVP))
 	})
 }
 

@@ -389,7 +389,14 @@ type Parent struct {
 }
 
 type VehiclePart struct {
-	ID int `db:"vehicle_part_id"`
-	CreatedAt time.Time  `json:"created_at" db:"created_at"`
-	UpdatedAt time.Time  `json:"updated_at" db:"updated_at"`
+	ID        int       `db:"vehicle_part_id"`
+	CreatedAt time.Time `json:"created_at" db:"created_at"`
+	UpdatedAt time.Time `json:"updated_at" db:"updated_at"`
+}
+
+type VehiclePartUpdateable struct {
+	ID           int       `db:"vehicle_part_id"`
+	VehicleOwner string    `db:"vehicle_owner"`
+	CreatedAt    time.Time `json:"created_at" db:"created_at"`
+	UpdatedAt    time.Time `json:"updated_at" db:"updated_at"`
 }
