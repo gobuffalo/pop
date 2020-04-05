@@ -1,6 +1,7 @@
 package fix
 
 import (
+	"io"
 	"io/ioutil"
 	"strings"
 	"testing"
@@ -23,7 +24,7 @@ func Test_Anko(t *testing.T) {
 	r.NoError(err)
 }
 
-func testPass(path string, info packr.File) func(*testing.T) {
+func testPass(path string, info io.Reader) func(*testing.T) {
 	return func(t *testing.T) {
 		r := require.New(t)
 		b, err := ioutil.ReadAll(info)
@@ -40,7 +41,7 @@ func testPass(path string, info packr.File) func(*testing.T) {
 	}
 }
 
-func testFail(path string, info packr.File) func(*testing.T) {
+func testFail(path string, info io.Reader) func(*testing.T) {
 	return func(t *testing.T) {
 		r := require.New(t)
 		b, err := ioutil.ReadAll(info)

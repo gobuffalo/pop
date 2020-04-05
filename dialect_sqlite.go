@@ -5,6 +5,7 @@ package pop
 import (
 	"fmt"
 	"io"
+	"net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -14,11 +15,12 @@ import (
 
 	"github.com/gobuffalo/fizz"
 	"github.com/gobuffalo/fizz/translators"
-	"github.com/gobuffalo/pop/columns"
-	"github.com/gobuffalo/pop/logging"
-	"github.com/markbates/going/defaults"
 	_ "github.com/mattn/go-sqlite3" // Load SQLite3 CGo driver
 	"github.com/pkg/errors"
+
+	"github.com/gobuffalo/pop/v5/columns"
+	"github.com/gobuffalo/pop/v5/internal/defaults"
+	"github.com/gobuffalo/pop/v5/logging"
 )
 
 const nameSQLite3 = "sqlite3"
@@ -28,6 +30,7 @@ func init() {
 	dialectSynonyms["sqlite"] = nameSQLite3
 	urlParser[nameSQLite3] = urlParserSQLite3
 	newConnection[nameSQLite3] = newSQLite
+	finalizer[nameSQLite3] = finalizerSQLite
 }
 
 var _ dialect = &sqlite{}
@@ -47,7 +50,8 @@ func (m *sqlite) Details() *ConnectionDetails {
 }
 
 func (m *sqlite) URL() string {
-	return m.ConnectionDetails.Database + "?_busy_timeout=5000"
+	c := m.ConnectionDetails
+	return c.Database + "?" + c.OptionsString("")
 }
 
 func (m *sqlite) MigrationURL() string {
@@ -63,9 +67,9 @@ func (m *sqlite) Create(s store, model *Model, cols columns.Columns) error {
 			w := cols.Writeable()
 			var query string
 			if len(w.Cols) > 0 {
-				query = fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s)", model.TableName(), w.String(), w.SymbolizedString())
+				query = fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s)", m.Quote(model.TableName()), w.QuotedString(m), w.SymbolizedString())
 			} else {
-				query = fmt.Sprintf("INSERT INTO %s DEFAULT VALUES", model.TableName())
+				query = fmt.Sprintf("INSERT INTO %s DEFAULT VALUES", m.Quote(model.TableName()))
 			}
 			log(logging.SQL, query)
 			res, err := s.NamedExec(query, model.Value)
@@ -81,19 +85,19 @@ func (m *sqlite) Create(s store, model *Model, cols columns.Columns) error {
 			}
 			return nil
 		}
-		return errors.Wrap(genericCreate(s, model, cols), "sqlite create")
+		return errors.Wrap(genericCreate(s, model, cols, m), "sqlite create")
 	})
 }
 
 func (m *sqlite) Update(s store, model *Model, cols columns.Columns) error {
 	return m.locker(m.smGil, func() error {
-		return errors.Wrap(genericUpdate(s, model, cols), "sqlite update")
+		return errors.Wrap(genericUpdate(s, model, cols, m), "sqlite update")
 	})
 }
 
 func (m *sqlite) Destroy(s store, model *Model) error {
 	return m.locker(m.smGil, func() error {
-		return errors.Wrap(genericDestroy(s, model), "sqlite destroy")
+		return errors.Wrap(genericDestroy(s, model, m), "sqlite destroy")
 	})
 }
 
@@ -129,17 +133,21 @@ func (m *sqlite) locker(l *sync.Mutex, fn func() error) error {
 }
 
 func (m *sqlite) CreateDB() error {
-	d := filepath.Dir(m.ConnectionDetails.Database)
-	err := os.MkdirAll(d, 0766)
+	_, err := os.Stat(m.ConnectionDetails.Database)
+	if err == nil {
+		return errors.Errorf("could not create SQLite database '%s'; database exists", m.ConnectionDetails.Database)
+	}
+	dir := filepath.Dir(m.ConnectionDetails.Database)
+	err = os.MkdirAll(dir, 0766)
 	if err != nil {
-		return errors.Wrapf(err, "could not create SQLite database %s", m.ConnectionDetails.Database)
+		return errors.Wrapf(err, "could not create SQLite database '%s'", m.ConnectionDetails.Database)
 	}
 	_, err = os.Create(m.ConnectionDetails.Database)
 	if err != nil {
-		return errors.Wrapf(err, "could not create SQLite database %s", m.ConnectionDetails.Database)
+		return errors.Wrapf(err, "could not create SQLite database '%s'", m.ConnectionDetails.Database)
 	}
 
-	log(logging.Info, "created database %s", m.ConnectionDetails.Database)
+	log(logging.Info, "created database '%s'", m.ConnectionDetails.Database)
 	return nil
 }
 
@@ -148,7 +156,7 @@ func (m *sqlite) DropDB() error {
 	if err != nil {
 		return errors.Wrapf(err, "could not drop SQLite database %s", m.ConnectionDetails.Database)
 	}
-	log(logging.Info, "dropped database %s", m.ConnectionDetails.Database)
+	log(logging.Info, "dropped database '%s'", m.ConnectionDetails.Database)
 	return nil
 }
 
@@ -205,7 +213,7 @@ func (m *sqlite) TruncateAll(tx *Connection) error {
 	}
 	stmts := []string{}
 	for _, n := range names {
-		stmts = append(stmts, fmt.Sprintf("DELETE FROM %s", n.Name))
+		stmts = append(stmts, fmt.Sprintf("DELETE FROM %s", m.Quote(n.Name)))
 	}
 	return tx.RawQuery(strings.Join(stmts, "; ")).Exec()
 }
@@ -223,6 +231,54 @@ func newSQLite(deets *ConnectionDetails) (dialect, error) {
 
 func urlParserSQLite3(cd *ConnectionDetails) error {
 	db := strings.TrimPrefix(cd.URL, "sqlite://")
-	cd.Database = strings.TrimPrefix(db, "sqlite3://")
+	db = strings.TrimPrefix(db, "sqlite3://")
+
+	dbparts := strings.Split(db, "?")
+	cd.Database = dbparts[0]
+
+	if len(dbparts) != 2 {
+		return nil
+	}
+
+	q, err := url.ParseQuery(dbparts[1])
+	if err != nil {
+		return errors.Wrapf(err, "unable to parse sqlite query")
+	}
+
+	if cd.Options == nil { // prevent panic
+		cd.Options = make(map[string]string)
+	}
+	for k := range q {
+		cd.Options[k] = q.Get(k)
+	}
+
 	return nil
+}
+
+func finalizerSQLite(cd *ConnectionDetails) {
+	defs := map[string]string{
+		"_busy_timeout": "5000",
+	}
+	forced := map[string]string{
+		"_fk": "true",
+	}
+	if cd.Options == nil { // prevent panic
+		cd.Options = make(map[string]string)
+	}
+
+	for k, v := range defs {
+		cd.Options[k] = defaults.String(cd.Options[k], v)
+	}
+
+	for k, v := range forced {
+		// respect user specified options but print warning!
+		cd.Options[k] = defaults.String(cd.Options[k], v)
+		if cd.Options[k] != v { // when user-defined option exists
+			log(logging.Warn, "IMPORTANT! '%s: %s' option is required to work properly but your current setting is '%v: %v'.", k, v, k, cd.Options[k])
+			log(logging.Warn, "It is highly recommended to remove '%v: %v' option from your config!", k, cd.Options[k])
+		} // or override with `cd.Options[k] = v`?
+		if cd.URL != "" && !strings.Contains(cd.URL, k+"="+v) {
+			log(logging.Warn, "IMPORTANT! '%s=%s' option is required to work properly. Please add it to the database URL in the config!", k, v)
+		} // or fix user specified url?
+	}
 }

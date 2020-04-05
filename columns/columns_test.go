@@ -1,9 +1,10 @@
 package columns_test
 
 import (
+	"fmt"
 	"testing"
 
-	"github.com/gobuffalo/pop/columns"
+	"github.com/gobuffalo/pop/v5/columns"
 	"github.com/stretchr/testify/require"
 )
 
@@ -59,4 +60,24 @@ func Test_Columns_Remove(t *testing.T) {
 		c.Remove("foo", "first_name")
 		r.Equal(len(c.Cols), 3)
 	}
+}
+
+type fooWithSuffix struct {
+	Amount      float64 `db:"amount"`
+	AmountUnits string  `db:"amount_units"`
+}
+type fooQuoter struct{}
+
+func (fooQuoter) Quote(key string) string {
+	return fmt.Sprintf("`%v`", key)
+}
+
+func Test_Columns_Sorted(t *testing.T) {
+	r := require.New(t)
+
+	c := columns.ForStruct(fooWithSuffix{}, "fooWithSuffix")
+	r.Equal(len(c.Cols), 2)
+	r.Equal(c.SymbolizedString(), ":amount, :amount_units")
+	r.Equal(c.String(), "amount, amount_units")
+	r.Equal(c.QuotedString(fooQuoter{}), "`amount`, `amount_units`")
 }

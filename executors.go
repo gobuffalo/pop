@@ -3,10 +3,10 @@ package pop
 import (
 	"reflect"
 
-	"github.com/gobuffalo/pop/associations"
-	"github.com/gobuffalo/pop/columns"
-	"github.com/gobuffalo/pop/logging"
-	"github.com/gobuffalo/validate"
+	"github.com/gobuffalo/pop/v5/associations"
+	"github.com/gobuffalo/pop/v5/columns"
+	"github.com/gobuffalo/pop/v5/logging"
+	"github.com/gobuffalo/validate/v3"
 	"github.com/gofrs/uuid"
 	"github.com/pkg/errors"
 )
@@ -52,6 +52,9 @@ func (q *Query) ExecWithCount() (int, error) {
 // If model is a slice, each item of the slice is validated then saved in the database.
 func (c *Connection) ValidateAndSave(model interface{}, excludeColumns ...string) (*validate.Errors, error) {
 	sm := &Model{Value: model}
+	if err := sm.beforeValidate(c); err != nil {
+		return nil, err
+	}
 	verrs, err := sm.validateSave(c)
 	if err != nil {
 		return verrs, err
@@ -93,6 +96,9 @@ func (c *Connection) Save(model interface{}, excludeColumns ...string) error {
 // If model is a slice, each item of the slice is validated then created in the database.
 func (c *Connection) ValidateAndCreate(model interface{}, excludeColumns ...string) (*validate.Errors, error) {
 	sm := &Model{Value: model}
+	if err := sm.beforeValidate(c); err != nil {
+		return nil, err
+	}
 	verrs, err := sm.validateCreate(c)
 	if err != nil {
 		return verrs, err
@@ -313,6 +319,9 @@ func (c *Connection) Create(model interface{}, excludeColumns ...string) error {
 // If model is a slice, each item of the slice is validated then updated in the database.
 func (c *Connection) ValidateAndUpdate(model interface{}, excludeColumns ...string) (*validate.Errors, error) {
 	sm := &Model{Value: model}
+	if err := sm.beforeValidate(c); err != nil {
+		return nil, err
+	}
 	verrs, err := sm.validateUpdate(c)
 	if err != nil {
 		return verrs, err
@@ -347,6 +356,50 @@ func (c *Connection) Update(model interface{}, excludeColumns ...string) error {
 			if tn == sm.TableName() {
 				cols.Remove(excludeColumns...)
 			}
+
+			m.touchUpdatedAt()
+
+			if err = c.Dialect.Update(c.Store, m, cols); err != nil {
+				return err
+			}
+			if err = m.afterUpdate(c); err != nil {
+				return err
+			}
+
+			return m.afterSave(c)
+		})
+	})
+}
+
+// UpdateColumns writes changes from an entry to the database, including only the given columns
+// or all columns if no column names are provided.
+// It updates the `updated_at` column automatically if you include `updated_at` in columnNames.
+//
+// If model is a slice, each item of the slice is updated in the database.
+func (c *Connection) UpdateColumns(model interface{}, columnNames ...string) error {
+	sm := &Model{Value: model}
+	return sm.iterate(func(m *Model) error {
+		return c.timeFunc("Update", func() error {
+			var err error
+
+			if err = m.beforeSave(c); err != nil {
+				return err
+			}
+			if err = m.beforeUpdate(c); err != nil {
+				return err
+			}
+
+			tn := m.TableName()
+
+			cols := columns.Columns{}
+			if len(columnNames) > 0 && tn == sm.TableName() {
+				cols = columns.NewColumnsWithAlias(tn, m.As)
+				cols.Add(columnNames...)
+
+			} else {
+				cols = columns.ForStructWithAlias(model, tn, m.As)
+			}
+			cols.Remove("id", "created_at")
 
 			m.touchUpdatedAt()
 

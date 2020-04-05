@@ -26,7 +26,7 @@ func (s UUID) Interface() interface{} {
 func (s *UUID) Scan(src interface{}) error {
 	b, ok := src.([]byte)
 	if !ok {
-		return errors.New("Scan source was not []byte")
+		return errors.New("scan source was not []byte")
 	}
 	us, err := strSliceToUUIDSlice(strToUUID(string(b)))
 	if err != nil {

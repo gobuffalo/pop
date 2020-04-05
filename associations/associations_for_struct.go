@@ -7,8 +7,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/gobuffalo/pop/columns"
-	"github.com/markbates/oncer"
+	"github.com/gobuffalo/pop/v5/columns"
 )
 
 // If a field match with the regexp, it will be considered as a valid field definition.
@@ -22,18 +21,6 @@ var validAssociationExpRegexp = regexp.MustCompile(`^(([a-zA-Z0-9]*)(\.[a-zA-Z0-
 // with the associations implementation. Every association MUST register its builder
 // in this map using its init() method. see ./has_many_association.go as a guide.
 var associationBuilders = map[string]associationBuilder{}
-
-// AssociationsForStruct returns all associations for
-// the struct specified. It takes into account tags
-// associations like has_many, belongs_to, has_one.
-// it throws an error when it finds a field that does
-// not exist for a model.
-//
-// Deprecated: use ForStruct instead.
-func AssociationsForStruct(s interface{}, fields ...string) (Associations, error) {
-	oncer.Deprecate(0, "associations.AssociationsForStruct", "Use associations.ForStruct instead.")
-	return ForStruct(s, fields...)
-}
 
 // ForStruct returns all associations for
 // the struct specified. It takes into account tags

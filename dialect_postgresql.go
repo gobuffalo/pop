@@ -11,11 +11,11 @@ import (
 
 	"github.com/gobuffalo/fizz"
 	"github.com/gobuffalo/fizz/translators"
-	"github.com/gobuffalo/pop/columns"
-	"github.com/gobuffalo/pop/logging"
+	"github.com/gobuffalo/pop/v5/columns"
+	"github.com/gobuffalo/pop/v5/internal/defaults"
+	"github.com/gobuffalo/pop/v5/logging"
 	"github.com/jmoiron/sqlx"
 	pg "github.com/lib/pq"
-	"github.com/markbates/going/defaults"
 	"github.com/pkg/errors"
 )
 
@@ -58,9 +58,9 @@ func (p *postgresql) Create(s store, model *Model, cols columns.Columns) error {
 		w := cols.Writeable()
 		var query string
 		if len(w.Cols) > 0 {
-			query = fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s) returning id", model.TableName(), w.String(), w.SymbolizedString())
+			query = fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s) returning id", p.Quote(model.TableName()), w.QuotedString(p), w.SymbolizedString())
 		} else {
-			query = fmt.Sprintf("INSERT INTO %s DEFAULT VALUES returning id", model.TableName())
+			query = fmt.Sprintf("INSERT INTO %s DEFAULT VALUES returning id", p.Quote(model.TableName()))
 		}
 		log(logging.SQL, query)
 		stmt, err := s.PrepareNamed(query)
@@ -77,15 +77,15 @@ func (p *postgresql) Create(s store, model *Model, cols columns.Columns) error {
 		model.setID(id.ID)
 		return errors.WithMessage(stmt.Close(), "failed to close statement")
 	}
-	return genericCreate(s, model, cols)
+	return genericCreate(s, model, cols, p)
 }
 
 func (p *postgresql) Update(s store, model *Model, cols columns.Columns) error {
-	return genericUpdate(s, model, cols)
+	return genericUpdate(s, model, cols, p)
 }
 
 func (p *postgresql) Destroy(s store, model *Model) error {
-	stmt := p.TranslateSQL(fmt.Sprintf("DELETE FROM %s WHERE %s", model.TableName(), model.whereID()))
+	stmt := p.TranslateSQL(fmt.Sprintf("DELETE FROM %s WHERE %s", p.Quote(model.TableName()), model.whereID()))
 	_, err := genericExec(s, stmt, model.ID())
 	if err != nil {
 		return err
@@ -109,7 +109,7 @@ func (p *postgresql) CreateDB() error {
 		return errors.Wrapf(err, "error creating PostgreSQL database %s", deets.Database)
 	}
 	defer db.Close()
-	query := fmt.Sprintf("CREATE DATABASE \"%s\"", deets.Database)
+	query := fmt.Sprintf("CREATE DATABASE %s", p.Quote(deets.Database))
 	log(logging.SQL, query)
 
 	_, err = db.Exec(query)
@@ -128,7 +128,7 @@ func (p *postgresql) DropDB() error {
 		return errors.Wrapf(err, "error dropping PostgreSQL database %s", deets.Database)
 	}
 	defer db.Close()
-	query := fmt.Sprintf("DROP DATABASE \"%s\"", deets.Database)
+	query := fmt.Sprintf("DROP DATABASE %s", p.Quote(deets.Database))
 	log(logging.SQL, query)
 
 	_, err = db.Exec(query)

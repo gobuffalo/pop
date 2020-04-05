@@ -11,8 +11,8 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/gobuffalo/pop/columns"
-	"github.com/gobuffalo/pop/logging"
+	"github.com/gobuffalo/pop/v5/columns"
+	"github.com/gobuffalo/pop/v5/logging"
 	"github.com/gofrs/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
@@ -31,16 +31,25 @@ func (commonDialect) Lock(fn func() error) error {
 }
 
 func (commonDialect) Quote(key string) string {
-	return fmt.Sprintf(`"%s"`, key)
+	parts := strings.Split(key, ".")
+
+	for i, part := range parts {
+		part = strings.Trim(part, `"`)
+		part = strings.TrimSpace(part)
+
+		parts[i] = fmt.Sprintf(`"%v"`, part)
+	}
+
+	return strings.Join(parts, ".")
 }
 
-func genericCreate(s store, model *Model, cols columns.Columns) error {
+func genericCreate(s store, model *Model, cols columns.Columns, quoter quotable) error {
 	keyType := model.PrimaryKeyType()
 	switch keyType {
 	case "int", "int64":
 		var id int64
 		w := cols.Writeable()
-		query := fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s)", model.TableName(), w.String(), w.SymbolizedString())
+		query := fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s)", quoter.Quote(model.TableName()), w.QuotedString(quoter), w.SymbolizedString())
 		log(logging.SQL, query)
 		res, err := s.NamedExec(query, model.Value)
 		if err != nil {
@@ -68,7 +77,7 @@ func genericCreate(s store, model *Model, cols columns.Columns) error {
 		}
 		w := cols.Writeable()
 		w.Add("id")
-		query := fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s)", model.TableName(), w.String(), w.SymbolizedString())
+		query := fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s)", quoter.Quote(model.TableName()), w.QuotedString(quoter), w.SymbolizedString())
 		log(logging.SQL, query)
 		stmt, err := s.PrepareNamed(query)
 		if err != nil {
@@ -86,8 +95,8 @@ func genericCreate(s store, model *Model, cols columns.Columns) error {
 	return errors.Errorf("can not use %s as a primary key type!", keyType)
 }
 
-func genericUpdate(s store, model *Model, cols columns.Columns) error {
-	stmt := fmt.Sprintf("UPDATE %s SET %s WHERE %s", model.TableName(), cols.Writeable().UpdateString(), model.whereNamedID())
+func genericUpdate(s store, model *Model, cols columns.Columns, quoter quotable) error {
+	stmt := fmt.Sprintf("UPDATE %s SET %s WHERE %s", quoter.Quote(model.TableName()), cols.Writeable().QuotedUpdateString(quoter), model.whereNamedID())
 	log(logging.SQL, stmt, model.ID())
 	_, err := s.NamedExec(stmt, model.Value)
 	if err != nil {
@@ -96,8 +105,8 @@ func genericUpdate(s store, model *Model, cols columns.Columns) error {
 	return nil
 }
 
-func genericDestroy(s store, model *Model) error {
-	stmt := fmt.Sprintf("DELETE FROM %s WHERE %s", model.TableName(), model.whereID())
+func genericDestroy(s store, model *Model, quoter quotable) error {
+	stmt := fmt.Sprintf("DELETE FROM %s WHERE %s", quoter.Quote(model.TableName()), model.whereID())
 	_, err := genericExec(s, stmt, model.ID())
 	if err != nil {
 		return err
@@ -112,9 +121,9 @@ func genericExec(s store, stmt string, args ...interface{}) (sql.Result, error) 
 }
 
 func genericSelectOne(s store, model *Model, query Query) error {
-	sql, args := query.ToSQL(model)
-	log(logging.SQL, sql, args...)
-	err := s.Get(model.Value, sql, args...)
+	sqlQuery, args := query.ToSQL(model)
+	log(logging.SQL, sqlQuery, args...)
+	err := s.Get(model.Value, sqlQuery, args...)
 	if err != nil {
 		return err
 	}
@@ -122,9 +131,9 @@ func genericSelectOne(s store, model *Model, query Query) error {
 }
 
 func genericSelectMany(s store, models *Model, query Query) error {
-	sql, args := query.ToSQL(models)
-	log(logging.SQL, sql, args...)
-	err := s.Select(models.Value, sql, args...)
+	sqlQuery, args := query.ToSQL(models)
+	log(logging.SQL, sqlQuery, args...)
+	err := s.Select(models.Value, sqlQuery, args...)
 	if err != nil {
 		return err
 	}

@@ -13,18 +13,18 @@ import (
 	_ "github.com/cockroachdb/cockroach-go/crdb" // Load CockroachdbQL/postgres Go driver which also loads github.com/lib/pq
 	"github.com/gobuffalo/fizz"
 	"github.com/gobuffalo/fizz/translators"
-	"github.com/gobuffalo/pop/columns"
-	"github.com/gobuffalo/pop/logging"
+	"github.com/gobuffalo/pop/v5/columns"
+	"github.com/gobuffalo/pop/v5/internal/defaults"
+	"github.com/gobuffalo/pop/v5/logging"
 	"github.com/jmoiron/sqlx"
-	"github.com/markbates/going/defaults"
 	"github.com/pkg/errors"
 )
 
 const nameCockroach = "cockroach"
 const portCockroach = "26257"
 
-const selectTablesQueryCockroach = "select table_name from information_schema.tables where table_schema = 'public' and table_type = 'BASE TABLE' and table_catalog = ?"
-const selectTablesQueryCockroachV1 = "select table_name from information_schema.tables where table_schema = ?"
+const selectTablesQueryCockroach = "select table_name from information_schema.tables where table_schema = 'public' and table_type = 'BASE TABLE' and table_name <> ? and table_catalog = ?"
+const selectTablesQueryCockroachV1 = "select table_name from information_schema.tables where table_name <> ? and table_schema = ?"
 
 func init() {
 	AvailableDialects = append(AvailableDialects, nameCockroach)
@@ -72,9 +72,9 @@ func (p *cockroach) Create(s store, model *Model, cols columns.Columns) error {
 		w := cols.Writeable()
 		var query string
 		if len(w.Cols) > 0 {
-			query = fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s) returning id", model.TableName(), w.String(), w.SymbolizedString())
+			query = fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s) returning id", p.Quote(model.TableName()), w.QuotedString(p), w.SymbolizedString())
 		} else {
-			query = fmt.Sprintf("INSERT INTO %s DEFAULT VALUES returning id", model.TableName())
+			query = fmt.Sprintf("INSERT INTO %s DEFAULT VALUES returning id", p.Quote(model.TableName()))
 		}
 		log(logging.SQL, query)
 		stmt, err := s.PrepareNamed(query)
@@ -91,15 +91,15 @@ func (p *cockroach) Create(s store, model *Model, cols columns.Columns) error {
 		model.setID(id.ID)
 		return errors.WithMessage(stmt.Close(), "failed to close statement")
 	}
-	return genericCreate(s, model, cols)
+	return genericCreate(s, model, cols, p)
 }
 
 func (p *cockroach) Update(s store, model *Model, cols columns.Columns) error {
-	return genericUpdate(s, model, cols)
+	return genericUpdate(s, model, cols, p)
 }
 
 func (p *cockroach) Destroy(s store, model *Model) error {
-	stmt := p.TranslateSQL(fmt.Sprintf("DELETE FROM %s WHERE %s", model.TableName(), model.whereID()))
+	stmt := p.TranslateSQL(fmt.Sprintf("DELETE FROM %s WHERE %s", p.Quote(model.TableName()), model.whereID()))
 	_, err := genericExec(s, stmt, model.ID())
 	return err
 }
@@ -120,7 +120,7 @@ func (p *cockroach) CreateDB() error {
 		return errors.Wrapf(err, "error creating Cockroach database %s", deets.Database)
 	}
 	defer db.Close()
-	query := fmt.Sprintf("CREATE DATABASE \"%s\"", deets.Database)
+	query := fmt.Sprintf("CREATE DATABASE %s", p.Quote(deets.Database))
 	log(logging.SQL, query)
 
 	_, err = db.Exec(query)
@@ -139,7 +139,7 @@ func (p *cockroach) DropDB() error {
 		return errors.Wrapf(err, "error dropping Cockroach database %s", deets.Database)
 	}
 	defer db.Close()
-	query := fmt.Sprintf("DROP DATABASE \"%s\" CASCADE;", deets.Database)
+	query := fmt.Sprintf("DROP DATABASE %s CASCADE;", p.Quote(deets.Database))
 	log(logging.SQL, query)
 
 	_, err = db.Exec(query)
@@ -209,7 +209,7 @@ func (p *cockroach) TruncateAll(tx *Connection) error {
 	tableQuery := p.tablesQuery()
 
 	var tables []table
-	if err := tx.RawQuery(tableQuery, tx.Dialect.Details().Database).All(&tables); err != nil {
+	if err := tx.RawQuery(tableQuery, tx.MigrationTableName(), tx.Dialect.Details().Database).All(&tables); err != nil {
 		return err
 	}
 
@@ -223,7 +223,7 @@ func (p *cockroach) TruncateAll(tx *Connection) error {
 		//! work around for current limitation of DDL and DML at the same transaction.
 		//  it should be fixed when cockroach support it or with other approach.
 		//  https://www.cockroachlabs.com/docs/stable/known-limitations.html#schema-changes-within-transactions
-		if err := tx.RawQuery(fmt.Sprintf("delete from %s", t.TableName)).Exec(); err != nil {
+		if err := tx.RawQuery(fmt.Sprintf("delete from %s", p.Quote(t.TableName))).Exec(); err != nil {
 			return err
 		}
 	}
@@ -262,6 +262,17 @@ func finalizerCockroach(cd *ConnectionDetails) {
 	appName := filepath.Base(os.Args[0])
 	cd.Options["application_name"] = defaults.String(cd.Options["application_name"], appName)
 	cd.Port = defaults.String(cd.Port, portCockroach)
+	if cd.URL != "" {
+		cd.URL = "postgres://" + trimCockroachPrefix(cd.URL)
+	}
+}
+
+func trimCockroachPrefix(u string) string {
+	parts := strings.Split(u, "://")
+	if len(parts) != 2 {
+		return u
+	}
+	return parts[1]
 }
 
 func (p *cockroach) tablesQuery() string {

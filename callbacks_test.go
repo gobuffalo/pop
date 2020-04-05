@@ -18,6 +18,7 @@ func Test_Callbacks(t *testing.T) {
 			BeforeC: "BC",
 			BeforeU: "BU",
 			BeforeD: "BD",
+			BeforeV: "BV",
 			AfterS:  "AS",
 			AfterC:  "AC",
 			AfterU:  "AU",
@@ -50,6 +51,10 @@ func Test_Callbacks(t *testing.T) {
 		r.Equal("BeforeDestroy", user.BeforeD)
 		r.Equal("AfterDestroy", user.AfterD)
 
+		verrs, err := tx.ValidateAndSave(user)
+		r.False(verrs.HasAny())
+		r.NoError(err)
+		r.Equal("BeforeValidate", user.BeforeV)
 	})
 }
 

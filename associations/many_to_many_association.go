@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/gobuffalo/flect"
-	"github.com/gobuffalo/x/defaults"
+	"github.com/gobuffalo/pop/v5/internal/defaults"
 	"github.com/gofrs/uuid"
 )
 

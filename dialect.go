@@ -4,28 +4,40 @@ import (
 	"io"
 
 	"github.com/gobuffalo/fizz"
-	"github.com/gobuffalo/pop/columns"
+	"github.com/gobuffalo/pop/v5/columns"
 )
 
+type crudable interface {
+	SelectOne(store, *Model, Query) error
+	SelectMany(store, *Model, Query) error
+	Create(store, *Model, columns.Columns) error
+	Update(store, *Model, columns.Columns) error
+	Destroy(store, *Model) error
+}
+
+type fizzable interface {
+	FizzTranslator() fizz.Translator
+}
+
+type quotable interface {
+	Quote(key string) string
+}
+
 type dialect interface {
+	crudable
+	fizzable
+	quotable
 	Name() string
 	URL() string
 	MigrationURL() string
 	Details() *ConnectionDetails
 	TranslateSQL(string) string
-	Create(store, *Model, columns.Columns) error
-	Update(store, *Model, columns.Columns) error
-	Destroy(store, *Model) error
-	SelectOne(store, *Model, Query) error
-	SelectMany(store, *Model, Query) error
 	CreateDB() error
 	DropDB() error
 	DumpSchema(io.Writer) error
 	LoadSchema(io.Reader) error
-	FizzTranslator() fizz.Translator
 	Lock(func() error) error
 	TruncateAll(*Connection) error
-	Quote(key string) string
 }
 
 type afterOpenable interface {
