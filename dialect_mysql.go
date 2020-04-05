@@ -107,8 +107,9 @@ func (m *mysql) CreateDB() error {
 		return errors.Wrapf(err, "error creating MySQL database %s", deets.Database)
 	}
 	defer db.Close()
+	charset := defaults.String(deets.Options["charset"], "utf8mb4")
 	encoding := defaults.String(deets.Options["collation"], "utf8mb4_general_ci")
-	query := fmt.Sprintf("CREATE DATABASE `%s` DEFAULT COLLATE `%s`", deets.Database, encoding)
+	query := fmt.Sprintf("CREATE DATABASE `%s` DEFAULT CHARSET `%s` DEFAULT COLLATE `%s`", deets.Database, charset, encoding)
 	log(logging.SQL, query)
 
 	_, err = db.Exec(query)
