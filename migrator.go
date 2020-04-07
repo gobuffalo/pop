@@ -79,6 +79,12 @@ func (m Migrator) UpLogOnly() error {
 
 // Up runs pending "up" migrations and applies them to the database.
 func (m Migrator) Up() error {
+	return m.UpTo(0)
+}
+
+// UpTo runs up to step "up" migrations and applies them to the database.
+// If step <= 0 all pending migrations are run.
+func (m Migrator) UpTo(step int) error {
 	c := m.Connection
 	return m.exec(func() error {
 		mtn := c.MigrationTableName()
@@ -109,6 +115,9 @@ func (m Migrator) Up() error {
 			}
 			log(logging.Info, "> %s", mi.Name)
 			applied++
+			if step > 0 && applied >= step {
+				break
+			}
 		}
 		if applied == 0 {
 			log(logging.Info, "Migrations already up to date, nothing to apply")
