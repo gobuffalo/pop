@@ -180,8 +180,7 @@ func (m Migrator) Reset() error {
 
 // CreateSchemaMigrations sets up a table to track migrations. This is an idempotent
 // operation.
-func (m Migrator) CreateSchemaMigrations() error {
-	c := m.Connection
+func CreateSchemaMigrations(c *Connection) error {
 	mtn := c.MigrationTableName()
 	err := c.Open()
 	if err != nil {
@@ -204,6 +203,12 @@ func (m Migrator) CreateSchemaMigrations() error {
 		}
 		return nil
 	})
+}
+
+// CreateSchemaMigrations sets up a table to track migrations. This is an idempotent
+// operation.
+func (m Migrator) CreateSchemaMigrations() error {
+	return CreateSchemaMigrations(m.Connection)
 }
 
 // Status prints out the status of applied/pending migrations.

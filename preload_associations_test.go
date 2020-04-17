@@ -1,0 +1,172 @@
+package pop
+
+import (
+	"testing"
+
+	"github.com/gobuffalo/pop/nulls"
+	"github.com/stretchr/testify/require"
+)
+
+func Test_New_Implementation_For_Nplus1(t *testing.T) {
+	transaction(func(tx *Connection) {
+		a := require.New(t)
+		for _, name := range []string{"Mark", "Joe", "Jane"} {
+			user := User{Name: nulls.NewString(name)}
+			a.NoError(tx.Create(&user))
+
+			book := Book{UserID: nulls.NewInt(user.ID)}
+			a.NoError(tx.Create(&book))
+
+			writer := Writer{Name: "Larry", BookID: book.ID}
+			a.NoError(tx.Create(&writer))
+
+			if name == "Mark" {
+				song := Song{UserID: user.ID}
+				a.NoError(tx.Create(&song))
+
+				address := Address{Street: "Pop"}
+				a.NoError(tx.Create(&address))
+
+				home := UsersAddress{UserID: user.ID, AddressID: address.ID}
+				a.NoError(tx.Create(&home))
+			}
+		}
+
+		users := []User{}
+		a.NoError(tx.All(&users))
+
+		// FILL THE HAS-MANY and HAS_ONE
+		a.NoError(preload(tx, &users))
+
+		a.Len(users[0].Books, 1)
+		a.Len(users[1].Books, 1)
+		a.Len(users[2].Books, 1)
+		a.Equal(users[0].FavoriteSong.UserID, users[0].ID)
+		a.Len(users[0].Houses, 1)
+
+		book := Book{}
+		a.NoError(tx.First(&book))
+		a.NoError(preload(tx, &book))
+		a.Len(book.Writers, 1)
+		a.Equal("Larry", book.Writers[0].Name)
+		a.Equal("Mark", book.User.Name.String)
+	})
+}
+
+func Test_New_Implementation_For_Nplus1_With_UUID(t *testing.T) {
+	transaction(func(tx *Connection) {
+		a := require.New(t)
+
+		courses := []Course{}
+		for i := 0; i < 3; i++ {
+			course := Course{}
+			a.NoError(tx.Create(&course))
+			courses = append(courses, course)
+			if i == 0 {
+				a.NoError(tx.Create(&CourseCode{
+					CourseID: course.ID,
+				}))
+			}
+		}
+
+		courseCodes := []CourseCode{}
+		a.NoError(tx.All(&courseCodes))
+		a.Len(courseCodes, 1)
+
+		// FILL THE HAS-MANY and HAS_ONE
+		a.NoError(preload(tx, &courseCodes))
+		a.Equal(courses[0].ID, courseCodes[0].Course.ID)
+
+		student := Student{}
+		a.NoError(tx.Create(&student))
+
+		parent := Parent{}
+		a.NoError(tx.Create(&parent))
+
+		a.NoError(tx.RawQuery("insert into parents_students(parent_id, student_id) values(?,?)", parent.ID.String(), student.ID.String()).Exec())
+
+		parents := []Parent{}
+		a.NoError(tx.All(&parents))
+
+		a.NoError(preload(tx, &parents))
+		a.Len(parents, 1)
+		a.Len(parents[0].Students, 1)
+		a.Equal(student.ID, parents[0].Students[0].ID)
+	})
+}
+
+func Test_New_Implementation_For_Nplus1_Single(t *testing.T) {
+	transaction(func(tx *Connection) {
+		a := require.New(t)
+		for _, name := range []string{"Mark", "Joe", "Jane"} {
+			user := User{Name: nulls.NewString(name)}
+			a.NoError(tx.Create(&user))
+
+			book := Book{UserID: nulls.NewInt(user.ID)}
+			a.NoError(tx.Create(&book))
+
+			writer := Writer{Name: "Larry", BookID: book.ID}
+			a.NoError(tx.Create(&writer))
+
+			if name == "Mark" {
+				song := Song{UserID: user.ID}
+				a.NoError(tx.Create(&song))
+
+				address := Address{Street: "Pop"}
+				a.NoError(tx.Create(&address))
+
+				home := UsersAddress{UserID: user.ID, AddressID: address.ID}
+				a.NoError(tx.Create(&home))
+			}
+		}
+
+		users := []User{}
+		a.NoError(tx.All(&users))
+
+		// FILL THE HAS-MANY and HAS_ONE
+		a.NoError(preload(tx, &users, "Books"))
+
+		a.Len(users[0].Books, 1)
+		a.Len(users[1].Books, 1)
+		a.Len(users[2].Books, 1)
+		a.Zero(users[0].FavoriteSong.UserID)
+		a.Len(users[0].Houses, 0)
+	})
+}
+
+func Test_New_Implementation_For_Nplus1_Nested(t *testing.T) {
+	transaction(func(tx *Connection) {
+		a := require.New(t)
+		var song Song
+		for _, name := range []string{"Mark", "Joe", "Jane"} {
+			user := User{Name: nulls.NewString(name)}
+			a.NoError(tx.Create(&user))
+
+			book := Book{UserID: nulls.NewInt(user.ID)}
+			a.NoError(tx.Create(&book))
+
+			if name == "Mark" {
+				song = Song{UserID: user.ID}
+				a.NoError(tx.Create(&song))
+
+				address := Address{Street: "Pop"}
+				a.NoError(tx.Create(&address))
+
+				home := UsersAddress{UserID: user.ID, AddressID: address.ID}
+				a.NoError(tx.Create(&home))
+			}
+		}
+
+		SetEagerMode(EagerPreload)
+		users := []User{}
+		a.NoError(tx.Eager("Houses", "Books", "Books.User.FavoriteSong").All(&users))
+		a.Len(users[0].Books, 1)
+		a.Len(users[1].Books, 1)
+		a.Len(users[2].Books, 1)
+		a.Len(users[0].Houses, 1)
+
+		a.Equal(users[0].ID, users[0].Books[0].User.ID)
+		a.Equal(song.ID, users[0].Books[0].User.FavoriteSong.ID)
+		SetEagerMode(EagerDefault)
+	})
+}
