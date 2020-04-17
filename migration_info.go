@@ -37,6 +37,10 @@ func (mfs Migrations) Len() int {
 }
 
 func (mfs Migrations) Less(i, j int) bool {
+	if mfs[i].Version == mfs[j].Version {
+		// force "all" to the back
+		return mfs[i].DBType != "all"
+	}
 	return mfs[i].Version < mfs[j].Version
 }
 

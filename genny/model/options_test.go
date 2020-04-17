@@ -20,7 +20,7 @@ func Test_Options_Validate(t *testing.T) {
 	r.Equal(0, len(opts.Attrs))
 	r.Equal("models", opts.Path)
 	r.Equal("models", opts.Package)
-	r.Equal("models_test", opts.TestPackage)
+	r.Equal("models", opts.TestPackage)
 	r.Equal("json", opts.Encoding)
 
 	// Force ID opt

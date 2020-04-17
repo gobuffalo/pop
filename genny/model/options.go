@@ -1,7 +1,6 @@
 package model
 
 import (
-	"fmt"
 	"path/filepath"
 	"strings"
 
@@ -33,7 +32,7 @@ func (opts *Options) Validate() error {
 		opts.Package = filepath.Base(opts.Path)
 	}
 	if len(opts.TestPackage) == 0 {
-		opts.TestPackage = fmt.Sprintf("%s_%s", opts.Package, "test")
+		opts.TestPackage = opts.Package
 	}
 	if len(opts.Encoding) == 0 {
 		opts.Encoding = "json"
