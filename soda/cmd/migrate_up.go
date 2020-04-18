@@ -15,7 +15,8 @@ var migrateUpCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		return mig.UpTo(migrationStepUp)
+		_, err = mig.UpTo(migrationStepUp)
+		return err
 	},
 }
 

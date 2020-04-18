@@ -121,6 +121,8 @@ func (m Migrator) UpTo(step int) (applied int, err error) {
 		}
 		if applied == 0 {
 			log(logging.Info, "Migrations already up to date, nothing to apply")
+		} else {
+			log(logging.Info, "Successfully applied %d migrations.", applied)
 		}
 		return nil
 	})
