@@ -79,18 +79,18 @@ func (m Migrator) UpLogOnly() error {
 
 // Up runs pending "up" migrations and applies them to the database.
 func (m Migrator) Up() error {
-	return m.UpTo(0)
+	_, err := m.UpTo(0)
+	return err
 }
 
 // UpTo runs up to step "up" migrations and applies them to the database.
 // If step <= 0 all pending migrations are run.
-func (m Migrator) UpTo(step int) error {
+func (m Migrator) UpTo(step int) (applied int, err error) {
 	c := m.Connection
-	return m.exec(func() error {
+	err = m.exec(func() error {
 		mtn := c.MigrationTableName()
 		mfs := m.Migrations["up"]
 		sort.Sort(mfs)
-		applied := 0
 		for _, mi := range mfs {
 			if !m.migrationIsCompatible(c.Dialect, mi) {
 				continue
@@ -124,6 +124,7 @@ func (m Migrator) UpTo(step int) error {
 		}
 		return nil
 	})
+	return
 }
 
 // Down runs pending "down" migrations and rolls back the
