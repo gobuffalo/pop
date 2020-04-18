@@ -36,6 +36,7 @@ mysql:
   port: "3306"
   user: "root"
   password: "root"
+  unsafe: true
   options:
     readTimeout: 5s`)
 	conns, err := ParseConfig(config)
@@ -48,5 +49,17 @@ mysql:
 	r.Equal("3306", conns["mysql"].Port)
 	r.Equal(envy.Get("MYSQL_USER", "root"), conns["mysql"].User)
 	r.Equal(envy.Get("MYSQL_PASSWORD", "root"), conns["mysql"].Password)
+	r.True(conns["mysql"].Unsafe)
 	r.Equal("5s", conns["mysql"].Options["readTimeout"])
+}
+
+func Test_ParseConfigUnsafeDefault(t *testing.T) {
+	// Ensure that the default `unsafe` value is false.
+	r := require.New(t)
+	config := strings.NewReader(`
+mysql:
+  dialect: "mysql"`)
+	conns, err := ParseConfig(config)
+	r.NoError(err)
+	r.False(conns["mysql"].Unsafe)
 }
