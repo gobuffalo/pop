@@ -167,7 +167,7 @@ func (m *mysql) LoadSchema(r io.Reader) error {
 // TruncateAll truncates all tables for the given connection.
 func (m *mysql) TruncateAll(tx *Connection) error {
 	var stmts []string
-	err := tx.RawQuery(mysqlTruncate, m.Details().Database).All(&stmts)
+	err := tx.RawQuery(mysqlTruncate, m.Details().Database, tx.MigrationTableName()).All(&stmts)
 	if err != nil {
 		return err
 	}
@@ -254,4 +254,4 @@ func finalizerMySQL(cd *ConnectionDetails) {
 	}
 }
 
-const mysqlTruncate = "SELECT concat('TRUNCATE TABLE `', TABLE_NAME, '`;') as stmt FROM INFORMATION_SCHEMA.TABLES WHERE table_schema = ? AND table_type <> 'VIEW'"
+const mysqlTruncate = "SELECT concat('TRUNCATE TABLE `', TABLE_NAME, '`;') as stmt FROM INFORMATION_SCHEMA.TABLES WHERE table_schema = ? AND table_name <> ? AND table_type <> 'VIEW'"
