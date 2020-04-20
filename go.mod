@@ -3,6 +3,7 @@ module github.com/gobuffalo/pop/v5
 go 1.13
 
 require (
+	github.com/blang/semver v3.5.1+incompatible // indirect
 	github.com/cockroachdb/cockroach-go v0.0.0-20190925194419-606b3d062051
 	github.com/fatih/color v1.9.0
 	github.com/go-sql-driver/mysql v1.5.0
@@ -23,6 +24,7 @@ require (
 	github.com/lib/pq v1.3.0
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible
 	github.com/pkg/errors v0.9.1
+	github.com/rogpeppe/go-internal v1.5.2 // indirect
 	github.com/spf13/cobra v0.0.5
 	github.com/stretchr/testify v1.4.0
 	golang.org/x/net v0.0.0-20200219183655-46282727080f // indirect

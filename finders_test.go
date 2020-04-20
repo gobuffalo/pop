@@ -116,6 +116,35 @@ func Test_Find_Eager_Has_Many(t *testing.T) {
 	})
 }
 
+func Test_All_Eager_Preload_Mode(t *testing.T) {
+	transaction(func(tx *Connection) {
+		r := require.New(t)
+
+		for _, name := range []string{"Mark", "Joe", "Jane"} {
+			user := User{Name: nulls.NewString(name)}
+			err := tx.Create(&user)
+			r.NoError(err)
+
+			if name == "Mark" {
+				for _, title := range []string{"Pop Book", "My Pop Book", "Asociations Book"} {
+					book := Book{Title: title, Isbn: "PB1", UserID: nulls.NewInt(user.ID)}
+					err = tx.Create(&book)
+					r.NoError(err)
+				}
+			}
+		}
+
+		u := Users{}
+		err := tx.EagerPreload().All(&u)
+		r.NoError(err)
+		r.Equal(len(u), 3)
+		r.Equal(len(u[0].Books), 3)
+		r.Equal(u[0].Books[0].Title, "Asociations Book")
+		r.Equal(u[0].Books[1].Title, "My Pop Book")
+		r.Equal(u[0].Books[2].Title, "Pop Book")
+	})
+}
+
 func Test_Find_Eager_Has_Many_Order_By(t *testing.T) {
 	if PDB == nil {
 		t.Skip("skipping integration tests")
