@@ -57,6 +57,10 @@ func (p *cockroach) Name() string {
 	return nameCockroach
 }
 
+func (p *cockroach) DefaultDriver() string {
+	return nameCockroach
+}
+
 func (p *cockroach) Details() *ConnectionDetails {
 	return p.ConnectionDetails
 }
