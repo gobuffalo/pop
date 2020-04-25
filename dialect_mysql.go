@@ -39,6 +39,10 @@ func (m *mysql) Name() string {
 	return nameMySQL
 }
 
+func (m *mysql) DefaultDriver() string {
+	return nameMySQL
+}
+
 func (mysql) Quote(key string) string {
 	return fmt.Sprintf("`%s`", key)
 }

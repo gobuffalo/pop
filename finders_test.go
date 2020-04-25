@@ -117,6 +117,9 @@ func Test_Find_Eager_Has_Many(t *testing.T) {
 }
 
 func Test_All_Eager_Preload_Mode(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
 	transaction(func(tx *Connection) {
 		r := require.New(t)
 

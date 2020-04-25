@@ -8,6 +8,9 @@ import (
 )
 
 func Test_New_Implementation_For_Nplus1(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
 	transaction(func(tx *Connection) {
 		a := require.New(t)
 		for _, name := range []string{"Mark", "Joe", "Jane"} {
@@ -54,6 +57,9 @@ func Test_New_Implementation_For_Nplus1(t *testing.T) {
 }
 
 func Test_New_Implementation_For_Nplus1_With_UUID(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
 	transaction(func(tx *Connection) {
 		a := require.New(t)
 
@@ -96,6 +102,9 @@ func Test_New_Implementation_For_Nplus1_With_UUID(t *testing.T) {
 }
 
 func Test_New_Implementation_For_Nplus1_Single(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
 	transaction(func(tx *Connection) {
 		a := require.New(t)
 		for _, name := range []string{"Mark", "Joe", "Jane"} {
@@ -135,6 +144,9 @@ func Test_New_Implementation_For_Nplus1_Single(t *testing.T) {
 }
 
 func Test_New_Implementation_For_Nplus1_Nested(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
 	transaction(func(tx *Connection) {
 		a := require.New(t)
 		var song Song
