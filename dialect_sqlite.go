@@ -55,11 +55,13 @@ func (m *sqlite) Details() *ConnectionDetails {
 
 func (m *sqlite) URL() string {
 	c := m.ConnectionDetails
-	return c.Database + "?" + c.OptionsString("")
+	return strings.TrimSuffix(
+		fmt.Sprintf("sqlite3://%s?%s", c.Database, c.OptionsString("")),
+		"?")
 }
 
 func (m *sqlite) MigrationURL() string {
-	return m.ConnectionDetails.URL
+	return m.URL()
 }
 
 func (m *sqlite) Create(s store, model *Model, cols columns.Columns) error {

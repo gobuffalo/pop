@@ -54,7 +54,7 @@ func (m *mysql) Details() *ConnectionDetails {
 func (m *mysql) URL() string {
 	cd := m.ConnectionDetails
 	if cd.URL != "" {
-		return strings.TrimPrefix(cd.URL, "mysql://")
+		return cd.URL
 	}
 
 	user := fmt.Sprintf("%s:%s@", cd.User, cd.Password)
@@ -70,7 +70,7 @@ func (m *mysql) URL() string {
 		addr = fmt.Sprintf("unix(%s)", cd.Host)
 	}
 
-	s := "%s%s/%s?%s"
+	s := "mysql://%s%s/%s?%s"
 	return fmt.Sprintf(s, user, addr, cd.Database, cd.OptionsString(""))
 }
 

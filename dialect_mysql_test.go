@@ -21,9 +21,9 @@ func Test_MySQL_URL_As_Is(t *testing.T) {
 	r.NoError(err)
 
 	m := &mysql{commonDialect{ConnectionDetails: cd}}
-	r.Equal("user:pass@(host:port)/dbase?opt=value", m.URL())
-	r.Equal("user:pass@(host:port)/?opt=value", m.urlWithoutDb())
-	r.Equal("user:pass@(host:port)/dbase?opt=value", m.MigrationURL())
+	r.Equal("mysql://user:pass@(host:port)/dbase?opt=value", m.URL())
+	r.Equal("mysql://user:pass@(host:port)/?opt=value", m.urlWithoutDb())
+	r.Equal("mysql://user:pass@(host:port)/dbase?opt=value", m.MigrationURL())
 }
 
 func Test_MySQL_URL_Override_withURL(t *testing.T) {
@@ -41,9 +41,9 @@ func Test_MySQL_URL_Override_withURL(t *testing.T) {
 	r.NoError(err)
 
 	m := &mysql{commonDialect{ConnectionDetails: cd}}
-	r.Equal("user:pass@(host:port)/dbase?opt=value", m.URL())
-	r.Equal("user:pass@(host:port)/?opt=value", m.urlWithoutDb())
-	r.Equal("user:pass@(host:port)/dbase?opt=value", m.MigrationURL())
+	r.Equal("mysql://user:pass@(host:port)/dbase?opt=value", m.URL())
+	r.Equal("mysql://user:pass@(host:port)/?opt=value", m.urlWithoutDb())
+	r.Equal("mysql://user:pass@(host:port)/dbase?opt=value", m.MigrationURL())
 }
 
 func Test_MySQL_URL_With_Values(t *testing.T) {
@@ -56,9 +56,9 @@ func Test_MySQL_URL_With_Values(t *testing.T) {
 		Password: "pass",
 		Options:  map[string]string{"opt": "value"},
 	}}}
-	r.Equal("user:pass@(host:port)/dbase?opt=value", m.URL())
-	r.Equal("user:pass@(host:port)/?opt=value", m.urlWithoutDb())
-	r.Equal("user:pass@(host:port)/dbase?opt=value", m.MigrationURL())
+	r.Equal("mysql://user:pass@(host:port)/dbase?opt=value", m.URL())
+	r.Equal("mysql://user:pass@(host:port)/?opt=value", m.urlWithoutDb())
+	r.Equal("mysql://user:pass@(host:port)/dbase?opt=value", m.MigrationURL())
 }
 
 func Test_MySQL_URL_Without_User(t *testing.T) {
@@ -69,7 +69,7 @@ func Test_MySQL_URL_Without_User(t *testing.T) {
 	}}}
 	// finalizerMySQL fills address part in real world.
 	// without user, password cannot live alone
-	r.Equal("(:)/dbase?", m.URL())
+	r.Equal("mysql://(:)/dbase?", m.URL())
 }
 
 func Test_MySQL_URL_Without_Password(t *testing.T) {
@@ -79,7 +79,7 @@ func Test_MySQL_URL_Without_Password(t *testing.T) {
 		Database: "dbase",
 	}}}
 	// finalizerMySQL fills address part in real world.
-	r.Equal("user@(:)/dbase?", m.URL())
+	r.Equal("mysql://user@(:)/dbase?", m.URL())
 }
 
 func Test_MySQL_URL_urlParserMySQL_Standard(t *testing.T) {
@@ -116,7 +116,7 @@ func Test_MySQL_URL_urlParserMySQL_With_Protocol(t *testing.T) {
 func Test_MySQL_URL_urlParserMySQL_Socket(t *testing.T) {
 	r := require.New(t)
 	cd := &ConnectionDetails{
-		URL: "unix(/tmp/socket)/dbase",
+		URL: "mysql://unix(/tmp/socket)/dbase",
 	}
 	err := urlParserMySQL(cd)
 	r.NoError(err)
@@ -126,8 +126,8 @@ func Test_MySQL_URL_urlParserMySQL_Socket(t *testing.T) {
 	// additional test without URL
 	cd.URL = ""
 	m := &mysql{commonDialect{ConnectionDetails: cd}}
-	r.True(strings.HasPrefix(m.URL(), "unix(/tmp/socket)/dbase?"))
-	r.True(strings.HasPrefix(m.urlWithoutDb(), "unix(/tmp/socket)/?"))
+	r.True(strings.HasPrefix(m.URL(), "mysql://unix(/tmp/socket)/dbase?"))
+	r.True(strings.HasPrefix(m.urlWithoutDb(), "mysql://unix(/tmp/socket)/?"))
 }
 
 func Test_MySQL_URL_urlParserMySQL_Unsupported(t *testing.T) {

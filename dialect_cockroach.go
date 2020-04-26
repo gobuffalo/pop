@@ -159,13 +159,13 @@ func (p *cockroach) URL() string {
 	if c.URL != "" {
 		return c.URL
 	}
-	s := "postgres://%s:%s@%s:%s/%s?%s"
+	s := "cockroach://%s:%s@%s:%s/%s?%s"
 	return fmt.Sprintf(s, c.User, c.Password, c.Host, c.Port, c.Database, c.OptionsString(""))
 }
 
 func (p *cockroach) urlWithoutDb() string {
 	c := p.ConnectionDetails
-	s := "postgres://%s:%s@%s:%s/?%s"
+	s := "cockroach://%s:%s@%s:%s/?%s"
 	return fmt.Sprintf(s, c.User, c.Password, c.Host, c.Port, c.OptionsString(""))
 }
 
@@ -265,9 +265,9 @@ func finalizerCockroach(cd *ConnectionDetails) {
 	appName := filepath.Base(os.Args[0])
 	cd.Options["application_name"] = defaults.String(cd.Options["application_name"], appName)
 	cd.Port = defaults.String(cd.Port, portCockroach)
-	if cd.URL != "" {
-		cd.URL = "postgres://" + trimCockroachPrefix(cd.URL)
-	}
+	//if cd.URL != "" {
+	//	cd.URL = "postgres://" + trimCockroachPrefix(cd.URL)
+	//}
 }
 
 func trimCockroachPrefix(u string) string {

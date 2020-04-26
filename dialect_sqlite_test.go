@@ -163,3 +163,46 @@ func TestSqlite_CreateDB(t *testing.T) {
 	// Creating DB twice should produce an error
 	r.EqualError(dialect.CreateDB(), fmt.Sprintf("could not create SQLite database '%s'; database exists", p))
 }
+
+func TestSqlite_URL(t *testing.T) {
+	t.Run("case=url from database without options", func(t *testing.T) {
+		cd := &ConnectionDetails{
+			Dialect:  "sqlite",
+			Database: "/tmp/foo.db",
+		}
+		dialect, err := newSQLite(cd)
+		require.NoError(t, err)
+		require.Equal(t, "sqlite3:///tmp/foo.db", dialect.URL())
+	})
+
+	t.Run("case=url from database with options", func(t *testing.T) {
+		cd := &ConnectionDetails{
+			Dialect:  "sqlite",
+			Database: "/tmp/foo.db",
+			Options:  map[string]string{"_fk": "true"},
+		}
+		dialect, err := newSQLite(cd)
+		require.NoError(t, err)
+		require.Equal(t, "sqlite3:///tmp/foo.db?_fk=true", dialect.URL())
+	})
+
+	t.Run("case=url from url without options", func(t *testing.T) {
+		cd := &ConnectionDetails{
+			URL: "sqlite3:///tmp/foo.db",
+		}
+		require.NoError(t, urlParserSQLite3(cd))
+		dialect, err := newSQLite(cd)
+		require.NoError(t, err)
+		require.Equal(t, "sqlite3:///tmp/foo.db", dialect.URL())
+	})
+
+	t.Run("case=url from url with options", func(t *testing.T) {
+		cd := &ConnectionDetails{
+			URL: "sqlite3:///tmp/foo.db?_fk=true",
+		}
+		require.NoError(t, urlParserSQLite3(cd))
+		dialect, err := newSQLite(cd)
+		require.NoError(t, err)
+		require.Equal(t, "sqlite3:///tmp/foo.db?_fk=true", dialect.URL())
+	})
+}
