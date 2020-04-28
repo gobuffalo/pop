@@ -45,6 +45,10 @@ func (m *sqlite) Name() string {
 	return nameSQLite3
 }
 
+func (m *sqlite) DefaultDriver() string {
+	return nameSQLite3
+}
+
 func (m *sqlite) Details() *ConnectionDetails {
 	return m.ConnectionDetails
 }

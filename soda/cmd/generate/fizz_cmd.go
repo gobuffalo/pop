@@ -47,9 +47,9 @@ var FizzCmd = &cobra.Command{
 
 		if len(atts) == 0 {
 			g, err := cempty.New(&cempty.Options{
-				TableName: name,
-				Path:      path,
-				Type:      "fizz",
+				Name: name,
+				Path: path,
+				Type: "fizz",
 			})
 			if err != nil {
 				return err

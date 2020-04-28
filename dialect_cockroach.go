@@ -10,7 +10,6 @@ import (
 	"strings"
 	"sync"
 
-	_ "github.com/cockroachdb/cockroach-go/crdb" // Load CockroachdbQL/postgres Go driver which also loads github.com/lib/pq
 	"github.com/gobuffalo/fizz"
 	"github.com/gobuffalo/fizz/translators"
 	"github.com/gobuffalo/pop/v5/columns"
@@ -55,6 +54,10 @@ type cockroach struct {
 
 func (p *cockroach) Name() string {
 	return nameCockroach
+}
+
+func (p *cockroach) DefaultDriver() string {
+	return namePostgreSQL
 }
 
 func (p *cockroach) Details() *ConnectionDetails {

@@ -43,6 +43,10 @@ func (p *postgresql) Name() string {
 	return namePostgreSQL
 }
 
+func (p *postgresql) DefaultDriver() string {
+	return namePostgreSQL
+}
+
 func (p *postgresql) Details() *ConnectionDetails {
 	return p.ConnectionDetails
 }

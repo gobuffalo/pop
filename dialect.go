@@ -28,6 +28,7 @@ type dialect interface {
 	fizzable
 	quotable
 	Name() string
+	DefaultDriver() string
 	URL() string
 	MigrationURL() string
 	Details() *ConnectionDetails

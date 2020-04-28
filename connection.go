@@ -95,7 +95,7 @@ func (c *Connection) Open() error {
 		return errors.New("invalid connection instance")
 	}
 	details := c.Dialect.Details()
-	driver := details.Dialect
+	driver := c.Dialect.DefaultDriver()
 	if details.Driver != "" {
 		driver = details.Driver
 	}
@@ -110,6 +110,9 @@ func (c *Connection) Open() error {
 	}
 	if details.ConnMaxLifetime > 0 {
 		db.SetConnMaxLifetime(details.ConnMaxLifetime)
+	}
+	if details.Unsafe {
+		db = db.Unsafe()
 	}
 	c.Store = &dB{db}
 
