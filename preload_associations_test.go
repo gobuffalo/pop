@@ -182,3 +182,24 @@ func Test_New_Implementation_For_Nplus1_Nested(t *testing.T) {
 		SetEagerMode(EagerDefault)
 	})
 }
+
+func Test_New_Implementation_For_Nplus1_BelongsTo_Not_Underscore(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
+	transaction(func(tx *Connection) {
+		a := require.New(t)
+		user := User{Name: nulls.NewString("Mark")}
+		a.NoError(tx.Create(&user))
+
+		taxi := Taxi{UserID: nulls.NewInt(user.ID)}
+		a.NoError(tx.Create(&taxi))
+
+		SetEagerMode(EagerPreload)
+		taxis := []Taxi{}
+		a.NoError(tx.EagerPreload().All(&taxis))
+		a.Len(taxis, 1)
+		a.Equal("Mark", taxis[0].Driver.Name.String)
+		SetEagerMode(EagerDefault)
+	})
+}
