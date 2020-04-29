@@ -2,6 +2,7 @@ package pop
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -9,7 +10,7 @@ import (
 	"text/tabwriter"
 	"time"
 
-	"github.com/gobuffalo/pop/logging"
+	"github.com/gobuffalo/pop/v5/logging"
 	"github.com/pkg/errors"
 )
 
@@ -39,6 +40,13 @@ type Migrator struct {
 	Migrations map[string]Migrations
 }
 
+func (m Migrator) migrationIsCompatible(d dialect, mi Migration) bool {
+	if mi.DBType == "all" || mi.DBType == d.Name() {
+		return true
+	}
+	return false
+}
+
 // UpLogOnly insert pending "up" migrations logs only, without applying the patch.
 // It's used when loading the schema dump, instead of the migrations.
 func (m Migrator) UpLogOnly() error {
@@ -49,8 +57,7 @@ func (m Migrator) UpLogOnly() error {
 		sort.Sort(mfs)
 		return c.Transaction(func(tx *Connection) error {
 			for _, mi := range mfs {
-				if mi.DBType != "all" && mi.DBType != c.Dialect.Name() {
-					// Skip migration for non-matching dialect
+				if !m.migrationIsCompatible(c.Dialect, mi) {
 					continue
 				}
 				exists, err := c.Where("version = ?", mi.Version).Exists(mtn)
@@ -72,15 +79,20 @@ func (m Migrator) UpLogOnly() error {
 
 // Up runs pending "up" migrations and applies them to the database.
 func (m Migrator) Up() error {
+	_, err := m.UpTo(0)
+	return err
+}
+
+// UpTo runs up to step "up" migrations and applies them to the database.
+// If step <= 0 all pending migrations are run.
+func (m Migrator) UpTo(step int) (applied int, err error) {
 	c := m.Connection
-	return m.exec(func() error {
+	err = m.exec(func() error {
 		mtn := c.MigrationTableName()
 		mfs := m.Migrations["up"]
 		sort.Sort(mfs)
-		applied := 0
 		for _, mi := range mfs {
-			if mi.DBType != "all" && mi.DBType != c.Dialect.Name() {
-				// Skip migration for non-matching dialect
+			if !m.migrationIsCompatible(c.Dialect, mi) {
 				continue
 			}
 			exists, err := c.Where("version = ?", mi.Version).Exists(mtn)
@@ -103,12 +115,18 @@ func (m Migrator) Up() error {
 			}
 			log(logging.Info, "> %s", mi.Name)
 			applied++
+			if step > 0 && applied >= step {
+				break
+			}
 		}
 		if applied == 0 {
 			log(logging.Info, "Migrations already up to date, nothing to apply")
+		} else {
+			log(logging.Info, "Successfully applied %d migrations.", applied)
 		}
 		return nil
 	})
+	return
 }
 
 // Down runs pending "down" migrations and rolls back the
@@ -123,7 +141,7 @@ func (m Migrator) Down(step int) error {
 		}
 		mfs := m.Migrations["down"]
 		sort.Sort(sort.Reverse(mfs))
-		// skip all runned migration
+		// skip all ran migration
 		if len(mfs) > count {
 			mfs = mfs[len(mfs)-count:]
 		}
@@ -165,8 +183,7 @@ func (m Migrator) Reset() error {
 
 // CreateSchemaMigrations sets up a table to track migrations. This is an idempotent
 // operation.
-func (m Migrator) CreateSchemaMigrations() error {
-	c := m.Connection
+func CreateSchemaMigrations(c *Connection) error {
 	mtn := c.MigrationTableName()
 	err := c.Open()
 	if err != nil {
@@ -191,14 +208,20 @@ func (m Migrator) CreateSchemaMigrations() error {
 	})
 }
 
+// CreateSchemaMigrations sets up a table to track migrations. This is an idempotent
+// operation.
+func (m Migrator) CreateSchemaMigrations() error {
+	return CreateSchemaMigrations(m.Connection)
+}
+
 // Status prints out the status of applied/pending migrations.
-func (m Migrator) Status() error {
+func (m Migrator) Status(out io.Writer) error {
 	err := m.CreateSchemaMigrations()
 	if err != nil {
 		return err
 	}
-	w := tabwriter.NewWriter(os.Stdout, 0, 0, 3, ' ', tabwriter.TabIndent)
-	fmt.Fprintln(w, "Version\tName\tStatus\t")
+	w := tabwriter.NewWriter(out, 0, 0, 3, ' ', tabwriter.TabIndent)
+	_, _ = fmt.Fprintln(w, "Version\tName\tStatus\t")
 	for _, mf := range m.Migrations["up"] {
 		exists, err := m.Connection.Where("version = ?", mf.Version).Exists(m.Connection.MigrationTableName())
 		if err != nil {
@@ -208,7 +231,7 @@ func (m Migrator) Status() error {
 		if exists {
 			state = "Applied"
 		}
-		fmt.Fprintf(w, "%s\t%s\t%s\t\n", mf.Version, mf.Name, state)
+		_, _ = fmt.Fprintf(w, "%s\t%s\t%s\t\n", mf.Version, mf.Name, state)
 	}
 	return w.Flush()
 }

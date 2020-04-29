@@ -12,10 +12,9 @@ import (
 	_mysql "github.com/go-sql-driver/mysql"
 	"github.com/gobuffalo/fizz"
 	"github.com/gobuffalo/fizz/translators"
-	"github.com/gobuffalo/pop/columns"
-	"github.com/gobuffalo/pop/logging"
-	"github.com/markbates/going/defaults"
-	"github.com/markbates/oncer"
+	"github.com/gobuffalo/pop/v5/columns"
+	"github.com/gobuffalo/pop/v5/internal/defaults"
+	"github.com/gobuffalo/pop/v5/logging"
 	"github.com/pkg/errors"
 )
 
@@ -37,6 +36,10 @@ type mysql struct {
 }
 
 func (m *mysql) Name() string {
+	return nameMySQL
+}
+
+func (m *mysql) DefaultDriver() string {
 	return nameMySQL
 }
 
@@ -81,15 +84,15 @@ func (m *mysql) MigrationURL() string {
 }
 
 func (m *mysql) Create(s store, model *Model, cols columns.Columns) error {
-	return errors.Wrap(genericCreate(s, model, cols), "mysql create")
+	return errors.Wrap(genericCreate(s, model, cols, m), "mysql create")
 }
 
 func (m *mysql) Update(s store, model *Model, cols columns.Columns) error {
-	return errors.Wrap(genericUpdate(s, model, cols), "mysql update")
+	return errors.Wrap(genericUpdate(s, model, cols, m), "mysql update")
 }
 
 func (m *mysql) Destroy(s store, model *Model) error {
-	return errors.Wrap(genericDestroy(s, model), "mysql destroy")
+	return errors.Wrap(genericDestroy(s, model, m), "mysql destroy")
 }
 
 func (m *mysql) SelectOne(s store, model *Model, query Query) error {
@@ -108,8 +111,9 @@ func (m *mysql) CreateDB() error {
 		return errors.Wrapf(err, "error creating MySQL database %s", deets.Database)
 	}
 	defer db.Close()
+	charset := defaults.String(deets.Options["charset"], "utf8mb4")
 	encoding := defaults.String(deets.Options["collation"], "utf8mb4_general_ci")
-	query := fmt.Sprintf("CREATE DATABASE `%s` DEFAULT COLLATE `%s`", deets.Database, encoding)
+	query := fmt.Sprintf("CREATE DATABASE `%s` DEFAULT CHARSET `%s` DEFAULT COLLATE `%s`", deets.Database, charset, encoding)
 	log(logging.SQL, query)
 
 	_, err = db.Exec(query)
@@ -167,7 +171,7 @@ func (m *mysql) LoadSchema(r io.Reader) error {
 // TruncateAll truncates all tables for the given connection.
 func (m *mysql) TruncateAll(tx *Connection) error {
 	var stmts []string
-	err := tx.RawQuery(mysqlTruncate, m.Details().Database).All(&stmts)
+	err := tx.RawQuery(mysqlTruncate, m.Details().Database, tx.MigrationTableName()).All(&stmts)
 	if err != nil {
 		return err
 	}
@@ -252,13 +256,6 @@ func finalizerMySQL(cd *ConnectionDetails) {
 			log(logging.Warn, "IMPORTANT! '%s=%s' option is required to work properly. Please add it to the database URL in the config!", k, v)
 		} // or fix user specified url?
 	}
-
-	if cd.Encoding != "" {
-		//! DEPRECATED, 2018-11-06
-		// when user still uses `encoding:` in database.yml
-		oncer.Deprecate(0, "Encoding", "use options.collation")
-		cd.Options["collation"] = cd.Encoding
-	}
 }
 
-const mysqlTruncate = "SELECT concat('TRUNCATE TABLE `', TABLE_NAME, '`;') as stmt FROM INFORMATION_SCHEMA.TABLES WHERE table_schema = ? AND table_type <> 'VIEW'"
+const mysqlTruncate = "SELECT concat('TRUNCATE TABLE `', TABLE_NAME, '`;') as stmt FROM INFORMATION_SCHEMA.TABLES WHERE table_schema = ? AND table_name <> ? AND table_type <> 'VIEW'"

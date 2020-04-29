@@ -18,7 +18,7 @@ build:
 	$(GO_BIN) build -v .
 
 test:
-	packr2
+	# packr2
 	$(GO_BIN) test -tags ${TAGS} ./...
 
 ci-test:

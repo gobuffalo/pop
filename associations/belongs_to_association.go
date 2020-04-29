@@ -6,8 +6,8 @@ import (
 
 	"github.com/gobuffalo/flect"
 	"github.com/gobuffalo/nulls"
-	"github.com/gobuffalo/pop/columns"
-	"github.com/gobuffalo/x/defaults"
+	"github.com/gobuffalo/pop/v5/columns"
+	"github.com/gobuffalo/pop/v5/internal/defaults"
 )
 
 // belongsToAssociation is the implementation for the belongs_to association type in a model.

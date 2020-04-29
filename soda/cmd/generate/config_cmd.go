@@ -7,11 +7,10 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/gobuffalo/genny"
-	"github.com/gobuffalo/pop"
-	"github.com/gobuffalo/pop/genny/config"
-	"github.com/markbates/going/defaults"
-	"github.com/markbates/oncer"
+	"github.com/gobuffalo/genny/v2"
+	"github.com/gobuffalo/pop/v5"
+	"github.com/gobuffalo/pop/v5/genny/config"
+	"github.com/gobuffalo/pop/v5/internal/defaults"
 	"github.com/spf13/cobra"
 )
 
@@ -50,36 +49,4 @@ var ConfigCmd = &cobra.Command{
 
 		return run.Run()
 	},
-}
-
-// GenerateConfig generates pop configuration files.
-//
-// Deprecated: use github.com/gobuffalo/pop/genny/config instead.
-func GenerateConfig(cfgFile string, data map[string]interface{}) error {
-	oncer.Deprecate(0, "generate.GenerateConfig", "Use github.com/gobuffalo/pop/genny/config instead.")
-	return Config(cfgFile, data)
-}
-
-// Config generates pop configuration files.
-// Deprecated: use github.com/gobuffalo/pop/genny/config instead.
-func Config(cfgFile string, data map[string]interface{}) error {
-	oncer.Deprecate(0, "generate.Config", "Use github.com/gobuffalo/pop/genny/config instead.")
-	pwd, _ := os.Getwd()
-
-	run := genny.WetRunner(context.Background())
-
-	d, _ := data["dialect"].(string)
-	g, err := config.New(&config.Options{
-		Root:     pwd,
-		Prefix:   filepath.Base(pwd),
-		FileName: cfgFile,
-		Dialect:  d,
-	})
-
-	if err != nil {
-		return err
-	}
-	run.With(g)
-
-	return run.Run()
 }

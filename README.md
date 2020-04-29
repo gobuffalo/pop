@@ -1,8 +1,8 @@
 <p align="center"><img src="logo.png" width="150" height="150"></p>
 
 <p align="center">
-    <a href="https://godoc.org/github.com/gobuffalo/pop"><img src="https://godoc.org/github.com/gobuffalo/pop?status.svg" alt="GoDoc" /></a>
-    <a href="https://dev.azure.com/stanislasmichalak/pop/_build/latest?definitionId=1&branchName=master"><img src="https://dev.azure.com/stanislasmichalak/pop/_apis/build/status/gobuffalo.pop?branchName=master" alt="Build Status" /></a>
+    <a href="https://pkg.go.dev/github.com/gobuffalo/pop/v5"><img src="https://godoc.org/github.com/gobuffalo/pop?status.svg" alt="GoDoc" /></a>
+    <a href="https://github.com/gobuffalo/pop/actions?query=workflow%3ATests+branch%3Amaster"><img src="https://github.com/gobuffalo/pop/workflows/Tests/badge.svg" alt="Build Status" /></a>
 </p>
 
 # POP

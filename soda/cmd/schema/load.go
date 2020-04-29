@@ -3,7 +3,7 @@ package schema
 import (
 	"os"
 
-	"github.com/gobuffalo/pop"
+	"github.com/gobuffalo/pop/v5"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -28,6 +28,7 @@ var LoadCmd = &cobra.Command{
 		if err != nil {
 			return errors.WithMessage(err, "unable to load schema file")
 		}
+		defer f.Close()
 
 		c, err := pop.Connect(loadOptions.env)
 		if err != nil {

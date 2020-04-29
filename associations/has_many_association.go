@@ -115,7 +115,7 @@ func (a *hasManyAssociation) AfterSetup() error {
 				fval.Set(reflect.ValueOf(ownerID))
 			}
 		} else {
-			return fmt.Errorf("could not set '%s' in '%s'", ownerID, fval)
+			return fmt.Errorf("could not set field '%s' in table '%s' to value '%s' for 'has_many' relation", a.ownerName+"ID", a.tableName, ownerID)
 		}
 	}
 	return nil
@@ -132,7 +132,7 @@ func (a *hasManyAssociation) AfterProcess() AssociationStatement {
 	ownerIDFieldName := "ID"
 	ownerID := reflect.Indirect(reflect.ValueOf(a.owner)).FieldByName(ownerIDFieldName).Interface()
 
-	ids := []interface{}{}
+	var ids []interface{}
 
 	for i := 0; i < v.Len(); i++ {
 		id := v.Index(i).FieldByName(belongingIDFieldName).Interface()

@@ -9,9 +9,9 @@ import (
 	"text/template"
 
 	"github.com/gobuffalo/envy"
-	"github.com/gobuffalo/pop/logging"
+	"github.com/gobuffalo/pop/v5/logging"
 	"github.com/pkg/errors"
-	yaml "gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v2"
 )
 
 // ErrConfigFileNotFound is returned when the pop config file can't be found,
@@ -48,6 +48,7 @@ func LoadConfigFile() error {
 	if err != nil {
 		return err
 	}
+	defer f.Close()
 	return LoadFrom(f)
 }
 

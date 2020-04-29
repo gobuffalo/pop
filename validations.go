@@ -3,7 +3,7 @@ package pop
 import (
 	"reflect"
 
-	"github.com/gobuffalo/validate"
+	"github.com/gobuffalo/validate/v3"
 )
 
 type beforeValidatable interface {

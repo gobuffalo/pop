@@ -1,6 +1,7 @@
 package pop
 
 import (
+	"context"
 	"math/rand"
 	"time"
 
@@ -18,13 +19,19 @@ type Tx struct {
 	*sqlx.Tx
 }
 
-func newTX(db *dB) (*Tx, error) {
+func newTX(ctx context.Context, db *dB) (*Tx, error) {
 	t := &Tx{
 		ID: rand.Int(),
 	}
-	tx, err := db.Beginx()
+	tx, err := db.BeginTxx(ctx, nil)
 	t.Tx = tx
 	return t, errors.Wrap(err, "could not create new transaction")
+}
+
+// TransactionContext simply returns the current transaction,
+// this is defined so it implements the `Store` interface.
+func (tx *Tx) TransactionContext(ctx context.Context) (*Tx, error) {
+	return tx, nil
 }
 
 // Transaction simply returns the current transaction,

@@ -11,6 +11,8 @@ import (
 	"github.com/gofrs/uuid"
 )
 
+var nowFunc = time.Now
+
 var tableMap = map[string]string{}
 var tableMapMu = sync.RWMutex{}
 
@@ -39,6 +41,20 @@ func (m *Model) ID() interface{} {
 		return fbn.Interface().(uuid.UUID).String()
 	}
 	return fbn.Interface()
+}
+
+// IDField returns the name of the DB field used for the ID.
+// By default, it will return "id".
+func (m *Model) IDField() string {
+	field, ok := reflect.TypeOf(m.Value).Elem().FieldByName("ID")
+	if !ok {
+		return "id"
+	}
+	dbField := field.Tag.Get("db")
+	if dbField == "" {
+		return "id"
+	}
+	return dbField
 }
 
 // PrimaryKeyType gives the primary key type of the `Model`.
@@ -73,19 +89,23 @@ func (m *Model) TableName() string {
 	}
 
 	t := reflect.TypeOf(m.Value)
-	name := m.typeName(t)
+	name, cacheKey := m.typeName(t)
 
 	defer tableMapMu.Unlock()
 	tableMapMu.Lock()
 
-	if tableMap[name] == "" {
+	if tableMap[cacheKey] == "" {
 		m.tableName = nflect.Tableize(name)
-		tableMap[name] = m.tableName
+		tableMap[cacheKey] = m.tableName
 	}
-	return tableMap[name]
+	return tableMap[cacheKey]
 }
 
-func (m *Model) typeName(t reflect.Type) string {
+func (m *Model) cacheKey(t reflect.Type) string {
+	return t.PkgPath() + "." + t.Name()
+}
+
+func (m *Model) typeName(t reflect.Type) (name, cacheKey string) {
 	if t.Kind() == reflect.Ptr {
 		t = t.Elem()
 	}
@@ -102,14 +122,14 @@ func (m *Model) typeName(t reflect.Type) string {
 			v := reflect.New(el)
 			out := v.MethodByName("TableName").Call([]reflect.Value{})
 			name := out[0].String()
-			if tableMap[el.Name()] == "" {
-				tableMap[el.Name()] = name
+			if tableMap[m.cacheKey(el)] == "" {
+				tableMap[m.cacheKey(el)] = name
 			}
 		}
 
-		return el.Name()
+		return el.Name(), m.cacheKey(el)
 	default:
-		return t.Name()
+		return t.Name(), m.cacheKey(t)
 	}
 }
 
@@ -117,7 +137,7 @@ func (m *Model) fieldByName(s string) (reflect.Value, error) {
 	el := reflect.ValueOf(m.Value).Elem()
 	fbn := el.FieldByName(s)
 	if !fbn.IsValid() {
-		return fbn, fmt.Errorf("Model does not have a field named %s", s)
+		return fbn, fmt.Errorf("model does not have a field named %s", s)
 	}
 	return fbn, nil
 }
@@ -143,9 +163,14 @@ func (m *Model) setID(i interface{}) {
 func (m *Model) touchCreatedAt() {
 	fbn, err := m.fieldByName("CreatedAt")
 	if err == nil {
-		now := time.Now()
-		switch fbn.Kind() {
-		case reflect.Int, reflect.Int64:
+		now := nowFunc().Truncate(time.Microsecond)
+		v := fbn.Interface()
+		if !IsZeroOfUnderlyingType(v) {
+			// Do not override already set CreatedAt
+			return
+		}
+		switch v.(type) {
+		case int, int64:
 			fbn.SetInt(now.Unix())
 		default:
 			fbn.Set(reflect.ValueOf(now))
@@ -156,9 +181,10 @@ func (m *Model) touchCreatedAt() {
 func (m *Model) touchUpdatedAt() {
 	fbn, err := m.fieldByName("UpdatedAt")
 	if err == nil {
-		now := time.Now()
-		switch fbn.Kind() {
-		case reflect.Int, reflect.Int64:
+		now := nowFunc().Truncate(time.Microsecond)
+		v := fbn.Interface()
+		switch v.(type) {
+		case int, int64:
 			fbn.SetInt(now.Unix())
 		default:
 			fbn.Set(reflect.ValueOf(now))
@@ -167,11 +193,11 @@ func (m *Model) touchUpdatedAt() {
 }
 
 func (m *Model) whereID() string {
-	return fmt.Sprintf("%s.id = ?", m.TableName())
+	return fmt.Sprintf("%s.%s = ?", m.TableName(), m.IDField())
 }
 
 func (m *Model) whereNamedID() string {
-	return fmt.Sprintf("%s.id = :id", m.TableName())
+	return fmt.Sprintf("%s.%s = :id", m.TableName(), m.IDField())
 }
 
 func (m *Model) isSlice() bool {

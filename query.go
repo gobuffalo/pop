@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/gobuffalo/pop/logging"
+	"github.com/gobuffalo/pop/v5/logging"
 )
 
 // Query is the main value that is used to build up a query
@@ -13,6 +13,7 @@ type Query struct {
 	RawSQL                  *clause
 	limitResults            int
 	addColumns              []string
+	eagerMode               EagerMode
 	eager                   bool
 	eagerFields             []string
 	whereClauses            clauses
@@ -177,14 +178,27 @@ func (q *Query) Limit(limit int) *Query {
 	return q
 }
 
+// Preload activates preload eager Mode automatically.
+func (c *Connection) EagerPreload(fields ...string) *Query {
+	return Q(c).EagerPreload(fields...)
+}
+
+// Preload activates preload eager Mode automatically.
+func (q *Query) EagerPreload(fields ...string) *Query {
+	q.Eager(fields...)
+	q.eagerMode = EagerPreload
+	return q
+}
+
 // Q will create a new "empty" query from the current connection.
 func Q(c *Connection) *Query {
 	return &Query{
-		RawSQL:        &clause{},
-		Connection:    c,
-		eager:         c.eager,
-		eagerFields:   c.eagerFields,
-		OptimizeCount: c.OptimizeCount,
+		RawSQL:      &clause{},
+		Connection:  c,
+		eager:       c.eager,
+		eagerFields: c.eagerFields,
+		eagerMode:   eagerModeNil,
+    OptimizeCount: c.OptimizeCount,
 	}
 }
 

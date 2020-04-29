@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"strconv"
 
-	"github.com/markbates/going/defaults"
+	"github.com/gobuffalo/pop/v5/internal/defaults"
 )
 
 // PaginatorPerPageDefault is the amount of results per page

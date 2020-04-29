@@ -8,16 +8,17 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gobuffalo/pop/logging"
-	"github.com/markbates/going/defaults"
-	"github.com/markbates/oncer"
+	"github.com/gobuffalo/pop/v5/internal/defaults"
+	"github.com/gobuffalo/pop/v5/logging"
 	"github.com/pkg/errors"
 )
 
 // ConnectionDetails stores the data needed to connect to a datasource
 type ConnectionDetails struct {
-	// Example: "postgres" or "sqlite3" or "mysql"
+	// Dialect is the pop dialect to use. Example: "postgres" or "sqlite3" or "mysql"
 	Dialect string
+	// Driver specifies the database driver to use (optional)
+	Driver string
 	// The name of your database. Example: "foo_development"
 	Database string
 	// The host of your database. Example: "127.0.0.1"
@@ -39,7 +40,11 @@ type ConnectionDetails struct {
 	Pool int
 	// Defaults to 2. See https://golang.org/pkg/database/sql/#DB.SetMaxIdleConns
 	IdlePool int
-	Options  map[string]string
+	// Defaults to 0 "unlimited". See https://golang.org/pkg/database/sql/#DB.SetConnMaxLifetime
+	ConnMaxLifetime time.Duration
+	// Defaults to `false`. See https://godoc.org/github.com/jmoiron/sqlx#DB.Unsafe
+	Unsafe  bool
+	Options map[string]string
 	// Query string encoded options from URL. Example: "sslmode=disable"
 	RawOptions string
 }
@@ -126,14 +131,6 @@ func (cd *ConnectionDetails) Finalize() error {
 		return errors.New("no database or URL specified")
 	}
 	return errors.Errorf("unsupported dialect '%v'", cd.Dialect)
-}
-
-// Parse cleans up the connection details by normalizing names,
-// filling in default values, etc...
-// Deprecated: use ConnectionDetails.Finalize() instead.
-func (cd *ConnectionDetails) Parse(port string) error {
-	oncer.Deprecate(0, "pop.ConnectionDetails#Parse", "pop.ConnectionDetails#Finalize")
-	return cd.Finalize()
 }
 
 // RetrySleep returns the amount of time to wait between two connection retries

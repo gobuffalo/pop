@@ -8,8 +8,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/gobuffalo/pop/associations"
-	"github.com/gobuffalo/pop/logging"
+	"github.com/gobuffalo/pop/v5/associations"
+	"github.com/gobuffalo/pop/v5/logging"
 	"github.com/gofrs/uuid"
 	"github.com/pkg/errors"
 )
@@ -188,6 +188,17 @@ func (c *Connection) Load(model interface{}, fields ...string) error {
 }
 
 func (q *Query) eagerAssociations(model interface{}) error {
+	if q.eagerMode == eagerModeNil {
+		q.eagerMode = loadingAssociationsStrategy
+	}
+	if q.eagerMode == EagerPreload {
+		return preload(q.Connection, model, q.eagerFields...)
+	}
+
+	return q.eagerDefaultAssociations(model)
+}
+
+func (q *Query) eagerDefaultAssociations(model interface{}) error {
 	var err error
 
 	// eagerAssociations for a slice or array model passed as a param.

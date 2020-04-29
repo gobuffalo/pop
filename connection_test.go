@@ -39,7 +39,7 @@ func Test_Connection_Open_NoDialect(t *testing.T) {
 	r.Error(err)
 }
 
-func Test_Connection_Open_BadDialect(t *testing.T) {
+func Test_Connection_Open_BadDriver(t *testing.T) {
 	r := require.New(t)
 
 	cd := &ConnectionDetails{
@@ -48,7 +48,7 @@ func Test_Connection_Open_BadDialect(t *testing.T) {
 	c, err := NewConnection(cd)
 	r.NoError(err)
 
-	cd.Dialect = "unknown"
+	cd.Driver = "unknown"
 	err = c.Open()
 	r.Error(err)
 }

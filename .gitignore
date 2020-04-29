@@ -28,9 +28,10 @@ bin/*
 gin-bin
 *.sqlite
 tsoda
-migrations/schema.sql
+testdata/migrations/schema.sql
 .grifter/
-cockroach-data/
 vendor/
-go.mod
-go.sum
+.env
+
+# test data
+cockroach-data/

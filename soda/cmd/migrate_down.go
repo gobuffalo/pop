@@ -1,11 +1,11 @@
 package cmd
 
 import (
-	"github.com/gobuffalo/pop"
+	"github.com/gobuffalo/pop/v5"
 	"github.com/spf13/cobra"
 )
 
-var migrationStep int
+var migrationStepDown int
 
 var migrateDownCmd = &cobra.Command{
 	Use:   "down",
@@ -15,11 +15,11 @@ var migrateDownCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		return mig.Down(migrationStep)
+		return mig.Down(migrationStepDown)
 	},
 }
 
 func init() {
 	migrateCmd.AddCommand(migrateDownCmd)
-	migrateDownCmd.Flags().IntVarP(&migrationStep, "step", "s", 1, "Number of migration to down")
+	migrateDownCmd.Flags().IntVarP(&migrationStepDown, "step", "s", 1, "Number of migration to down")
 }
