@@ -159,7 +159,8 @@ func (ami *AssociationMetaInfo) fkName() string {
 		t = reflectx.Deref(t.Elem())
 	}
 	fkName := fmt.Sprintf("%s%s", flect.Underscore(flect.Singularize(t.Name())), "_id")
-	return defaults.String(ami.Field.Tag.Get("fk_id"), fkName)
+	fkNameTag := flect.Underscore(ami.Field.Tag.Get("fk_id"))
+	return defaults.String(fkNameTag, fkName)
 }
 
 // preload is the query mode used to load associations from database
@@ -339,6 +340,10 @@ func preloadHasOne(tx *Connection, asoc *AssociationMetaInfo, mmi *ModelMetaInfo
 func preloadBelongsTo(tx *Connection, asoc *AssociationMetaInfo, mmi *ModelMetaInfo) error {
 	// 1) get all associations ids.
 	fi := mmi.getDBFieldTaggedWith(asoc.fkName())
+	if fi == nil {
+		fi = mmi.getDBFieldTaggedWith(fmt.Sprintf("%s%s", flect.Underscore(asoc.Path), "_id"))
+	}
+
 	fkids := []interface{}{}
 	mmi.iterate(func(val reflect.Value) {
 		fkids = append(fkids, mmi.mapper.FieldByName(val, fi.Path).Interface())
