@@ -41,6 +41,7 @@ func belongsToAssociationBuilder(p associationParams) (Association, error) {
 				f := t.Field(i)
 				if f.Tag.Get("db") == dbTag {
 					ownerIDField = f.Name
+					break
 				}
 			}
 		} else {
