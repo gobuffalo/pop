@@ -31,7 +31,22 @@ func belongsToAssociationBuilder(p associationParams) (Association, error) {
 	ownerVal := p.modelValue.FieldByName(p.field.Name)
 	tags := p.popTags
 	primaryIDField := defaults.String(tags.Find("primary_id").Value, "ID")
-	ownerIDField := defaults.String(tags.Find("fk_id").Value, fmt.Sprintf("%s%s", p.field.Name, "ID"))
+	ownerIDField := fmt.Sprintf("%s%s", p.field.Name, "ID")
+
+	if tags.Find("fk_id").Value != "" {
+		dbTag := tags.Find("fk_id").Value
+		if _, found := p.modelType.FieldByName(dbTag); !found {
+			t := p.modelValue.Type()
+			for i := 0; i < t.NumField(); i++ {
+				f := t.Field(i)
+				if f.Tag.Get("db") == dbTag {
+					ownerIDField = f.Name
+				}
+			}
+		} else {
+			ownerIDField = dbTag
+		}
+	}
 
 	// belongs_to requires an holding field for the foreign model ID.
 	if _, found := p.modelType.FieldByName(ownerIDField); !found {
