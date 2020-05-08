@@ -972,7 +972,7 @@ func Test_Eager_Create_Belongs_To(t *testing.T) {
 
 		car := Taxi{
 			Model: "Fancy car",
-			Driver: User{
+			Driver: &User{
 				Name: nulls.NewString("Larry 2"),
 			},
 		}
@@ -1101,7 +1101,7 @@ func Test_Flat_Create_Belongs_To(t *testing.T) {
 
 		car := Taxi{
 			Model:  "Fancy car",
-			Driver: user,
+			Driver: &user,
 		}
 
 		err = tx.Create(&car)
