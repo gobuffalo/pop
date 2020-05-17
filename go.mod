@@ -3,7 +3,6 @@ module github.com/gobuffalo/pop/v5
 go 1.13
 
 require (
-	github.com/cockroachdb/cockroach-go v0.0.0-20190925194419-606b3d062051
 	github.com/fatih/color v1.9.0
 	github.com/go-sql-driver/mysql v1.5.0
 	github.com/gobuffalo/attrs v0.1.0
