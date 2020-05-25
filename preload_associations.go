@@ -439,6 +439,7 @@ func preloadBelongsTo(tx *Connection, asoc *AssociationMetaInfo, mmi *ModelMetaI
 	}
 
 	// 3) iterate over every model and fill it with the assoc.
+	idField := mmi.getDBFieldTaggedWith(asoc.targetPrimaryID())
 	mmi.iterate(func(mvalue reflect.Value) {
 		if isFieldNilPtr(mvalue, fi) {
 			return
@@ -446,7 +447,7 @@ func preloadBelongsTo(tx *Connection, asoc *AssociationMetaInfo, mmi *ModelMetaI
 		for i := 0; i < slice.Elem().Len(); i++ {
 			asocValue := slice.Elem().Index(i)
 			fkField := reflect.Indirect(mmi.mapper.FieldByName(mvalue, fi.Path))
-			field := mmi.mapper.FieldByName(asocValue, "ID")
+			field := mmi.mapper.FieldByName(asocValue, idField.Path)
 			if fkField.Interface() == field.Interface() || reflect.DeepEqual(fkField, field) {
 				// IMPORTANT
 				//

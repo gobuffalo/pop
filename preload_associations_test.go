@@ -394,7 +394,7 @@ func Test_New_Implementation_For_Nplus1_BelongsTo_Primary_ID(t *testing.T) {
 		userAttrs := []UserAttribute{}
 		a.NoError(tx.EagerPreload("User").All(&userAttrs))
 		a.Len(userAttrs, 2)
-		a.Equal("Mark", userAttrs[0].UserName)
-		a.Equal("Mark", userAttrs[1].UserName)
+		a.Equal("Mark", userAttrs[0].User.UserName)
+		a.Equal("Mark", userAttrs[1].User.UserName)
 	})
 }
