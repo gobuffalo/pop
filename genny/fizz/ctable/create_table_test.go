@@ -11,7 +11,7 @@ import (
 func Test_New(t *testing.T) {
 	r := require.New(t)
 
-	ats, err := attrs.ParseArgs("id:uuid", "created_at:timestamp", "updated_at:timestamp", "name", "description:text", "age:int", "bar:nulls.String")
+	ats, err := attrs.ParseArgs("id:uuid", "created_at:timestamp", "updated_at:timestamp", "name", "description:text", "age:int", "bar:nulls.String", "started_at:time.Time", "finished_at:nulls.Time")
 	r.NoError(err)
 
 	cases := []struct {
@@ -51,6 +51,8 @@ func Test_New(t *testing.T) {
 	t.Column("description", "text", {})
 	t.Column("age", "integer", {})
 	t.Column("bar", "string", {null: true})
+	t.Column("started_at", "timestamp", {})
+	t.Column("finished_at", "timestamp", {null: true})
 	t.Timestamps()
 }`,
 		},
