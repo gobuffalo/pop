@@ -203,3 +203,28 @@ func Test_New_Implementation_For_Nplus1_BelongsTo_Not_Underscore(t *testing.T) {
 		SetEagerMode(EagerDefault)
 	})
 }
+
+func Test_New_Implementation_For_Nplus1_BelongsTo_Primary_ID(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
+	transaction(func(tx *Connection) {
+		a := require.New(t)
+		user := User{Name: nulls.NewString("Mark"), UserName: "Mark"}
+		a.NoError(tx.Create(&user))
+
+		a.NoError(tx.Create(&UserAttribute{
+			UserName: "Mark",
+		}))
+
+		a.NoError(tx.Create(&UserAttribute{
+			UserName: "Mark",
+		}))
+
+		userAttrs := []UserAttribute{}
+		a.NoError(tx.EagerPreload("User").All(&userAttrs))
+		a.Len(userAttrs, 2)
+		a.Equal("Mark", userAttrs[0].User.UserName)
+		a.Equal("Mark", userAttrs[1].User.UserName)
+	})
+}
