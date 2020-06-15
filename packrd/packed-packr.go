@@ -31,8 +31,7 @@ var _ = func() error {
 		b := packr.New("github.com/gobuffalo/pop/v5/genny/model/templates", "../model/templates")
 		b.SetResolver("-path-/-name-.go.tmpl", packr.Pointer{ForwardBox: gk, ForwardPath: "fd34d2cca184d1b4064adfc3bbcec4c6"})
 		b.SetResolver("-path-/-name-_test.go.tmpl", packr.Pointer{ForwardBox: gk, ForwardPath: "f0365201a1fff056862862ae1fe97c7a"})
-		}()
-
+	}()
 
 	func() {
 		b := packr.New("pop:genny:config", "../config/templates")
@@ -41,7 +40,7 @@ var _ = func() error {
 		b.SetResolver("mysql.yml.tmpl", packr.Pointer{ForwardBox: gk, ForwardPath: "61f8f853a1eb5098e29f68f19098fa64"})
 		b.SetResolver("postgres.yml.tmpl", packr.Pointer{ForwardBox: gk, ForwardPath: "3abfce8456ed838a8a49ed01c478f6c3"})
 		b.SetResolver("sqlite3.yml.tmpl", packr.Pointer{ForwardBox: gk, ForwardPath: "657982e88b05d0a50529d69f20b7ede0"})
-		}()
+	}()
 
 	return nil
 }()

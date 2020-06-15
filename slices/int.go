@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
-
-	"errors"
 )
 
 // Int is a slice of int.
@@ -20,11 +18,15 @@ func (i Int) Interface() interface{} {
 // Scan implements the sql.Scanner interface.
 // It allows to read the int slice from the database value.
 func (i *Int) Scan(src interface{}) error {
-	b, ok := src.([]byte)
-	if !ok {
-		return errors.New("scan source was not []byte")
+	var str string
+	switch t := src.(type) {
+	case []byte:
+		str = string(t)
+	case string:
+		str = t
+	default:
+		return fmt.Errorf("scan source was not []byte nor string but %T", src)
 	}
-	str := string(b)
 	*i = strToInt(str)
 	return nil
 }

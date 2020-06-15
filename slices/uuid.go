@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"strings"
 
-	"errors"
-
 	"github.com/gofrs/uuid"
 )
 
@@ -24,9 +22,14 @@ func (s UUID) Interface() interface{} {
 // Scan implements the sql.Scanner interface.
 // It allows to read the UUID slice from the database value.
 func (s *UUID) Scan(src interface{}) error {
-	b, ok := src.([]byte)
-	if !ok {
-		return errors.New("scan source was not []byte")
+	var b []byte
+	switch t := src.(type) {
+	case []byte:
+		b = t
+	case string:
+		b = []byte(t)
+	default:
+		return fmt.Errorf("scan source was not []byte nor string but %T", src)
 	}
 	us, err := strSliceToUUIDSlice(strToUUID(string(b)))
 	if err != nil {
