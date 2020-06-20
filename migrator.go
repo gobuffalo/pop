@@ -154,8 +154,11 @@ func (m Migrator) Down(step int) error {
 		}
 		for _, mi := range mfs {
 			exists, err := c.Where("version = ?", mi.Version).Exists(mtn)
-			if err != nil || !exists {
+			if err != nil {
 				return errors.Wrapf(err, "problem checking for migration version %s", mi.Version)
+			}
+			if !exists {
+				return errors.Errorf("migration version %s does not exist", mi.Version)
 			}
 			err = c.Transaction(func(tx *Connection) error {
 				err := mi.Run(tx)
