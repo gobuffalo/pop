@@ -10,6 +10,9 @@ import (
 	"strings"
 	"sync"
 
+	// Import PostgreSQL driver
+	_ "github.com/jackc/pgx/v4/stdlib"
+
 	"github.com/gobuffalo/fizz"
 	"github.com/gobuffalo/fizz/translators"
 	"github.com/gobuffalo/pop/v5/columns"
@@ -57,7 +60,7 @@ func (p *cockroach) Name() string {
 }
 
 func (p *cockroach) DefaultDriver() string {
-	return namePostgreSQL
+	return "pgx"
 }
 
 func (p *cockroach) Details() *ConnectionDetails {
@@ -118,7 +121,14 @@ func (p *cockroach) SelectMany(s store, models *Model, query Query) error {
 func (p *cockroach) CreateDB() error {
 	// createdb -h db -p 5432 -U cockroach enterprise_development
 	deets := p.ConnectionDetails
-	db, err := sql.Open(deets.Dialect, p.urlWithoutDb())
+
+	// Overwrite dialect to match pgx driver for sql.Open
+	dialect := deets.Dialect
+	if dialect == "postgres" {
+		dialect = "pgx"
+	}
+
+	db, err := sql.Open(dialect, p.urlWithoutDb())
 	if err != nil {
 		return errors.Wrapf(err, "error creating Cockroach database %s", deets.Database)
 	}
@@ -137,7 +147,14 @@ func (p *cockroach) CreateDB() error {
 
 func (p *cockroach) DropDB() error {
 	deets := p.ConnectionDetails
-	db, err := sql.Open(deets.Dialect, p.urlWithoutDb())
+
+	// Overwrite dialect to match pgx driver for sql.Open
+	dialect := deets.Dialect
+	if dialect == "postgres" {
+		dialect = "pgx"
+	}
+
+	db, err := sql.Open(dialect, p.urlWithoutDb())
 	if err != nil {
 		return errors.Wrapf(err, "error dropping Cockroach database %s", deets.Database)
 	}

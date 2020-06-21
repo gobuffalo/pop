@@ -8,10 +8,11 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/gobuffalo/pop/v5/associations"
-	"github.com/gobuffalo/pop/v5/logging"
 	"github.com/gofrs/uuid"
 	"github.com/pkg/errors"
+
+	"github.com/gobuffalo/pop/v5/associations"
+	"github.com/gobuffalo/pop/v5/logging"
 )
 
 var rLimitOffset = regexp.MustCompile("(?i)(limit [0-9]+ offset [0-9]+)$")
@@ -33,16 +34,17 @@ func (q *Query) Find(model interface{}, id interface{}) error {
 	switch t := id.(type) {
 	case uuid.UUID:
 		return q.Where(idq, t.String()).First(model)
-	case string:
-		l := len(t)
-		if l > 0 {
-			// Handle leading '0':
-			// if the string have a leading '0' and is not "0", prevent parsing to int
-			if t[0] != '0' || l == 1 {
+	default:
+		// Pick argument type based on column type. This is required for keeping backwards compatibility with:
+		//
+		// https://github.com/gobuffalo/buffalo/blob/master/genny/resource/templates/use_model/actions/resource-name.go.tmpl#L76
+		switch m.ID().(type) {
+		case int32, int64, uint32, uint64, int8, uint8, int16, uint16, int:
+			if tid, ok := id.(string); ok {
 				var err error
-				id, err = strconv.Atoi(t)
-				if err != nil {
-					return q.Where(idq, t).First(model)
+				id, err = strconv.Atoi(tid)
+				if err == nil {
+					return q.Where(idq, id).First(model)
 				}
 			}
 		}
