@@ -55,7 +55,10 @@ func (p *postgresql) Details() *ConnectionDetails {
 }
 
 func (p *postgresql) Create(s store, model *Model, cols columns.Columns) error {
-	keyType := model.PrimaryKeyType()
+	keyType, err := model.PrimaryKeyType()
+	if err != nil {
+		return err
+	}
 	switch keyType {
 	case "int", "int64":
 		cols.Remove("id")

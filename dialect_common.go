@@ -44,7 +44,10 @@ func (commonDialect) Quote(key string) string {
 }
 
 func genericCreate(s store, model *Model, cols columns.Columns, quoter quotable) error {
-	keyType := model.PrimaryKeyType()
+	keyType, err := model.PrimaryKeyType()
+	if err != nil {
+		return err
+	}
 	switch keyType {
 	case "int", "int64":
 		var id int64
