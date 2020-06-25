@@ -146,10 +146,12 @@ func (c *Connection) Transaction(fn func(tx *Connection) error) error {
 		} else {
 			dberr = cn.TX.Commit()
 		}
-		if err != nil {
-			return err
+
+		if dberr != nil {
+			return errors.Wrap(dberr, "error committing or rolling back transaction")
 		}
-		return errors.Wrap(dberr, "error committing or rolling back transaction")
+
+		return err
 	})
 
 }
