@@ -72,7 +72,7 @@ func fizzColType(s string) string {
 	switch strings.ToLower(s) {
 	case "int":
 		return "integer"
-	case "time", "datetime":
+	case "time.time", "time", "datetime":
 		return "timestamp"
 	case "uuid.uuid", "uuid":
 		return "uuid"

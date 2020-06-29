@@ -79,12 +79,18 @@ func (m Migrator) UpLogOnly() error {
 
 // Up runs pending "up" migrations and applies them to the database.
 func (m Migrator) Up() error {
+	_, err := m.UpTo(0)
+	return err
+}
+
+// UpTo runs up to step "up" migrations and applies them to the database.
+// If step <= 0 all pending migrations are run.
+func (m Migrator) UpTo(step int) (applied int, err error) {
 	c := m.Connection
-	return m.exec(func() error {
+	err = m.exec(func() error {
 		mtn := c.MigrationTableName()
 		mfs := m.Migrations["up"]
 		sort.Sort(mfs)
-		applied := 0
 		for _, mi := range mfs {
 			if !m.migrationIsCompatible(c.Dialect, mi) {
 				continue
@@ -109,12 +115,18 @@ func (m Migrator) Up() error {
 			}
 			log(logging.Info, "> %s", mi.Name)
 			applied++
+			if step > 0 && applied >= step {
+				break
+			}
 		}
 		if applied == 0 {
 			log(logging.Info, "Migrations already up to date, nothing to apply")
+		} else {
+			log(logging.Info, "Successfully applied %d migrations.", applied)
 		}
 		return nil
 	})
+	return
 }
 
 // Down runs pending "down" migrations and rolls back the
@@ -171,8 +183,7 @@ func (m Migrator) Reset() error {
 
 // CreateSchemaMigrations sets up a table to track migrations. This is an idempotent
 // operation.
-func (m Migrator) CreateSchemaMigrations() error {
-	c := m.Connection
+func CreateSchemaMigrations(c *Connection) error {
 	mtn := c.MigrationTableName()
 	err := c.Open()
 	if err != nil {
@@ -195,6 +206,12 @@ func (m Migrator) CreateSchemaMigrations() error {
 		}
 		return nil
 	})
+}
+
+// CreateSchemaMigrations sets up a table to track migrations. This is an idempotent
+// operation.
+func (m Migrator) CreateSchemaMigrations() error {
+	return CreateSchemaMigrations(m.Connection)
 }
 
 // Status prints out the status of applied/pending migrations.

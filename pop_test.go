@@ -124,7 +124,7 @@ type Taxi struct {
 	ID        int       `db:"id"`
 	Model     string    `db:"model"`
 	UserID    nulls.Int `db:"user_id"`
-	Driver    User      `belongs_to:"user" fk_id:"UserID"`
+	Driver    *User     `belongs_to:"user" fk_id:"user_id"`
 	CreatedAt time.Time `db:"created_at"`
 	UpdatedAt time.Time `db:"updated_at"`
 }
@@ -240,7 +240,7 @@ type CourseCode struct {
 	CreatedAt time.Time `json:"created_at" db:"created_at"`
 	UpdatedAt time.Time `json:"updated_at" db:"updated_at"`
 	CourseID  uuid.UUID `json:"course_id" db:"course_id"`
-	Course    Course    `json:"-" db:"-"`
+	Course    Course    `json:"-" belongs_to:"course"`
 	// Course Course `belongs_to:"course"`
 }
 
