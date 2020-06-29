@@ -38,13 +38,16 @@ func (q *Query) Find(model interface{}, id interface{}) error {
 		// Pick argument type based on column type. This is required for keeping backwards compatibility with:
 		//
 		// https://github.com/gobuffalo/buffalo/blob/master/genny/resource/templates/use_model/actions/resource-name.go.tmpl#L76
-		switch m.ID().(type) {
-		case int32, int64, uint32, uint64, int8, uint8, int16, uint16, int:
+		pkt, err := m.PrimaryKeyType()
+		if err != nil {
+			return err
+		}
+
+		switch pkt {
+		case "int32", "int64", "uint32", "uint64", "int8", "uint8", "int16", "uint16", "int":
 			if tid, ok := id.(string); ok {
-				var err error
-				id, err = strconv.Atoi(tid)
-				if err == nil {
-					return q.Where(idq, id).First(model)
+				if intID, err := strconv.Atoi(tid); err == nil {
+					return q.Where(idq, intID).First(model)
 				}
 			}
 		}
@@ -144,7 +147,7 @@ func (q *Query) All(models interface{}) error {
 	})
 
 	if err != nil {
-		return errors.Wrap(err, "unable to fetch records")
+		return err //errors.Wrap(err, "unable to fetch records")
 	}
 
 	if q.eager {
@@ -291,7 +294,7 @@ func (q *Query) eagerDefaultAssociations(model interface{}) error {
 // 	q.Where("name = ?", "mark").Exists(&User{})
 func (q *Query) Exists(model interface{}) (bool, error) {
 	tmpQuery := Q(q.Connection)
-	q.Clone(tmpQuery) //avoid meddling with original query
+	q.Clone(tmpQuery) // avoid meddling with original query
 
 	var res bool
 
@@ -337,7 +340,7 @@ func (q Query) Count(model interface{}) (int, error) {
 //	q.Where("sex = ?", "f").Count(&User{}, "name")
 func (q Query) CountByField(model interface{}, field string) (int, error) {
 	tmpQuery := Q(q.Connection)
-	q.Clone(tmpQuery) //avoid meddling with original query
+	q.Clone(tmpQuery) // avoid meddling with original query
 
 	res := &rowCount{}
 
@@ -346,7 +349,7 @@ func (q Query) CountByField(model interface{}, field string) (int, error) {
 		tmpQuery.orderClauses = clauses{}
 		tmpQuery.limitResults = 0
 		query, args := tmpQuery.ToSQL(&Model{Value: model})
-		//when query contains custom selected fields / executed using RawQuery,
+		// when query contains custom selected fields / executed using RawQuery,
 		//	sql may already contains limit and offset
 
 		if rLimitOffset.MatchString(query) {

@@ -2,6 +2,7 @@ package pop
 
 import (
 	"fmt"
+	"github.com/pkg/errors"
 	"reflect"
 	"sync"
 	"time"
@@ -34,9 +35,9 @@ type Model struct {
 func (m *Model) ID() interface{} {
 	fbn, err := m.fieldByName("ID")
 	if err != nil {
-		return 0
+		return nil
 	}
-	if m.PrimaryKeyType() == "UUID" {
+	if pkt, _ := m.PrimaryKeyType(); pkt == "UUID" {
 		return fbn.Interface().(uuid.UUID).String()
 	}
 	return fbn.Interface()
@@ -57,12 +58,12 @@ func (m *Model) IDField() string {
 }
 
 // PrimaryKeyType gives the primary key type of the `Model`.
-func (m *Model) PrimaryKeyType() string {
+func (m *Model) PrimaryKeyType() (string, error) {
 	fbn, err := m.fieldByName("ID")
 	if err != nil {
-		return "int"
+		return "", errors.Errorf("model %T is missing required field ID", m.Value)
 	}
-	return fbn.Type().Name()
+	return fbn.Type().Name(), nil
 }
 
 // TableNameAble interface allows for the customize table mapping
