@@ -92,8 +92,8 @@ func (p *cockroach) Create(s store, model *Model, cols columns.Columns) error {
 		}
 		err = stmt.Get(&id, model.Value)
 		if err != nil {
-			if err := stmt.Close(); err != nil {
-				return errors.WithMessage(err, "failed to close statement")
+			if closeErr := stmt.Close(); closeErr != nil {
+				return errors.Wrapf(err, "failed to close prepared statement: %s", closeErr)
 			}
 			return err
 		}
