@@ -8,6 +8,20 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+type logEntry struct {
+	lvl  logging.Level
+	s    string
+	args []interface{}
+}
+
+func setNewTestLogger() *[]logEntry {
+	var logs []logEntry
+	log = func(lvl logging.Level, s string, args ...interface{}) {
+		logs = append(logs, logEntry{lvl, s, args})
+	}
+	return &logs
+}
+
 func Test_MigrationBox(t *testing.T) {
 	if PDB == nil {
 		t.Skip("skipping integration tests")
