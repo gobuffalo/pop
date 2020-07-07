@@ -9,7 +9,22 @@ import (
 	"github.com/gobuffalo/pop/v5/logging"
 )
 
-type logger func(lvl logging.Level, s string, args ...interface{})
+type (
+	logger   func(lvl logging.Level, s string, args ...interface{})
+	logEntry struct {
+		lvl  logging.Level
+		s    string
+		args []interface{}
+	}
+)
+
+func setNewTestLogger() *[]logEntry {
+	var logs []logEntry
+	log = func(lvl logging.Level, s string, args ...interface{}) {
+		logs = append(logs, logEntry{lvl, s, args})
+	}
+	return &logs
+}
 
 // Debug mode, to toggle verbose log traces
 var Debug = false
