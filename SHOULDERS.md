@@ -47,6 +47,8 @@ Thank you to the following **GIANTS**:
 
 * [github.com/lib/pq](https://godoc.org/github.com/lib/pq)
 
+* [github.com/jackc/pgx](https://godoc.org/github.com/jackc/pgx)
+
 * [github.com/mattn/go-colorable](https://godoc.org/github.com/mattn/go-colorable)
 
 * [github.com/mattn/go-isatty](https://godoc.org/github.com/mattn/go-isatty)

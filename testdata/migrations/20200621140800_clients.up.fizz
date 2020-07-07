@@ -1,0 +1,4 @@
+create_table("clients") {
+ t.Column("id", "string", {"length": 32, "primary": true})
+ t.DisableTimestamps()
+}

@@ -47,3 +47,13 @@ func (mfs Migrations) Less(i, j int) bool {
 func (mfs Migrations) Swap(i, j int) {
 	mfs[i], mfs[j] = mfs[j], mfs[i]
 }
+
+func (mfs *Migrations) Filter(f func(mf Migration) bool) {
+	vsf := make(Migrations, 0)
+	for _, v := range *mfs {
+		if f(v) {
+			vsf = append(vsf, v)
+		}
+	}
+	*mfs = vsf
+}

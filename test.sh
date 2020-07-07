@@ -38,7 +38,7 @@ function cleanup {
 trap cleanup EXIT
 
 docker-compose up -d
-sleep 4 # Ensure mysql is online
+sleep 5 # Ensure mysql is online
 
 go build -v -tags sqlite -o tsoda ./soda
 

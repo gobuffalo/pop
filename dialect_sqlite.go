@@ -64,7 +64,10 @@ func (m *sqlite) MigrationURL() string {
 
 func (m *sqlite) Create(s store, model *Model, cols columns.Columns) error {
 	return m.locker(m.smGil, func() error {
-		keyType := model.PrimaryKeyType()
+		keyType, err := model.PrimaryKeyType()
+		if err != nil {
+			return err
+		}
 		switch keyType {
 		case "int", "int64":
 			var id int64
