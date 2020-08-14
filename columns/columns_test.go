@@ -16,6 +16,11 @@ type foo struct {
 	WriteOnly string `db:"write" rw:"w"`
 }
 
+type bar struct {
+	foo
+	MiddleName string `db:"middle_name"`
+}
+
 type foos []foo
 
 func Test_Column_MapsSlice(t *testing.T) {
@@ -80,4 +85,17 @@ func Test_Columns_Sorted(t *testing.T) {
 	r.Equal(c.SymbolizedString(), ":amount, :amount_units")
 	r.Equal(c.String(), "amount, amount_units")
 	r.Equal(c.QuotedString(fooQuoter{}), "`amount`, `amount_units`")
+}
+
+func Test_Columns_Embedded(t *testing.T) {
+	r := require.New(t)
+
+	c := columns.ForStruct(bar{}, "bar")
+
+	r.Equal(c.Cols["first_name"], &columns.Column{Name: "first_name", Writeable: false, Readable: true, SelectSQL: "first_name as f"})
+	r.Equal(c.Cols["middle_name"], &columns.Column{Name: "middle_name", Writeable: true, Readable: true, SelectSQL: "bar.middle_name"})
+	r.Equal(c.Cols["LastName"], &columns.Column{Name: "LastName", Writeable: true, Readable: true, SelectSQL: "bar.LastName"})
+	r.Equal(c.Cols["read"], &columns.Column{Name: "read", Writeable: false, Readable: true, SelectSQL: "bar.read"})
+	r.Equal(c.Cols["write"], &columns.Column{Name: "write", Writeable: true, Readable: false, SelectSQL: "bar.write"})
+	r.Equal(c.Cols["foo"], &columns.Column{Name: "foo", Writeable: true, Readable: true, SelectSQL: "bar.foo"})
 }
