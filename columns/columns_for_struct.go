@@ -45,7 +45,7 @@ func appendStruct(columns Columns, st reflect.Type) {
 		popTags := TagsFor(field)
 		tag := popTags.Find("db")
 
-		if tag.Attrs["inline"] {
+		if tag.Options["inline"] {
 			appendStruct(columns, field.Type)
 		}
 		if !tag.Ignored() && !tag.Empty() {

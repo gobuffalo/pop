@@ -9,9 +9,9 @@ var tags = "db rw select belongs_to has_many has_one fk_id primary_id order_by m
 
 // Tag represents a field tag defined exclusively for pop package.
 type Tag struct {
-	Value string
-	Name  string
-	Attrs map[string]bool
+	Value   string
+	Name    string
+	Options map[string]bool
 }
 
 // Empty validates if this pop tag is empty.
