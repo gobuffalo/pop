@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/gobuffalo/nulls"
 	"github.com/gobuffalo/pop/v5/columns"
 	"github.com/stretchr/testify/require"
 )
@@ -14,11 +15,6 @@ type foo struct {
 	Unwanted  string `db:"-"`
 	ReadOnly  string `db:"read" rw:"r"`
 	WriteOnly string `db:"write" rw:"w"`
-}
-
-type bar struct {
-	foo
-	MiddleName string `db:"middle_name"`
 }
 
 type foos []foo
@@ -87,6 +83,12 @@ func Test_Columns_Sorted(t *testing.T) {
 	r.Equal(c.QuotedString(fooQuoter{}), "`amount`, `amount_units`")
 }
 
+type bar struct {
+	foo        `db:"foo,inline"`
+	MiddleName string       `db:"middle_name"`
+	Bio        nulls.String `db:"bio"`
+}
+
 func Test_Columns_Embedded(t *testing.T) {
 	r := require.New(t)
 
@@ -98,4 +100,7 @@ func Test_Columns_Embedded(t *testing.T) {
 	r.Equal(c.Cols["read"], &columns.Column{Name: "read", Writeable: false, Readable: true, SelectSQL: "bar.read"})
 	r.Equal(c.Cols["write"], &columns.Column{Name: "write", Writeable: true, Readable: false, SelectSQL: "bar.write"})
 	r.Equal(c.Cols["foo"], &columns.Column{Name: "foo", Writeable: true, Readable: true, SelectSQL: "bar.foo"})
+	// Ensure it's not including non-inlined structs (nulls.String)
+	r.NotContains(c.Cols, "String")
+	r.NotContains(c.Cols, "Valid")
 }

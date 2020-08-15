@@ -2,8 +2,6 @@ package columns
 
 import (
 	"reflect"
-
-	"github.com/jmoiron/sqlx/reflectx"
 )
 
 // ForStruct returns a Columns instance for
@@ -33,12 +31,23 @@ func ForStructWithAlias(s interface{}, tableName string, tableAlias string) (col
 		}
 	}
 
-	fieldMap := reflectx.NewMapper("").TypeMap(st)
+	appendStruct(columns, st)
 
-	for _, i := range fieldMap.Index {
-		popTags := TagsFor(i.Field)
+	return columns
+}
+
+func appendStruct(columns Columns, st reflect.Type) {
+	fieldCount := st.NumField()
+
+	for i := 0; i < fieldCount; i++ {
+		field := st.Field(i)
+
+		popTags := TagsFor(field)
 		tag := popTags.Find("db")
 
+		if tag.Attrs["inline"] {
+			appendStruct(columns, field.Type)
+		}
 		if !tag.Ignored() && !tag.Empty() {
 			col := tag.Value
 
@@ -58,6 +67,4 @@ func ForStructWithAlias(s interface{}, tableName string, tableAlias string) (col
 			}
 		}
 	}
-
-	return columns
 }
