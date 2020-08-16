@@ -115,13 +115,12 @@ func (p *postgresql) CreateDB() error {
 	// createdb -h db -p 5432 -U postgres enterprise_development
 	deets := p.ConnectionDetails
 
-	// Overwrite dialect to match pgx driver for sql.Open
-	dialect := deets.Dialect
-	if dialect == "postgres" {
-		dialect = "pgx"
+	driver := p.DefaultDriver()
+	if p.ConnectionDetails.Driver != "" {
+		driver = p.ConnectionDetails.Driver
 	}
 
-	db, err := sql.Open(dialect, p.urlWithoutDb())
+	db, err := sql.Open(driver, p.urlWithoutDb())
 	if err != nil {
 		return errors.Wrapf(err, "error creating PostgreSQL database %s", deets.Database)
 	}
@@ -142,12 +141,12 @@ func (p *postgresql) DropDB() error {
 	deets := p.ConnectionDetails
 
 	// Overwrite dialect to match pgx driver for sql.Open
-	dialect := deets.Dialect
-	if dialect == "postgres" {
-		dialect = "pgx"
+	driver := p.DefaultDriver()
+	if p.ConnectionDetails.Driver != "" {
+		driver = p.ConnectionDetails.Driver
 	}
 
-	db, err := sql.Open(dialect, p.urlWithoutDb())
+	db, err := sql.Open(driver, p.urlWithoutDb())
 	if err != nil {
 		return errors.Wrapf(err, "error dropping PostgreSQL database %s", deets.Database)
 	}
@@ -211,7 +210,7 @@ func (p *postgresql) DumpSchema(w io.Writer) error {
 
 // LoadSchema executes a schema sql file against the configured database.
 func (p *postgresql) LoadSchema(r io.Reader) error {
-	return genericLoadSchema(p.ConnectionDetails, p.MigrationURL(), r)
+	return genericLoadSchema(p.ConnectionDetails, p.DefaultDriver(), p.MigrationURL(), r)
 }
 
 // TruncateAll truncates all tables for the given connection.

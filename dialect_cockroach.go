@@ -126,12 +126,12 @@ func (p *cockroach) CreateDB() error {
 	deets := p.ConnectionDetails
 
 	// Overwrite dialect to match pgx driver for sql.Open
-	dialect := deets.Dialect
-	if dialect == "postgres" {
-		dialect = "pgx"
+	driver := p.DefaultDriver()
+	if p.ConnectionDetails.Driver != "" {
+		driver = p.ConnectionDetails.Driver
 	}
 
-	db, err := sql.Open(dialect, p.urlWithoutDb())
+	db, err := sql.Open(driver, p.urlWithoutDb())
 	if err != nil {
 		return errors.Wrapf(err, "error creating Cockroach database %s", deets.Database)
 	}
@@ -152,12 +152,12 @@ func (p *cockroach) DropDB() error {
 	deets := p.ConnectionDetails
 
 	// Overwrite dialect to match pgx driver for sql.Open
-	dialect := deets.Dialect
-	if dialect == "postgres" {
-		dialect = "pgx"
+	driver := p.DefaultDriver()
+	if p.ConnectionDetails.Driver != "" {
+		driver = p.ConnectionDetails.Driver
 	}
 
-	db, err := sql.Open(dialect, p.urlWithoutDb())
+	db, err := sql.Open(driver, p.urlWithoutDb())
 	if err != nil {
 		return errors.Wrapf(err, "error dropping Cockroach database %s", deets.Database)
 	}
@@ -221,7 +221,7 @@ func (p *cockroach) DumpSchema(w io.Writer) error {
 }
 
 func (p *cockroach) LoadSchema(r io.Reader) error {
-	return genericLoadSchema(p.ConnectionDetails, p.MigrationURL(), r)
+	return genericLoadSchema(p.ConnectionDetails, p.DefaultDriver(), p.MigrationURL(), r)
 }
 
 func (p *cockroach) TruncateAll(tx *Connection) error {
