@@ -143,9 +143,13 @@ func genericSelectMany(s store, models *Model, query Query) error {
 	return nil
 }
 
-func genericLoadSchema(deets *ConnectionDetails, migrationURL string, r io.Reader) error {
+func genericLoadSchema(deets *ConnectionDetails, defaultDriver, migrationURL string, r io.Reader) error {
 	// Open DB connection on the target DB
-	db, err := sqlx.Open(deets.Dialect, migrationURL)
+	driver := defaultDriver
+	if deets.Driver != "" {
+		driver = deets.Driver
+	}
+	db, err := sqlx.Open(driver, migrationURL)
 	if err != nil {
 		return errors.WithMessage(err, fmt.Sprintf("unable to load schema for %s", deets.Database))
 	}

@@ -165,7 +165,7 @@ func (m *mysql) DumpSchema(w io.Writer) error {
 
 // LoadSchema executes a schema sql file against the configured database.
 func (m *mysql) LoadSchema(r io.Reader) error {
-	return genericLoadSchema(m.ConnectionDetails, m.MigrationURL(), r)
+	return genericLoadSchema(m.ConnectionDetails, m.DefaultDriver(), m.MigrationURL(), r)
 }
 
 // TruncateAll truncates all tables for the given connection.
