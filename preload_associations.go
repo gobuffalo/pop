@@ -39,7 +39,7 @@ type ModelMetaInfo struct {
 	*reflectx.StructMap
 	Model        *Model
 	mapper       *reflectx.Mapper
-	nestedFields map[string]string
+	nestedFields map[string][]string
 }
 
 func (mmi *ModelMetaInfo) init() {
@@ -52,7 +52,7 @@ func (mmi *ModelMetaInfo) init() {
 	}
 
 	mmi.StructMap = m.TypeMap(t)
-	mmi.nestedFields = make(map[string]string)
+	mmi.nestedFields = make(map[string][]string)
 }
 
 func (mmi *ModelMetaInfo) iterate(fn func(reflect.Value)) {
@@ -89,7 +89,8 @@ func (mmi *ModelMetaInfo) preloadFields(fields ...string) ([]*reflectx.FieldInfo
 			return preloadFields, fmt.Errorf("association field '%s' does not match the format %s", f, "'<field>' or '<field>.<nested-field>'")
 		}
 		if strings.Contains(f, ".") {
-			mmi.nestedFields[f[:strings.Index(f, ".")]] = f[strings.Index(f, ".")+1:]
+			fname := f[:strings.Index(f, ".")]
+			mmi.nestedFields[fname] = append(mmi.nestedFields[fname], f[strings.Index(f, ".")+1:])
 			f = f[:strings.Index(f, ".")]
 		}
 
@@ -257,8 +258,10 @@ func preloadHasMany(tx *Connection, asoc *AssociationMetaInfo, mmi *ModelMetaInf
 
 	// 2.1) load all nested associations from this assoc.
 	if asocNestedFields, ok := mmi.nestedFields[asoc.Path]; ok {
-		if err := preload(tx, slice.Interface(), asocNestedFields); err != nil {
-			return err
+		for _, asocNestedField := range asocNestedFields {
+			if err := preload(tx, slice.Interface(), asocNestedField); err != nil {
+				return err
+			}
 		}
 	}
 
@@ -316,8 +319,10 @@ func preloadHasOne(tx *Connection, asoc *AssociationMetaInfo, mmi *ModelMetaInfo
 
 	// 2.1) load all nested associations from this assoc.
 	if asocNestedFields, ok := mmi.nestedFields[asoc.Path]; ok {
-		if err := preload(tx, slice.Interface(), asocNestedFields); err != nil {
-			return err
+		for _, asocNestedField := range asocNestedFields {
+			if err := preload(tx, slice.Interface(), asocNestedField); err != nil {
+				return err
+			}
 		}
 	}
 
@@ -372,8 +377,10 @@ func preloadBelongsTo(tx *Connection, asoc *AssociationMetaInfo, mmi *ModelMetaI
 
 	// 2.1) load all nested associations from this assoc.
 	if asocNestedFields, ok := mmi.nestedFields[asoc.Path]; ok {
-		if err := preload(tx, slice.Interface(), asocNestedFields); err != nil {
-			return err
+		for _, asocNestedField := range asocNestedFields {
+			if err := preload(tx, slice.Interface(), asocNestedField); err != nil {
+				return err
+			}
 		}
 	}
 
@@ -467,8 +474,10 @@ func preloadManyToMany(tx *Connection, asoc *AssociationMetaInfo, mmi *ModelMeta
 
 		// 2.2) load all nested associations from this assoc.
 		if asocNestedFields, ok := mmi.nestedFields[asoc.Path]; ok {
-			if err := preload(tx, slice.Interface(), asocNestedFields); err != nil {
-				return err
+			for _, asocNestedField := range asocNestedFields {
+				if err := preload(tx, slice.Interface(), asocNestedField); err != nil {
+					return err
+				}
 			}
 		}
 
