@@ -387,3 +387,10 @@ type Parent struct {
 	UpdatedAt time.Time  `json:"updated_at" db:"updated_at"`
 	Students  []*Student `many_to_many:"parents_students"`
 }
+
+type CrookedColour struct {
+	ID        int       `db:"pk"`
+	Name      string    `db:"name"`
+	CreatedAt time.Time `db:"created_at"`
+	UpdatedAt time.Time `db:"updated_at"`
+}

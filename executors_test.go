@@ -464,6 +464,29 @@ func Test_Create_With_Slice(t *testing.T) {
 	})
 }
 
+func Test_Create_With_Non_ID_PK(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
+	transaction(func(tx *Connection) {
+		r := require.New(t)
+
+		count, _ := tx.Count(&CrookedColour{})
+		djs := []CrookedColour{
+			{Name: "Phil Slabber"},
+			{Name: "Leon Debaughn"},
+			{Name: "Liam Merrett-Park"},
+		}
+		err := tx.Create(&djs)
+		r.NoError(err)
+
+		ctx, _ := tx.Count(&CrookedColour{})
+		r.Equal(count+3, ctx)
+		r.NotEqual(djs[0].ID, djs[1].ID)
+		r.NotEqual(djs[1].ID, djs[2].ID)
+	})
+}
+
 func Test_Eager_Create_Has_Many(t *testing.T) {
 	if PDB == nil {
 		t.Skip("skipping integration tests")
