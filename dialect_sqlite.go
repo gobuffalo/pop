@@ -68,6 +68,7 @@ func (m *sqlite) Create(s store, model *Model, cols columns.Columns) error {
 		switch keyType {
 		case "int", "int64":
 			var id int64
+			cols.Remove(model.IDField())
 			w := cols.Writeable()
 			var query string
 			if len(w.Cols) > 0 {
