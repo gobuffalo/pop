@@ -48,6 +48,7 @@ func genericCreate(s store, model *Model, cols columns.Columns, quoter quotable)
 	switch keyType {
 	case "int", "int64":
 		var id int64
+		cols.Remove(model.IDField())
 		w := cols.Writeable()
 		query := fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s)", quoter.Quote(model.TableName()), w.QuotedString(quoter), w.SymbolizedString())
 		log(logging.SQL, query)
@@ -76,7 +77,7 @@ func genericCreate(s store, model *Model, cols columns.Columns, quoter quotable)
 			return fmt.Errorf("missing ID value")
 		}
 		w := cols.Writeable()
-		w.Add("id")
+		w.Add(model.IDField())
 		query := fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s)", quoter.Quote(model.TableName()), w.QuotedString(quoter), w.SymbolizedString())
 		log(logging.SQL, query)
 		stmt, err := s.PrepareNamed(query)
