@@ -196,7 +196,7 @@ func (m *Model) whereID() string {
 }
 
 func (m *Model) whereNamedID() string {
-	return fmt.Sprintf("%s.%s = :id", m.TableName(), m.IDField())
+	return fmt.Sprintf("%s.%s = :%s", m.TableName(), m.IDField(), m.IDField())
 }
 
 func (m *Model) isSlice() bool {
