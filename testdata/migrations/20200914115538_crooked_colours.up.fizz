@@ -1,0 +1,8 @@
+create_table("crooked_colours") {
+    t.Column("pk", "int", { primary: true })
+    t.Column("name", "string", {})
+}
+
+create_table("crooked_songs") {
+    t.Column("name", "string", { primary: true })
+}
