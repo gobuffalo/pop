@@ -203,3 +203,31 @@ func Test_New_Implementation_For_Nplus1_BelongsTo_Not_Underscore(t *testing.T) {
 		SetEagerMode(EagerDefault)
 	})
 }
+
+func Test_New_Implementation_For_BelongsTo_Multiple_Fields(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
+	transaction(func(tx *Connection) {
+		a := require.New(t)
+		user := User{Name: nulls.NewString("Mark")}
+		a.NoError(tx.Create(&user))
+
+		address := Address{HouseNumber: 2, Street: "Street One"}
+		a.NoError(tx.Create(&address))
+
+		taxi := Taxi{UserID: nulls.NewInt(user.ID), AddressID: nulls.NewInt(address.ID)}
+		a.NoError(tx.Create(&taxi))
+
+		book := Book{TaxiID: nulls.NewInt(taxi.ID), Title: "My Book"}
+		a.NoError(tx.Create(&book))
+
+		SetEagerMode(EagerPreload)
+		books := []Book{}
+		a.NoError(tx.EagerPreload("Taxi.Driver", "Taxi.Address").All(&books))
+		a.Len(books, 1)
+		a.Equal(user.Name.String, books[0].Taxi.Driver.Name.String)
+		a.Equal(address.Street, books[0].Taxi.Address.Street)
+		SetEagerMode(EagerDefault)
+	})
+}
