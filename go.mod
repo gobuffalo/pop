@@ -25,6 +25,7 @@ require (
 	github.com/jmoiron/sqlx v1.2.0
 	github.com/karrick/godirwalk v1.16.1 // indirect
 	github.com/lib/pq v1.3.0
+	github.com/luna-duclos/instrumentedsql v1.1.3
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/cobra v0.0.6

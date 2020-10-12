@@ -1,7 +1,6 @@
 package pop
 
 import (
-	"database/sql"
 	"fmt"
 	"io"
 	"os/exec"
@@ -113,12 +112,7 @@ func (p *postgresql) CreateDB() error {
 	// createdb -h db -p 5432 -U postgres enterprise_development
 	deets := p.ConnectionDetails
 
-	driver := p.DefaultDriver()
-	if p.ConnectionDetails.Driver != "" {
-		driver = p.ConnectionDetails.Driver
-	}
-
-	db, err := sql.Open(driver, p.urlWithoutDb())
+	db, err := openPotentiallyInstrumentedConnection(p, p.urlWithoutDb())
 	if err != nil {
 		return errors.Wrapf(err, "error creating PostgreSQL database %s", deets.Database)
 	}
@@ -138,13 +132,7 @@ func (p *postgresql) CreateDB() error {
 func (p *postgresql) DropDB() error {
 	deets := p.ConnectionDetails
 
-	// Overwrite dialect to match pgx driver for sql.Open
-	driver := p.DefaultDriver()
-	if p.ConnectionDetails.Driver != "" {
-		driver = p.ConnectionDetails.Driver
-	}
-
-	db, err := sql.Open(driver, p.urlWithoutDb())
+	db, err := openPotentiallyInstrumentedConnection(p, p.urlWithoutDb())
 	if err != nil {
 		return errors.Wrapf(err, "error dropping PostgreSQL database %s", deets.Database)
 	}
@@ -208,7 +196,7 @@ func (p *postgresql) DumpSchema(w io.Writer) error {
 
 // LoadSchema executes a schema sql file against the configured database.
 func (p *postgresql) LoadSchema(r io.Reader) error {
-	return genericLoadSchema(p.ConnectionDetails, p.DefaultDriver(), p.MigrationURL(), r)
+	return genericLoadSchema(p, r)
 }
 
 // TruncateAll truncates all tables for the given connection.

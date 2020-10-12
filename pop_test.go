@@ -29,6 +29,10 @@ type SQLiteSuite struct {
 	suite.Suite
 }
 
+type CockroachSuite struct {
+	suite.Suite
+}
+
 func TestSpecificSuites(t *testing.T) {
 	switch os.Getenv("SODA_DIALECT") {
 	case "postgres":
@@ -37,6 +41,8 @@ func TestSpecificSuites(t *testing.T) {
 		suite.Run(t, &MySQLSuite{})
 	case "sqlite":
 		suite.Run(t, &SQLiteSuite{})
+	case "cockroach":
+		suite.Run(t, &CockroachSuite{})
 	}
 }
 
