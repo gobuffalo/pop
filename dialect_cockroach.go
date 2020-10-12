@@ -10,6 +10,9 @@ import (
 	"strings"
 	"sync"
 
+	// Import PostgreSQL driver
+	_ "github.com/jackc/pgx/v4/stdlib"
+
 	"github.com/gobuffalo/fizz"
 	"github.com/gobuffalo/fizz/translators"
 	"github.com/gobuffalo/pop/v5/columns"
@@ -57,7 +60,7 @@ func (p *cockroach) Name() string {
 }
 
 func (p *cockroach) DefaultDriver() string {
-	return namePostgreSQL
+	return "pgx"
 }
 
 func (p *cockroach) Details() *ConnectionDetails {
@@ -65,7 +68,10 @@ func (p *cockroach) Details() *ConnectionDetails {
 }
 
 func (p *cockroach) Create(s store, model *Model, cols columns.Columns) error {
-	keyType := model.PrimaryKeyType()
+	keyType, err := model.PrimaryKeyType()
+	if err != nil {
+		return err
+	}
 	switch keyType {
 	case "int", "int64":
 		cols.Remove(model.IDField())
@@ -84,8 +90,8 @@ func (p *cockroach) Create(s store, model *Model, cols columns.Columns) error {
 		id := map[string]interface{}{}
 		err = stmt.QueryRow(model.Value).MapScan(id)
 		if err != nil {
-			if err := stmt.Close(); err != nil {
-				return errors.WithMessage(err, "failed to close statement")
+			if closeErr := stmt.Close(); closeErr != nil {
+				return errors.Wrapf(err, "failed to close prepared statement: %s", closeErr)
 			}
 			return err
 		}
@@ -116,7 +122,14 @@ func (p *cockroach) SelectMany(s store, models *Model, query Query) error {
 func (p *cockroach) CreateDB() error {
 	// createdb -h db -p 5432 -U cockroach enterprise_development
 	deets := p.ConnectionDetails
-	db, err := sql.Open(deets.Dialect, p.urlWithoutDb())
+
+	// Overwrite dialect to match pgx driver for sql.Open
+	driver := p.DefaultDriver()
+	if p.ConnectionDetails.Driver != "" {
+		driver = p.ConnectionDetails.Driver
+	}
+
+	db, err := sql.Open(driver, p.urlWithoutDb())
 	if err != nil {
 		return errors.Wrapf(err, "error creating Cockroach database %s", deets.Database)
 	}
@@ -135,7 +148,14 @@ func (p *cockroach) CreateDB() error {
 
 func (p *cockroach) DropDB() error {
 	deets := p.ConnectionDetails
-	db, err := sql.Open(deets.Dialect, p.urlWithoutDb())
+
+	// Overwrite dialect to match pgx driver for sql.Open
+	driver := p.DefaultDriver()
+	if p.ConnectionDetails.Driver != "" {
+		driver = p.ConnectionDetails.Driver
+	}
+
+	db, err := sql.Open(driver, p.urlWithoutDb())
 	if err != nil {
 		return errors.Wrapf(err, "error dropping Cockroach database %s", deets.Database)
 	}
@@ -199,7 +219,7 @@ func (p *cockroach) DumpSchema(w io.Writer) error {
 }
 
 func (p *cockroach) LoadSchema(r io.Reader) error {
-	return genericLoadSchema(p.ConnectionDetails, p.MigrationURL(), r)
+	return genericLoadSchema(p.ConnectionDetails, p.DefaultDriver(), p.MigrationURL(), r)
 }
 
 func (p *cockroach) TruncateAll(tx *Connection) error {
