@@ -16,12 +16,15 @@ services:
     image: postgres:9.6
     environment:
       - POSTGRES_DB=pop_test
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=postgres
     ports:
       - "5432:5432"
     volumes:
       - ./sqldumps:/docker-entrypoint-initdb.d
   cockroach:
-    image: cockroachdb/cockroach:v1.1.1
+    image: cockroachdb/cockroach:v2.1.0
     ports:
       - "26257:26257"
       - "8080:8080"

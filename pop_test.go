@@ -7,11 +7,12 @@ import (
 	"time"
 
 	"github.com/gobuffalo/nulls"
-	"github.com/gobuffalo/pop/v5/logging"
 	"github.com/gobuffalo/validate/v3"
 	"github.com/gobuffalo/validate/v3/validators"
 	"github.com/gofrs/uuid"
 	"github.com/stretchr/testify/suite"
+
+	"github.com/gobuffalo/pop/v5/logging"
 )
 
 var PDB *Connection
@@ -71,6 +72,14 @@ func transaction(fn func(tx *Connection)) {
 
 func ts(s string) string {
 	return PDB.Dialect.TranslateSQL(s)
+}
+
+type Client struct {
+	ClientID string `db:"id"`
+}
+
+func (c Client) TableName() string {
+	return "clients"
 }
 
 type User struct {

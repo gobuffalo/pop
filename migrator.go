@@ -90,11 +90,11 @@ func (m Migrator) UpTo(step int) (applied int, err error) {
 	err = m.exec(func() error {
 		mtn := c.MigrationTableName()
 		mfs := m.Migrations["up"]
+		mfs.Filter(func(mf Migration) bool {
+			return m.migrationIsCompatible(c.Dialect, mf)
+		})
 		sort.Sort(mfs)
 		for _, mi := range mfs {
-			if !m.migrationIsCompatible(c.Dialect, mi) {
-				continue
-			}
 			exists, err := c.Where("version = ?", mi.Version).Exists(mtn)
 			if err != nil {
 				return errors.Wrapf(err, "problem checking for migration version %s", mi.Version)
@@ -140,6 +140,9 @@ func (m Migrator) Down(step int) error {
 			return errors.Wrap(err, "migration down: unable count existing migration")
 		}
 		mfs := m.Migrations["down"]
+		mfs.Filter(func(mf Migration) bool {
+			return m.migrationIsCompatible(c.Dialect, mf)
+		})
 		sort.Sort(sort.Reverse(mfs))
 		// skip all ran migration
 		if len(mfs) > count {
@@ -151,8 +154,11 @@ func (m Migrator) Down(step int) error {
 		}
 		for _, mi := range mfs {
 			exists, err := c.Where("version = ?", mi.Version).Exists(mtn)
-			if err != nil || !exists {
+			if err != nil {
 				return errors.Wrapf(err, "problem checking for migration version %s", mi.Version)
+			}
+			if !exists {
+				return errors.Errorf("migration version %s does not exist", mi.Version)
 			}
 			err = c.Transaction(func(tx *Connection) error {
 				err := mi.Run(tx)

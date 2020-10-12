@@ -1,7 +1,10 @@
 package pop
 
 import (
+	"strings"
+
 	"github.com/gobuffalo/packd"
+	"github.com/gobuffalo/pop/v5/logging"
 	"github.com/pkg/errors"
 )
 
@@ -53,9 +56,14 @@ func (fm *MigrationBox) findMigrations(runner func(f packd.File) func(mf Migrati
 		}
 		match, err := ParseMigrationFilename(info.Name())
 		if err != nil {
+			if strings.HasPrefix(err.Error(), "unsupported dialect") {
+				log(logging.Warn, "ignoring migration file with %s", err.Error())
+				return nil
+			}
 			return err
 		}
 		if match == nil {
+			log(logging.Warn, "ignoring file %s because it does not match the migration file pattern", info.Name())
 			return nil
 		}
 		mf := Migration{
