@@ -14,7 +14,6 @@ import (
 	"github.com/gobuffalo/pop/v5/columns"
 	"github.com/gobuffalo/pop/v5/logging"
 	"github.com/gofrs/uuid"
-	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 )
 
@@ -144,13 +143,11 @@ func genericSelectMany(s store, models *Model, query Query) error {
 	return nil
 }
 
-func genericLoadSchema(deets *ConnectionDetails, defaultDriver, migrationURL string, r io.Reader) error {
+func genericLoadSchema(d dialect, r io.Reader) error {
+	deets := d.Details()
+
 	// Open DB connection on the target DB
-	driver := defaultDriver
-	if deets.Driver != "" {
-		driver = deets.Driver
-	}
-	db, err := sqlx.Open(driver, migrationURL)
+	db, err := openPotentiallyInstrumentedConnection(d, d.MigrationURL())
 	if err != nil {
 		return errors.WithMessage(err, fmt.Sprintf("unable to load schema for %s", deets.Database))
 	}
