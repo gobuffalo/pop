@@ -8,13 +8,12 @@ import (
 	pgx "github.com/jackc/pgx/v4/stdlib"
 	"github.com/jmoiron/sqlx"
 	"github.com/luna-duclos/instrumentedsql"
-	"github.com/mattn/go-sqlite3"
 	"github.com/pkg/errors"
 )
 
 const instrumentedDriverName = "instrumented-sql-driver"
 
-func instrumentDriver(deets *ConnectionDetails, defaultDriverName string) (driverName, dialect string) {
+func instrumentDriver(deets *ConnectionDetails, defaultDriverName string) (driverName, dialect string, err error) {
 	driverName = defaultDriverName
 	if deets.Driver != "" {
 		driverName = deets.Driver
@@ -27,7 +26,7 @@ func instrumentDriver(deets *ConnectionDetails, defaultDriverName string) (drive
 		}
 
 		// If instrumentation is disabled, we just return the driver name we got (e.g. "pgx").
-		return driverName, dialect
+		return driverName, dialect, nil
 	}
 
 	if len(deets.InstrumentedDriverOptions) == 0 {
@@ -48,7 +47,11 @@ func instrumentDriver(deets *ConnectionDetails, defaultDriverName string) (drive
 		dr = mysqld.MySQLDriver{}
 		newDriverName = instrumentedDriverName + "-" + nameMySQL
 	case nameSQLite3:
-		dr = new(sqlite3.SQLiteDriver)
+		var err error
+		dr, err = newSQLiteDriver()
+		if err != nil {
+			return "", "", err
+		}
 		newDriverName = instrumentedDriverName + "-" + nameSQLite3
 	}
 
@@ -64,7 +67,7 @@ func instrumentDriver(deets *ConnectionDetails, defaultDriverName string) (drive
 		sql.Register(newDriverName, instrumentedsql.WrapDriver(dr, deets.InstrumentedDriverOptions...))
 	}
 
-	return newDriverName, dialect
+	return newDriverName, dialect, nil
 }
 
 // openPotentiallyInstrumentedConnection first opens a raw SQL connection and then wraps it with `sqlx`.
@@ -74,7 +77,11 @@ func instrumentDriver(deets *ConnectionDetails, defaultDriverName string) (drive
 // a custom driver name when using instrumentation, this detection would fail
 // otherwise.
 func openPotentiallyInstrumentedConnection(c dialect, dsn string) (*sqlx.DB, error) {
-	driverName, dialect := instrumentDriver(c.Details(), c.DefaultDriver())
+	driverName, dialect, err := instrumentDriver(c.Details(), c.DefaultDriver())
+	if err != nil {
+		return nil, err
+	}
+
 	con, err := sql.Open(driverName, dsn)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not open database connection")
