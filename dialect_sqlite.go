@@ -3,7 +3,9 @@
 package pop
 
 import (
+	"database/sql/driver"
 	"fmt"
+	"github.com/mattn/go-sqlite3"
 	"io"
 	"net/url"
 	"os"
@@ -289,4 +291,8 @@ func finalizerSQLite(cd *ConnectionDetails) {
 			log(logging.Warn, "IMPORTANT! '%s=%s' option is required to work properly. Please add it to the database URL in the config!", k, v)
 		} // or fix user specified url?
 	}
+}
+
+func newSQLiteDriver() (driver.Driver, error) {
+	return new(sqlite3.SQLiteDriver), nil
 }

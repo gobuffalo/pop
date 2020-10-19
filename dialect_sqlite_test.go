@@ -163,3 +163,8 @@ func TestSqlite_CreateDB(t *testing.T) {
 	// Creating DB twice should produce an error
 	r.EqualError(dialect.CreateDB(), fmt.Sprintf("could not create SQLite database '%s'; database exists", p))
 }
+
+func TestSqlite_NewDriver(t *testing.T) {
+	_, err := newSQLiteDriver()
+	require.NoError(t, err)
+}
