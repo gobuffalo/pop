@@ -9,8 +9,9 @@ var tags = "db rw select belongs_to has_many has_one fk_id primary_id order_by m
 
 // Tag represents a field tag defined exclusively for pop package.
 type Tag struct {
-	Value string
-	Name  string
+	Value   string
+	Name    string
+	Options map[string]bool
 }
 
 // Empty validates if this pop tag is empty.
@@ -42,14 +43,19 @@ func (t Tags) Find(name string) Tag {
 // in model field.
 func TagsFor(field reflect.StructField) Tags {
 	pTags := Tags{}
+	attrs := map[string]bool{}
 	for _, tag := range strings.Fields(tags) {
 		if valTag := field.Tag.Get(tag); valTag != "" {
-			pTags = append(pTags, Tag{valTag, tag})
+			vals := strings.Split(valTag, ",")
+			for _, attr := range vals[1:] {
+				attrs[attr] = true
+			}
+			pTags = append(pTags, Tag{vals[0], tag, attrs})
 		}
 	}
 
 	if len(pTags) == 0 {
-		pTags = append(pTags, Tag{field.Name, "db"})
+		pTags = append(pTags, Tag{field.Name, "db", attrs})
 	}
 	return pTags
 }

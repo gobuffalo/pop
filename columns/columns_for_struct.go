@@ -31,6 +31,12 @@ func ForStructWithAlias(s interface{}, tableName string, tableAlias string) (col
 		}
 	}
 
+	appendStruct(columns, st)
+
+	return columns
+}
+
+func appendStruct(columns Columns, st reflect.Type) {
 	fieldCount := st.NumField()
 
 	for i := 0; i < fieldCount; i++ {
@@ -39,6 +45,9 @@ func ForStructWithAlias(s interface{}, tableName string, tableAlias string) (col
 		popTags := TagsFor(field)
 		tag := popTags.Find("db")
 
+		if tag.Options["inline"] {
+			appendStruct(columns, field.Type)
+		}
 		if !tag.Ignored() && !tag.Empty() {
 			col := tag.Value
 
@@ -58,6 +67,4 @@ func ForStructWithAlias(s interface{}, tableName string, tableAlias string) (col
 			}
 		}
 	}
-
-	return columns
 }
