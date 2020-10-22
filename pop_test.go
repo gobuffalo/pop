@@ -141,7 +141,7 @@ type Taxi struct {
 	ID        int       `db:"id"`
 	Model     string    `db:"model"`
 	UserID    nulls.Int `db:"user_id"`
-	AddressID nulls.Int `db:"address_id"`
+	AddressID *int      `db:"address_id"`
 	Driver    *User     `belongs_to:"user" fk_id:"user_id"`
 	Address   Address   `belongs_to:"address"`
 	CreatedAt time.Time `db:"created_at"`

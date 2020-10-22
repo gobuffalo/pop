@@ -216,7 +216,7 @@ func Test_New_Implementation_For_BelongsTo_Multiple_Fields(t *testing.T) {
 		address := Address{HouseNumber: 2, Street: "Street One"}
 		a.NoError(tx.Create(&address))
 
-		taxi := Taxi{UserID: nulls.NewInt(user.ID), AddressID: nulls.NewInt(address.ID)}
+		taxi := Taxi{UserID: nulls.NewInt(user.ID), AddressID: &address.ID}
 		a.NoError(tx.Create(&taxi))
 
 		book := Book{TaxiID: nulls.NewInt(taxi.ID), Title: "My Book"}
