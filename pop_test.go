@@ -138,14 +138,16 @@ type Book struct {
 }
 
 type Taxi struct {
-	ID        int       `db:"id"`
-	Model     string    `db:"model"`
-	UserID    nulls.Int `db:"user_id"`
-	AddressID *int      `db:"address_id"`
-	Driver    *User     `belongs_to:"user" fk_id:"user_id"`
-	Address   Address   `belongs_to:"address"`
-	CreatedAt time.Time `db:"created_at"`
-	UpdatedAt time.Time `db:"updated_at"`
+	ID          int       `db:"id"`
+	Model       string    `db:"model"`
+	UserID      nulls.Int `db:"user_id"`
+	AddressID   nulls.Int `db:"address_id"`
+	Driver      *User     `belongs_to:"user" fk_id:"user_id"`
+	Address     Address   `belongs_to:"address"`
+	ToAddressID *int      `db:"to_address_id"`
+	ToAddress   *Address  `belongs_to:"address"`
+	CreatedAt   time.Time `db:"created_at"`
+	UpdatedAt   time.Time `db:"updated_at"`
 }
 
 // Validate gets run every time you call a "Validate*" (ValidateAndSave, ValidateAndCreate, ValidateAndUpdate) method.

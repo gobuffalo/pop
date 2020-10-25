@@ -355,7 +355,9 @@ func preloadBelongsTo(tx *Connection, asoc *AssociationMetaInfo, mmi *ModelMetaI
 
 	fkids := []interface{}{}
 	mmi.iterate(func(val reflect.Value) {
-		fkids = append(fkids, mmi.mapper.FieldByName(val, fi.Path).Interface())
+		if !isFieldNilPtr(val, fi) {
+			fkids = append(fkids, mmi.mapper.FieldByName(val, fi.Path).Interface())
+		}
 	})
 
 	if len(fkids) == 0 {
@@ -386,6 +388,9 @@ func preloadBelongsTo(tx *Connection, asoc *AssociationMetaInfo, mmi *ModelMetaI
 
 	// 3) iterate over every model and fill it with the assoc.
 	mmi.iterate(func(mvalue reflect.Value) {
+		if isFieldNilPtr(mvalue, fi) {
+			return
+		}
 		modelAssociationField := mmi.mapper.FieldByName(mvalue, asoc.Name)
 		for i := 0; i < slice.Elem().Len(); i++ {
 			asocValue := slice.Elem().Index(i)
@@ -499,4 +504,9 @@ func preloadManyToMany(tx *Connection, asoc *AssociationMetaInfo, mmi *ModelMeta
 		})
 	}
 	return nil
+}
+
+func isFieldNilPtr(val reflect.Value, fi *reflectx.FieldInfo) bool {
+	fieldValue := reflectx.FieldByIndexesReadOnly(val, fi.Index)
+	return fieldValue.Kind() == reflect.Ptr && fieldValue.IsNil()
 }
