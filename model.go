@@ -2,6 +2,7 @@ package pop
 
 import (
 	"fmt"
+	"github.com/gobuffalo/pop/v5/columns"
 	"github.com/pkg/errors"
 	"reflect"
 	"sync"
@@ -99,6 +100,10 @@ func (m *Model) TableName() string {
 		tableMap[cacheKey] = m.tableName
 	}
 	return tableMap[cacheKey]
+}
+
+func (m *Model) Columns() columns.Columns {
+	return columns.ForStructWithAlias(m.Value, m.TableName(), m.As, m.IDField())
 }
 
 func (m *Model) cacheKey(t reflect.Type) string {
