@@ -48,10 +48,17 @@ func (m *Model) ID() interface{} {
 // By default, it will return "id".
 func (m *Model) IDField() string {
 	modelType := reflect.TypeOf(m.Value)
+
+	// remove all indirections
+	for modelType.Kind() == reflect.Slice || modelType.Kind() == reflect.Ptr || modelType.Kind() == reflect.Array {
+		modelType = modelType.Elem()
+	}
+
 	if modelType.Kind() == reflect.String {
 		return "id"
 	}
-	field, ok := modelType.Elem().FieldByName("ID")
+
+	field, ok := modelType.FieldByName("ID")
 	if !ok {
 		return "id"
 	}
