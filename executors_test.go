@@ -510,6 +510,25 @@ func Test_Create_With_Non_ID_PK_String(t *testing.T) {
 	})
 }
 
+func Test_Create_Non_PK_ID(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
+	transaction(func(tx *Connection) {
+		r := require.New(t)
+
+		count, err := tx.Count(&HydraClient{})
+		client := &HydraClient{
+			OutfacingID: "a client of hydra",
+		}
+		r.NoError(tx.Create(client))
+
+		ctx, err := tx.Count(&HydraClient{})
+		r.NoError(err)
+		r.Equal(count+1, ctx)
+	})
+}
+
 func Test_Eager_Create_Has_Many(t *testing.T) {
 	if PDB == nil {
 		t.Skip("skipping integration tests")
@@ -1467,6 +1486,44 @@ func Test_Update_UUID(t *testing.T) {
 		err = tx.Reload(&song)
 		r.NoError(err)
 		r.Equal("Hum", song.Title)
+	})
+}
+
+func Test_Update_With_Non_ID_PK(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
+	transaction(func(tx *Connection) {
+		r := require.New(t)
+
+		cc := CrookedColour{
+			Name: "You?",
+		}
+		err := tx.Create(&cc)
+		r.NoError(err)
+
+		cc.Name = "Me!"
+		r.NoError(tx.Update(&cc))
+	})
+}
+
+func Test_Update_Non_PK_ID(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
+	transaction(func(tx *Connection) {
+		r := require.New(t)
+
+		client := &HydraClient{
+			OutfacingID: "my awesome hydra client",
+		}
+		r.NoError(tx.Create(client))
+
+		updatedID := "your awesome hydra client"
+		client.OutfacingID = updatedID
+		r.NoError(tx.Update(client))
+		r.NoError(tx.Reload(client))
+		r.Equal(updatedID, client.OutfacingID)
 	})
 }
 
