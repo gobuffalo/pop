@@ -47,7 +47,11 @@ func (m *Model) ID() interface{} {
 // IDField returns the name of the DB field used for the ID.
 // By default, it will return "id".
 func (m *Model) IDField() string {
-	field, ok := reflect.TypeOf(m.Value).Elem().FieldByName("ID")
+	modelType := reflect.TypeOf(m.Value)
+	if modelType.Kind() == reflect.String {
+		return "id"
+	}
+	field, ok := modelType.Elem().FieldByName("ID")
 	if !ok {
 		return "id"
 	}
