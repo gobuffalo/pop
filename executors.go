@@ -350,7 +350,7 @@ func (c *Connection) Update(model interface{}, excludeColumns ...string) error {
 			}
 
 			tn := m.TableName()
-			cols := m.Columns()
+			cols := columns.ForStructWithAlias(model, tn, m.As, m.IDField())
 			cols.Remove(m.IDField(), "created_at")
 
 			if tn == sm.TableName() {
@@ -397,7 +397,7 @@ func (c *Connection) UpdateColumns(model interface{}, columnNames ...string) err
 				cols.Add(columnNames...)
 
 			} else {
-				cols = m.Columns()
+				cols = columns.ForStructWithAlias(model, tn, m.As, m.IDField())
 			}
 			cols.Remove("id", "created_at")
 
