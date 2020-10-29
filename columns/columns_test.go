@@ -81,3 +81,37 @@ func Test_Columns_Sorted(t *testing.T) {
 	r.Equal(c.String(), "amount, amount_units")
 	r.Equal(c.QuotedString(fooQuoter{}), "`amount`, `amount_units`")
 }
+
+func Test_Columns_IDField(t *testing.T) {
+	type withID struct {
+		ID string `db:"id"`
+	}
+
+	r := require.New(t)
+	c := columns.ForStruct(withID{}, "with_id", "id")
+	r.Equal(1, len(c.Cols), "%+v", c)
+	r.Equal(&columns.Column{Name: "id", Writeable: false, Readable: true, SelectSQL: "with_id.id"}, c.Cols["id"])
+}
+
+func Test_Columns_IDField_Readonly(t *testing.T) {
+	type withIDReadonly struct {
+		ID string `db:"id" rw:"r"`
+	}
+
+	r := require.New(t)
+	c := columns.ForStruct(withIDReadonly{}, "with_id_readonly", "id")
+	r.Equal(1, len(c.Cols), "%+v", c)
+	r.Equal(&columns.Column{Name: "id", Writeable: false, Readable: true, SelectSQL: "with_id_readonly.id"}, c.Cols["id"])
+}
+
+func Test_Columns_ID_Field_Not_ID(t *testing.T) {
+	type withNonStandardID struct {
+		PK string `db:"notid"`
+	}
+
+	r := require.New(t)
+
+	c := columns.ForStruct(withNonStandardID{}, "non_standard_id", "notid")
+	r.Equal(1, len(c.Cols), "%+v", c)
+	r.Equal(&columns.Column{Name: "notid", Writeable: false, Readable: true, SelectSQL: "non_standard_id.notid"}, c.Cols["notid"])
+}

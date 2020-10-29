@@ -517,15 +517,18 @@ func Test_Create_Non_PK_ID(t *testing.T) {
 	transaction(func(tx *Connection) {
 		r := require.New(t)
 
-		count, err := tx.Count(&HydraClient{})
-		client := &HydraClient{
-			OutfacingID: "a client of hydra",
-		}
-		r.NoError(tx.Create(client))
+		r.NoError(tx.Create(&NonStandardID{OutfacingID: "make sure the tested entry does not have pk=0"}))
 
-		ctx, err := tx.Count(&HydraClient{})
+		count, err := tx.Count(&NonStandardID{})
+		entry := &NonStandardID{
+			OutfacingID: "beautiful to the outside ID",
+		}
+		r.NoError(tx.Create(entry))
+
+		ctx, err := tx.Count(&NonStandardID{})
 		r.NoError(err)
 		r.Equal(count+1, ctx)
+		r.NotZero(entry.ID)
 	})
 }
 
@@ -1496,14 +1499,24 @@ func Test_Update_With_Non_ID_PK(t *testing.T) {
 	transaction(func(tx *Connection) {
 		r := require.New(t)
 
+		r.NoError(tx.Create(&CrookedColour{Name: "cc is not the first one"}))
+
 		cc := CrookedColour{
 			Name: "You?",
 		}
 		err := tx.Create(&cc)
 		r.NoError(err)
+		r.NotZero(cc.ID)
+		id := cc.ID
 
-		cc.Name = "Me!"
+		updatedName := "Me!"
+		cc.Name = updatedName
 		r.NoError(tx.Update(&cc))
+		r.Equal(id, cc.ID)
+
+		r.NoError(tx.Reload(&cc))
+		r.Equal(updatedName, cc.Name)
+		r.Equal(id, cc.ID)
 	})
 }
 
@@ -1514,7 +1527,7 @@ func Test_Update_Non_PK_ID(t *testing.T) {
 	transaction(func(tx *Connection) {
 		r := require.New(t)
 
-		client := &HydraClient{
+		client := &NonStandardID{
 			OutfacingID: "my awesome hydra client",
 		}
 		r.NoError(tx.Create(client))

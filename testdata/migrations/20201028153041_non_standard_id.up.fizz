@@ -1,4 +1,4 @@
-create_table("hydra_clients") {
+create_table("non_standard_ids") {
     t.Column("pk", "int", { primary: true })
     t.Column("id", "string", {})
 

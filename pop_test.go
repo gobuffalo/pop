@@ -420,7 +420,7 @@ type CrookedSong struct {
 	UpdatedAt time.Time `db:"updated_at"`
 }
 
-type HydraClient struct {
+type NonStandardID struct {
 	ID          int    `db:"pk"`
 	OutfacingID string `db:"id"`
 }
