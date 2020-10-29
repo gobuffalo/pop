@@ -2,6 +2,7 @@ package pop
 
 import (
 	"fmt"
+	"github.com/gobuffalo/pop/v5/columns"
 	"github.com/pkg/errors"
 	"reflect"
 	"sync"
@@ -46,7 +47,18 @@ func (m *Model) ID() interface{} {
 // IDField returns the name of the DB field used for the ID.
 // By default, it will return "id".
 func (m *Model) IDField() string {
-	field, ok := reflect.TypeOf(m.Value).Elem().FieldByName("ID")
+	modelType := reflect.TypeOf(m.Value)
+
+	// remove all indirections
+	for modelType.Kind() == reflect.Slice || modelType.Kind() == reflect.Ptr || modelType.Kind() == reflect.Array {
+		modelType = modelType.Elem()
+	}
+
+	if modelType.Kind() == reflect.String {
+		return "id"
+	}
+
+	field, ok := modelType.FieldByName("ID")
 	if !ok {
 		return "id"
 	}
@@ -99,6 +111,10 @@ func (m *Model) TableName() string {
 		tableMap[cacheKey] = m.tableName
 	}
 	return tableMap[cacheKey]
+}
+
+func (m *Model) Columns() columns.Columns {
+	return columns.ForStructWithAlias(m.Value, m.TableName(), m.As, m.IDField())
 }
 
 func (m *Model) cacheKey(t reflect.Type) string {

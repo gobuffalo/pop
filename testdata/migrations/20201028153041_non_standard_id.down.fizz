@@ -1,0 +1,1 @@
+drop_table("non_standard_ids")
