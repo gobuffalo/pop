@@ -13,6 +13,7 @@ type Columns struct {
 	lock       *sync.RWMutex
 	TableName  string
 	TableAlias string
+	IDField    string
 }
 
 // Add a column to the list.
@@ -74,7 +75,7 @@ func (c *Columns) Add(names ...string) []*Column {
 				} else if xs[1] == "w" {
 					col.Readable = false
 				}
-			} else if col.Name == "id" {
+			} else if col.Name == c.IDField {
 				col.Writeable = false
 			}
 
@@ -98,7 +99,7 @@ func (c *Columns) Remove(names ...string) {
 
 // Writeable gets a list of the writeable columns from the column list.
 func (c Columns) Writeable() *WriteableColumns {
-	w := &WriteableColumns{NewColumnsWithAlias(c.TableName, c.TableAlias)}
+	w := &WriteableColumns{NewColumnsWithAlias(c.TableName, c.TableAlias, c.IDField)}
 	for _, col := range c.Cols {
 		if col.Writeable {
 			w.Cols[col.Name] = col
@@ -109,7 +110,7 @@ func (c Columns) Writeable() *WriteableColumns {
 
 // Readable gets a list of the readable columns from the column list.
 func (c Columns) Readable() *ReadableColumns {
-	w := &ReadableColumns{NewColumnsWithAlias(c.TableName, c.TableAlias)}
+	w := &ReadableColumns{NewColumnsWithAlias(c.TableName, c.TableAlias, c.IDField)}
 	for _, col := range c.Cols {
 		if col.Readable {
 			w.Cols[col.Name] = col
@@ -157,17 +158,18 @@ func (c Columns) SymbolizedString() string {
 }
 
 // NewColumns constructs a list of columns for a given table name.
-func NewColumns(tableName string) Columns {
-	return NewColumnsWithAlias(tableName, "")
+func NewColumns(tableName, idField string) Columns {
+	return NewColumnsWithAlias(tableName, "", idField)
 }
 
 // NewColumnsWithAlias constructs a list of columns for a given table
 // name, using a given alias for the table.
-func NewColumnsWithAlias(tableName string, tableAlias string) Columns {
+func NewColumnsWithAlias(tableName, tableAlias, idField string) Columns {
 	return Columns{
 		lock:       &sync.RWMutex{},
 		Cols:       map[string]*Column{},
 		TableName:  tableName,
 		TableAlias: tableAlias,
+		IDField:    idField,
 	}
 }

@@ -76,7 +76,7 @@ jobs:
       - name: Build and run soda
         env:
           SODA_DIALECT: "postgres"
-          POSTGRESQL_URL: "postgres://postgres:postgres@${{job.services.postgres.host}}:${{ job.services.postgres.ports[5432] }}/pop_test?sslmode=disable"
+          POSTGRESQL_URL: "postgres://postgres:postgres@127.0.0.1:${{ job.services.postgres.ports[5432] }}/pop_test?sslmode=disable"
         run: |
           go build -v -tags sqlite -o tsoda ./soda
           ./tsoda drop -e $SODA_DIALECT -p ./testdata/migrations
@@ -85,7 +85,7 @@ jobs:
       - name: Test
         env:
           SODA_DIALECT: "postgres"
-          POSTGRESQL_URL: "postgres://postgres:postgres@${{job.services.postgres.host}}:${{ job.services.postgres.ports[5432] }}/pop_test?sslmode=disable"
+          POSTGRESQL_URL: "postgres://postgres:postgres@127.0.0.1:${{ job.services.postgres.ports[5432] }}/pop_test?sslmode=disable"
         run: |
           go test -tags sqlite -race ./...
 

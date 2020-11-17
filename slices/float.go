@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
-
-	"errors"
 )
 
 // Float is a slice of float64.
@@ -20,11 +18,15 @@ func (f Float) Interface() interface{} {
 // Scan implements the sql.Scanner interface.
 // It allows to read the float slice from the database value.
 func (f *Float) Scan(src interface{}) error {
-	b, ok := src.([]byte)
-	if !ok {
-		return errors.New("scan source was not []byte")
+	var str string
+	switch t := src.(type) {
+	case []byte:
+		str = string(t)
+	case string:
+		str = t
+	default:
+		return fmt.Errorf("scan source was not []byte nor string but %T", src)
 	}
-	str := string(b)
 	*f = strToFloat(str)
 	return nil
 }

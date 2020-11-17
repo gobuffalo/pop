@@ -15,9 +15,9 @@ type Cake struct {
 	UpdatedAt time.Time     `json:"updated_at" db:"updated_at"`
 }
 
-func (p *PostgreSQLSuite) Test_String() {
+func (s *PostgreSQLSuite) Test_String() {
 	transaction(func(tx *Connection) {
-		r := p.Require()
+		r := s.Require()
 
 		c := &Cake{
 			String: slices.String{"a", "b", "c"},
@@ -31,9 +31,9 @@ func (p *PostgreSQLSuite) Test_String() {
 	})
 }
 
-func (p *PostgreSQLSuite) Test_Int() {
+func (s *PostgreSQLSuite) Test_Int() {
 	transaction(func(tx *Connection) {
-		r := p.Require()
+		r := s.Require()
 
 		c := &Cake{
 			Int: slices.Int{1, 2, 3},
@@ -47,9 +47,9 @@ func (p *PostgreSQLSuite) Test_Int() {
 	})
 }
 
-func (p *PostgreSQLSuite) Test_Float() {
+func (s *PostgreSQLSuite) Test_Float() {
 	transaction(func(tx *Connection) {
-		r := p.Require()
+		r := s.Require()
 
 		c := &Cake{
 			Float: slices.Float{1.0, 2.1, 3.2},

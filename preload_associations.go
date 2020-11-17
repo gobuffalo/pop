@@ -39,7 +39,7 @@ type ModelMetaInfo struct {
 	*reflectx.StructMap
 	Model        *Model
 	mapper       *reflectx.Mapper
-	nestedFields map[string]string
+	nestedFields map[string][]string
 }
 
 func (mmi *ModelMetaInfo) init() {
@@ -52,7 +52,7 @@ func (mmi *ModelMetaInfo) init() {
 	}
 
 	mmi.StructMap = m.TypeMap(t)
-	mmi.nestedFields = make(map[string]string)
+	mmi.nestedFields = make(map[string][]string)
 }
 
 func (mmi *ModelMetaInfo) iterate(fn func(reflect.Value)) {
@@ -89,7 +89,8 @@ func (mmi *ModelMetaInfo) preloadFields(fields ...string) ([]*reflectx.FieldInfo
 			return preloadFields, fmt.Errorf("association field '%s' does not match the format %s", f, "'<field>' or '<field>.<nested-field>'")
 		}
 		if strings.Contains(f, ".") {
-			mmi.nestedFields[f[:strings.Index(f, ".")]] = f[strings.Index(f, ".")+1:]
+			fname := f[:strings.Index(f, ".")]
+			mmi.nestedFields[fname] = append(mmi.nestedFields[fname], f[strings.Index(f, ".")+1:])
 			f = f[:strings.Index(f, ".")]
 		}
 
@@ -159,7 +160,8 @@ func (ami *AssociationMetaInfo) fkName() string {
 		t = reflectx.Deref(t.Elem())
 	}
 	fkName := fmt.Sprintf("%s%s", flect.Underscore(flect.Singularize(t.Name())), "_id")
-	return defaults.String(ami.Field.Tag.Get("fk_id"), fkName)
+	fkNameTag := flect.Underscore(ami.Field.Tag.Get("fk_id"))
+	return defaults.String(fkNameTag, fkName)
 }
 
 // preload is the query mode used to load associations from database
@@ -256,8 +258,10 @@ func preloadHasMany(tx *Connection, asoc *AssociationMetaInfo, mmi *ModelMetaInf
 
 	// 2.1) load all nested associations from this assoc.
 	if asocNestedFields, ok := mmi.nestedFields[asoc.Path]; ok {
-		if err := preload(tx, slice.Interface(), asocNestedFields); err != nil {
-			return err
+		for _, asocNestedField := range asocNestedFields {
+			if err := preload(tx, slice.Interface(), asocNestedField); err != nil {
+				return err
+			}
 		}
 	}
 
@@ -269,11 +273,15 @@ func preloadHasMany(tx *Connection, asoc *AssociationMetaInfo, mmi *ModelMetaInf
 			asocValue := slice.Elem().Index(i)
 			if mmi.mapper.FieldByName(mvalue, "ID").Interface() == mmi.mapper.FieldByName(asocValue, foreignField.Path).Interface() ||
 				reflect.DeepEqual(mmi.mapper.FieldByName(mvalue, "ID"), mmi.mapper.FieldByName(asocValue, foreignField.Path)) {
-				if modelAssociationField.Kind() == reflect.Slice || modelAssociationField.Kind() == reflect.Array {
+
+				switch {
+				case modelAssociationField.Kind() == reflect.Slice || modelAssociationField.Kind() == reflect.Array:
 					modelAssociationField.Set(reflect.Append(modelAssociationField, asocValue))
-					continue
+				case modelAssociationField.Kind() == reflect.Ptr:
+					modelAssociationField.Elem().Set(reflect.Append(modelAssociationField.Elem(), asocValue))
+				default:
+					modelAssociationField.Set(asocValue)
 				}
-				modelAssociationField.Set(asocValue)
 			}
 		}
 	})
@@ -311,8 +319,10 @@ func preloadHasOne(tx *Connection, asoc *AssociationMetaInfo, mmi *ModelMetaInfo
 
 	// 2.1) load all nested associations from this assoc.
 	if asocNestedFields, ok := mmi.nestedFields[asoc.Path]; ok {
-		if err := preload(tx, slice.Interface(), asocNestedFields); err != nil {
-			return err
+		for _, asocNestedField := range asocNestedFields {
+			if err := preload(tx, slice.Interface(), asocNestedField); err != nil {
+				return err
+			}
 		}
 	}
 
@@ -339,6 +349,10 @@ func preloadHasOne(tx *Connection, asoc *AssociationMetaInfo, mmi *ModelMetaInfo
 func preloadBelongsTo(tx *Connection, asoc *AssociationMetaInfo, mmi *ModelMetaInfo) error {
 	// 1) get all associations ids.
 	fi := mmi.getDBFieldTaggedWith(asoc.fkName())
+	if fi == nil {
+		fi = mmi.getDBFieldTaggedWith(fmt.Sprintf("%s%s", flect.Underscore(asoc.Path), "_id"))
+	}
+
 	fkids := []interface{}{}
 	mmi.iterate(func(val reflect.Value) {
 		fkids = append(fkids, mmi.mapper.FieldByName(val, fi.Path).Interface())
@@ -363,8 +377,10 @@ func preloadBelongsTo(tx *Connection, asoc *AssociationMetaInfo, mmi *ModelMetaI
 
 	// 2.1) load all nested associations from this assoc.
 	if asocNestedFields, ok := mmi.nestedFields[asoc.Path]; ok {
-		if err := preload(tx, slice.Interface(), asocNestedFields); err != nil {
-			return err
+		for _, asocNestedField := range asocNestedFields {
+			if err := preload(tx, slice.Interface(), asocNestedField); err != nil {
+				return err
+			}
 		}
 	}
 
@@ -375,11 +391,15 @@ func preloadBelongsTo(tx *Connection, asoc *AssociationMetaInfo, mmi *ModelMetaI
 			asocValue := slice.Elem().Index(i)
 			if mmi.mapper.FieldByName(mvalue, fi.Path).Interface() == mmi.mapper.FieldByName(asocValue, "ID").Interface() ||
 				reflect.DeepEqual(mmi.mapper.FieldByName(mvalue, fi.Path), mmi.mapper.FieldByName(asocValue, "ID")) {
-				if modelAssociationField.Kind() == reflect.Slice || modelAssociationField.Kind() == reflect.Array {
+
+				switch {
+				case modelAssociationField.Kind() == reflect.Slice || modelAssociationField.Kind() == reflect.Array:
 					modelAssociationField.Set(reflect.Append(modelAssociationField, asocValue))
-					continue
+				case modelAssociationField.Kind() == reflect.Ptr:
+					modelAssociationField.Elem().Set(asocValue)
+				default:
+					modelAssociationField.Set(asocValue)
 				}
-				modelAssociationField.Set(asocValue)
 			}
 		}
 	})
@@ -454,8 +474,10 @@ func preloadManyToMany(tx *Connection, asoc *AssociationMetaInfo, mmi *ModelMeta
 
 		// 2.2) load all nested associations from this assoc.
 		if asocNestedFields, ok := mmi.nestedFields[asoc.Path]; ok {
-			if err := preload(tx, slice.Interface(), asocNestedFields); err != nil {
-				return err
+			for _, asocNestedField := range asocNestedFields {
+				if err := preload(tx, slice.Interface(), asocNestedField); err != nil {
+					return err
+				}
 			}
 		}
 

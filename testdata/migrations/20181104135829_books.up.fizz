@@ -3,5 +3,6 @@ create_table("books") {
   t.Column("title", "string", {})
   t.Column("user_id", "int", {"null": true})
   t.Column("isbn", "string", {"size": 50})
+  t.Column("taxi_id", "int",{"null": true})
   t.Timestamps()
 }
