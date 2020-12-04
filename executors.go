@@ -265,7 +265,9 @@ func (c *Connection) Create(model interface{}, excludeColumns ...string) error {
 							if IsZeroOfUnderlyingType(id) {
 								return c.Create(m.Value)
 							}
-							exists, errE := Q(c).Exists(i)
+
+							whereCondition, args := after[index].Constraint()
+							exists, errE := Q(c).Where(whereCondition, args...).Exists(i)
 							if errE != nil || !exists {
 								return c.Create(m.Value)
 							}
