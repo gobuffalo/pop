@@ -24,3 +24,14 @@ func Test_Map_MarshalJSON(t *testing.T) {
 	r.NoError(err)
 	r.Equal([]byte(`{"a":"b"}`), b)
 }
+
+func Test_Map_UnMarshalJSON_uninitialized_map_does_not_panic(t *testing.T) {
+	r := require.New(t)
+
+	maps := make([]Map, 0)
+	r.NotPanics(func() {
+		err := json.Unmarshal([]byte(`[{"a": "b"}]`), &maps)
+		r.NoError(err)
+		r.Len(maps, 1)
+	})
+}
