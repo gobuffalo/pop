@@ -84,3 +84,22 @@ func Test_ConnectionDetails_Finalize_NoDB_NoURL(t *testing.T) {
 	err := cd.Finalize()
 	r.Error(err)
 }
+
+func Test_ConnectionDetails_OptionsString_Postgres(t *testing.T) {
+	r := require.New(t)
+	cd := &ConnectionDetails{
+		Dialect:  "postgres",
+		Database: "database",
+		Host:     "host",
+		Port:     "1234",
+		User:     "user",
+		Password: "pass",
+		Options: map[string]string{
+			"migration_table_name": "migrations",
+			"sslmode":              "require",
+		},
+	}
+
+	r.Equal("sslmode=require", cd.OptionsString(""))
+	r.Equal("migrations", cd.MigrationTableName())
+}
