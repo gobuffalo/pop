@@ -60,7 +60,11 @@ func (p *postgresql) Create(s store, model *Model, cols columns.Columns) error {
 	}
 	switch keyType {
 	case "int", "int64":
-		cols.Remove(model.IDField())
+		if model.ID() == 0 {
+			cols.Remove(model.IDField())
+		} else {
+			cols.Cols[model.IDField()].Writeable = true
+		}
 		w := cols.Writeable()
 		var query string
 		if len(w.Cols) > 0 {
