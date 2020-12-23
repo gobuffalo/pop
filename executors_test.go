@@ -1579,3 +1579,19 @@ func Test_TruncateAll(t *testing.T) {
 		r.Equal(count, ctx)
 	})
 }
+
+func Test_Create_Single_Set_ID(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
+	r := require.New(t)
+	validationLogs = []string{}
+	transaction(func(tx *Connection) {
+		singleID := &SingleID{
+			ID: 123456,
+		}
+		err := tx.Create(singleID)
+		r.NoError(err)
+		r.Equal(123456, singleID.ID)
+	})
+}
