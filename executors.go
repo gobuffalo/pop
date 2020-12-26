@@ -266,8 +266,7 @@ func (c *Connection) Create(model interface{}, excludeColumns ...string) error {
 								return c.Create(m.Value)
 							}
 
-							whereCondition, args := after[index].Constraint()
-							exists, errE := Q(c).Where(whereCondition, args...).Exists(i)
+							exists, errE := Q(c).Where("id = ?", id).Exists(i)
 							if errE != nil || !exists {
 								return c.Create(m.Value)
 							}
