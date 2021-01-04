@@ -1,8 +1,12 @@
 package pop
 
 import (
+	"context"
 	"testing"
 	"time"
+
+	"github.com/gobuffalo/pop/v5/testdata/models/ac"
+	"github.com/gobuffalo/pop/v5/testdata/models/bc"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -40,6 +44,12 @@ func (tn) TableName() string {
 	return "this is my table name"
 }
 
+type tnc struct{}
+
+func (tnc) TableName(ctx context.Context) string {
+	return ctx.Value("name").(string)
+}
+
 // A failing test case for #477
 func Test_TableNameCache(t *testing.T) {
 	r := assert.New(t)
@@ -47,6 +57,17 @@ func Test_TableNameCache(t *testing.T) {
 	r.Equal("userb", (&Model{Value: b.User{}}).TableName())
 	r.Equal("usera", (&Model{Value: []a.User{}}).TableName())
 	r.Equal("userb", (&Model{Value: []b.User{}}).TableName())
+}
+
+// A failing test case for #477
+func Test_TableNameContextCache(t *testing.T) {
+	ctx := context.WithValue(context.Background(), "name", "context-table")
+
+	r := assert.New(t)
+	r.Equal("context-table-usera", (&Model{Value: ac.User{}, ctx: ctx}).TableName())
+	r.Equal("context-table-userb", (&Model{Value: bc.User{}, ctx: ctx}).TableName())
+	r.Equal("context-table-usera", (&Model{Value: []ac.User{}, ctx: ctx}).TableName())
+	r.Equal("context-table-userb", (&Model{Value: []bc.User{}, ctx: ctx}).TableName())
 }
 
 func Test_TableName(t *testing.T) {
@@ -59,6 +80,22 @@ func Test_TableName(t *testing.T) {
 	for _, tc := range cases {
 		m := Model{Value: tc}
 		r.Equal("this is my table name", m.TableName())
+	}
+}
+
+func Test_TableNameContext(t *testing.T) {
+	r := require.New(t)
+
+	tn := "context table name"
+	ctx := context.WithValue(context.Background(), "name", tn)
+
+	cases := []interface{}{
+		tnc{},
+		[]tnc{},
+	}
+	for _, tc := range cases {
+		m := Model{Value: tc, ctx: ctx}
+		r.Equal(tn, m.TableName())
 	}
 }
 
@@ -77,7 +114,7 @@ type UnixTimestamp struct {
 func Test_Touch_Time_Timestamp(t *testing.T) {
 	r := require.New(t)
 
-	m := Model{Value: &TimeTimestamp{}}
+	m := NewModel(&TimeTimestamp{}, context.Background())
 
 	// Override time.Now()
 	t0, _ := time.Parse(time.RFC3339, "2019-07-14T00:00:00Z")
@@ -101,7 +138,7 @@ func Test_Touch_Time_Timestamp_With_Existing_Value(t *testing.T) {
 
 	createdAt := nowFunc().Add(-36 * time.Hour)
 
-	m := Model{Value: &TimeTimestamp{CreatedAt: createdAt}}
+	m := NewModel(&TimeTimestamp{CreatedAt: createdAt}, context.Background())
 	m.touchCreatedAt()
 	m.touchUpdatedAt()
 	v := m.Value.(*TimeTimestamp)
@@ -112,7 +149,7 @@ func Test_Touch_Time_Timestamp_With_Existing_Value(t *testing.T) {
 func Test_Touch_Unix_Timestamp(t *testing.T) {
 	r := require.New(t)
 
-	m := Model{Value: &UnixTimestamp{}}
+	m := NewModel(&UnixTimestamp{}, context.Background())
 
 	// Override time.Now()
 	t0, _ := time.Parse(time.RFC3339, "2019-07-14T00:00:00Z")
@@ -136,7 +173,7 @@ func Test_Touch_Unix_Timestamp_With_Existing_Value(t *testing.T) {
 
 	createdAt := int(time.Now().Add(-36 * time.Hour).Unix())
 
-	m := Model{Value: &UnixTimestamp{CreatedAt: createdAt}}
+	m := NewModel(&UnixTimestamp{CreatedAt: createdAt}, context.Background())
 	m.touchCreatedAt()
 	m.touchUpdatedAt()
 	v := m.Value.(*UnixTimestamp)

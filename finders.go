@@ -29,7 +29,7 @@ func (c *Connection) Find(model interface{}, id interface{}) error {
 //
 //	q.Find(&User{}, 1)
 func (q *Query) Find(model interface{}, id interface{}) error {
-	m := &Model{Value: model}
+	m := NewModel(model, q.Connection.Context())
 	idq := m.whereID()
 	switch t := id.(type) {
 	case uuid.UUID:
@@ -69,7 +69,7 @@ func (c *Connection) First(model interface{}) error {
 func (q *Query) First(model interface{}) error {
 	err := q.Connection.timeFunc("First", func() error {
 		q.Limit(1)
-		m := &Model{Value: model}
+		m := NewModel(model, q.Connection.Context())
 		if err := q.Connection.Dialect.SelectOne(q.Connection.Store, m, *q); err != nil {
 			return err
 		}
@@ -102,7 +102,7 @@ func (q *Query) Last(model interface{}) error {
 	err := q.Connection.timeFunc("Last", func() error {
 		q.Limit(1)
 		q.Order("created_at DESC, id DESC")
-		m := &Model{Value: model}
+		m := NewModel(model, q.Connection.Context())
 		if err := q.Connection.Dialect.SelectOne(q.Connection.Store, m, *q); err != nil {
 			return err
 		}
@@ -134,7 +134,7 @@ func (c *Connection) All(models interface{}) error {
 //	q.Where("name = ?", "mark").All(&[]User{})
 func (q *Query) All(models interface{}) error {
 	err := q.Connection.timeFunc("All", func() error {
-		m := &Model{Value: models}
+		m := NewModel(models, q.Connection.Context())
 		err := q.Connection.Dialect.SelectMany(q.Connection.Store, m, *q)
 		if err != nil {
 			return err
@@ -258,7 +258,7 @@ func (q *Query) eagerDefaultAssociations(model interface{}) error {
 			}
 		}
 
-		sqlSentence, args := query.ToSQL(&Model{Value: association.Interface()})
+		sqlSentence, args := query.ToSQL(NewModel(association.Interface(), query.Connection.Context()))
 		query = query.RawQuery(sqlSentence, args...)
 
 		if association.Kind() == reflect.Slice || association.Kind() == reflect.Array {
@@ -302,7 +302,7 @@ func (q *Query) Exists(model interface{}) (bool, error) {
 		tmpQuery.Paginator = nil
 		tmpQuery.orderClauses = clauses{}
 		tmpQuery.limitResults = 0
-		query, args := tmpQuery.ToSQL(&Model{Value: model})
+		query, args := tmpQuery.ToSQL(NewModel(model, tmpQuery.Connection.Context()))
 
 		// when query contains custom selected fields / executed using RawQuery,
 		// sql may already contains limit and offset
@@ -348,7 +348,7 @@ func (q Query) CountByField(model interface{}, field string) (int, error) {
 		tmpQuery.Paginator = nil
 		tmpQuery.orderClauses = clauses{}
 		tmpQuery.limitResults = 0
-		query, args := tmpQuery.ToSQL(&Model{Value: model})
+		query, args := tmpQuery.ToSQL(NewModel(model, q.Connection.Context()))
 		// when query contains custom selected fields / executed using RawQuery,
 		//	sql may already contains limit and offset
 

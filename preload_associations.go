@@ -167,7 +167,7 @@ func (ami *AssociationMetaInfo) fkName() string {
 // preload is the query mode used to load associations from database
 // similar to the active record default approach on Rails.
 func preload(tx *Connection, model interface{}, fields ...string) error {
-	mmi := NewModelMetaInfo(&Model{Value: model})
+	mmi := NewModelMetaInfo(NewModel(model, tx.Context()))
 
 	preloadFields, err := mmi.preloadFields(fields...)
 	if err != nil {

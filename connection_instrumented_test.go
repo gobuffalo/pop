@@ -3,12 +3,13 @@ package pop
 import (
 	"context"
 	"fmt"
-	"github.com/luna-duclos/instrumentedsql"
-	"github.com/stretchr/testify/suite"
 	"os"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/luna-duclos/instrumentedsql"
+	"github.com/stretchr/testify/suite"
 )
 
 func testInstrumentedDriver(p *suite.Suite) {
