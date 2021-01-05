@@ -421,3 +421,8 @@ type CrookedSong struct {
 	CreatedAt time.Time `db:"created_at"`
 	UpdatedAt time.Time `db:"updated_at"`
 }
+
+type NonStandardID struct {
+	ID          int    `db:"pk"`
+	OutfacingID string `db:"id"`
+}

@@ -179,6 +179,10 @@ func (cd *ConnectionDetails) OptionsString(s string) string {
 	}
 	if cd.Options != nil {
 		for k, v := range cd.Options {
+			if k == "migration_table_name" {
+				continue
+			}
+
 			s = fmt.Sprintf("%s&%s=%s", s, k, v)
 		}
 	}

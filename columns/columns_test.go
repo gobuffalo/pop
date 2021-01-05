@@ -21,8 +21,8 @@ type foos []foo
 func Test_Column_MapsSlice(t *testing.T) {
 	r := require.New(t)
 
-	c1 := columns.ForStruct(&foo{}, "foo")
-	c2 := columns.ForStruct(&foos{}, "foo")
+	c1 := columns.ForStruct(&foo{}, "foo", "id")
+	c2 := columns.ForStruct(&foos{}, "foo", "id")
 	r.Equal(c1.String(), c2.String())
 }
 
@@ -30,7 +30,7 @@ func Test_Columns_Basics(t *testing.T) {
 	r := require.New(t)
 
 	for _, f := range []interface{}{foo{}, &foo{}} {
-		c := columns.ForStruct(f, "foo")
+		c := columns.ForStruct(f, "foo", "id")
 		r.Equal(len(c.Cols), 4)
 		r.Equal(c.Cols["first_name"], &columns.Column{Name: "first_name", Writeable: false, Readable: true, SelectSQL: "first_name as f"})
 		r.Equal(c.Cols["LastName"], &columns.Column{Name: "LastName", Writeable: true, Readable: true, SelectSQL: "foo.LastName"})
@@ -43,7 +43,7 @@ func Test_Columns_Add(t *testing.T) {
 	r := require.New(t)
 
 	for _, f := range []interface{}{foo{}, &foo{}} {
-		c := columns.ForStruct(f, "foo")
+		c := columns.ForStruct(f, "foo", "id")
 		r.Equal(len(c.Cols), 4)
 		c.Add("foo", "first_name")
 		r.Equal(len(c.Cols), 5)
@@ -55,7 +55,7 @@ func Test_Columns_Remove(t *testing.T) {
 	r := require.New(t)
 
 	for _, f := range []interface{}{foo{}, &foo{}} {
-		c := columns.ForStruct(f, "foo")
+		c := columns.ForStruct(f, "foo", "id")
 		r.Equal(len(c.Cols), 4)
 		c.Remove("foo", "first_name")
 		r.Equal(len(c.Cols), 3)
@@ -75,9 +75,43 @@ func (fooQuoter) Quote(key string) string {
 func Test_Columns_Sorted(t *testing.T) {
 	r := require.New(t)
 
-	c := columns.ForStruct(fooWithSuffix{}, "fooWithSuffix")
+	c := columns.ForStruct(fooWithSuffix{}, "fooWithSuffix", "id")
 	r.Equal(len(c.Cols), 2)
 	r.Equal(c.SymbolizedString(), ":amount, :amount_units")
 	r.Equal(c.String(), "amount, amount_units")
 	r.Equal(c.QuotedString(fooQuoter{}), "`amount`, `amount_units`")
+}
+
+func Test_Columns_IDField(t *testing.T) {
+	type withID struct {
+		ID string `db:"id"`
+	}
+
+	r := require.New(t)
+	c := columns.ForStruct(withID{}, "with_id", "id")
+	r.Equal(1, len(c.Cols), "%+v", c)
+	r.Equal(&columns.Column{Name: "id", Writeable: false, Readable: true, SelectSQL: "with_id.id"}, c.Cols["id"])
+}
+
+func Test_Columns_IDField_Readonly(t *testing.T) {
+	type withIDReadonly struct {
+		ID string `db:"id" rw:"r"`
+	}
+
+	r := require.New(t)
+	c := columns.ForStruct(withIDReadonly{}, "with_id_readonly", "id")
+	r.Equal(1, len(c.Cols), "%+v", c)
+	r.Equal(&columns.Column{Name: "id", Writeable: false, Readable: true, SelectSQL: "with_id_readonly.id"}, c.Cols["id"])
+}
+
+func Test_Columns_ID_Field_Not_ID(t *testing.T) {
+	type withNonStandardID struct {
+		PK string `db:"notid"`
+	}
+
+	r := require.New(t)
+
+	c := columns.ForStruct(withNonStandardID{}, "non_standard_id", "notid")
+	r.Equal(1, len(c.Cols), "%+v", c)
+	r.Equal(&columns.Column{Name: "notid", Writeable: false, Readable: true, SelectSQL: "non_standard_id.notid"}, c.Cols["notid"])
 }
