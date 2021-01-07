@@ -348,10 +348,32 @@ func (q Query) CountByField(model interface{}, field string) (int, error) {
 		tmpQuery.Paginator = nil
 		tmpQuery.orderClauses = clauses{}
 		tmpQuery.limitResults = 0
-		query, args := tmpQuery.ToSQL(&Model{Value: model})
-		// when query contains custom selected fields / executed using RawQuery,
-		//	sql may already contains limit and offset
 
+		var query, countQuery string
+		var args []interface{}
+		var isRaw bool
+
+		if tmpQuery.RawSQL != nil && tmpQuery.RawSQL.Fragment != "" {
+			isRaw = true
+		}
+
+		// Count can't be optimized if the query contains raw SQL due to ToSQL internals
+		if tmpQuery.OptimizeCount && !isRaw {
+			tmpQuery.addColumns = []string{} // Optimizing Count means giving up selecting any distinct columns.
+			// This can be changed in the future but will also have to address the issue of
+			// table aliasing in column names -- AKA reevaluating how Model.ignoreTableName works.
+			query, args = tmpQuery.ToSQL(&Model{Value: model, ignoreTableName: true},
+				fmt.Sprintf("COUNT(%s) as row_count", field))
+		} else {
+			if tmpQuery.OptimizeCount && isRaw {
+				log(logging.Warn, "Query contains raw SQL; COUNT cannot be optimized")
+			}
+
+			query, args = tmpQuery.ToSQL(&Model{Value: model})
+		}
+
+		//when query contains custom selected fields / executed using RawQuery,
+		//	sql may already contains limit and offset
 		if rLimitOffset.MatchString(query) {
 			foundLimit := rLimitOffset.FindString(query)
 			query = query[0 : len(query)-len(foundLimit)]
@@ -360,7 +382,12 @@ func (q Query) CountByField(model interface{}, field string) (int, error) {
 			query = query[0 : len(query)-len(foundLimit)]
 		}
 
-		countQuery := fmt.Sprintf("SELECT COUNT(%s) AS row_count FROM (%s) a", field, query)
+		if tmpQuery.OptimizeCount {
+			countQuery = query
+		} else {
+			countQuery = fmt.Sprintf("SELECT COUNT(%s) AS row_count FROM (%s) a", field, query)
+		}
+
 		log(logging.SQL, countQuery, args...)
 		return q.Connection.Store.Get(res, countQuery, args...)
 	})
