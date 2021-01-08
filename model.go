@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
-	"sync"
 	"time"
 
 	nflect "github.com/gobuffalo/flect/name"
@@ -18,9 +17,6 @@ import (
 )
 
 var nowFunc = time.Now
-
-var tableMap = map[string]string{}
-var tableMapMu = sync.RWMutex{}
 
 // Value is the contents of a `Model`.
 type Value interface{}
@@ -234,11 +230,21 @@ func (m *Model) touchUpdatedAt() {
 }
 
 func (m *Model) whereID() string {
-	return fmt.Sprintf("%s.%s = ?", m.TableName(), m.IDField())
+	as := m.As
+	if as == "" {
+		as = strings.ReplaceAll(m.TableName(), ".", "_")
+	}
+
+	return fmt.Sprintf("%s.%s = ?", as, m.IDField())
 }
 
 func (m *Model) whereNamedID() string {
-	return fmt.Sprintf("%s.%s = :%s", m.TableName(), m.IDField(), m.IDField())
+	as := m.As
+	if as == "" {
+		as = strings.ReplaceAll(m.TableName(), ".", "_")
+	}
+
+	return fmt.Sprintf("%s.%s = :%s", as, m.IDField(), m.IDField())
 }
 
 func (m *Model) isSlice() bool {

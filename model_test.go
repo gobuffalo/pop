@@ -196,3 +196,25 @@ func Test_IDField(t *testing.T) {
 	m = Model{Value: &testNormalID{ID: 1}}
 	r.Equal("id", m.IDField())
 }
+
+type testPrefixID struct {
+	ID int `db:"custom_id"`
+}
+
+func (t testPrefixID) TableName() string {
+	return "foo.bar"
+}
+
+func Test_WhereID(t *testing.T) {
+	r := require.New(t)
+	m := Model{Value: &testPrefixID{ID: 1}}
+
+	r.Equal("foo_bar_custom_id = ?", m.whereID())
+	r.Equal("foo_bar_custom_id = ?", m.whereNamedID())
+
+	type testNormalID struct {
+		ID int
+	}
+	m = Model{Value: &testNormalID{ID: 1}}
+	r.Equal("id", m.IDField())
+}
