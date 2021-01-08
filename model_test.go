@@ -61,13 +61,13 @@ func Test_TableNameCache(t *testing.T) {
 
 // A failing test case for #477
 func Test_TableNameContextCache(t *testing.T) {
-	ctx := context.WithValue(context.Background(), "name", "context-table")
+	ctx := context.WithValue(context.Background(), "name", "context_table")
 
 	r := assert.New(t)
-	r.Equal("context-table-usera", (&Model{Value: ac.User{}, ctx: ctx}).TableName())
-	r.Equal("context-table-userb", (&Model{Value: bc.User{}, ctx: ctx}).TableName())
-	r.Equal("context-table-usera", (&Model{Value: []ac.User{}, ctx: ctx}).TableName())
-	r.Equal("context-table-userb", (&Model{Value: []bc.User{}, ctx: ctx}).TableName())
+	r.Equal("context_table_useras", (&Model{Value: ac.User{}, ctx: ctx}).TableName())
+	r.Equal("context_table_userbs", (&Model{Value: bc.User{}, ctx: ctx}).TableName())
+	r.Equal("context_table_useras", (&Model{Value: []ac.User{}, ctx: ctx}).TableName())
+	r.Equal("context_table_userbs", (&Model{Value: []bc.User{}, ctx: ctx}).TableName())
 }
 
 func Test_TableName(t *testing.T) {
@@ -86,7 +86,7 @@ func Test_TableName(t *testing.T) {
 func Test_TableNameContext(t *testing.T) {
 	r := require.New(t)
 
-	tn := "context table name"
+	tn := "context_table_names"
 	ctx := context.WithValue(context.Background(), "name", tn)
 
 	cases := []interface{}{

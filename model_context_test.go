@@ -17,6 +17,8 @@ type ContextTable struct {
 }
 
 func (t ContextTable) TableName(ctx context.Context) string {
+	// This is singular on purpose! It will checck if the TableName is properly
+	// Respected in slices as well.
 	return "context_prefix_" + ctx.Value("prefix").(string) + "_table"
 }
 
@@ -80,5 +82,28 @@ func Test_ModelContext(t *testing.T) {
 		if !strings.Contains(err.Error(), "context_prefix_unknown_table") { // All other databases
 			t.Fatalf("Expected error to contain indicator that table does not exist but got: %s", err.Error())
 		}
+	})
+
+	t.Run("cache_busting", func(t *testing.T) {
+		r := require.New(t)
+
+		var expectedA, expectedB ContextTable
+		expectedA.ID = "expectedA"
+		expectedB.ID = "expectedB"
+
+		cA := PDB.WithContext(context.WithValue(context.Background(), "prefix", "a"))
+		r.NoError(cA.Create(&expectedA))
+
+		cB := PDB.WithContext(context.WithValue(context.Background(), "prefix", "b"))
+		r.NoError(cB.Create(&expectedB))
+
+		var actualA, actualB []ContextTable
+		r.NoError(cA.All(&actualA))
+		r.NoError(cB.All(&actualB))
+
+		r.Len(cA, 1)
+		r.Len(cB, 1)
+
+		r.NotEqual(cA.ID, cB.ID, "if these are equal context switching did not work")
 	})
 }

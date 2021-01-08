@@ -4,14 +4,16 @@ import (
 	"context"
 	"fmt"
 	"reflect"
+	"strings"
 	"sync"
 	"time"
+
+	nflect "github.com/gobuffalo/flect/name"
 
 	"github.com/gobuffalo/pop/v5/columns"
 	"github.com/pkg/errors"
 
 	"github.com/gobuffalo/flect"
-	nflect "github.com/gobuffalo/flect/name"
 	"github.com/gofrs/uuid"
 )
 
@@ -107,6 +109,7 @@ func (m *Model) TableName() string {
 	if s, ok := m.Value.(string); ok {
 		return s
 	}
+
 	if n, ok := m.Value.(TableNameAble); ok {
 		return n.TableName()
 	}
@@ -118,21 +121,13 @@ func (m *Model) TableName() string {
 		return n.TableName(m.ctx)
 	}
 
+	m.isSlice()
+
 	if m.tableName != "" {
 		return m.tableName
 	}
 
-	t := reflect.TypeOf(m.Value)
-	name, cacheKey := m.typeName(t)
-
-	defer tableMapMu.Unlock()
-	tableMapMu.Lock()
-
-	if tableMap[cacheKey] == "" {
-		m.tableName = nflect.Tableize(name)
-		tableMap[cacheKey] = m.tableName
-	}
-	return tableMap[cacheKey]
+	return m.typeName(reflect.TypeOf(m.Value))
 }
 
 func (m *Model) Columns() columns.Columns {
@@ -143,7 +138,7 @@ func (m *Model) cacheKey(t reflect.Type) string {
 	return t.PkgPath() + "." + t.Name()
 }
 
-func (m *Model) typeName(t reflect.Type) (name, cacheKey string) {
+func (m *Model) typeName(t reflect.Type) (name string) {
 	if t.Kind() == reflect.Ptr {
 		t = t.Elem()
 	}
@@ -159,10 +154,7 @@ func (m *Model) typeName(t reflect.Type) (name, cacheKey string) {
 		if el.Implements(reflect.TypeOf(tableNameAble).Elem()) {
 			v := reflect.New(el)
 			out := v.MethodByName("TableName").Call([]reflect.Value{})
-			name := out[0].String()
-			if tableMap[m.cacheKey(el)] == "" {
-				tableMap[m.cacheKey(el)] = name
-			}
+			return out[0].String()
 		}
 
 		// validates if the elem of slice or array implements TableNameAbleWithContext interface.
@@ -170,15 +162,15 @@ func (m *Model) typeName(t reflect.Type) (name, cacheKey string) {
 		if el.Implements(reflect.TypeOf(tableNameAbleWithContext).Elem()) {
 			v := reflect.New(el)
 			out := v.MethodByName("TableName").Call([]reflect.Value{reflect.ValueOf(m.ctx)})
-			name := out[0].String()
-			if tableMap[m.cacheKey(el)] == "" {
-				tableMap[m.cacheKey(el)] = name
-			}
+			return out[0].String()
+
+			// We do not want to cache contextualized TableNames because that would break
+			// the contextualization.
 		}
 
-		return el.Name(), m.cacheKey(el)
+		return nflect.Tableize(name)
 	default:
-		return t.Name(), m.cacheKey(t)
+		return nflect.Tableize(t.Name())
 	}
 }
 
