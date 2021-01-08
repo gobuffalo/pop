@@ -101,9 +101,9 @@ func Test_ModelContext(t *testing.T) {
 		r.NoError(cA.All(&actualA))
 		r.NoError(cB.All(&actualB))
 
-		r.Len(cA, 1)
-		r.Len(cB, 1)
+		r.Len(actualA, 1)
+		r.Len(actualB, 1)
 
-		r.NotEqual(cA.ID, cB.ID, "if these are equal context switching did not work")
+		r.NotEqual(actualA[0].ID, actualB[0].ID, "if these are equal context switching did not work")
 	})
 }

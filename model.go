@@ -27,9 +27,8 @@ type modelIterable func(*Model) error
 // that is passed in to many functions.
 type Model struct {
 	Value
-	ctx       context.Context
-	tableName string
-	As        string
+	ctx context.Context
+	As  string
 }
 
 // NewModel returns a new model with the specified value and context.
@@ -117,12 +116,6 @@ func (m *Model) TableName() string {
 		return n.TableName(m.ctx)
 	}
 
-	m.isSlice()
-
-	if m.tableName != "" {
-		return m.tableName
-	}
-
 	return m.typeName(reflect.TypeOf(m.Value))
 }
 
@@ -164,7 +157,7 @@ func (m *Model) typeName(t reflect.Type) (name string) {
 			// the contextualization.
 		}
 
-		return nflect.Tableize(name)
+		return nflect.Tableize(el.Name())
 	default:
 		return nflect.Tableize(t.Name())
 	}

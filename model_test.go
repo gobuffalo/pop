@@ -2,6 +2,7 @@ package pop
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
@@ -16,26 +17,25 @@ import (
 )
 
 func Test_Model_TableName(t *testing.T) {
-	r := require.New(t)
+	for k, v := range []interface{}{
+		User{},
+		&User{},
 
-	m := Model{Value: User{}}
-	r.Equal(m.TableName(), "users")
+		&Users{},
+		Users{},
 
-	m = Model{Value: &User{}}
-	r.Equal(m.TableName(), "users")
+		[]*User{},
+		&[]*User{},
 
-	m = Model{Value: &Users{}}
-	r.Equal(m.TableName(), "users")
-
-	m = Model{Value: []User{}}
-	r.Equal(m.TableName(), "users")
-
-	m = Model{Value: &[]User{}}
-	r.Equal(m.TableName(), "users")
-
-	m = Model{Value: []*User{}}
-	r.Equal(m.TableName(), "users")
-
+		[]User{},
+		&[]User{},
+	} {
+		t.Run(fmt.Sprintf("case=%d", k), func(t *testing.T) {
+			r := require.New(t)
+			m := Model{Value: v}
+			r.Equal("users", m.TableName())
+		})
+	}
 }
 
 type tn struct{}
@@ -75,7 +75,11 @@ func Test_TableName(t *testing.T) {
 
 	cases := []interface{}{
 		tn{},
+		&tn{},
 		[]tn{},
+		&[]tn{},
+		[]*tn{},
+		&[]*tn{},
 	}
 	for _, tc := range cases {
 		m := Model{Value: tc}
@@ -209,8 +213,8 @@ func Test_WhereID(t *testing.T) {
 	r := require.New(t)
 	m := Model{Value: &testPrefixID{ID: 1}}
 
-	r.Equal("foo_bar_custom_id = ?", m.whereID())
-	r.Equal("foo_bar_custom_id = ?", m.whereNamedID())
+	r.Equal("foo_bar.custom_id = ?", m.whereID())
+	r.Equal("foo_bar.custom_id = :custom_id", m.whereNamedID())
 
 	type testNormalID struct {
 		ID int
