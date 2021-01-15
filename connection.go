@@ -7,7 +7,6 @@ import (
 
 	"github.com/gobuffalo/pop/v5/internal/defaults"
 	"github.com/gobuffalo/pop/v5/internal/randx"
-	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 )
 
@@ -95,15 +94,12 @@ func (c *Connection) Open() error {
 		return errors.New("invalid connection instance")
 	}
 	details := c.Dialect.Details()
-	driver := c.Dialect.DefaultDriver()
-	if details.Driver != "" {
-		driver = details.Driver
+
+	db, err := openPotentiallyInstrumentedConnection(c.Dialect, c.Dialect.URL())
+	if err != nil {
+		return err
 	}
 
-	db, err := sqlx.Open(driver, c.Dialect.URL())
-	if err != nil {
-		return errors.Wrap(err, "could not open database connection")
-	}
 	db.SetMaxOpenConns(details.Pool)
 	if details.IdlePool != 0 {
 		db.SetMaxIdleConns(details.IdlePool)
@@ -146,10 +142,12 @@ func (c *Connection) Transaction(fn func(tx *Connection) error) error {
 		} else {
 			dberr = cn.TX.Commit()
 		}
-		if err != nil {
-			return err
+
+		if dberr != nil {
+			return errors.Wrap(dberr, "error committing or rolling back transaction")
 		}
-		return errors.Wrap(dberr, "error committing or rolling back transaction")
+
+		return err
 	})
 
 }

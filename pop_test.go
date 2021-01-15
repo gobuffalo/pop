@@ -7,11 +7,12 @@ import (
 	"time"
 
 	"github.com/gobuffalo/nulls"
-	"github.com/gobuffalo/pop/v5/logging"
 	"github.com/gobuffalo/validate/v3"
 	"github.com/gobuffalo/validate/v3/validators"
 	"github.com/gofrs/uuid"
 	"github.com/stretchr/testify/suite"
+
+	"github.com/gobuffalo/pop/v5/logging"
 )
 
 var PDB *Connection
@@ -28,6 +29,10 @@ type SQLiteSuite struct {
 	suite.Suite
 }
 
+type CockroachSuite struct {
+	suite.Suite
+}
+
 func TestSpecificSuites(t *testing.T) {
 	switch os.Getenv("SODA_DIALECT") {
 	case "postgres":
@@ -36,6 +41,8 @@ func TestSpecificSuites(t *testing.T) {
 		suite.Run(t, &MySQLSuite{})
 	case "sqlite":
 		suite.Run(t, &SQLiteSuite{})
+	case "cockroach":
+		suite.Run(t, &CockroachSuite{})
 	}
 }
 
@@ -71,6 +78,14 @@ func transaction(fn func(tx *Connection)) {
 
 func ts(s string) string {
 	return PDB.Dialect.TranslateSQL(s)
+}
+
+type Client struct {
+	ClientID string `db:"id"`
+}
+
+func (c Client) TableName() string {
+	return "clients"
 }
 
 type User struct {
@@ -116,17 +131,23 @@ type Book struct {
 	User        User      `belongs_to:"user"`
 	Description string    `db:"description"`
 	Writers     Writers   `has_many:"writers"`
+	TaxiID      nulls.Int `db:"taxi_id"`
+	Taxi        Taxi      `belongs_to:"taxi"`
 	CreatedAt   time.Time `db:"created_at"`
 	UpdatedAt   time.Time `db:"updated_at"`
 }
 
 type Taxi struct {
-	ID        int       `db:"id"`
-	Model     string    `db:"model"`
-	UserID    nulls.Int `db:"user_id"`
-	Driver    *User     `belongs_to:"user" fk_id:"user_id"`
-	CreatedAt time.Time `db:"created_at"`
-	UpdatedAt time.Time `db:"updated_at"`
+	ID          int       `db:"id"`
+	Model       string    `db:"model"`
+	UserID      nulls.Int `db:"user_id"`
+	AddressID   nulls.Int `db:"address_id"`
+	Driver      *User     `belongs_to:"user" fk_id:"user_id"`
+	Address     Address   `belongs_to:"address"`
+	ToAddressID *int      `db:"to_address_id"`
+	ToAddress   *Address  `belongs_to:"address"`
+	CreatedAt   time.Time `db:"created_at"`
+	UpdatedAt   time.Time `db:"updated_at"`
 }
 
 // Validate gets run every time you call a "Validate*" (ValidateAndSave, ValidateAndCreate, ValidateAndUpdate) method.
@@ -386,4 +407,22 @@ type Parent struct {
 	CreatedAt time.Time  `json:"created_at" db:"created_at"`
 	UpdatedAt time.Time  `json:"updated_at" db:"updated_at"`
 	Students  []*Student `many_to_many:"parents_students"`
+}
+
+type CrookedColour struct {
+	ID        int       `db:"pk"`
+	Name      string    `db:"name"`
+	CreatedAt time.Time `db:"created_at"`
+	UpdatedAt time.Time `db:"updated_at"`
+}
+
+type CrookedSong struct {
+	ID        string    `db:"name"`
+	CreatedAt time.Time `db:"created_at"`
+	UpdatedAt time.Time `db:"updated_at"`
+}
+
+type NonStandardID struct {
+	ID          int    `db:"pk"`
+	OutfacingID string `db:"id"`
 }

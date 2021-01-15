@@ -34,6 +34,32 @@ func Test_Find(t *testing.T) {
 	})
 }
 
+func Test_Create_MissingID(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
+	transaction(func(tx *Connection) {
+		r := require.New(t)
+		client := Client{ClientID: "client-0001"}
+		err := tx.Create(&client)
+		r.Error(err)
+		r.Contains(err.Error(), "model *pop.Client is missing required field ID")
+	})
+}
+
+func Test_Find_MissingID(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
+	transaction(func(tx *Connection) {
+		r := require.New(t)
+		r.NoError(tx.RawQuery("INSERT INTO clients (id) VALUES (?)", "client-0001").Exec())
+
+		u := Client{}
+		r.EqualError(tx.Find(&u, "client-0001"), "model *pop.Client is missing required field ID")
+	})
+}
+
 func Test_Find_LeadingZeros(t *testing.T) {
 	if PDB == nil {
 		t.Skip("skipping integration tests")
@@ -275,7 +301,7 @@ func Test_Find_Eager_Has_One(t *testing.T) {
 		r.Equal(u.Name.String, "Mark")
 		r.Equal(u.FavoriteSong.ID, coolSong.ID)
 
-		//eager should work with rawquery
+		// eager should work with rawquery
 		uid := u.ID
 		u = User{}
 		err = tx.RawQuery("select * from users where id=?", uid).First(&u)
@@ -419,14 +445,14 @@ func Test_Find_Eager_Many_To_Many(t *testing.T) {
 		err = tx.Create(&ownerProperty2)
 		r.NoError(err)
 
-		//eager should work with rawquery
+		// eager should work with rawquery
 		uid := u.ID
 		u = User{}
 		err = tx.RawQuery("select * from users where id=?", uid).Eager("Houses").First(&u)
 		r.NoError(err)
 		r.Equal(1, len(u.Houses))
 
-		//eager ALL
+		// eager ALL
 		var users []User
 		err = tx.RawQuery("select * from users order by created_at asc").Eager("Houses").All(&users)
 		r.NoError(err)
@@ -731,7 +757,7 @@ func Test_Count_Disregards_Pagination(t *testing.T) {
 
 		q := tx.Paginate(1, 3)
 		r.NoError(q.All(&firstUsers))
-		r.Equal(len(names), q.Paginator.TotalEntriesSize) //ensure paginator populates count
+		r.Equal(len(names), q.Paginator.TotalEntriesSize) // ensure paginator populates count
 		r.Equal(3, len(firstUsers))
 
 		firstUsers = Users{}
@@ -739,7 +765,7 @@ func Test_Count_Disregards_Pagination(t *testing.T) {
 		r.NoError(q.All(&firstUsers))
 		r.Equal(1, q.Paginator.Page)
 		r.Equal(3, q.Paginator.PerPage)
-		r.Equal(len(names), q.Paginator.TotalEntriesSize) //ensure paginator populates count
+		r.Equal(len(names), q.Paginator.TotalEntriesSize) // ensure paginator populates count
 
 		r.Equal(3, len(firstUsers))
 		totalFirstPage := q.Paginator.TotalPages
@@ -758,7 +784,7 @@ func Test_Count_Disregards_Pagination(t *testing.T) {
 		q = tx.RawQuery("select * from users limit  2").Paginate(1, 5)
 		err := q.All(&firstUsers)
 		r.NoError(err)
-		r.Equal(2, len(firstUsers)) //raw query limit applies
+		r.Equal(2, len(firstUsers)) // raw query limit applies
 
 		firstUsers = Users{}
 		q = tx.RawQuery("select * from users limit 2 offset 1").Paginate(1, 5)
@@ -782,7 +808,7 @@ func Test_Count_Disregards_Pagination(t *testing.T) {
 		firstUsers = Users{}
 		q = tx.RawQuery(`select * from users limit 2 offset
 			1
-			`).Paginate(1, 5) //ending space and tab
+			`).Paginate(1, 5) // ending space and tab
 		err = q.All(&firstUsers)
 		r.NoError(err)
 		r.Equal(2, len(firstUsers))
@@ -806,7 +832,7 @@ func Test_Count_Disregards_Pagination(t *testing.T) {
 			q = tx.RawQuery("select * from users FETCH FIRST 3 rows only").Paginate(1, 5)
 			err = q.All(&firstUsers)
 			r.NoError(err)
-			r.Equal(3, len(firstUsers)) //should fetch only 3
+			r.Equal(3, len(firstUsers)) // should fetch only 3
 		}
 	})
 }

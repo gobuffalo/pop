@@ -3,7 +3,9 @@
 package pop
 
 import (
+	"database/sql/driver"
 	"fmt"
+	"github.com/mattn/go-sqlite3"
 	"io"
 	"net/url"
 	"os"
@@ -64,10 +66,14 @@ func (m *sqlite) MigrationURL() string {
 
 func (m *sqlite) Create(s store, model *Model, cols columns.Columns) error {
 	return m.locker(m.smGil, func() error {
-		keyType := model.PrimaryKeyType()
+		keyType, err := model.PrimaryKeyType()
+		if err != nil {
+			return err
+		}
 		switch keyType {
 		case "int", "int64":
 			var id int64
+			cols.Remove(model.IDField())
 			w := cols.Writeable()
 			var query string
 			if len(w.Cols) > 0 {
@@ -285,4 +291,8 @@ func finalizerSQLite(cd *ConnectionDetails) {
 			log(logging.Warn, "IMPORTANT! '%s=%s' option is required to work properly. Please add it to the database URL in the config!", k, v)
 		} // or fix user specified url?
 	}
+}
+
+func newSQLiteDriver() (driver.Driver, error) {
+	return new(sqlite3.SQLiteDriver), nil
 }

@@ -464,6 +464,74 @@ func Test_Create_With_Slice(t *testing.T) {
 	})
 }
 
+func Test_Create_With_Non_ID_PK(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
+	transaction(func(tx *Connection) {
+		r := require.New(t)
+
+		count, _ := tx.Count(&CrookedColour{})
+		djs := []CrookedColour{
+			{Name: "Phil Slabber"},
+			{Name: "Leon Debaughn"},
+			{Name: "Liam Merrett-Park"},
+		}
+		err := tx.Create(&djs)
+		r.NoError(err)
+
+		ctx, _ := tx.Count(&CrookedColour{})
+		r.Equal(count+3, ctx)
+		r.NotEqual(djs[0].ID, djs[1].ID)
+		r.NotEqual(djs[1].ID, djs[2].ID)
+	})
+}
+
+func Test_Create_With_Non_ID_PK_String(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
+	transaction(func(tx *Connection) {
+		r := require.New(t)
+
+		count, _ := tx.Count(&CrookedSong{})
+		djs := []CrookedSong{
+			{ID: "Flow"},
+			{ID: "Do It Like You"},
+			{ID: "I C Light"},
+		}
+		err := tx.Create(&djs)
+		r.NoError(err)
+
+		ctx, _ := tx.Count(&CrookedSong{})
+		r.Equal(count+3, ctx)
+		r.NotEqual(djs[0].ID, djs[1].ID)
+		r.NotEqual(djs[1].ID, djs[2].ID)
+	})
+}
+
+func Test_Create_Non_PK_ID(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
+	transaction(func(tx *Connection) {
+		r := require.New(t)
+
+		r.NoError(tx.Create(&NonStandardID{OutfacingID: "make sure the tested entry does not have pk=0"}))
+
+		count, err := tx.Count(&NonStandardID{})
+		entry := &NonStandardID{
+			OutfacingID: "beautiful to the outside ID",
+		}
+		r.NoError(tx.Create(entry))
+
+		ctx, err := tx.Count(&NonStandardID{})
+		r.NoError(err)
+		r.Equal(count+1, ctx)
+		r.NotZero(entry.ID)
+	})
+}
+
 func Test_Eager_Create_Has_Many(t *testing.T) {
 	if PDB == nil {
 		t.Skip("skipping integration tests")
@@ -1421,6 +1489,54 @@ func Test_Update_UUID(t *testing.T) {
 		err = tx.Reload(&song)
 		r.NoError(err)
 		r.Equal("Hum", song.Title)
+	})
+}
+
+func Test_Update_With_Non_ID_PK(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
+	transaction(func(tx *Connection) {
+		r := require.New(t)
+
+		r.NoError(tx.Create(&CrookedColour{Name: "cc is not the first one"}))
+
+		cc := CrookedColour{
+			Name: "You?",
+		}
+		err := tx.Create(&cc)
+		r.NoError(err)
+		r.NotZero(cc.ID)
+		id := cc.ID
+
+		updatedName := "Me!"
+		cc.Name = updatedName
+		r.NoError(tx.Update(&cc))
+		r.Equal(id, cc.ID)
+
+		r.NoError(tx.Reload(&cc))
+		r.Equal(updatedName, cc.Name)
+		r.Equal(id, cc.ID)
+	})
+}
+
+func Test_Update_Non_PK_ID(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
+	transaction(func(tx *Connection) {
+		r := require.New(t)
+
+		client := &NonStandardID{
+			OutfacingID: "my awesome hydra client",
+		}
+		r.NoError(tx.Create(client))
+
+		updatedID := "your awesome hydra client"
+		client.OutfacingID = updatedID
+		r.NoError(tx.Update(client))
+		r.NoError(tx.Reload(client))
+		r.Equal(updatedID, client.OutfacingID)
 	})
 }
 

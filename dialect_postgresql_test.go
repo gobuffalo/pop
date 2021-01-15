@@ -1,6 +1,8 @@
 package pop
 
 import (
+	"os"
+	"os/user"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -9,7 +11,7 @@ import (
 func Test_PostgreSQL_Connection_String(t *testing.T) {
 	r := require.New(t)
 
-	url := "host=host port=port dbname=database user=user password=pass"
+	url := "host=host port=1234 dbname=database user=user password=pass"
 	cd := &ConnectionDetails{
 		Dialect: "postgres",
 		URL:     url,
@@ -21,7 +23,7 @@ func Test_PostgreSQL_Connection_String(t *testing.T) {
 	r.Equal("postgres", cd.Dialect)
 	r.Equal("host", cd.Host)
 	r.Equal("pass", cd.Password)
-	r.Equal("port", cd.Port)
+	r.Equal("1234", cd.Port)
 	r.Equal("user", cd.User)
 	r.Equal("database", cd.Database)
 }
@@ -29,7 +31,7 @@ func Test_PostgreSQL_Connection_String(t *testing.T) {
 func Test_PostgreSQL_Connection_String_Options(t *testing.T) {
 	r := require.New(t)
 
-	url := "host=host port=port dbname=database user=user password=pass sslmode=disable fallback_application_name=test_app connect_timeout=10 sslcert=/some/location sslkey=/some/other/location sslrootcert=/root/location"
+	url := "host=host port=1234 dbname=database user=user password=pass sslmode=disable fallback_application_name=test_app connect_timeout=10 sslcert=/some/location sslkey=/some/other/location sslrootcert=/root/location"
 	cd := &ConnectionDetails{
 		Dialect: "postgres",
 		URL:     url,
@@ -41,10 +43,6 @@ func Test_PostgreSQL_Connection_String_Options(t *testing.T) {
 
 	r.Equal("disable", cd.Options["sslmode"])
 	r.Equal("test_app", cd.Options["fallback_application_name"])
-	r.Equal("10", cd.Options["connect_timeout"])
-	r.Equal("/some/location", cd.Options["sslcert"])
-	r.Equal("/some/other/location", cd.Options["sslkey"])
-	r.Equal("/root/location", cd.Options["sslrootcert"])
 }
 
 func Test_PostgreSQL_Connection_String_Without_User(t *testing.T) {
@@ -58,12 +56,34 @@ func Test_PostgreSQL_Connection_String_Without_User(t *testing.T) {
 	err := cd.Finalize()
 	r.NoError(err)
 
+	uc := os.Getenv("PGUSER")
+	if uc == "" {
+		c, err := user.Current()
+		if err == nil {
+			uc = c.Username
+		}
+	}
+
 	r.Equal(url, cd.URL)
 	r.Equal("postgres", cd.Dialect)
-	r.Equal("", cd.Host)
-	r.Equal("", cd.Password)
+
+	var foundHost bool
+	for _, host := range []string{
+		"/var/run/postgresql", // Debian
+		"/private/tmp",        // OSX - homebrew
+		"/tmp",                // standard PostgreSQL
+		"localhost",           // Windows does not do sockets
+	} {
+		if cd.Host == host {
+			foundHost = true
+			break
+		}
+	}
+	r.True(foundHost, `Got host: "%s"`, cd.Host)
+
+	r.Equal(os.Getenv("PGPASSWORD"), cd.Password)
 	r.Equal(portPostgreSQL, cd.Port) // fallback
-	r.Equal("", cd.User)
+	r.Equal(uc, cd.User)
 	r.Equal("database", cd.Database)
 }
 
