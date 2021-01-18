@@ -101,7 +101,7 @@ func Test_Select(t *testing.T) {
 
 		q := tx.Select("name", "email", "\n", "\t\n", "")
 
-		sm := &Model{Value: &User{}}
+		sm := NewModel(new(User), tx.Context())
 		sql, _ := q.ToSQL(sm)
 		r.Equal(tx.Dialect.TranslateSQL("SELECT email, name FROM users AS users"), sql)
 

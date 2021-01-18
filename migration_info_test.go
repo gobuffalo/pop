@@ -1,9 +1,10 @@
 package pop
 
 import (
-	"github.com/stretchr/testify/assert"
 	"sort"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestSortingMigrations(t *testing.T) {

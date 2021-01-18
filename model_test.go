@@ -1,8 +1,13 @@
 package pop
 
 import (
+	"context"
+	"fmt"
 	"testing"
 	"time"
+
+	"github.com/gobuffalo/pop/v5/testdata/models/ac"
+	"github.com/gobuffalo/pop/v5/testdata/models/bc"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -12,32 +17,37 @@ import (
 )
 
 func Test_Model_TableName(t *testing.T) {
-	r := require.New(t)
+	for k, v := range []interface{}{
+		User{},
+		&User{},
 
-	m := Model{Value: User{}}
-	r.Equal(m.TableName(), "users")
+		&Users{},
+		Users{},
 
-	m = Model{Value: &User{}}
-	r.Equal(m.TableName(), "users")
+		[]*User{},
+		&[]*User{},
 
-	m = Model{Value: &Users{}}
-	r.Equal(m.TableName(), "users")
-
-	m = Model{Value: []User{}}
-	r.Equal(m.TableName(), "users")
-
-	m = Model{Value: &[]User{}}
-	r.Equal(m.TableName(), "users")
-
-	m = Model{Value: []*User{}}
-	r.Equal(m.TableName(), "users")
-
+		[]User{},
+		&[]User{},
+	} {
+		t.Run(fmt.Sprintf("case=%d", k), func(t *testing.T) {
+			r := require.New(t)
+			m := Model{Value: v}
+			r.Equal("users", m.TableName())
+		})
+	}
 }
 
 type tn struct{}
 
 func (tn) TableName() string {
 	return "this is my table name"
+}
+
+type tnc struct{}
+
+func (tnc) TableName(ctx context.Context) string {
+	return ctx.Value("name").(string)
 }
 
 // A failing test case for #477
@@ -49,16 +59,47 @@ func Test_TableNameCache(t *testing.T) {
 	r.Equal("userb", (&Model{Value: []b.User{}}).TableName())
 }
 
+// A failing test case for #477
+func Test_TableNameContextCache(t *testing.T) {
+	ctx := context.WithValue(context.Background(), "name", "context_table")
+
+	r := assert.New(t)
+	r.Equal("context_table_useras", (&Model{Value: ac.User{}, ctx: ctx}).TableName())
+	r.Equal("context_table_userbs", (&Model{Value: bc.User{}, ctx: ctx}).TableName())
+	r.Equal("context_table_useras", (&Model{Value: []ac.User{}, ctx: ctx}).TableName())
+	r.Equal("context_table_userbs", (&Model{Value: []bc.User{}, ctx: ctx}).TableName())
+}
+
 func Test_TableName(t *testing.T) {
 	r := require.New(t)
 
 	cases := []interface{}{
 		tn{},
+		&tn{},
 		[]tn{},
+		&[]tn{},
+		[]*tn{},
+		&[]*tn{},
 	}
 	for _, tc := range cases {
 		m := Model{Value: tc}
 		r.Equal("this is my table name", m.TableName())
+	}
+}
+
+func Test_TableNameContext(t *testing.T) {
+	r := require.New(t)
+
+	tn := "context_table_names"
+	ctx := context.WithValue(context.Background(), "name", tn)
+
+	cases := []interface{}{
+		tnc{},
+		[]tnc{},
+	}
+	for _, tc := range cases {
+		m := Model{Value: tc, ctx: ctx}
+		r.Equal(tn, m.TableName())
 	}
 }
 
@@ -77,7 +118,7 @@ type UnixTimestamp struct {
 func Test_Touch_Time_Timestamp(t *testing.T) {
 	r := require.New(t)
 
-	m := Model{Value: &TimeTimestamp{}}
+	m := NewModel(&TimeTimestamp{}, context.Background())
 
 	// Override time.Now()
 	t0, _ := time.Parse(time.RFC3339, "2019-07-14T00:00:00Z")
@@ -101,7 +142,7 @@ func Test_Touch_Time_Timestamp_With_Existing_Value(t *testing.T) {
 
 	createdAt := nowFunc().Add(-36 * time.Hour)
 
-	m := Model{Value: &TimeTimestamp{CreatedAt: createdAt}}
+	m := NewModel(&TimeTimestamp{CreatedAt: createdAt}, context.Background())
 	m.touchCreatedAt()
 	m.touchUpdatedAt()
 	v := m.Value.(*TimeTimestamp)
@@ -112,7 +153,7 @@ func Test_Touch_Time_Timestamp_With_Existing_Value(t *testing.T) {
 func Test_Touch_Unix_Timestamp(t *testing.T) {
 	r := require.New(t)
 
-	m := Model{Value: &UnixTimestamp{}}
+	m := NewModel(&UnixTimestamp{}, context.Background())
 
 	// Override time.Now()
 	t0, _ := time.Parse(time.RFC3339, "2019-07-14T00:00:00Z")
@@ -136,7 +177,7 @@ func Test_Touch_Unix_Timestamp_With_Existing_Value(t *testing.T) {
 
 	createdAt := int(time.Now().Add(-36 * time.Hour).Unix())
 
-	m := Model{Value: &UnixTimestamp{CreatedAt: createdAt}}
+	m := NewModel(&UnixTimestamp{CreatedAt: createdAt}, context.Background())
 	m.touchCreatedAt()
 	m.touchUpdatedAt()
 	v := m.Value.(*UnixTimestamp)
@@ -152,6 +193,28 @@ func Test_IDField(t *testing.T) {
 	}
 	m := Model{Value: &testCustomID{ID: 1}}
 	r.Equal("custom_id", m.IDField())
+
+	type testNormalID struct {
+		ID int
+	}
+	m = Model{Value: &testNormalID{ID: 1}}
+	r.Equal("id", m.IDField())
+}
+
+type testPrefixID struct {
+	ID int `db:"custom_id"`
+}
+
+func (t testPrefixID) TableName() string {
+	return "foo.bar"
+}
+
+func Test_WhereID(t *testing.T) {
+	r := require.New(t)
+	m := Model{Value: &testPrefixID{ID: 1}}
+
+	r.Equal("foo_bar.custom_id = ?", m.whereID())
+	r.Equal("foo_bar.custom_id = :custom_id", m.whereNamedID())
 
 	type testNormalID struct {
 		ID int

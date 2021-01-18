@@ -1,9 +1,10 @@
 package cmd
 
 import (
+	"os"
+
 	"github.com/gobuffalo/pop/v5"
 	"github.com/spf13/cobra"
-	"os"
 )
 
 var migrateStatusCmd = &cobra.Command{

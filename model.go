@@ -1,22 +1,22 @@
 package pop
 
 import (
+	"context"
 	"fmt"
-	"github.com/gobuffalo/pop/v5/columns"
-	"github.com/pkg/errors"
 	"reflect"
-	"sync"
+	"strings"
 	"time"
 
-	"github.com/gobuffalo/flect"
 	nflect "github.com/gobuffalo/flect/name"
+
+	"github.com/gobuffalo/pop/v5/columns"
+	"github.com/pkg/errors"
+
+	"github.com/gobuffalo/flect"
 	"github.com/gofrs/uuid"
 )
 
 var nowFunc = time.Now
-
-var tableMap = map[string]string{}
-var tableMapMu = sync.RWMutex{}
 
 // Value is the contents of a `Model`.
 type Value interface{}
@@ -27,8 +27,13 @@ type modelIterable func(*Model) error
 // that is passed in to many functions.
 type Model struct {
 	Value
-	tableName string
-	As        string
+	ctx context.Context
+	As  string
+}
+
+// NewModel returns a new model with the specified value and context.
+func NewModel(v Value, ctx context.Context) *Model {
+	return &Model{Value: v, ctx: ctx}
 }
 
 // ID returns the ID of the Model. All models must have an `ID` field this is
@@ -86,31 +91,32 @@ type TableNameAble interface {
 	TableName() string
 }
 
+// TableNameAbleWithContext is equal to TableNameAble but will
+// be passed the queries' context. Useful in cases where the
+// table name depends on e.g.
+type TableNameAbleWithContext interface {
+	TableName(ctx context.Context) string
+}
+
 // TableName returns the corresponding name of the underlying database table
 // for a given `Model`. See also `TableNameAble` to change the default name of the table.
 func (m *Model) TableName() string {
 	if s, ok := m.Value.(string); ok {
 		return s
 	}
+
 	if n, ok := m.Value.(TableNameAble); ok {
 		return n.TableName()
 	}
 
-	if m.tableName != "" {
-		return m.tableName
+	if n, ok := m.Value.(TableNameAbleWithContext); ok {
+		if m.ctx == nil {
+			m.ctx = context.TODO()
+		}
+		return n.TableName(m.ctx)
 	}
 
-	t := reflect.TypeOf(m.Value)
-	name, cacheKey := m.typeName(t)
-
-	defer tableMapMu.Unlock()
-	tableMapMu.Lock()
-
-	if tableMap[cacheKey] == "" {
-		m.tableName = nflect.Tableize(name)
-		tableMap[cacheKey] = m.tableName
-	}
-	return tableMap[cacheKey]
+	return m.typeName(reflect.TypeOf(m.Value))
 }
 
 func (m *Model) Columns() columns.Columns {
@@ -121,7 +127,7 @@ func (m *Model) cacheKey(t reflect.Type) string {
 	return t.PkgPath() + "." + t.Name()
 }
 
-func (m *Model) typeName(t reflect.Type) (name, cacheKey string) {
+func (m *Model) typeName(t reflect.Type) (name string) {
 	if t.Kind() == reflect.Ptr {
 		t = t.Elem()
 	}
@@ -133,19 +139,27 @@ func (m *Model) typeName(t reflect.Type) (name, cacheKey string) {
 		}
 
 		// validates if the elem of slice or array implements TableNameAble interface.
-		tableNameAble := (*TableNameAble)(nil)
+		var tableNameAble *TableNameAble
 		if el.Implements(reflect.TypeOf(tableNameAble).Elem()) {
 			v := reflect.New(el)
 			out := v.MethodByName("TableName").Call([]reflect.Value{})
-			name := out[0].String()
-			if tableMap[m.cacheKey(el)] == "" {
-				tableMap[m.cacheKey(el)] = name
-			}
+			return out[0].String()
 		}
 
-		return el.Name(), m.cacheKey(el)
+		// validates if the elem of slice or array implements TableNameAbleWithContext interface.
+		var tableNameAbleWithContext *TableNameAbleWithContext
+		if el.Implements(reflect.TypeOf(tableNameAbleWithContext).Elem()) {
+			v := reflect.New(el)
+			out := v.MethodByName("TableName").Call([]reflect.Value{reflect.ValueOf(m.ctx)})
+			return out[0].String()
+
+			// We do not want to cache contextualized TableNames because that would break
+			// the contextualization.
+		}
+
+		return nflect.Tableize(el.Name())
 	default:
-		return t.Name(), m.cacheKey(t)
+		return nflect.Tableize(t.Name())
 	}
 }
 
@@ -209,11 +223,21 @@ func (m *Model) touchUpdatedAt() {
 }
 
 func (m *Model) whereID() string {
-	return fmt.Sprintf("%s.%s = ?", m.TableName(), m.IDField())
+	as := m.As
+	if as == "" {
+		as = strings.ReplaceAll(m.TableName(), ".", "_")
+	}
+
+	return fmt.Sprintf("%s.%s = ?", as, m.IDField())
 }
 
 func (m *Model) whereNamedID() string {
-	return fmt.Sprintf("%s.%s = :%s", m.TableName(), m.IDField(), m.IDField())
+	as := m.As
+	if as == "" {
+		as = strings.ReplaceAll(m.TableName(), ".", "_")
+	}
+
+	return fmt.Sprintf("%s.%s = :%s", as, m.IDField(), m.IDField())
 }
 
 func (m *Model) isSlice() bool {
@@ -226,7 +250,10 @@ func (m *Model) iterate(fn modelIterable) error {
 		v := reflect.Indirect(reflect.ValueOf(m.Value))
 		for i := 0; i < v.Len(); i++ {
 			val := v.Index(i)
-			newModel := &Model{Value: val.Addr().Interface()}
+			newModel := &Model{
+				Value: val.Addr().Interface(),
+				ctx:   m.ctx,
+			}
 			err := fn(newModel)
 
 			if err != nil {
