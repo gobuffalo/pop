@@ -2,12 +2,13 @@ package pop
 
 import (
 	"fmt"
-	"github.com/luna-duclos/instrumentedsql"
 	"net/url"
 	"regexp"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/luna-duclos/instrumentedsql"
 
 	"github.com/gobuffalo/pop/v5/internal/defaults"
 	"github.com/gobuffalo/pop/v5/logging"
@@ -179,6 +180,10 @@ func (cd *ConnectionDetails) OptionsString(s string) string {
 	}
 	if cd.Options != nil {
 		for k, v := range cd.Options {
+			if k == "migration_table_name" {
+				continue
+			}
+
 			s = fmt.Sprintf("%s&%s=%s", s, k, v)
 		}
 	}

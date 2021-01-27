@@ -13,7 +13,7 @@ import (
 
 // Reload fetch fresh data for a given model, using its ID.
 func (c *Connection) Reload(model interface{}) error {
-	sm := Model{Value: model}
+	sm := NewModel(model, c.Context())
 	return sm.iterate(func(m *Model) error {
 		return c.Find(m.Value, m.ID())
 	})
@@ -51,7 +51,7 @@ func (q *Query) ExecWithCount() (int, error) {
 //
 // If model is a slice, each item of the slice is validated then saved in the database.
 func (c *Connection) ValidateAndSave(model interface{}, excludeColumns ...string) (*validate.Errors, error) {
-	sm := &Model{Value: model}
+	sm := NewModel(model, c.Context())
 	if err := sm.beforeValidate(c); err != nil {
 		return nil, err
 	}
@@ -77,7 +77,7 @@ func IsZeroOfUnderlyingType(x interface{}) bool {
 //
 // If model is a slice, each item of the slice is saved in the database.
 func (c *Connection) Save(model interface{}, excludeColumns ...string) error {
-	sm := &Model{Value: model}
+	sm := NewModel(model, c.Context())
 	return sm.iterate(func(m *Model) error {
 		id, err := m.fieldByName("ID")
 		if err != nil {
@@ -95,7 +95,7 @@ func (c *Connection) Save(model interface{}, excludeColumns ...string) error {
 //
 // If model is a slice, each item of the slice is validated then created in the database.
 func (c *Connection) ValidateAndCreate(model interface{}, excludeColumns ...string) (*validate.Errors, error) {
-	sm := &Model{Value: model}
+	sm := NewModel(model, c.Context())
 	if err := sm.beforeValidate(c); err != nil {
 		return nil, err
 	}
@@ -126,7 +126,7 @@ func (c *Connection) ValidateAndCreate(model interface{}, excludeColumns ...stri
 				continue
 			}
 
-			sm := &Model{Value: i}
+			sm := NewModel(i, c.Context())
 			verrs, err := sm.validateAndOnlyCreate(c)
 			if err != nil || verrs.HasAny() {
 				return verrs, err
@@ -140,14 +140,14 @@ func (c *Connection) ValidateAndCreate(model interface{}, excludeColumns ...stri
 				continue
 			}
 
-			sm := &Model{Value: i}
+			sm := NewModel(i, c.Context())
 			verrs, err := sm.validateAndOnlyCreate(c)
 			if err != nil || verrs.HasAny() {
 				return verrs, err
 			}
 		}
 
-		sm := &Model{Value: model}
+		sm := NewModel(model, c.Context())
 		verrs, err = sm.validateCreate(c)
 		if err != nil || verrs.HasAny() {
 			return verrs, err
@@ -170,7 +170,7 @@ func (c *Connection) Create(model interface{}, excludeColumns ...string) error {
 
 	c.disableEager()
 
-	sm := &Model{Value: model}
+	sm := NewModel(model, c.Context())
 	return sm.iterate(func(m *Model) error {
 		return c.timeFunc("Create", func() error {
 			var localIsEager = isEager
@@ -203,7 +203,7 @@ func (c *Connection) Create(model interface{}, excludeColumns ...string) error {
 					}
 
 					if localIsEager {
-						sm := &Model{Value: i}
+						sm := NewModel(i, c.Context())
 						err = sm.iterate(func(m *Model) error {
 							id, err := m.fieldByName("ID")
 							if err != nil {
@@ -228,7 +228,7 @@ func (c *Connection) Create(model interface{}, excludeColumns ...string) error {
 			}
 
 			tn := m.TableName()
-			cols := columns.ForStructWithAlias(m.Value, tn, m.As)
+			cols := m.Columns()
 
 			if tn == sm.TableName() {
 				cols.Remove(excludeColumns...)
@@ -255,7 +255,7 @@ func (c *Connection) Create(model interface{}, excludeColumns ...string) error {
 							continue
 						}
 
-						sm := &Model{Value: i}
+						sm := NewModel(i, c.Context())
 						err = sm.iterate(func(m *Model) error {
 							fbn, err := m.fieldByName("ID")
 							if err != nil {
@@ -318,7 +318,7 @@ func (c *Connection) Create(model interface{}, excludeColumns ...string) error {
 //
 // If model is a slice, each item of the slice is validated then updated in the database.
 func (c *Connection) ValidateAndUpdate(model interface{}, excludeColumns ...string) (*validate.Errors, error) {
-	sm := &Model{Value: model}
+	sm := NewModel(model, c.Context())
 	if err := sm.beforeValidate(c); err != nil {
 		return nil, err
 	}
@@ -337,7 +337,7 @@ func (c *Connection) ValidateAndUpdate(model interface{}, excludeColumns ...stri
 //
 // If model is a slice, each item of the slice is updated in the database.
 func (c *Connection) Update(model interface{}, excludeColumns ...string) error {
-	sm := &Model{Value: model}
+	sm := NewModel(model, c.Context())
 	return sm.iterate(func(m *Model) error {
 		return c.timeFunc("Update", func() error {
 			var err error
@@ -350,8 +350,8 @@ func (c *Connection) Update(model interface{}, excludeColumns ...string) error {
 			}
 
 			tn := m.TableName()
-			cols := columns.ForStructWithAlias(model, tn, m.As)
-			cols.Remove("id", "created_at")
+			cols := columns.ForStructWithAlias(model, tn, m.As, m.IDField())
+			cols.Remove(m.IDField(), "created_at")
 
 			if tn == sm.TableName() {
 				cols.Remove(excludeColumns...)
@@ -377,7 +377,7 @@ func (c *Connection) Update(model interface{}, excludeColumns ...string) error {
 //
 // If model is a slice, each item of the slice is updated in the database.
 func (c *Connection) UpdateColumns(model interface{}, columnNames ...string) error {
-	sm := &Model{Value: model}
+	sm := NewModel(model, c.Context())
 	return sm.iterate(func(m *Model) error {
 		return c.timeFunc("Update", func() error {
 			var err error
@@ -393,11 +393,11 @@ func (c *Connection) UpdateColumns(model interface{}, columnNames ...string) err
 
 			cols := columns.Columns{}
 			if len(columnNames) > 0 && tn == sm.TableName() {
-				cols = columns.NewColumnsWithAlias(tn, m.As)
+				cols = columns.NewColumnsWithAlias(tn, m.As, sm.IDField())
 				cols.Add(columnNames...)
 
 			} else {
-				cols = columns.ForStructWithAlias(model, tn, m.As)
+				cols = columns.ForStructWithAlias(model, tn, m.As, m.IDField())
 			}
 			cols.Remove("id", "created_at")
 
@@ -419,7 +419,7 @@ func (c *Connection) UpdateColumns(model interface{}, columnNames ...string) err
 //
 // If model is a slice, each item of the slice is deleted from the database.
 func (c *Connection) Destroy(model interface{}) error {
-	sm := &Model{Value: model}
+	sm := NewModel(model, c.Context())
 	return sm.iterate(func(m *Model) error {
 		return c.timeFunc("Destroy", func() error {
 			var err error

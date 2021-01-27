@@ -167,7 +167,7 @@ func (ami *AssociationMetaInfo) fkName() string {
 // preload is the query mode used to load associations from database
 // similar to the active record default approach on Rails.
 func preload(tx *Connection, model interface{}, fields ...string) error {
-	mmi := NewModelMetaInfo(&Model{Value: model})
+	mmi := NewModelMetaInfo(NewModel(model, tx.Context()))
 
 	preloadFields, err := mmi.preloadFields(fields...)
 	if err != nil {
@@ -355,7 +355,9 @@ func preloadBelongsTo(tx *Connection, asoc *AssociationMetaInfo, mmi *ModelMetaI
 
 	fkids := []interface{}{}
 	mmi.iterate(func(val reflect.Value) {
-		fkids = append(fkids, mmi.mapper.FieldByName(val, fi.Path).Interface())
+		if !isFieldNilPtr(val, fi) {
+			fkids = append(fkids, mmi.mapper.FieldByName(val, fi.Path).Interface())
+		}
 	})
 
 	if len(fkids) == 0 {
@@ -386,11 +388,15 @@ func preloadBelongsTo(tx *Connection, asoc *AssociationMetaInfo, mmi *ModelMetaI
 
 	// 3) iterate over every model and fill it with the assoc.
 	mmi.iterate(func(mvalue reflect.Value) {
+		if isFieldNilPtr(mvalue, fi) {
+			return
+		}
 		modelAssociationField := mmi.mapper.FieldByName(mvalue, asoc.Name)
 		for i := 0; i < slice.Elem().Len(); i++ {
 			asocValue := slice.Elem().Index(i)
-			if mmi.mapper.FieldByName(mvalue, fi.Path).Interface() == mmi.mapper.FieldByName(asocValue, "ID").Interface() ||
-				reflect.DeepEqual(mmi.mapper.FieldByName(mvalue, fi.Path), mmi.mapper.FieldByName(asocValue, "ID")) {
+			fkField := reflect.Indirect(mmi.mapper.FieldByName(mvalue, fi.Path))
+			if fkField.Interface() == mmi.mapper.FieldByName(asocValue, "ID").Interface() ||
+				reflect.DeepEqual(fkField, mmi.mapper.FieldByName(asocValue, "ID")) {
 
 				switch {
 				case modelAssociationField.Kind() == reflect.Slice || modelAssociationField.Kind() == reflect.Array:
@@ -498,4 +504,9 @@ func preloadManyToMany(tx *Connection, asoc *AssociationMetaInfo, mmi *ModelMeta
 		})
 	}
 	return nil
+}
+
+func isFieldNilPtr(val reflect.Value, fi *reflectx.FieldInfo) bool {
+	fieldValue := reflectx.FieldByIndexesReadOnly(val, fi.Index)
+	return fieldValue.Kind() == reflect.Ptr && fieldValue.IsNil()
 }

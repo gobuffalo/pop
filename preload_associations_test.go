@@ -231,3 +231,36 @@ func Test_New_Implementation_For_BelongsTo_Multiple_Fields(t *testing.T) {
 		SetEagerMode(EagerDefault)
 	})
 }
+
+func Test_New_Implementation_For_BelongsTo_Ptr_Field(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
+	transaction(func(tx *Connection) {
+		a := require.New(t)
+		toAddress := Address{HouseNumber: 1, Street: "Destination Ave"}
+		a.NoError(tx.Create(&toAddress))
+
+		taxi := Taxi{ToAddressID: &toAddress.ID}
+		a.NoError(tx.Create(&taxi))
+
+		book1 := Book{TaxiID: nulls.NewInt(taxi.ID), Title: "My Book"}
+		a.NoError(tx.Create(&book1))
+
+		taxiNilToAddress := Taxi{ToAddressID: nil}
+		a.NoError(tx.Create(&taxiNilToAddress))
+
+		book2 := Book{TaxiID: nulls.NewInt(taxiNilToAddress.ID), Title: "Another Book"}
+		a.NoError(tx.Create(&book2))
+
+		SetEagerMode(EagerPreload)
+		books := []Book{}
+		a.NoError(tx.EagerPreload("Taxi.ToAddress").Order("created_at").All(&books))
+		a.Len(books, 2)
+		a.Equal(toAddress.Street, books[0].Taxi.ToAddress.Street)
+		a.NotNil(books[0].Taxi.ToAddressID)
+		a.Nil(books[1].Taxi.ToAddress)
+		a.Nil(books[1].Taxi.ToAddressID)
+		SetEagerMode(EagerDefault)
+	})
+}

@@ -54,3 +54,7 @@ func (s contextStore) Exec(query string, args ...interface{}) (sql.Result, error
 func (s contextStore) PrepareNamed(query string) (*sqlx.NamedStmt, error) {
 	return s.store.PrepareNamedContext(s.ctx, query)
 }
+
+func (s contextStore) Context() context.Context {
+	return s.ctx
+}

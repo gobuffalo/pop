@@ -19,7 +19,7 @@ func (c *Connection) BelongsToAs(model interface{}, as string) *Query {
 // BelongsTo adds a "where" clause based on the "ID" of the
 // "model" passed into it.
 func (q *Query) BelongsTo(model interface{}) *Query {
-	m := &Model{Value: model}
+	m := NewModel(model, q.Connection.Context())
 	q.Where(fmt.Sprintf("%s = ?", m.associationName()), m.ID())
 	return q
 }
@@ -27,7 +27,7 @@ func (q *Query) BelongsTo(model interface{}) *Query {
 // BelongsToAs adds a "where" clause based on the "ID" of the
 // "model" passed into it, using an alias.
 func (q *Query) BelongsToAs(model interface{}, as string) *Query {
-	m := &Model{Value: model}
+	m := NewModel(model, q.Connection.Context())
 	q.Where(fmt.Sprintf("%s = ?", as), m.ID())
 	return q
 }
@@ -42,8 +42,8 @@ func (c *Connection) BelongsToThrough(bt, thru interface{}) *Query {
 // through the associated "thru" model.
 func (q *Query) BelongsToThrough(bt, thru interface{}) *Query {
 	q.belongsToThroughClauses = append(q.belongsToThroughClauses, belongsToThroughClause{
-		BelongsTo: &Model{Value: bt},
-		Through:   &Model{Value: thru},
+		BelongsTo: NewModel(bt, q.Connection.Context()),
+		Through:   NewModel(thru, q.Connection.Context()),
 	})
 	return q
 }

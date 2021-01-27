@@ -51,6 +51,9 @@ func (m Map) UnmarshalJSON(b []byte) error {
 	if err != nil {
 		return err
 	}
+	if m == nil {
+		m = Map{}
+	}
 	for key, value := range stuff {
 		m[key] = value
 	}

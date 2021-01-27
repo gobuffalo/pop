@@ -1,6 +1,7 @@
 package pop
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -13,7 +14,7 @@ func Test_Where(t *testing.T) {
 		t.Skip("skipping integration tests")
 	}
 	a := require.New(t)
-	m := &Model{Value: &Enemy{}}
+	m := NewModel(new(Enemy), context.Background())
 
 	q := PDB.Where("id = ?", 1)
 	sql, _ := q.ToSQL(m)
@@ -107,7 +108,7 @@ func Test_Order(t *testing.T) {
 	}
 	a := require.New(t)
 
-	m := &Model{Value: &Enemy{}}
+	m := NewModel(&Enemy{}, context.Background())
 	q := PDB.Order("id desc")
 	sql, _ := q.ToSQL(m)
 	a.Equal(ts("SELECT enemies.A FROM enemies AS enemies ORDER BY id desc"), sql)
@@ -123,7 +124,7 @@ func Test_GroupBy(t *testing.T) {
 	}
 	a := require.New(t)
 
-	m := &Model{Value: &Enemy{}}
+	m := NewModel(&Enemy{}, context.Background())
 	q := PDB.Q()
 	q.GroupBy("A")
 	sql, _ := q.ToSQL(m)
@@ -159,7 +160,7 @@ func Test_ToSQL(t *testing.T) {
 	}
 	a := require.New(t)
 	transaction(func(tx *Connection) {
-		user := &Model{Value: &User{}}
+		user := NewModel(&User{}, tx.Context())
 
 		s := "SELECT name as full_name, users.alive, users.bio, users.birth_date, users.created_at, users.email, users.id, users.name, users.price, users.updated_at, users.user_name FROM users AS users"
 
@@ -171,10 +172,10 @@ func Test_ToSQL(t *testing.T) {
 		q, _ = query.ToSQL(user)
 		a.Equal(fmt.Sprintf("%s ORDER BY id desc", s), q)
 
-		q, _ = query.ToSQL(&Model{Value: &User{}, As: "u"})
+		q, _ = query.ToSQL(&Model{Value: &User{}, As: "u", ctx: tx.Context()})
 		a.Equal("SELECT name as full_name, u.alive, u.bio, u.birth_date, u.created_at, u.email, u.id, u.name, u.price, u.updated_at, u.user_name FROM users AS u ORDER BY id desc", q)
 
-		q, _ = query.ToSQL(&Model{Value: &Family{}})
+		q, _ = query.ToSQL(&Model{Value: &Family{}, ctx: tx.Context()})
 		a.Equal("SELECT family_members.created_at, family_members.first_name, family_members.id, family_members.last_name, family_members.updated_at FROM family.members AS family_members ORDER BY id desc", q)
 
 		query = tx.Where("id = 1")
@@ -262,7 +263,7 @@ func Test_ToSQLInjection(t *testing.T) {
 	}
 	a := require.New(t)
 	transaction(func(tx *Connection) {
-		user := &Model{Value: &User{}}
+		user := NewModel(new(User), tx.Context())
 		query := tx.Where("name = '?'", "\\\u0027 or 1=1 limit 1;\n-- ")
 		q, _ := query.ToSQL(user)
 		a.NotEqual("SELECT * FROM users AS users WHERE name = '\\'' or 1=1 limit 1;\n-- '", q)

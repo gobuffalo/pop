@@ -3,6 +3,7 @@ package pop
 import (
 	"database/sql"
 	"database/sql/driver"
+
 	mysqld "github.com/go-sql-driver/mysql"
 	"github.com/gobuffalo/pop/v5/logging"
 	pgx "github.com/jackc/pgx/v4/stdlib"
