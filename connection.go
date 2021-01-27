@@ -33,6 +33,16 @@ func (c *Connection) URL() string {
 	return c.Dialect.URL()
 }
 
+// Context returns the connection's context set by "Context()" or context.TODO()
+// if no context is set.
+func (c *Connection) Context() context.Context {
+	if c, ok := c.Store.(interface{ Context() context.Context }); ok {
+		return c.Context()
+	}
+
+	return context.TODO()
+}
+
 // MigrationURL returns the datasource connection string used for running the migrations
 func (c *Connection) MigrationURL() string {
 	return c.Dialect.MigrationURL()

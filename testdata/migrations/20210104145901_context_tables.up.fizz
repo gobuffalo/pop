@@ -1,0 +1,9 @@
+create_table("context_prefix_a_table") {
+    t.Column("id", "string", { primary: true })
+    t.Column("value", "string")
+}
+
+create_table("context_prefix_b_table") {
+    t.Column("id", "string", { primary: true })
+    t.Column("value", "string")
+}

@@ -3,8 +3,9 @@
 package pop
 
 import (
-	"github.com/stretchr/testify/require"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestInstrumentation_WithoutSqlite(t *testing.T) {

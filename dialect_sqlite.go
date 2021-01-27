@@ -5,7 +5,6 @@ package pop
 import (
 	"database/sql/driver"
 	"fmt"
-	"github.com/mattn/go-sqlite3"
 	"io"
 	"net/url"
 	"os"
@@ -14,6 +13,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/mattn/go-sqlite3"
 
 	"github.com/gobuffalo/fizz"
 	"github.com/gobuffalo/fizz/translators"

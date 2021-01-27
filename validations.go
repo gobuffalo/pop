@@ -133,7 +133,7 @@ func (m *Model) iterateAndValidate(fn modelIterableValidator) (*validate.Errors,
 	if v.Kind() == reflect.Slice || v.Kind() == reflect.Array {
 		for i := 0; i < v.Len(); i++ {
 			val := v.Index(i)
-			newModel := &Model{Value: val.Addr().Interface()}
+			newModel := NewModel(val.Addr().Interface(), m.ctx)
 			verrs, err := fn(newModel)
 
 			if err != nil || verrs.HasAny() {

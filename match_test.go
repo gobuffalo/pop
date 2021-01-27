@@ -1,8 +1,9 @@
 package pop
 
 import (
-	"github.com/stretchr/testify/require"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func Test_ParseMigrationFilenameFizzDown(t *testing.T) {
