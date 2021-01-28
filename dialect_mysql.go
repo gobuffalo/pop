@@ -91,7 +91,9 @@ func (m *mysql) Update(s store, model *Model, cols columns.Columns) error {
 }
 
 func (m *mysql) Destroy(s store, model *Model) error {
-	return errors.Wrap(genericDestroy(s, model, m), "mysql destroy")
+	stmt := fmt.Sprintf("DELETE FROM %s  WHERE %s = ?", m.Quote(model.TableName()), model.IDField())
+	_, err := genericExec(s, stmt, model.ID())
+	return errors.Wrap(err, "mysql destroy")
 }
 
 func (m *mysql) SelectOne(s store, model *Model, query Query) error {

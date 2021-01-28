@@ -2,8 +2,6 @@ package pop
 
 import (
 	"context"
-	"io/ioutil"
-	"os"
 	"strings"
 	"testing"
 	"time"
@@ -19,17 +17,24 @@ type ContextTable struct {
 }
 
 func (t ContextTable) TableName(ctx context.Context) string {
-	// This is singular on purpose! It will checck if the TableName is properly
+	// This is singular on purpose! It will check if the TableName is properly
 	// Respected in slices as well.
-	return "context_prefix_" + ctx.Value("prefix").(string) + "_table"
-}
+	prefix := ctx.Value("prefix").(string)
 
-func dump(t *testing.T) {
-	f, err := ioutil.TempFile(os.TempDir(), "sql-dump-*.sql")
-	require.NoError(t, err)
-	defer f.Close()
-	t.Logf(f.Name())
-	require.NoError(t, PDB.Dialect.DumpSchema(f))
+	// PostgreSQL and CockroachDB support schemas which work like a prefix. For those cases, we use
+	// the schema to ensure that name normalization does not cause query problems.
+	//
+	// Since this works only for those two databases, we use underscore for the rest.
+	//
+	// While this schema is hardcoded, it would have been too difficult to add this special
+	// case to the migrations.
+	switch PDB.Dialect.Name() {
+	case nameCockroach:
+		fallthrough
+	case namePostgreSQL:
+		prefix = prefix + "." + prefix
+	}
+	return "context_prefix_" + prefix + "_table"
 }
 
 func Test_ModelContext(t *testing.T) {
@@ -48,21 +53,6 @@ func Test_ModelContext(t *testing.T) {
 	for _, prefix := range []string{"a", "b"} {
 		t.Run("prefix="+prefix, func(t *testing.T) {
 			r := require.New(t)
-
-			// PostgreSQL and CockroachDB support schemas which work like a prefix. For those cases, we use
-			// the schema to ensure that name normalization does not cause query problems.
-			//
-			// Since this works only for those two databases, we use underscore for the rest.
-			//
-			// While this schema is hardcoded, it would have been too difficult to add this special
-			// case to the migrations.
-			switch PDB.Dialect.Name() {
-			case nameCockroach:
-				fallthrough
-			case namePostgreSQL:
-				prefix = prefix + "." + prefix
-				dump(t)
-			}
 
 			expected := ContextTable{ID: prefix, Value: prefix}
 			c := PDB.WithContext(context.WithValue(context.Background(), "prefix", prefix))
@@ -105,7 +95,7 @@ func Test_ModelContext(t *testing.T) {
 		err := c.Create(&ContextTable{ID: "unknown"})
 		r.Error(err)
 
-		if !strings.Contains(err.Error(), "context_prefix_unknown_table") { // All other databases
+		if !strings.Contains(err.Error(), "context_prefix_unknown") { // All other databases
 			t.Fatalf("Expected error to contain indicator that table does not exist but got: %s", err.Error())
 		}
 	})
