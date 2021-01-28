@@ -89,7 +89,8 @@ changelog:
 
 brews:
   -
-    github:
+    name: 'pop'
+    tap:
       owner: gobuffalo
       name: homebrew-tap
     homepage: "https://gobuffalo.io/docs/db/getting-started"
