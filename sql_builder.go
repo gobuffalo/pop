@@ -125,10 +125,7 @@ func (sq *sqlBuilder) buildfromClauses() fromClauses {
 	fc := sq.Query.fromClauses
 	for _, m := range models {
 		tableName := m.TableName()
-		asName := m.As
-		if asName == "" {
-			asName = strings.Replace(tableName, ".", "_", -1)
-		}
+		asName := m.alias()
 		fc = append(fc, fromClause{
 			From: tableName,
 			As:   asName,
@@ -216,10 +213,7 @@ var columnCacheMutex = sync.RWMutex{}
 
 func (sq *sqlBuilder) buildColumns() columns.Columns {
 	tableName := sq.Model.TableName()
-	asName := sq.Model.As
-	if asName == "" {
-		asName = strings.Replace(tableName, ".", "_", -1)
-	}
+	asName := sq.Model.alias()
 	acl := len(sq.AddColumns)
 	if acl == 0 {
 		columnCacheMutex.RLock()

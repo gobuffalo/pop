@@ -223,21 +223,19 @@ func (m *Model) touchUpdatedAt() {
 }
 
 func (m *Model) whereID() string {
+	return fmt.Sprintf("%s.%s = ?", m.alias(), m.IDField())
+}
+
+func (m *Model) alias() string {
 	as := m.As
 	if as == "" {
 		as = strings.ReplaceAll(m.TableName(), ".", "_")
 	}
-
-	return fmt.Sprintf("%s.%s = ?", as, m.IDField())
+	return as
 }
 
 func (m *Model) whereNamedID() string {
-	as := m.As
-	if as == "" {
-		as = strings.ReplaceAll(m.TableName(), ".", "_")
-	}
-
-	return fmt.Sprintf("%s.%s = :%s", as, m.IDField(), m.IDField())
+	return fmt.Sprintf("%s.%s = :%s", m.alias(), m.IDField(), m.IDField())
 }
 
 func (m *Model) isSlice() bool {

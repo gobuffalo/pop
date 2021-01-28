@@ -2,6 +2,8 @@ package pop
 
 import (
 	"context"
+	"io/ioutil"
+	"os"
 	"strings"
 	"testing"
 	"time"
@@ -22,6 +24,14 @@ func (t ContextTable) TableName(ctx context.Context) string {
 	return "context_prefix_" + ctx.Value("prefix").(string) + "_table"
 }
 
+func dump(t *testing.T) {
+	f, err := ioutil.TempFile(os.TempDir(), "sql-dump-*.sql")
+	require.NoError(t, err)
+	defer f.Close()
+	t.Logf(f.Name())
+	require.NoError(t, PDB.Dialect.DumpSchema(f))
+}
+
 func Test_ModelContext(t *testing.T) {
 	if PDB == nil {
 		t.Skip("skipping integration tests")
@@ -39,8 +49,24 @@ func Test_ModelContext(t *testing.T) {
 		t.Run("prefix="+prefix, func(t *testing.T) {
 			r := require.New(t)
 
+			// PostgreSQL and CockroachDB support schemas which work like a prefix. For those cases, we use
+			// the schema to ensure that name normalization does not cause query problems.
+			//
+			// Since this works only for those two databases, we use underscore for the rest.
+			//
+			// While this schema is hardcoded, it would have been too difficult to add this special
+			// case to the migrations.
+			switch PDB.Dialect.Name() {
+			case nameCockroach:
+				fallthrough
+			case namePostgreSQL:
+				prefix = prefix + "." + prefix
+				dump(t)
+			}
+
 			expected := ContextTable{ID: prefix, Value: prefix}
 			c := PDB.WithContext(context.WithValue(context.Background(), "prefix", prefix))
+
 			r.NoError(c.Create(&expected))
 
 			var actual ContextTable

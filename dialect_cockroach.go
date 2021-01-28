@@ -105,7 +105,7 @@ func (p *cockroach) Update(s store, model *Model, cols columns.Columns) error {
 }
 
 func (p *cockroach) Destroy(s store, model *Model) error {
-	stmt := p.TranslateSQL(fmt.Sprintf("DELETE FROM %s WHERE %s", p.Quote(model.TableName()), model.whereID()))
+	stmt := p.TranslateSQL(fmt.Sprintf("DELETE FROM %s AS %s WHERE %s", p.Quote(model.TableName()), model.alias(), model.whereID()))
 	_, err := genericExec(s, stmt, model.ID())
 	return err
 }
