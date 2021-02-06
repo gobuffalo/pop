@@ -31,12 +31,12 @@ func Test_NewPaginatorFromParams(t *testing.T) {
 	a.Equal(p.Page, 1)
 	a.Equal(p.PerPage, 20)
 
-	params.Set("page", "2")
+	params.Set(PaginatorPageKey, "2")
 	p = NewPaginatorFromParams(params)
 	a.Equal(p.Page, 2)
 	a.Equal(p.PerPage, 20)
 
-	params.Set("per_page", "30")
+	params.Set(PaginatorPerPageKey, "30")
 	p = NewPaginatorFromParams(params)
 	a.Equal(p.Page, 2)
 	a.Equal(p.PerPage, 30)

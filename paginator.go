@@ -75,9 +75,9 @@ type PaginationParams interface {
 // `PaginatorPerPageKey`. Defaults are `1` for the page and
 // PaginatorPerPageDefault for the per page value.
 func NewPaginatorFromParams(params PaginationParams) *Paginator {
-	page := defaults.String(params.Get("page"), "1")
+	page := defaults.String(params.Get(PaginatorPageKey), "1")
 
-	perPage := defaults.String(params.Get("per_page"), strconv.Itoa(PaginatorPerPageDefault))
+	perPage := defaults.String(params.Get(PaginatorPerPageKey), strconv.Itoa(PaginatorPerPageDefault))
 
 	p, err := strconv.Atoi(page)
 	if err != nil {
