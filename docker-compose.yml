@@ -24,10 +24,9 @@ services:
     volumes:
       - ./sqldumps:/docker-entrypoint-initdb.d
   cockroach:
-    image: cockroachdb/cockroach:v2.1.0
+    image: cockroachdb/cockroach:v20.2.4
     ports:
       - "26257:26257"
-      - "8080:8080"
     volumes:
       - "./cockroach-data/roach1:/cockroach/cockroach-data"
-    command: start --insecure
+    command: start-single-node --insecure

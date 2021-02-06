@@ -1,9 +1,30 @@
-create_table("context_prefix_a_table") {
-    t.Column("id", "string", { primary: true })
-    t.Column("value", "string")
-}
+{{ if eq .Dialect "sqlite3" }}
+    create_table("context_prefix_a_table") {
+        t.Column("id", "string", { primary: true })
+        t.Column("value", "string")
+    }
 
-create_table("context_prefix_b_table") {
-    t.Column("id", "string", { primary: true })
-    t.Column("value", "string")
-}
+    create_table("context_prefix_b_table") {
+        t.Column("id", "string", { primary: true })
+        t.Column("value", "string")
+    }
+{{ end }}
+
+{{ if eq .Dialect "mysql" }}
+    create_table("context_prefix_a_table") {
+        t.Column("id", "string", { primary: true })
+        t.Column("value", "string")
+    }
+
+    create_table("context_prefix_b_table") {
+        t.Column("id", "string", { primary: true })
+        t.Column("value", "string")
+    }
+{{ end }}
+
+{{ if eq .Dialect "postgres" }}
+    sql("CREATE SCHEMA IF NOT EXISTS \"context_prefix_a\";COMMIT TRANSACTION;BEGIN TRANSACTION;")
+    sql("CREATE SCHEMA IF NOT EXISTS \"context_prefix_b\";COMMIT TRANSACTION;BEGIN TRANSACTION;")
+    sql("CREATE TABLE \"context_prefix_a\".\"a_table\" (id character varying(255) NOT NULL, value character varying(255) NOT NULL, created_at timestamp without time zone NOT NULL, updated_at timestamp without time zone NOT NULL);COMMIT TRANSACTION;BEGIN TRANSACTION;")
+    sql("CREATE TABLE \"context_prefix_b\".\"b_table\" (id character varying(255) NOT NULL, value character varying(255) NOT NULL, created_at timestamp without time zone NOT NULL, updated_at timestamp without time zone NOT NULL);COMMIT TRANSACTION;BEGIN TRANSACTION;")
+{{ end }}

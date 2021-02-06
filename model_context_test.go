@@ -17,9 +17,24 @@ type ContextTable struct {
 }
 
 func (t ContextTable) TableName(ctx context.Context) string {
-	// This is singular on purpose! It will checck if the TableName is properly
+	// This is singular on purpose! It will check if the TableName is properly
 	// Respected in slices as well.
-	return "context_prefix_" + ctx.Value("prefix").(string) + "_table"
+	prefix := ctx.Value("prefix").(string)
+
+	// PostgreSQL and CockroachDB support schemas which work like a prefix. For those cases, we use
+	// the schema to ensure that name normalization does not cause query problems.
+	//
+	// Since this works only for those two databases, we use underscore for the rest.
+	//
+	// While this schema is hardcoded, it would have been too difficult to add this special
+	// case to the migrations.
+	switch PDB.Dialect.Name() {
+	case nameCockroach:
+		fallthrough
+	case namePostgreSQL:
+		prefix = prefix + "." + prefix
+	}
+	return "context_prefix_" + prefix + "_table"
 }
 
 func Test_ModelContext(t *testing.T) {
@@ -41,6 +56,7 @@ func Test_ModelContext(t *testing.T) {
 
 			expected := ContextTable{ID: prefix, Value: prefix}
 			c := PDB.WithContext(context.WithValue(context.Background(), "prefix", prefix))
+
 			r.NoError(c.Create(&expected))
 
 			var actual ContextTable
@@ -79,7 +95,7 @@ func Test_ModelContext(t *testing.T) {
 		err := c.Create(&ContextTable{ID: "unknown"})
 		r.Error(err)
 
-		if !strings.Contains(err.Error(), "context_prefix_unknown_table") { // All other databases
+		if !strings.Contains(err.Error(), "context_prefix_unknown") { // All other databases
 			t.Fatalf("Expected error to contain indicator that table does not exist but got: %s", err.Error())
 		}
 	})
