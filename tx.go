@@ -17,14 +17,16 @@ func init() {
 // Tx stores a transaction with an ID to keep track.
 type Tx struct {
 	ID int
+	DB *Database
 	*sqlx.Tx
 }
 
-func newTX(ctx context.Context, db *dB, opts *sql.TxOptions) (*Tx, error) {
+func newTX(ctx context.Context, db *Database, opts *sql.TxOptions) (*Tx, error) {
 	t := &Tx{
 		ID: rand.Int(),
 	}
 	tx, err := db.BeginTxx(ctx, opts)
+	t.DB = db
 	t.Tx = tx
 	return t, errors.Wrap(err, "could not create new transaction")
 }
@@ -50,4 +52,8 @@ func (tx *Tx) Transaction() (*Tx, error) {
 // Close does nothing. This is defined so it implements the `Store` interface.
 func (tx *Tx) Close() error {
 	return nil
+}
+
+func (tx *Tx) Database() *Database {
+	return tx.DB
 }

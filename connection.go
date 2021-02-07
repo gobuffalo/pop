@@ -120,7 +120,7 @@ func (c *Connection) Open() error {
 	if details.Unsafe {
 		db = db.Unsafe()
 	}
-	c.Store = &dB{db}
+	c.Store = &Database{db}
 
 	if d, ok := c.Dialect.(afterOpenable); ok {
 		err = d.AfterOpen(c)
