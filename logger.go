@@ -18,6 +18,7 @@ var Debug = false
 var Color = true
 
 var log Logger
+var standardLogger *stdlog.Logger
 
 var defaultStdLogger = stdlog.New(os.Stdout, "[POP] ", stdlog.LstdFlags)
 var defaultLogger = func(lvl logging.Level, s string, args ...interface{}) {
@@ -46,7 +47,9 @@ var defaultLogger = func(lvl logging.Level, s string, args ...interface{}) {
 	if Color {
 		s = color.YellowString(s)
 	}
-	defaultStdLogger.Println(s)
+	if standardLogger != nil {
+		standardLogger.Println(s)
+	}
 }
 
 // SetLogger overrides the default Logger.
@@ -55,4 +58,8 @@ var defaultLogger = func(lvl logging.Level, s string, args ...interface{}) {
 // type Logger func(lvl logging.Level, s string, args ...interface{})
 func SetLogger(l Logger) {
 	log = l
+}
+
+func SetStandardLogger(logger *stdlog.Logger) {
+	standardLogger = logger
 }

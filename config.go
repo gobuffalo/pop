@@ -24,6 +24,7 @@ var lookupPaths = []string{"", "./config", "/config", "../", "../config", "../..
 var ConfigName = "database.yml"
 
 func init() {
+	SetStandardLogger(defaultStdLogger)
 	SetLogger(defaultLogger)
 
 	ap := os.Getenv("APP_PATH")
