@@ -19,7 +19,7 @@ func testInstrumentedDriver(p *suite.Suite) {
 	ctx, cancel := context.WithTimeout(context.TODO(), time.Second*5)
 	defer cancel()
 
-	// The WaitGroup and channel ensures that the logger is properly called. This can only happen
+	// The WaitGroup and channel ensures that the Logger is properly called. This can only happen
 	// when the instrumented driver is working as expected and returns the expected query.
 	var (
 		queryMySQL = "SELECT 1 FROM DUAL WHERE 1=?"

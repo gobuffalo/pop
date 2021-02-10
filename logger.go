@@ -9,7 +9,7 @@ import (
 	"github.com/gobuffalo/pop/v5/logging"
 )
 
-type logger func(lvl logging.Level, s string, args ...interface{})
+type Logger func(lvl logging.Level, s string, args ...interface{})
 
 // Debug mode, to toggle verbose log traces
 var Debug = false
@@ -17,7 +17,7 @@ var Debug = false
 // Color mode, to toggle colored logs
 var Color = true
 
-var log logger
+var log Logger
 
 var defaultStdLogger = stdlog.New(os.Stdout, "[POP] ", stdlog.LstdFlags)
 var defaultLogger = func(lvl logging.Level, s string, args ...interface{}) {
@@ -49,10 +49,10 @@ var defaultLogger = func(lvl logging.Level, s string, args ...interface{}) {
 	defaultStdLogger.Println(s)
 }
 
-// SetLogger overrides the default logger.
+// SetLogger overrides the default Logger.
 //
-// The logger must implement the following interface:
-// type logger func(lvl logging.Level, s string, args ...interface{})
-func SetLogger(l logger) {
+// The Logger must implement the following interface:
+// type Logger func(lvl logging.Level, s string, args ...interface{})
+func SetLogger(l Logger) {
 	log = l
 }
