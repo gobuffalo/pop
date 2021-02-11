@@ -190,10 +190,9 @@ func (m *Model) setID(i interface{}) {
 	}
 }
 
-func (m *Model) touchCreatedAt() {
+func (m *Model) setCreatedAt(now time.Time) {
 	fbn, err := m.fieldByName("CreatedAt")
 	if err == nil {
-		now := nowFunc().Truncate(time.Microsecond)
 		v := fbn.Interface()
 		if !IsZeroOfUnderlyingType(v) {
 			// Do not override already set CreatedAt
@@ -208,10 +207,9 @@ func (m *Model) touchCreatedAt() {
 	}
 }
 
-func (m *Model) touchUpdatedAt() {
+func (m *Model) setUpdatedAt(now time.Time) {
 	fbn, err := m.fieldByName("UpdatedAt")
 	if err == nil {
-		now := nowFunc().Truncate(time.Microsecond)
 		v := fbn.Interface()
 		switch v.(type) {
 		case int, int64:
