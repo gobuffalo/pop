@@ -34,7 +34,7 @@ func ForStruct(s interface{}, fields ...string) (Associations, error) {
 	}
 	fields = trimFields(fields)
 	associations := Associations{}
-	innerAssociations := InnerAssociations{}
+	fieldsWithInnerAssociation := map[string]InnerAssociations{}
 
 	// validate if fields contains a non existing field in struct.
 	// and verify is it has inner associations.
@@ -55,9 +55,14 @@ func ForStruct(s interface{}, fields ...string) (Associations, error) {
 			return associations, fmt.Errorf("field %s does not exist in model %s", fields[i], t.Name())
 		}
 
-		if innerField != "" {
-			innerAssociations = append(innerAssociations, InnerAssociation{fields[i], innerField})
+		if _, ok := fieldsWithInnerAssociation[fields[i]]; ok {
+			if innerField != "" {
+				fieldsWithInnerAssociation[fields[i]] = append(fieldsWithInnerAssociation[fields[i]], InnerAssociation{fields[i], innerField})
+			}
+			continue
 		}
+
+		fieldsWithInnerAssociation[fields[i]] = InnerAssociations{}
 	}
 
 	for i := 0; i < t.NumField(); i++ {
@@ -79,7 +84,7 @@ func ForStruct(s interface{}, fields ...string) (Associations, error) {
 					modelType:         t,
 					modelValue:        v,
 					popTags:           tags,
-					innerAssociations: innerAssociations,
+					innerAssociations: fieldsWithInnerAssociation[f.Name],
 				}
 
 				a, err := builder(params)
