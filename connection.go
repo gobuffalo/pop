@@ -117,6 +117,9 @@ func (c *Connection) Open() error {
 	if details.ConnMaxLifetime > 0 {
 		db.SetConnMaxLifetime(details.ConnMaxLifetime)
 	}
+	if details.ConnMaxIdleTime > 0 {
+		db.SetConnMaxIdleTime(details.ConnMaxIdleTime)
+	}
 	if details.Unsafe {
 		db = db.Unsafe()
 	}
