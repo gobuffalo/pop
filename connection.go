@@ -5,9 +5,10 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/pkg/errors"
+
 	"github.com/gobuffalo/pop/v5/internal/defaults"
 	"github.com/gobuffalo/pop/v5/internal/randx"
-	"github.com/pkg/errors"
 )
 
 // Connections contains all available connections
