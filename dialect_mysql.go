@@ -157,10 +157,11 @@ func (m *mysql) FizzTranslator() fizz.Translator {
 
 func (m *mysql) DumpSchema(w io.Writer) error {
 	deets := m.Details()
-	cmd := exec.Command("mysqldump", "-d", "-h", deets.Host, "-P", deets.Port, "-u", deets.User, fmt.Sprintf("--password=%s", deets.Password), deets.Database)
-	if deets.Port == "socket" {
-		cmd = exec.Command("mysqldump", "-d", "-S", deets.Host, "-u", deets.User, fmt.Sprintf("--password=%s", deets.Password), deets.Database)
-	}
+	cmd := exec.Command("mysqldump", "--version")
+	// cmd = exec.Command("mysqldump", "-d", "-h", deets.Host, "-P", deets.Port, "-u", deets.User, fmt.Sprintf("--password=%s", deets.Password), deets.Database)
+	// if deets.Port == "socket" {
+	// 	cmd = exec.Command("mysqldump", "-d", "-S", deets.Host, "-u", deets.User, fmt.Sprintf("--password=%s", deets.Password), deets.Database)
+	// }
 	return genericDumpSchema(deets, cmd, w)
 }
 
