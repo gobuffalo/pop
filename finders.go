@@ -30,7 +30,7 @@ func (c *Connection) Find(model interface{}, id interface{}) error {
 //	q.Find(&User{}, 1)
 func (q *Query) Find(model interface{}, id interface{}) error {
 	m := NewModel(model, q.Connection.Context())
-	idq := m.whereID()
+	idq := m.WhereID()
 	switch t := id.(type) {
 	case uuid.UUID:
 		return q.Where(idq, t.String()).First(model)
