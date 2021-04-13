@@ -1,6 +1,6 @@
 module github.com/gobuffalo/pop/v5
 
-go 1.13
+go 1.15
 
 replace github.com/mattn/go-sqlite3 => github.com/mattn/go-sqlite3 v1.14.0
 
