@@ -19,6 +19,8 @@ func (m Map) Interface() interface{} {
 func (m *Map) Scan(src interface{}) error {
 	var b []byte
 	switch t := src.(type) {
+	case nil:
+		return nil
 	case []byte:
 		b = t
 	case string:

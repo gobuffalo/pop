@@ -35,3 +35,18 @@ func Test_Map_UnMarshalJSON_uninitialized_map_does_not_panic(t *testing.T) {
 		r.Len(maps, 1)
 	})
 }
+
+func Test_Map_Scan(t *testing.T) {
+	r := require.New(t)
+	in := []byte(`{"a":"b"}`)
+	m := Map{}
+	r.NoError(m.Scan(in))
+	r.Equal("b", m["a"])
+}
+
+func Test_Map_Null_Scan(t *testing.T) {
+	r := require.New(t)
+	m := Map{}
+	r.NoError(m.Scan(nil))
+	r.Equal(Map{}, m)
+}
