@@ -441,7 +441,13 @@ func preloadManyToMany(tx *Connection, asoc *AssociationMetaInfo, mmi *ModelMeta
 	sql, args, _ := sqlx.In(sql, ids)
 	sql = tx.Dialect.TranslateSQL(sql)
 	log(logging.SQL, sql, args...)
-	rows, err := tx.TX.Queryx(sql, args...)
+
+	cn, err := tx.Store.Transaction()
+	if err != nil {
+		return err
+	}
+
+	rows, err := cn.Queryx(sql, args...)
 	if err != nil {
 		return err
 	}
