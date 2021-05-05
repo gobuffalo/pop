@@ -138,6 +138,5 @@ func extractFieldAndInnerFields(field string) (string, string) {
 	}
 
 	dotIndex := strings.Index(field, ".")
-	f := field[:dotIndex]
-	return f, field[dotIndex+1:]
+	return field[:dotIndex], field[dotIndex+1:]
 }
