@@ -22,9 +22,9 @@ require (
 	github.com/gofrs/uuid v3.2.0+incompatible
 	github.com/jackc/pgconn v1.8.1
 	github.com/jackc/pgx/v4 v4.11.0
-	github.com/jmoiron/sqlx v1.2.0
+	github.com/jmoiron/sqlx v1.3.3
 	github.com/karrick/godirwalk v1.16.1 // indirect
-	github.com/lib/pq v1.3.0
+	github.com/lib/pq v1.10.1
 	github.com/luna-duclos/instrumentedsql v1.1.3
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible
 	github.com/pkg/errors v0.9.1
