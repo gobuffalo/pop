@@ -156,7 +156,6 @@ func (m *Model) typeName(t reflect.Type) (name string) {
 			// We do not want to cache contextualized TableNames because that would break
 			// the contextualization.
 		}
-
 		return nflect.Tableize(el.Name())
 	default:
 		return nflect.Tableize(t.Name())

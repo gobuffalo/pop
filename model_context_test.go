@@ -56,7 +56,6 @@ func Test_ModelContext(t *testing.T) {
 
 			expected := ContextTable{ID: prefix, Value: prefix}
 			c := PDB.WithContext(context.WithValue(context.Background(), "prefix", prefix))
-
 			r.NoError(c.Create(&expected))
 
 			var actual ContextTable
