@@ -39,30 +39,35 @@ func ForStruct(s interface{}, fields ...string) (Associations, error) {
 	// validate if fields contains a non existing field in struct.
 	// and verify is it has inner associations.
 	for i := range fields {
-		var innerField, field string
+		var innerField string
 
 		if !validAssociationExpRegexp.MatchString(fields[i]) {
 			return associations, fmt.Errorf("association '%s' does not match the format %s", fields[i], "'<field>' or '<field>.<nested-field>'")
 		}
 
-		if strings.Contains(fields[i], ".") {
-			dotIndex := strings.Index(fields[i], ".")
-			field = fields[i][:dotIndex]
-			innerField = fields[i][dotIndex+1:]
-			fields[i] = field
-		}
+		fields[i], innerField = extractFieldAndInnerFields(fields[i])
+
 		if _, ok := t.FieldByName(fields[i]); !ok {
 			return associations, fmt.Errorf("field %s does not exist in model %s", fields[i], t.Name())
 		}
 
-		if _, ok := fieldsWithInnerAssociation[fields[i]]; ok {
-			if innerField != "" {
-				fieldsWithInnerAssociation[fields[i]] = append(fieldsWithInnerAssociation[fields[i]], InnerAssociation{fields[i], innerField})
-			}
-			continue
-		}
+		if innerField != "" {
+			var found bool
+			innerF, _ := extractFieldAndInnerFields(innerField)
 
-		fieldsWithInnerAssociation[fields[i]] = InnerAssociations{}
+			for j := range fieldsWithInnerAssociation[fields[i]] {
+				f, _ := extractFieldAndInnerFields(fieldsWithInnerAssociation[fields[i]][j].Fields[0])
+				if innerF == f {
+					fieldsWithInnerAssociation[fields[i]][j].Fields = append(fieldsWithInnerAssociation[fields[i]][j].Fields, innerField)
+					found = true
+					break
+				}
+			}
+
+			if !found {
+				fieldsWithInnerAssociation[fields[i]] = append(fieldsWithInnerAssociation[fields[i]], InnerAssociation{fields[i], []string{innerField}})
+			}
+		}
 	}
 
 	for i := 0; i < t.NumField(); i++ {
@@ -125,4 +130,14 @@ func fieldIgnoredIn(fields []string, field string) bool {
 		}
 	}
 	return true
+}
+
+func extractFieldAndInnerFields(field string) (string, string) {
+	if !strings.Contains(field, ".") {
+		return field, ""
+	}
+
+	dotIndex := strings.Index(field, ".")
+	f := field[:dotIndex]
+	return f, field[dotIndex+1:]
 }
