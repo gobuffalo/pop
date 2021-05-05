@@ -20,8 +20,8 @@ require (
 	github.com/gobuffalo/plush/v4 v4.0.0
 	github.com/gobuffalo/validate/v3 v3.1.0
 	github.com/gofrs/uuid v3.2.0+incompatible
-	github.com/jackc/pgconn v1.8.0
-	github.com/jackc/pgx/v4 v4.10.1
+	github.com/jackc/pgconn v1.8.1
+	github.com/jackc/pgx/v4 v4.11.0
 	github.com/jmoiron/sqlx v1.2.0
 	github.com/karrick/godirwalk v1.16.1 // indirect
 	github.com/lib/pq v1.3.0
