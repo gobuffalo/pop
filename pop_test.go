@@ -163,6 +163,8 @@ type Books []Book
 type Writer struct {
 	ID        int       `db:"id"`
 	Name      string    `db:"name"`
+	Addresses Addresses `has_many:"addresses"`
+	Friends   []Friend  `has_many:"friends"`
 	BookID    int       `db:"book_id"`
 	Book      Book      `belongs_to:"book"`
 	CreatedAt time.Time `db:"created_at"`
@@ -174,6 +176,7 @@ type Writers []Writer
 type Address struct {
 	ID          int       `db:"id"`
 	Street      string    `db:"street"`
+	WriterID    int       `db:"writer_id"`
 	HouseNumber int       `db:"house_number"`
 	CreatedAt   time.Time `db:"created_at"`
 	UpdatedAt   time.Time `db:"updated_at"`
@@ -207,6 +210,7 @@ func (UsersAddressQuery) TableName() string {
 type Friend struct {
 	ID        int       `db:"id"`
 	FirstName string    `db:"first_name"`
+	WriterID  int       `db:"writer_id"`
 	LastName  string    `db:"last_name"`
 	CreatedAt time.Time `db:"created_at"`
 	UpdatedAt time.Time `db:"updated_at"`

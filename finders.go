@@ -273,12 +273,16 @@ func (q *Query) eagerDefaultAssociations(model interface{}) error {
 			return err
 		}
 
+		if err == sql.ErrNoRows {
+			continue
+		}
+
 		// load all inner associations.
 		innerAssociations := association.InnerAssociations()
 		for _, inner := range innerAssociations {
 			v = reflect.Indirect(reflect.ValueOf(model)).FieldByName(inner.Name)
 			innerQuery := Q(query.Connection)
-			innerQuery.eagerFields = []string{inner.Fields}
+			innerQuery.eagerFields = inner.Fields
 			err = innerQuery.eagerAssociations(v.Addr().Interface())
 			if err != nil {
 				return err
