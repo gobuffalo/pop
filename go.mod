@@ -1,8 +1,8 @@
 module github.com/gobuffalo/pop/v5
 
-go 1.13
+go 1.15
 
-replace github.com/mattn/go-sqlite3 => github.com/mattn/go-sqlite3 v1.14.0
+replace github.com/mattn/go-sqlite3 => github.com/mattn/go-sqlite3 v1.14.7
 
 require (
 	github.com/fatih/color v1.9.0
@@ -20,11 +20,11 @@ require (
 	github.com/gobuffalo/plush/v4 v4.0.0
 	github.com/gobuffalo/validate/v3 v3.1.0
 	github.com/gofrs/uuid v3.2.0+incompatible
-	github.com/jackc/pgconn v1.8.0
-	github.com/jackc/pgx/v4 v4.10.1
-	github.com/jmoiron/sqlx v1.2.0
+	github.com/jackc/pgconn v1.8.1
+	github.com/jackc/pgx/v4 v4.11.0
+	github.com/jmoiron/sqlx v1.3.3
 	github.com/karrick/godirwalk v1.16.1 // indirect
-	github.com/lib/pq v1.3.0
+	github.com/lib/pq v1.10.1
 	github.com/luna-duclos/instrumentedsql v1.1.3
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible
 	github.com/pkg/errors v0.9.1

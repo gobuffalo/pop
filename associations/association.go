@@ -43,7 +43,7 @@ func (a *associationComposite) InnerAssociations() InnerAssociations {
 // association for Song.
 type InnerAssociation struct {
 	Name   string
-	Fields string
+	Fields []string
 }
 
 // InnerAssociations is a group of InnerAssociation.

@@ -141,6 +141,7 @@ func Test_Touch_Time_Timestamp_With_Existing_Value(t *testing.T) {
 	m := NewModel(&TimeTimestamp{CreatedAt: createdAt}, context.Background())
 	m.setCreatedAt(t0)
 	m.setUpdatedAt(t0)
+
 	v := m.Value.(*TimeTimestamp)
 	r.Equal(createdAt, v.CreatedAt)
 	r.Equal(t0, v.UpdatedAt)
@@ -172,6 +173,7 @@ func Test_Touch_Unix_Timestamp_With_Existing_Value(t *testing.T) {
 	m := NewModel(&UnixTimestamp{CreatedAt: createdAt}, context.Background())
 	m.setCreatedAt(t0)
 	m.setUpdatedAt(t0)
+
 	v := m.Value.(*UnixTimestamp)
 	r.Equal(createdAt, v.CreatedAt)
 	r.Equal(int(t0.Unix()), v.UpdatedAt)

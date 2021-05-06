@@ -145,19 +145,19 @@ func (q *Query) Where(stmt string, args ...interface{}) *Query {
 // Order will append an order clause to the query.
 //
 // 	c.Order("name desc")
-func (c *Connection) Order(stmt string) *Query {
-	return Q(c).Order(stmt)
+func (c *Connection) Order(stmt string, args ...interface{}) *Query {
+	return Q(c).Order(stmt, args...)
 }
 
 // Order will append an order clause to the query.
 //
 // 	q.Order("name desc")
-func (q *Query) Order(stmt string) *Query {
+func (q *Query) Order(stmt string, args ...interface{}) *Query {
 	if q.RawSQL.Fragment != "" {
 		log(logging.Warn, "Query is setup to use raw SQL")
 		return q
 	}
-	q.orderClauses = append(q.orderClauses, clause{stmt, []interface{}{}})
+	q.orderClauses = append(q.orderClauses, clause{stmt, args})
 	return q
 }
 
