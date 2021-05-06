@@ -156,7 +156,6 @@ func (m *Model) typeName(t reflect.Type) (name string) {
 			// We do not want to cache contextualized TableNames because that would break
 			// the contextualization.
 		}
-
 		return nflect.Tableize(el.Name())
 	default:
 		return nflect.Tableize(t.Name())
@@ -190,10 +189,9 @@ func (m *Model) setID(i interface{}) {
 	}
 }
 
-func (m *Model) touchCreatedAt() {
+func (m *Model) setCreatedAt(now time.Time) {
 	fbn, err := m.fieldByName("CreatedAt")
 	if err == nil {
-		now := nowFunc().Truncate(time.Microsecond)
 		v := fbn.Interface()
 		if !IsZeroOfUnderlyingType(v) {
 			// Do not override already set CreatedAt
@@ -208,10 +206,9 @@ func (m *Model) touchCreatedAt() {
 	}
 }
 
-func (m *Model) touchUpdatedAt() {
+func (m *Model) setUpdatedAt(now time.Time) {
 	fbn, err := m.fieldByName("UpdatedAt")
 	if err == nil {
-		now := nowFunc().Truncate(time.Microsecond)
 		v := fbn.Interface()
 		switch v.(type) {
 		case int, int64:
@@ -223,21 +220,19 @@ func (m *Model) touchUpdatedAt() {
 }
 
 func (m *Model) whereID() string {
+	return fmt.Sprintf("%s.%s = ?", m.alias(), m.IDField())
+}
+
+func (m *Model) alias() string {
 	as := m.As
 	if as == "" {
 		as = strings.ReplaceAll(m.TableName(), ".", "_")
 	}
-
-	return fmt.Sprintf("%s.%s = ?", as, m.IDField())
+	return as
 }
 
 func (m *Model) whereNamedID() string {
-	as := m.As
-	if as == "" {
-		as = strings.ReplaceAll(m.TableName(), ".", "_")
-	}
-
-	return fmt.Sprintf("%s.%s = :%s", as, m.IDField(), m.IDField())
+	return fmt.Sprintf("%s.%s = :%s", m.alias(), m.IDField(), m.IDField())
 }
 
 func (m *Model) isSlice() bool {

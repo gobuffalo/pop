@@ -264,3 +264,39 @@ func Test_New_Implementation_For_BelongsTo_Ptr_Field(t *testing.T) {
 		SetEagerMode(EagerDefault)
 	})
 }
+
+func Test_New_Implementation_For_HasMany_Ptr_Field(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
+	transaction(func(tx *Connection) {
+		a := require.New(t)
+		toAddress1 := Address{HouseNumber: 1, Street: "Destination Ave"}
+		a.NoError(tx.Create(&toAddress1))
+		taxi1 := Taxi{Model: "Ford", ToAddressID: &toAddress1.ID}
+		a.NoError(tx.Create(&taxi1))
+		taxi2 := Taxi{Model: "Honda", ToAddressID: &toAddress1.ID}
+		a.NoError(tx.Create(&taxi2))
+
+		taxiNilToAddress := Taxi{ToAddressID: nil}
+		a.NoError(tx.Create(&taxiNilToAddress))
+
+		toAddress2 := Address{HouseNumber: 2, Street: "Final Way"}
+		a.NoError(tx.Create(&toAddress2))
+		taxi3 := Taxi{Model: "Mazda", ToAddressID: &toAddress2.ID}
+		a.NoError(tx.Create(&taxi3))
+
+		SetEagerMode(EagerPreload)
+		addresses := []Address{}
+		a.NoError(tx.EagerPreload("TaxisToHere").Order("created_at").All(&addresses))
+		a.Len(addresses, 2)
+		a.NotNil(addresses[0].TaxisToHere)
+		a.Len(addresses[0].TaxisToHere, 2)
+		a.Equal(taxi1.Model, addresses[0].TaxisToHere[0].Model)
+		a.Equal(taxi2.Model, addresses[0].TaxisToHere[1].Model)
+		a.NotNil(addresses[1].TaxisToHere)
+		a.Len(addresses[1].TaxisToHere, 1)
+		a.Equal(taxi3.Model, addresses[1].TaxisToHere[0].Model)
+		SetEagerMode(EagerDefault)
+	})
+}

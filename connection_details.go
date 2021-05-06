@@ -44,6 +44,8 @@ type ConnectionDetails struct {
 	IdlePool int
 	// Defaults to 0 "unlimited". See https://golang.org/pkg/database/sql/#DB.SetConnMaxLifetime
 	ConnMaxLifetime time.Duration
+	// Defaults to 0 "unlimited". See https://golang.org/pkg/database/sql/#DB.SetConnMaxIdleTime
+	ConnMaxIdleTime time.Duration
 	// Defaults to `false`. See https://godoc.org/github.com/jmoiron/sqlx#DB.Unsafe
 	Unsafe  bool
 	Options map[string]string

@@ -908,3 +908,43 @@ func Test_FindManyToMany(t *testing.T) {
 		r.NoError(err)
 	})
 }
+
+func Test_FindMultipleInnerHasMany(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
+	transaction(func(tx *Connection) {
+		r := require.New(t)
+
+		user := User{Name: nulls.NewString("Mark")}
+		err := tx.Create(&user)
+		r.NoError(err)
+
+		book := Book{Title: "Pop Book", Isbn: "PB1", UserID: nulls.NewInt(user.ID)}
+		err = tx.Create(&book)
+		r.NoError(err)
+
+		writer := Writer{Name: "Jhon", BookID: book.ID}
+		err = tx.Create(&writer)
+		r.NoError(err)
+
+		friend := Friend{FirstName: "Frank", LastName: "Kafka", WriterID: writer.ID}
+		err = tx.Create(&friend)
+		r.NoError(err)
+
+		address := Address{Street: "St 27", HouseNumber: 27, WriterID: writer.ID}
+		err = tx.Create(&address)
+		r.NoError(err)
+
+		u := User{}
+		err = tx.Eager("Books.Writers.Addresses", "Books.Writers.Friends").Find(&u, user.ID)
+		r.NoError(err)
+
+		r.Len(u.Books, 1)
+		r.Len(u.Books[0].Writers, 1)
+		r.Len(u.Books[0].Writers[0].Addresses, 1)
+		r.Equal(u.Books[0].Writers[0].Addresses[0].HouseNumber, 27)
+		r.Len(u.Books[0].Writers[0].Friends, 1)
+		r.Equal(u.Books[0].Writers[0].Friends[0].FirstName, "Frank")
+	})
+}
