@@ -150,6 +150,8 @@ type Taxi struct {
 	UpdatedAt   time.Time `db:"updated_at"`
 }
 
+type Taxis []Taxi
+
 // Validate gets run every time you call a "Validate*" (ValidateAndSave, ValidateAndCreate, ValidateAndUpdate) method.
 // This method is not required and may be deleted.
 func (b *Book) Validate(tx *Connection) (*validate.Errors, error) {
@@ -180,6 +182,7 @@ type Address struct {
 	HouseNumber int       `db:"house_number"`
 	CreatedAt   time.Time `db:"created_at"`
 	UpdatedAt   time.Time `db:"updated_at"`
+	TaxisToHere Taxis     `has_many:"taxis" fk_id:"to_address_id" order_by:"created_at asc"`
 }
 
 type Addresses []Address

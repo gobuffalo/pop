@@ -271,8 +271,9 @@ func preloadHasMany(tx *Connection, asoc *AssociationMetaInfo, mmi *ModelMetaInf
 		modelAssociationField := mmi.mapper.FieldByName(mvalue, asoc.Name)
 		for i := 0; i < slice.Elem().Len(); i++ {
 			asocValue := slice.Elem().Index(i)
-			if mmi.mapper.FieldByName(mvalue, "ID").Interface() == mmi.mapper.FieldByName(asocValue, foreignField.Path).Interface() ||
-				reflect.DeepEqual(mmi.mapper.FieldByName(mvalue, "ID"), mmi.mapper.FieldByName(asocValue, foreignField.Path)) {
+			valueField := reflect.Indirect(mmi.mapper.FieldByName(asocValue, foreignField.Path))
+			if mmi.mapper.FieldByName(mvalue, "ID").Interface() == valueField.Interface() ||
+				reflect.DeepEqual(mmi.mapper.FieldByName(mvalue, "ID"), valueField) {
 
 				switch {
 				case modelAssociationField.Kind() == reflect.Slice || modelAssociationField.Kind() == reflect.Array:
