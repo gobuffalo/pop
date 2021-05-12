@@ -150,6 +150,14 @@ func (c *Connection) Transaction(fn func(tx *Connection) error) error {
 		if err != nil {
 			return err
 		}
+
+		defer func() {
+			if err := recover(); err != nil {
+				cn.TX.Rollback()
+				err = errors.Errorf("panic err %v", err)
+			}
+		}()
+
 		err = fn(cn)
 		if err != nil {
 			dberr = cn.TX.Rollback()
