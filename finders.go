@@ -401,8 +401,7 @@ func (q *Query) Select(fields ...string) *Query {
 func (q *Query) ReSelect(fields ...string) *Query {
 	tmpQuery := Q(q.Connection)
 	q.Clone(tmpQuery)
-	q = q.ClearSelect()
-	return q.Select(fields...)
+	return tmpQuery.ClearSelect().Select(fields...)
 }
 
 // ClearSelect clears the selected columns in the query
