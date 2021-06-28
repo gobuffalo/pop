@@ -68,7 +68,7 @@ func (p *postgresql) Create(s store, model *Model, cols columns.Columns) error {
 		} else {
 			query = fmt.Sprintf("INSERT INTO %s DEFAULT VALUES returning %s", p.Quote(model.TableName()), model.IDField())
 		}
-		log(logging.SQL, query)
+		log(logging.SQL, query, model.Value)
 		stmt, err := s.PrepareNamed(query)
 		if err != nil {
 			return err
