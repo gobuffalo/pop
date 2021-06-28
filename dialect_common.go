@@ -53,7 +53,7 @@ func genericCreate(s store, model *Model, cols columns.Columns, quoter quotable)
 		cols.Remove(model.IDField())
 		w := cols.Writeable()
 		query := fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s)", quoter.Quote(model.TableName()), w.QuotedString(quoter), w.SymbolizedString())
-		log(logging.SQL, query)
+		log(logging.SQL, query, model.Value)
 		res, err := s.NamedExec(query, model.Value)
 		if err != nil {
 			return err
@@ -81,7 +81,7 @@ func genericCreate(s store, model *Model, cols columns.Columns, quoter quotable)
 		w := cols.Writeable()
 		w.Add(model.IDField())
 		query := fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s)", quoter.Quote(model.TableName()), w.QuotedString(quoter), w.SymbolizedString())
-		log(logging.SQL, query)
+		log(logging.SQL, query, model.Value)
 		stmt, err := s.PrepareNamed(query)
 		if err != nil {
 			return err
