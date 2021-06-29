@@ -75,7 +75,15 @@ func (fm *MigrationBox) findMigrations(runner func(f packd.File) func(mf Migrati
 			Type:      match.Type,
 			Runner:    runner(f),
 		}
-		fm.Migrations[mf.Direction] = append(fm.Migrations[mf.Direction], mf)
+		switch mf.Direction {
+		case "up":
+			fm.UpMigrations.Migrations = append(fm.UpMigrations.Migrations, mf)
+		case "down":
+			fm.DownMigrations.Migrations = append(fm.DownMigrations.Migrations, mf)
+		default:
+			// the regex only matches `(up|down)` for direction, so a panic here is appropriate
+			panic("got unknown migration direction " + mf.Direction)
+		}
 		return nil
 	})
 }
