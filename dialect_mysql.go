@@ -97,7 +97,13 @@ func (m *mysql) Destroy(s store, model *Model) error {
 }
 
 func (m *mysql) Delete(s store, model *Model, query Query) error {
-	return genericDelete(s, model, query)
+	sb := query.toSQLBuilder(model)
+
+	sql := fmt.Sprintf("DELETE FROM %s", m.Quote(model.TableName()))
+	sql = sb.buildWhereClauses(sql)
+
+	_, err := genericExec(s, sql, sb.Args()...)
+	return errors.Wrap(err, "mysql delete")
 }
 
 func (m *mysql) SelectOne(s store, model *Model, query Query) error {
