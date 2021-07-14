@@ -100,6 +100,10 @@ func (p *postgresql) Destroy(s store, model *Model) error {
 	return nil
 }
 
+func (p *postgresql) Delete(s store, model *Model, query Query) error {
+	return genericDelete(s, model, query)
+}
+
 func (p *postgresql) SelectOne(s store, model *Model, query Query) error {
 	return genericSelectOne(s, model, query)
 }

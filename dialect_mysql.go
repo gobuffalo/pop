@@ -96,6 +96,10 @@ func (m *mysql) Destroy(s store, model *Model) error {
 	return errors.Wrap(err, "mysql destroy")
 }
 
+func (m *mysql) Delete(s store, model *Model, query Query) error {
+	return genericDelete(s, model, query)
+}
+
 func (m *mysql) SelectOne(s store, model *Model, query Query) error {
 	return errors.Wrap(genericSelectOne(s, model, query), "mysql select one")
 }

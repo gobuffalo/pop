@@ -84,7 +84,14 @@ func (sq *sqlBuilder) compile() {
 				sq.sql = sq.Query.RawSQL.Fragment
 			}
 		} else {
-			sq.sql = sq.buildSelectSQL()
+			switch sq.Query.Operation {
+			case Select:
+				sq.sql = sq.buildSelectSQL()
+			case Delete:
+				sq.sql = sq.buildDeleteSQL()
+			default:
+				panic("unexpected query operation " + sq.Query.Operation)
+			}
 		}
 
 		if inRegex.MatchString(sq.sql) {
@@ -110,6 +117,27 @@ func (sq *sqlBuilder) buildSelectSQL() string {
 	sql = sq.buildGroupClauses(sql)
 	sql = sq.buildOrderClauses(sql)
 	sql = sq.buildPaginationClauses(sql)
+
+	return sql
+}
+
+func (sq *sqlBuilder) buildDeleteSQL() string {
+	fc := sq.buildfromClauses()
+
+	sql := fmt.Sprintf("DELETE FROM %s", fc)
+
+	sql = sq.buildWhereClauses(sql)
+
+	// paginated delete supported by sqlite and mysql
+	// > If SQLite is compiled with the SQLITE_ENABLE_UPDATE_DELETE_LIMIT compile-time option [...] - from https://www.sqlite.org/lang_delete.html
+	//
+	// not generic enough IMO, therefore excluded
+	//
+	//switch sq.Query.Connection.Dialect.Name() {
+	//case nameMySQL, nameSQLite3:
+	//	sql = sq.buildOrderClauses(sql)
+	//	sql = sq.buildPaginationClauses(sql)
+	//}
 
 	return sql
 }

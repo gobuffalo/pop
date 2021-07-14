@@ -112,6 +112,10 @@ func (m *sqlite) Destroy(s store, model *Model) error {
 	})
 }
 
+func (m *sqlite) Delete(s store, model *Model, query Query) error {
+	return genericDelete(s, model, query)
+}
+
 func (m *sqlite) SelectOne(s store, model *Model, query Query) error {
 	return m.locker(m.smGil, func() error {
 		return errors.Wrap(genericSelectOne(s, model, query), "sqlite select one")

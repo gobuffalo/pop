@@ -110,6 +110,10 @@ func (p *cockroach) Destroy(s store, model *Model) error {
 	return err
 }
 
+func (p *cockroach) Delete(s store, model *Model, query Query) error {
+	return genericDelete(s, model, query)
+}
+
 func (p *cockroach) SelectOne(s store, model *Model, query Query) error {
 	return genericSelectOne(s, model, query)
 }
