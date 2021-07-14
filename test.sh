@@ -73,7 +73,7 @@ function debug_test {
     dlv test github.com/gobuffalo/pop
 }
 
-dialects=("sqlite")
+dialects=("postgres" "cockroach" "mysql" "sqlite")
 
 for dialect in "${dialects[@]}" ; do
   if [ $DEBUG = 'NO' ]; then
