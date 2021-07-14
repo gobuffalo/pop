@@ -119,7 +119,7 @@ func genericDestroy(s store, model *Model, quoter quotable) error {
 
 func genericDelete(s store, model *Model, query Query) error {
 	sqlQuery, args := query.ToSQL(model)
-	_, err := genericExec(s, sqlQuery, args)
+	_, err := genericExec(s, sqlQuery, args...)
 	return err
 }
 
