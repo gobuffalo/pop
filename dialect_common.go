@@ -117,6 +117,12 @@ func genericDestroy(s store, model *Model, quoter quotable) error {
 	return nil
 }
 
+func genericDelete(s store, model *Model, query Query) error {
+	sqlQuery, args := query.ToSQL(model)
+	_, err := genericExec(s, sqlQuery, args...)
+	return err
+}
+
 func genericExec(s store, stmt string, args ...interface{}) (sql.Result, error) {
 	log(logging.SQL, stmt, args...)
 	res, err := s.Exec(stmt, args...)

@@ -439,3 +439,16 @@ func (c *Connection) Destroy(model interface{}) error {
 		})
 	})
 }
+
+func (q *Query) Delete(model interface{}) error {
+	q.Operation = Delete
+
+	return q.Connection.timeFunc("Delete", func() error {
+		m := NewModel(model, q.Connection.Context())
+		err := q.Connection.Dialect.Delete(q.Connection.Store, m, *q)
+		if err != nil {
+			return err
+		}
+		return m.afterDestroy(q.Connection)
+	})
+}

@@ -13,6 +13,7 @@ type crudable interface {
 	Create(store, *Model, columns.Columns) error
 	Update(store, *Model, columns.Columns) error
 	Destroy(store, *Model) error
+	Delete(store, *Model, Query) error
 }
 
 type fizzable interface {

@@ -7,6 +7,13 @@ import (
 	"github.com/gobuffalo/pop/v5/logging"
 )
 
+type operation string
+
+const (
+	Select operation = "SELECT"
+	Delete operation = "DELETE"
+)
+
 // Query is the main value that is used to build up a query
 // to be executed against the `Connection`.
 type Query struct {
@@ -25,6 +32,7 @@ type Query struct {
 	havingClauses           havingClauses
 	Paginator               *Paginator
 	Connection              *Connection
+	Operation               operation
 }
 
 // Clone will fill targetQ query with the connection used in q, if
@@ -42,6 +50,7 @@ func (q *Query) Clone(targetQ *Query) {
 	targetQ.groupClauses = q.groupClauses
 	targetQ.havingClauses = q.havingClauses
 	targetQ.addColumns = q.addColumns
+	targetQ.Operation = q.Operation
 
 	if q.Paginator != nil {
 		paginator := *q.Paginator
@@ -196,6 +205,7 @@ func Q(c *Connection) *Query {
 		eager:       c.eager,
 		eagerFields: c.eagerFields,
 		eagerMode:   eagerModeNil,
+		Operation:   Select,
 	}
 }
 
