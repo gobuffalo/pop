@@ -23,10 +23,6 @@ var mrx = regexp.MustCompile(`^(\d+)_([^.]+)(\.[a-z0-9]+)?\.(up|down)\.(sql|fizz
 func NewMigrator(c *Connection) Migrator {
 	return Migrator{
 		Connection: c,
-		Migrations: map[string]Migrations{
-			"up":   {},
-			"down": {},
-		},
 	}
 }
 
@@ -35,9 +31,10 @@ func NewMigrator(c *Connection) Migrator {
 // When building a new migration system, you should embed this
 // type into your migrator.
 type Migrator struct {
-	Connection *Connection
-	SchemaPath string
-	Migrations map[string]Migrations
+	Connection     *Connection
+	SchemaPath     string
+	UpMigrations   UpMigrations
+	DownMigrations DownMigrations
 }
 
 func (m Migrator) migrationIsCompatible(d dialect, mi Migration) bool {
@@ -53,10 +50,10 @@ func (m Migrator) UpLogOnly() error {
 	c := m.Connection
 	return m.exec(func() error {
 		mtn := c.MigrationTableName()
-		mfs := m.Migrations["up"]
+		mfs := m.UpMigrations
 		sort.Sort(mfs)
 		return c.Transaction(func(tx *Connection) error {
-			for _, mi := range mfs {
+			for _, mi := range mfs.Migrations {
 				if !m.migrationIsCompatible(c.Dialect, mi) {
 					continue
 				}
@@ -89,12 +86,12 @@ func (m Migrator) UpTo(step int) (applied int, err error) {
 	c := m.Connection
 	err = m.exec(func() error {
 		mtn := c.MigrationTableName()
-		mfs := m.Migrations["up"]
+		mfs := m.UpMigrations
 		mfs.Filter(func(mf Migration) bool {
 			return m.migrationIsCompatible(c.Dialect, mf)
 		})
 		sort.Sort(mfs)
-		for _, mi := range mfs {
+		for _, mi := range mfs.Migrations {
 			exists, err := c.Where("version = ?", mi.Version).Exists(mtn)
 			if err != nil {
 				return errors.Wrapf(err, "problem checking for migration version %s", mi.Version)
@@ -139,20 +136,20 @@ func (m Migrator) Down(step int) error {
 		if err != nil {
 			return errors.Wrap(err, "migration down: unable count existing migration")
 		}
-		mfs := m.Migrations["down"]
+		mfs := m.DownMigrations
 		mfs.Filter(func(mf Migration) bool {
 			return m.migrationIsCompatible(c.Dialect, mf)
 		})
-		sort.Sort(sort.Reverse(mfs))
+		sort.Sort(mfs)
 		// skip all ran migration
-		if len(mfs) > count {
-			mfs = mfs[len(mfs)-count:]
+		if len(mfs.Migrations) > count {
+			mfs.Migrations = mfs.Migrations[len(mfs.Migrations)-count:]
 		}
 		// run only required steps
-		if step > 0 && len(mfs) >= step {
-			mfs = mfs[:step]
+		if step > 0 && len(mfs.Migrations) >= step {
+			mfs.Migrations = mfs.Migrations[:step]
 		}
-		for _, mi := range mfs {
+		for _, mi := range mfs.Migrations {
 			exists, err := c.Where("version = ?", mi.Version).Exists(mtn)
 			if err != nil {
 				return errors.Wrapf(err, "problem checking for migration version %s", mi.Version)
@@ -228,7 +225,7 @@ func (m Migrator) Status(out io.Writer) error {
 	}
 	w := tabwriter.NewWriter(out, 0, 0, 3, ' ', tabwriter.TabIndent)
 	_, _ = fmt.Fprintln(w, "Version\tName\tStatus\t")
-	for _, mf := range m.Migrations["up"] {
+	for _, mf := range m.UpMigrations.Migrations {
 		exists, err := m.Connection.Where("version = ?", mf.Version).Exists(m.Connection.MigrationTableName())
 		if err != nil {
 			return errors.Wrapf(err, "problem with migration")

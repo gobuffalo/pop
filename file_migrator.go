@@ -81,7 +81,15 @@ func (fm *FileMigrator) findMigrations(runner func(mf Migration, tx *Connection)
 				Type:      match.Type,
 				Runner:    runner,
 			}
-			fm.Migrations[mf.Direction] = append(fm.Migrations[mf.Direction], mf)
+			switch mf.Direction {
+			case "up":
+				fm.UpMigrations.Migrations = append(fm.UpMigrations.Migrations, mf)
+			case "down":
+				fm.DownMigrations.Migrations = append(fm.DownMigrations.Migrations, mf)
+			default:
+				// the regex only matches `(up|down)` for direction, so a panic here is appropriate
+				panic("got unknown migration direction " + mf.Direction)
+			}
 		}
 		return nil
 	})

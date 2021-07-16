@@ -36,14 +36,6 @@ func (mfs Migrations) Len() int {
 	return len(mfs)
 }
 
-func (mfs Migrations) Less(i, j int) bool {
-	if mfs[i].Version == mfs[j].Version {
-		// force "all" to the back
-		return mfs[i].DBType != "all"
-	}
-	return mfs[i].Version < mfs[j].Version
-}
-
 func (mfs Migrations) Swap(i, j int) {
 	mfs[i], mfs[j] = mfs[j], mfs[i]
 }
@@ -56,4 +48,29 @@ func (mfs *Migrations) Filter(f func(mf Migration) bool) {
 		}
 	}
 	*mfs = vsf
+}
+
+type (
+	UpMigrations struct {
+		Migrations
+	}
+	DownMigrations struct {
+		Migrations
+	}
+)
+
+func (mfs UpMigrations) Less(i, j int) bool {
+	if mfs.Migrations[i].Version == mfs.Migrations[j].Version {
+		// force "all" to the back
+		return mfs.Migrations[i].DBType != "all"
+	}
+	return mfs.Migrations[i].Version < mfs.Migrations[j].Version
+}
+
+func (mfs DownMigrations) Less(i, j int) bool {
+	if mfs.Migrations[i].Version == mfs.Migrations[j].Version {
+		// force "all" to the back
+		return mfs.Migrations[i].DBType != "all"
+	}
+	return mfs.Migrations[i].Version > mfs.Migrations[j].Version
 }
