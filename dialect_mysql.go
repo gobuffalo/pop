@@ -91,7 +91,9 @@ func (m *mysql) Update(s store, model *Model, cols columns.Columns) error {
 }
 
 func (m *mysql) Destroy(s store, model *Model) error {
-	return errors.Wrap(genericDestroy(s, model, m), "mysql destroy")
+	stmt := fmt.Sprintf("DELETE FROM %s  WHERE %s = ?", m.Quote(model.TableName()), model.IDField())
+	_, err := genericExec(s, stmt, model.ID())
+	return errors.Wrap(err, "mysql destroy")
 }
 
 func (m *mysql) SelectOne(s store, model *Model, query Query) error {
@@ -155,9 +157,10 @@ func (m *mysql) FizzTranslator() fizz.Translator {
 
 func (m *mysql) DumpSchema(w io.Writer) error {
 	deets := m.Details()
-	cmd := exec.Command("mysqldump", "-d", "-h", deets.Host, "-P", deets.Port, "-u", deets.User, fmt.Sprintf("--password=%s", deets.Password), deets.Database)
+	// Github CI is currently using mysql:5.7 but the mysqldump version doesn't seem to match
+	cmd := exec.Command("mysqldump", "--column-statistics=0", "-d", "-h", deets.Host, "-P", deets.Port, "-u", deets.User, fmt.Sprintf("--password=%s", deets.Password), deets.Database)
 	if deets.Port == "socket" {
-		cmd = exec.Command("mysqldump", "-d", "-S", deets.Host, "-u", deets.User, fmt.Sprintf("--password=%s", deets.Password), deets.Database)
+		cmd = exec.Command("mysqldump", "--column-statistics=0", "-d", "-S", deets.Host, "-u", deets.User, fmt.Sprintf("--password=%s", deets.Password), deets.Database)
 	}
 	return genericDumpSchema(deets, cmd, w)
 }

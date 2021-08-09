@@ -2,6 +2,7 @@ package pop
 
 import (
 	"reflect"
+	"time"
 
 	"github.com/gobuffalo/pop/v5/associations"
 	"github.com/gobuffalo/pop/v5/columns"
@@ -234,8 +235,9 @@ func (c *Connection) Create(model interface{}, excludeColumns ...string) error {
 				cols.Remove(excludeColumns...)
 			}
 
-			m.touchCreatedAt()
-			m.touchUpdatedAt()
+			now := nowFunc().Truncate(time.Microsecond)
+			m.setUpdatedAt(now)
+			m.setCreatedAt(now)
 
 			if err = c.Dialect.Create(c.Store, m, cols); err != nil {
 				return err
@@ -357,7 +359,8 @@ func (c *Connection) Update(model interface{}, excludeColumns ...string) error {
 				cols.Remove(excludeColumns...)
 			}
 
-			m.touchUpdatedAt()
+			now := nowFunc().Truncate(time.Microsecond)
+			m.setUpdatedAt(now)
 
 			if err = c.Dialect.Update(c.Store, m, cols); err != nil {
 				return err
@@ -401,7 +404,8 @@ func (c *Connection) UpdateColumns(model interface{}, columnNames ...string) err
 			}
 			cols.Remove("id", "created_at")
 
-			m.touchUpdatedAt()
+			now := nowFunc().Truncate(time.Microsecond)
+			m.setUpdatedAt(now)
 
 			if err = c.Dialect.Update(c.Store, m, cols); err != nil {
 				return err

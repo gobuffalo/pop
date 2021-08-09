@@ -118,6 +118,34 @@ func Test_Order(t *testing.T) {
 	a.Equal(ts("SELECT enemies.A FROM enemies AS enemies ORDER BY id desc, name desc"), sql)
 }
 
+func Test_Order_With_Args(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
+	r := require.New(t)
+	transaction(func(tx *Connection) {
+		u1 := &Song{Title: "A"}
+		u2 := &Song{Title: "B"}
+		u3 := &Song{Title: "C"}
+		err := tx.Create(u1)
+		r.NoError(err)
+		err = tx.Create(u2)
+		r.NoError(err)
+		err = tx.Create(u3)
+		r.NoError(err)
+
+		var songs []Song
+		err = tx.Where("id in (?)", []uuid.UUID{u1.ID, u2.ID, u3.ID}).
+			Order("title > ? DESC", "A").Order("title").
+			All(&songs)
+		r.NoError(err)
+		r.Len(songs, 3)
+		r.Equal("B", songs[0].Title)
+		r.Equal("C", songs[1].Title)
+		r.Equal("A", songs[2].Title)
+	})
+}
+
 func Test_GroupBy(t *testing.T) {
 	if PDB == nil {
 		t.Skip("skipping integration tests")

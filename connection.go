@@ -5,9 +5,10 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/pkg/errors"
+
 	"github.com/gobuffalo/pop/v5/internal/defaults"
 	"github.com/gobuffalo/pop/v5/internal/randx"
-	"github.com/pkg/errors"
 )
 
 // Connections contains all available connections
@@ -116,6 +117,9 @@ func (c *Connection) Open() error {
 	}
 	if details.ConnMaxLifetime > 0 {
 		db.SetConnMaxLifetime(details.ConnMaxLifetime)
+	}
+	if details.ConnMaxIdleTime > 0 {
+		db.SetConnMaxIdleTime(details.ConnMaxIdleTime)
 	}
 	if details.Unsafe {
 		db = db.Unsafe()

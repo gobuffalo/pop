@@ -19,7 +19,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v1
         with:
-          go-version: 1.13
+          go-version: 1.15
         id: go
       - name: Checkout Code
         uses: actions/checkout@v1
@@ -64,7 +64,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v1
         with:
-          go-version: 1.13
+          go-version: 1.15
         id: go
       - name: Checkout Code
         uses: actions/checkout@v1
@@ -97,7 +97,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v1
         with:
-          go-version: 1.13
+          go-version: 1.15
         id: go
       - name: Checkout Code
         uses: actions/checkout@v1
@@ -110,12 +110,12 @@ jobs:
         run: |
           mkdir -p crdb/certs
           pushd crdb
-          wget -qO- https://binaries.cockroachdb.com/cockroach-v2.1.0.linux-amd64.tgz | tar  zxv
-          mv cockroach-v2.1.0.linux-amd64/cockroach .
+          wget -qO- https://binaries.cockroachdb.com/cockroach-v20.2.4.linux-amd64.tgz | tar  zxv
+          mv cockroach-v20.2.4.linux-amd64/cockroach .
           ./cockroach cert create-ca --certs-dir certs --ca-key key
           ./cockroach cert create-client root --certs-dir certs --ca-key key
           ./cockroach cert create-node localhost 127.0.0.1 `hostname -s` `hostname -f` --certs-dir certs --ca-key key
-          ./cockroach start --certs-dir certs --listen-addr localhost --port 26259 --http-port 8089 --background
+          ./cockroach start-single-node --certs-dir certs --listen-addr localhost --port 26259 --http-port 8089 --background
           popd
       - name: Build and run soda
         env:
@@ -139,7 +139,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v1
         with:
-          go-version: 1.13
+          go-version: 1.15
         id: go
       - name: Checkout Code
         uses: actions/checkout@v1
@@ -152,9 +152,9 @@ jobs:
         run: |
           mkdir -p crdb
           pushd crdb
-          wget -qO- https://binaries.cockroachdb.com/cockroach-v2.1.0.linux-amd64.tgz | tar  zxv
-          mv cockroach-v2.1.0.linux-amd64/cockroach .
-          ./cockroach start --insecure --background
+          wget -qO- https://binaries.cockroachdb.com/cockroach-v20.2.4.linux-amd64.tgz | tar  zxv
+          mv cockroach-v20.2.4.linux-amd64/cockroach .
+          ./cockroach start-single-node --insecure --background
           popd
       - name: Build and run soda
         env:
@@ -181,7 +181,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v1
         with:
-          go-version: 1.13
+          go-version: 1.15
         id: go
       - name: Checkout Code
         uses: actions/checkout@v1

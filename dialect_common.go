@@ -99,7 +99,7 @@ func genericCreate(s store, model *Model, cols columns.Columns, quoter quotable)
 }
 
 func genericUpdate(s store, model *Model, cols columns.Columns, quoter quotable) error {
-	stmt := fmt.Sprintf("UPDATE %s SET %s WHERE %s", quoter.Quote(model.TableName()), cols.Writeable().QuotedUpdateString(quoter), model.whereNamedID())
+	stmt := fmt.Sprintf("UPDATE %s AS %s SET %s WHERE %s", quoter.Quote(model.TableName()), model.alias(), cols.Writeable().QuotedUpdateString(quoter), model.whereNamedID())
 	log(logging.SQL, stmt, model.ID())
 	_, err := s.NamedExec(stmt, model.Value)
 	if err != nil {
@@ -109,7 +109,7 @@ func genericUpdate(s store, model *Model, cols columns.Columns, quoter quotable)
 }
 
 func genericDestroy(s store, model *Model, quoter quotable) error {
-	stmt := fmt.Sprintf("DELETE FROM %s WHERE %s", quoter.Quote(model.TableName()), model.whereID())
+	stmt := fmt.Sprintf("DELETE FROM %s AS %s WHERE %s", quoter.Quote(model.TableName()), model.alias(), model.whereID())
 	_, err := genericExec(s, stmt, model.ID())
 	if err != nil {
 		return err
