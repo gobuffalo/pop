@@ -155,6 +155,10 @@ type Taxis []Taxi
 // Validate gets run every time you call a "Validate*" (ValidateAndSave, ValidateAndCreate, ValidateAndUpdate) method.
 // This method is not required and may be deleted.
 func (b *Book) Validate(tx *Connection) (*validate.Errors, error) {
+	// Execute another query to test if Validate causes eager creation to fail
+	if err := tx.All(&Taxis{}); err != nil {
+		return nil, err
+	}
 	return validate.Validate(
 		&validators.StringIsPresent{Field: b.Description, Name: "Description"},
 	), nil
