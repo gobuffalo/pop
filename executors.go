@@ -97,6 +97,10 @@ func (c *Connection) Save(model interface{}, excludeColumns ...string) error {
 // If model is a slice, each item of the slice is validated then created in the database.
 func (c *Connection) ValidateAndCreate(model interface{}, excludeColumns ...string) (*validate.Errors, error) {
 	sm := NewModel(model, c.Context())
+
+	isEager := c.eager
+	hasEagerFields := c.eagerFields
+
 	if err := sm.beforeValidate(c); err != nil {
 		return nil, err
 	}
@@ -155,6 +159,8 @@ func (c *Connection) ValidateAndCreate(model interface{}, excludeColumns ...stri
 		}
 	}
 
+	c.eager = isEager
+	c.eagerFields = hasEagerFields
 	return verrs, c.Create(model, excludeColumns...)
 }
 
