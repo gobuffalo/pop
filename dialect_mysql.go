@@ -110,7 +110,10 @@ func (m *mysql) Delete(s store, model *Model, query Query) error {
 	sql = sb.buildWhereClauses(sql)
 
 	_, err := genericExec(s, sql, sb.Args()...)
-	return errors.Wrap(err, "mysql delete")
+	if err != nil {
+		return fmt.Errorf("mysql delete: %w", err)
+	}
+	return nil
 }
 
 func (m *mysql) SelectOne(s store, model *Model, query Query) error {
