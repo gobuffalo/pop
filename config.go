@@ -2,6 +2,8 @@ package pop
 
 import (
 	"bytes"
+	"errors"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
@@ -10,7 +12,6 @@ import (
 
 	"github.com/gobuffalo/envy"
 	"github.com/gobuffalo/pop/v5/logging"
-	"github.com/pkg/errors"
 	"gopkg.in/yaml.v2"
 )
 
@@ -109,16 +110,19 @@ func ParseConfig(r io.Reader) (map[string]*ConnectionDetails, error) {
 	}
 	t, err := tmpl.Parse(string(b))
 	if err != nil {
-		return nil, errors.Wrap(err, "couldn't parse config template")
+		return nil, fmt.Errorf("couldn't parse config template: %w", err)
 	}
 
 	var bb bytes.Buffer
 	err = t.Execute(&bb, nil)
 	if err != nil {
-		return nil, errors.Wrap(err, "couldn't execute config template")
+		return nil, fmt.Errorf("couldn't execute config template: %w", err)
 	}
 
 	deets := map[string]*ConnectionDetails{}
 	err = yaml.Unmarshal(bb.Bytes(), &deets)
-	return deets, errors.Wrap(err, "couldn't unmarshal config to yaml")
+	if err != nil {
+		return nil, fmt.Errorf("couldn't unmarshal config to yaml: %w", err)
+	}
+	return deets, nil
 }

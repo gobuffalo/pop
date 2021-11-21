@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/gobuffalo/pop/v5/logging"
-	"github.com/pkg/errors"
 )
 
 // CreateDB creates a database, given a connection definition
@@ -12,7 +11,7 @@ func CreateDB(c *Connection) error {
 	deets := c.Dialect.Details()
 	if deets.Database != "" {
 		log(logging.Info, fmt.Sprintf("create %s (%s)", deets.Database, c.URL()))
-		return errors.Wrapf(c.Dialect.CreateDB(), "couldn't create database %s", deets.Database)
+		return fmt.Errorf("couldn't create database %s: %w", deets.Database, c.Dialect.CreateDB())
 	}
 	return nil
 }
@@ -22,7 +21,7 @@ func DropDB(c *Connection) error {
 	deets := c.Dialect.Details()
 	if deets.Database != "" {
 		log(logging.Info, fmt.Sprintf("drop %s (%s)", deets.Database, c.URL()))
-		return errors.Wrapf(c.Dialect.DropDB(), "couldn't drop database %s", deets.Database)
+		return fmt.Errorf("couldn't drop database %s: %w", deets.Database, c.Dialect.DropDB())
 	}
 	return nil
 }

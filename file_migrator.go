@@ -1,12 +1,12 @@
 package pop
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/gobuffalo/pop/v5/logging"
-	"github.com/pkg/errors"
 )
 
 // FileMigrator is a migrator for SQL and Fizz
@@ -32,14 +32,14 @@ func NewFileMigrator(path string, c *Connection) (FileMigrator, error) {
 		defer f.Close()
 		content, err := MigrationContent(mf, tx, f, true)
 		if err != nil {
-			return errors.Wrapf(err, "error processing %s", mf.Path)
+			return fmt.Errorf("error processing %s: %w", mf.Path, err)
 		}
 		if content == "" {
 			return nil
 		}
 		err = tx.RawQuery(content).Exec()
 		if err != nil {
-			return errors.Wrapf(err, "error executing %s, sql: %s", mf.Path, content)
+			return fmt.Errorf("error executing %s, sql: %s: %w", mf.Path, content, err)
 		}
 		return nil
 	}

@@ -1,6 +1,7 @@
 package pop
 
 import (
+	"errors"
 	"fmt"
 	"net/url"
 	"regexp"
@@ -8,11 +9,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/luna-duclos/instrumentedsql"
-
 	"github.com/gobuffalo/pop/v5/internal/defaults"
 	"github.com/gobuffalo/pop/v5/logging"
-	"github.com/pkg/errors"
+	"github.com/luna-duclos/instrumentedsql"
 )
 
 // ConnectionDetails stores the data needed to connect to a datasource
@@ -88,7 +87,7 @@ func (cd *ConnectionDetails) withURL() error {
 	}
 
 	if !DialectSupported(cd.Dialect) {
-		return errors.Errorf("unsupported dialect '%s'", cd.Dialect)
+		return fmt.Errorf("unsupported dialect '%s'", cd.Dialect)
 	}
 
 	// warning message is required to prevent confusion
@@ -104,7 +103,7 @@ func (cd *ConnectionDetails) withURL() error {
 	// Fallback on generic parsing if no URL parser was found for the dialect.
 	u, err := url.Parse(ul)
 	if err != nil {
-		return errors.Wrapf(err, "couldn't parse %s", ul)
+		return fmt.Errorf("couldn't parse %s: %w", ul, err)
 	}
 	cd.Database = strings.TrimPrefix(u.Path, "/")
 
@@ -149,7 +148,7 @@ func (cd *ConnectionDetails) Finalize() error {
 		}
 		return errors.New("no database or URL specified")
 	}
-	return errors.Errorf("unsupported dialect '%v'", cd.Dialect)
+	return fmt.Errorf("unsupported dialect '%v'", cd.Dialect)
 }
 
 // RetrySleep returns the amount of time to wait between two connection retries

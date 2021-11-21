@@ -1,4 +1,4 @@
-// +build sqlite
+//go:build sqlite
 
 package pop
 

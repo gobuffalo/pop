@@ -1,9 +1,9 @@
 package pop
 
 import (
+	"os"
 	"testing"
 
-	"github.com/gobuffalo/packr/v2"
 	"github.com/gobuffalo/pop/v5/logging"
 	"github.com/stretchr/testify/require"
 )
@@ -30,7 +30,7 @@ func Test_MigrationBox(t *testing.T) {
 	t.Run("finds testdata", func(t *testing.T) {
 		r := require.New(t)
 
-		b, err := NewMigrationBox(packr.New("./testdata/migrations/multiple", "./testdata/migrations/multiple"), PDB)
+		b, err := NewMigrationBox(os.DirFS("testdata/migrations/multiple"), PDB)
 		r.NoError(err)
 		r.Equal(4, len(b.UpMigrations.Migrations))
 		r.Equal("mysql", b.UpMigrations.Migrations[0].DBType)
@@ -43,7 +43,7 @@ func Test_MigrationBox(t *testing.T) {
 		logs := setNewTestLogger()
 		r := require.New(t)
 
-		b, err := NewMigrationBox(packr.New("./testdata/migrations/cluttered", "./testdata/migrations/cluttered"), PDB)
+		b, err := NewMigrationBox(os.DirFS("testdata/migrations/cluttered"), PDB)
 		r.NoError(err)
 		r.Equal(1, len(b.UpMigrations.Migrations))
 		r.Equal(1, len(*logs))
@@ -56,7 +56,7 @@ func Test_MigrationBox(t *testing.T) {
 		logs := setNewTestLogger()
 		r := require.New(t)
 
-		b, err := NewMigrationBox(packr.New("./testdata/migrations/unsupported_dialect", "./testdata/migrations/unsupported_dialect"), PDB)
+		b, err := NewMigrationBox(os.DirFS("testdata/migrations/unsupported_dialect"), PDB)
 		r.NoError(err)
 		r.Equal(0, len(b.UpMigrations.Migrations))
 		r.Equal(1, len(*logs))

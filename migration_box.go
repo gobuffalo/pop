@@ -1,40 +1,41 @@
 package pop
 
 import (
+	"fmt"
+	"io"
+	"io/fs"
 	"strings"
 
-	"github.com/gobuffalo/packd"
 	"github.com/gobuffalo/pop/v5/logging"
-	"github.com/pkg/errors"
 )
 
-// MigrationBox is a wrapper around packr.Box and Migrator.
-// This will allow you to run migrations from a packed box
+// MigrationBox is a wrapper around fs.FS and Migrator.
+// This will allow you to run migrations from a fs.FS
 // inside of a compiled binary.
 type MigrationBox struct {
 	Migrator
-	Box packd.Walkable
+	FS fs.FS
 }
 
-// NewMigrationBox from a packr.Box and a Connection.
-func NewMigrationBox(box packd.Walkable, c *Connection) (MigrationBox, error) {
+// NewMigrationBox from a fs.FS and a Connection.
+func NewMigrationBox(fsys fs.FS, c *Connection) (MigrationBox, error) {
 	fm := MigrationBox{
 		Migrator: NewMigrator(c),
-		Box:      box,
+		FS:       fsys,
 	}
 
-	runner := func(f packd.File) func(mf Migration, tx *Connection) error {
+	runner := func(r io.Reader) func(mf Migration, tx *Connection) error {
 		return func(mf Migration, tx *Connection) error {
-			content, err := MigrationContent(mf, tx, f, true)
+			content, err := MigrationContent(mf, tx, r, true)
 			if err != nil {
-				return errors.Wrapf(err, "error processing %s", mf.Path)
+				return fmt.Errorf("error processing %s: %w", mf.Path, err)
 			}
 			if content == "" {
 				return nil
 			}
 			err = tx.RawQuery(content).Exec()
 			if err != nil {
-				return errors.Wrapf(err, "error executing %s, sql: %s", mf.Path, content)
+				return fmt.Errorf("error executing %s, sql: %s: %w", mf.Path, content, err)
 			}
 			return nil
 		}
@@ -48,12 +49,21 @@ func NewMigrationBox(box packd.Walkable, c *Connection) (MigrationBox, error) {
 	return fm, nil
 }
 
-func (fm *MigrationBox) findMigrations(runner func(f packd.File) func(mf Migration, tx *Connection) error) error {
-	return fm.Box.Walk(func(p string, f packd.File) error {
-		info, err := f.FileInfo()
+func (fm *MigrationBox) findMigrations(runner func(r io.Reader) func(mf Migration, tx *Connection) error) error {
+	return fs.WalkDir(fm.FS, ".", func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
+
+		if d.IsDir() {
+			return nil
+		}
+
+		info, err := d.Info()
+		if err != nil {
+			return err
+		}
+
 		match, err := ParseMigrationFilename(info.Name())
 		if err != nil {
 			if strings.HasPrefix(err.Error(), "unsupported dialect") {
@@ -66,8 +76,14 @@ func (fm *MigrationBox) findMigrations(runner func(f packd.File) func(mf Migrati
 			log(logging.Warn, "ignoring file %s because it does not match the migration file pattern", info.Name())
 			return nil
 		}
+
+		f, err := fm.FS.Open(path)
+		if err != nil {
+			return err
+		}
+
 		mf := Migration{
-			Path:      p,
+			Path:      path,
 			Version:   match.Version,
 			Name:      match.Name,
 			DBType:    match.DBType,

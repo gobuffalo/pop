@@ -1,6 +1,7 @@
 package pop
 
 import (
+	"fmt"
 	"reflect"
 	"time"
 
@@ -9,7 +10,6 @@ import (
 	"github.com/gobuffalo/pop/v5/logging"
 	"github.com/gobuffalo/validate/v3"
 	"github.com/gofrs/uuid"
-	"github.com/pkg/errors"
 )
 
 // Reload fetch fresh data for a given model, using its ID.
@@ -115,7 +115,7 @@ func (c *Connection) ValidateAndCreate(model interface{}, excludeColumns ...stri
 	if c.eager {
 		asos, err := associations.ForStruct(model, c.eagerFields...)
 		if err != nil {
-			return verrs, errors.Wrap(err, "could not retrieve associations")
+			return verrs, fmt.Errorf("could not retrieve associations: %w", err)
 		}
 
 		if len(asos) == 0 {
@@ -183,7 +183,7 @@ func (c *Connection) Create(model interface{}, excludeColumns ...string) error {
 			var localIsEager = isEager
 			asos, err := associations.ForStruct(m.Value, c.eagerFields...)
 			if err != nil {
-				return errors.Wrap(err, "could not retrieve associations")
+				return fmt.Errorf("could not retrieve associations: %w", err)
 			}
 
 			if localIsEager && len(asos) == 0 {

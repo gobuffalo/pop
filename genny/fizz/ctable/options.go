@@ -1,14 +1,13 @@
 package ctable
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
-	"github.com/gobuffalo/fizz"
-
 	"github.com/gobuffalo/attrs"
+	"github.com/gobuffalo/fizz"
 	"github.com/gobuffalo/flect/name"
-	"github.com/pkg/errors"
 )
 
 var nowFunc = time.Now
@@ -51,7 +50,7 @@ func (opts *Options) Validate() error {
 		opts.Type = "fizz"
 	}
 	if opts.Type != "fizz" && opts.Type != "sql" {
-		return errors.Errorf("%s migration type is not allowed", opts.Type)
+		return fmt.Errorf("%s migration type is not allowed", opts.Type)
 	}
 	if opts.Type == "sql" && opts.Translator == nil {
 		return errors.New("sql migrations require a fizz translator")
