@@ -93,19 +93,28 @@ func (m *sqlite) Create(s store, model *Model, cols columns.Columns) error {
 			}
 			return nil
 		}
-		return fmt.Errorf("sqlite create: %w", genericCreate(s, model, cols, m))
+		if err := genericCreate(s, model, cols, m); err != nil {
+			return fmt.Errorf("sqlite create: %w", err)
+		}
+		return nil
 	})
 }
 
 func (m *sqlite) Update(s store, model *Model, cols columns.Columns) error {
 	return m.locker(m.smGil, func() error {
-		return fmt.Errorf("sqlite update: %w", genericUpdate(s, model, cols, m))
+		if err := genericUpdate(s, model, cols, m); err != nil {
+			return fmt.Errorf("sqlite update: %w", err)
+		}
+		return nil
 	})
 }
 
 func (m *sqlite) Destroy(s store, model *Model) error {
 	return m.locker(m.smGil, func() error {
-		return fmt.Errorf("sqlite destroy: %w", genericDestroy(s, model, m))
+		if err := genericDestroy(s, model, m); err != nil {
+			return fmt.Errorf("sqlite destroy: %w", err)
+		}
+		return nil
 	})
 }
 
@@ -115,13 +124,20 @@ func (m *sqlite) Delete(s store, model *Model, query Query) error {
 
 func (m *sqlite) SelectOne(s store, model *Model, query Query) error {
 	return m.locker(m.smGil, func() error {
-		return fmt.Errorf("sqlite select one: %w", genericSelectOne(s, model, query))
+		if err := genericSelectOne(s, model, query); err != nil {
+			return fmt.Errorf("sqlite select one: %w", err)
+		}
+		return nil
 	})
 }
 
 func (m *sqlite) SelectMany(s store, models *Model, query Query) error {
 	return m.locker(m.smGil, func() error {
-		return fmt.Errorf("sqlite select many: %w", genericSelectMany(s, models, query))
+		if err := genericSelectMany(s, models, query); err != nil {
+
+			return fmt.Errorf("sqlite select many: %w", err)
+		}
+		return nil
 	})
 }
 
