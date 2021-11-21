@@ -4,7 +4,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/gobuffalo/pop/v5/logging"
+	"github.com/gobuffalo/pop/v6/logging"
 	"github.com/stretchr/testify/require"
 )
 

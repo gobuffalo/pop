@@ -10,7 +10,7 @@ import (
 	"text/tabwriter"
 	"time"
 
-	"github.com/gobuffalo/pop/v5/logging"
+	"github.com/gobuffalo/pop/v6/logging"
 )
 
 var mrx = regexp.MustCompile(`^(\d+)_([^.]+)(\.[a-z0-9]+)?\.(up|down)\.(sql|fizz)$`)

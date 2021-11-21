@@ -9,8 +9,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gobuffalo/pop/v5/internal/defaults"
-	"github.com/gobuffalo/pop/v5/logging"
+	"github.com/gobuffalo/pop/v6/internal/defaults"
+	"github.com/gobuffalo/pop/v6/logging"
 	"github.com/luna-duclos/instrumentedsql"
 )
 

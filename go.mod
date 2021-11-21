@@ -1,4 +1,4 @@
-module github.com/gobuffalo/pop/v5
+module github.com/gobuffalo/pop/v6
 
 go 1.16
 

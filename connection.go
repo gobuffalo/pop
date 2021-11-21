@@ -7,8 +7,8 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/gobuffalo/pop/v5/internal/defaults"
-	"github.com/gobuffalo/pop/v5/internal/randx"
+	"github.com/gobuffalo/pop/v6/internal/defaults"
+	"github.com/gobuffalo/pop/v6/internal/randx"
 )
 
 // Connections contains all available connections

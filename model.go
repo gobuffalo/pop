@@ -9,7 +9,7 @@ import (
 
 	"github.com/gobuffalo/flect"
 	nflect "github.com/gobuffalo/flect/name"
-	"github.com/gobuffalo/pop/v5/columns"
+	"github.com/gobuffalo/pop/v6/columns"
 	"github.com/gofrs/uuid"
 )
 

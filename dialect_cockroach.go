@@ -11,9 +11,9 @@ import (
 
 	"github.com/gobuffalo/fizz"
 	"github.com/gobuffalo/fizz/translators"
-	"github.com/gobuffalo/pop/v5/columns"
-	"github.com/gobuffalo/pop/v5/internal/defaults"
-	"github.com/gobuffalo/pop/v5/logging"
+	"github.com/gobuffalo/pop/v6/columns"
+	"github.com/gobuffalo/pop/v6/internal/defaults"
+	"github.com/gobuffalo/pop/v6/logging"
 	_ "github.com/jackc/pgx/v4/stdlib" // Import PostgreSQL driver
 	"github.com/jmoiron/sqlx"
 )
