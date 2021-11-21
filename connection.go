@@ -92,8 +92,11 @@ func Connect(e string) (*Connection, error) {
 	if c == nil {
 		return c, fmt.Errorf("could not find connection named %s", e)
 	}
-	err := c.Open()
-	return c, fmt.Errorf("couldn't open connection for %s: %w", e, err)
+
+	if err := c.Open(); err != nil {
+		return c, fmt.Errorf("couldn't open connection for %s: %w", e, err)
+	}
+	return c, nil
 }
 
 // Open creates a new datasource connection
@@ -127,8 +130,7 @@ func (c *Connection) Open() error {
 	c.Store = &dB{db}
 
 	if d, ok := c.Dialect.(afterOpenable); ok {
-		err = d.AfterOpen(c)
-		if err != nil {
+		if err := d.AfterOpen(c); err != nil {
 			c.Store = nil
 			return fmt.Errorf("could not open database connection: %w", err)
 		}

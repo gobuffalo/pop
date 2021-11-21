@@ -134,7 +134,6 @@ func (m *sqlite) SelectOne(s store, model *Model, query Query) error {
 func (m *sqlite) SelectMany(s store, models *Model, query Query) error {
 	return m.locker(m.smGil, func() error {
 		if err := genericSelectMany(s, models, query); err != nil {
-
 			return fmt.Errorf("sqlite select many: %w", err)
 		}
 		return nil

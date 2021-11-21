@@ -120,6 +120,10 @@ func (m *Model) Columns() columns.Columns {
 	return columns.ForStructWithAlias(m.Value, m.TableName(), m.As, m.IDField())
 }
 
+func (m *Model) cacheKey(t reflect.Type) string {
+	return t.PkgPath() + "." + t.Name()
+}
+
 func (m *Model) typeName(t reflect.Type) (name string) {
 	if t.Kind() == reflect.Ptr {
 		t = t.Elem()
