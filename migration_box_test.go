@@ -1,10 +1,10 @@
 package pop
 
 import (
+	"os"
 	"testing"
 
-	"github.com/gobuffalo/packr/v2"
-	"github.com/gobuffalo/pop/v5/logging"
+	"github.com/gobuffalo/pop/v6/logging"
 	"github.com/stretchr/testify/require"
 )
 
@@ -30,22 +30,22 @@ func Test_MigrationBox(t *testing.T) {
 	t.Run("finds testdata", func(t *testing.T) {
 		r := require.New(t)
 
-		b, err := NewMigrationBox(packr.New("./testdata/migrations/multiple", "./testdata/migrations/multiple"), PDB)
+		b, err := NewMigrationBox(os.DirFS("testdata/migrations/multiple"), PDB)
 		r.NoError(err)
-		r.Equal(4, len(b.Migrations["up"]))
-		r.Equal("mysql", b.Migrations["up"][0].DBType)
-		r.Equal("postgres", b.Migrations["up"][1].DBType)
-		r.Equal("sqlite3", b.Migrations["up"][2].DBType)
-		r.Equal("all", b.Migrations["up"][3].DBType)
+		r.Equal(4, len(b.UpMigrations.Migrations))
+		r.Equal("mysql", b.UpMigrations.Migrations[0].DBType)
+		r.Equal("postgres", b.UpMigrations.Migrations[1].DBType)
+		r.Equal("sqlite3", b.UpMigrations.Migrations[2].DBType)
+		r.Equal("all", b.UpMigrations.Migrations[3].DBType)
 	})
 
 	t.Run("ignores clutter files", func(t *testing.T) {
 		logs := setNewTestLogger()
 		r := require.New(t)
 
-		b, err := NewMigrationBox(packr.New("./testdata/migrations/cluttered", "./testdata/migrations/cluttered"), PDB)
+		b, err := NewMigrationBox(os.DirFS("testdata/migrations/cluttered"), PDB)
 		r.NoError(err)
-		r.Equal(1, len(b.Migrations["up"]))
+		r.Equal(1, len(b.UpMigrations.Migrations))
 		r.Equal(1, len(*logs))
 		r.Equal(logging.Warn, (*logs)[0].lvl)
 		r.Contains((*logs)[0].s, "ignoring file")
@@ -56,9 +56,9 @@ func Test_MigrationBox(t *testing.T) {
 		logs := setNewTestLogger()
 		r := require.New(t)
 
-		b, err := NewMigrationBox(packr.New("./testdata/migrations/unsupported_dialect", "./testdata/migrations/unsupported_dialect"), PDB)
+		b, err := NewMigrationBox(os.DirFS("testdata/migrations/unsupported_dialect"), PDB)
 		r.NoError(err)
-		r.Equal(0, len(b.Migrations["up"]))
+		r.Equal(0, len(b.UpMigrations.Migrations))
 		r.Equal(1, len(*logs))
 		r.Equal(logging.Warn, (*logs)[0].lvl)
 		r.Contains((*logs)[0].s, "ignoring migration")

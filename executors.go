@@ -1,15 +1,15 @@
 package pop
 
 import (
+	"fmt"
 	"reflect"
 	"time"
 
-	"github.com/gobuffalo/pop/v5/associations"
-	"github.com/gobuffalo/pop/v5/columns"
-	"github.com/gobuffalo/pop/v5/logging"
+	"github.com/gobuffalo/pop/v6/associations"
+	"github.com/gobuffalo/pop/v6/columns"
+	"github.com/gobuffalo/pop/v6/logging"
 	"github.com/gobuffalo/validate/v3"
 	"github.com/gofrs/uuid"
-	"github.com/pkg/errors"
 )
 
 // Reload fetch fresh data for a given model, using its ID.
@@ -97,6 +97,10 @@ func (c *Connection) Save(model interface{}, excludeColumns ...string) error {
 // If model is a slice, each item of the slice is validated then created in the database.
 func (c *Connection) ValidateAndCreate(model interface{}, excludeColumns ...string) (*validate.Errors, error) {
 	sm := NewModel(model, c.Context())
+
+	isEager := c.eager
+	hasEagerFields := c.eagerFields
+
 	if err := sm.beforeValidate(c); err != nil {
 		return nil, err
 	}
@@ -111,7 +115,7 @@ func (c *Connection) ValidateAndCreate(model interface{}, excludeColumns ...stri
 	if c.eager {
 		asos, err := associations.ForStruct(model, c.eagerFields...)
 		if err != nil {
-			return verrs, errors.Wrap(err, "could not retrieve associations")
+			return verrs, fmt.Errorf("could not retrieve associations: %w", err)
 		}
 
 		if len(asos) == 0 {
@@ -155,6 +159,8 @@ func (c *Connection) ValidateAndCreate(model interface{}, excludeColumns ...stri
 		}
 	}
 
+	c.eager = isEager
+	c.eagerFields = hasEagerFields
 	return verrs, c.Create(model, excludeColumns...)
 }
 
@@ -177,7 +183,7 @@ func (c *Connection) Create(model interface{}, excludeColumns ...string) error {
 			var localIsEager = isEager
 			asos, err := associations.ForStruct(m.Value, c.eagerFields...)
 			if err != nil {
-				return errors.Wrap(err, "could not retrieve associations")
+				return fmt.Errorf("could not retrieve associations: %w", err)
 			}
 
 			if localIsEager && len(asos) == 0 {
@@ -437,5 +443,18 @@ func (c *Connection) Destroy(model interface{}) error {
 
 			return m.afterDestroy(c)
 		})
+	})
+}
+
+func (q *Query) Delete(model interface{}) error {
+	q.Operation = Delete
+
+	return q.Connection.timeFunc("Delete", func() error {
+		m := NewModel(model, q.Connection.Context())
+		err := q.Connection.Dialect.Delete(q.Connection.Store, m, *q)
+		if err != nil {
+			return err
+		}
+		return m.afterDestroy(q.Connection)
 	})
 }

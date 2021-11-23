@@ -1,12 +1,12 @@
 package pop
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 
-	"github.com/gobuffalo/pop/v5/logging"
-	"github.com/pkg/errors"
+	"github.com/gobuffalo/pop/v6/logging"
 )
 
 // FileMigrator is a migrator for SQL and Fizz
@@ -32,14 +32,14 @@ func NewFileMigrator(path string, c *Connection) (FileMigrator, error) {
 		defer f.Close()
 		content, err := MigrationContent(mf, tx, f, true)
 		if err != nil {
-			return errors.Wrapf(err, "error processing %s", mf.Path)
+			return fmt.Errorf("error processing %s: %w", mf.Path, err)
 		}
 		if content == "" {
 			return nil
 		}
 		err = tx.RawQuery(content).Exec()
 		if err != nil {
-			return errors.Wrapf(err, "error executing %s, sql: %s", mf.Path, content)
+			return fmt.Errorf("error executing %s, sql: %s: %w", mf.Path, content, err)
 		}
 		return nil
 	}
@@ -81,7 +81,15 @@ func (fm *FileMigrator) findMigrations(runner func(mf Migration, tx *Connection)
 				Type:      match.Type,
 				Runner:    runner,
 			}
-			fm.Migrations[mf.Direction] = append(fm.Migrations[mf.Direction], mf)
+			switch mf.Direction {
+			case "up":
+				fm.UpMigrations.Migrations = append(fm.UpMigrations.Migrations, mf)
+			case "down":
+				fm.DownMigrations.Migrations = append(fm.DownMigrations.Migrations, mf)
+			default:
+				// the regex only matches `(up|down)` for direction, so a panic here is appropriate
+				panic("got unknown migration direction " + mf.Direction)
+			}
 		}
 		return nil
 	})

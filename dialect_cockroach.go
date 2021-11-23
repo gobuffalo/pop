@@ -9,16 +9,13 @@ import (
 	"strings"
 	"sync"
 
-	// Import PostgreSQL driver
-	_ "github.com/jackc/pgx/v4/stdlib"
-
 	"github.com/gobuffalo/fizz"
 	"github.com/gobuffalo/fizz/translators"
-	"github.com/gobuffalo/pop/v5/columns"
-	"github.com/gobuffalo/pop/v5/internal/defaults"
-	"github.com/gobuffalo/pop/v5/logging"
+	"github.com/gobuffalo/pop/v6/columns"
+	"github.com/gobuffalo/pop/v6/internal/defaults"
+	"github.com/gobuffalo/pop/v6/logging"
+	_ "github.com/jackc/pgx/v4/stdlib" // Import PostgreSQL driver
 	"github.com/jmoiron/sqlx"
-	"github.com/pkg/errors"
 )
 
 const nameCockroach = "cockroach"
@@ -81,7 +78,7 @@ func (p *cockroach) Create(s store, model *Model, cols columns.Columns) error {
 		} else {
 			query = fmt.Sprintf("INSERT INTO %s DEFAULT VALUES returning %s", p.Quote(model.TableName()), model.IDField())
 		}
-		log(logging.SQL, query)
+		log(logging.SQL, query, model.Value)
 		stmt, err := s.PrepareNamed(query)
 		if err != nil {
 			return err
@@ -90,12 +87,15 @@ func (p *cockroach) Create(s store, model *Model, cols columns.Columns) error {
 		err = stmt.QueryRow(model.Value).MapScan(id)
 		if err != nil {
 			if closeErr := stmt.Close(); closeErr != nil {
-				return errors.Wrapf(err, "failed to close prepared statement: %s", closeErr)
+				return fmt.Errorf("failed to close prepared statement: %s: %w", closeErr, err)
 			}
 			return err
 		}
 		model.setID(id[model.IDField()])
-		return errors.WithMessage(stmt.Close(), "failed to close statement")
+		if err := stmt.Close(); err != nil {
+			return fmt.Errorf("failed to close statement: %w", err)
+		}
+		return nil
 	}
 	return genericCreate(s, model, cols, p)
 }
@@ -105,9 +105,13 @@ func (p *cockroach) Update(s store, model *Model, cols columns.Columns) error {
 }
 
 func (p *cockroach) Destroy(s store, model *Model) error {
-	stmt := p.TranslateSQL(fmt.Sprintf("DELETE FROM %s AS %s WHERE %s", p.Quote(model.TableName()), model.alias(), model.whereID()))
+	stmt := p.TranslateSQL(fmt.Sprintf("DELETE FROM %s AS %s WHERE %s", p.Quote(model.TableName()), model.Alias(), model.WhereID()))
 	_, err := genericExec(s, stmt, model.ID())
 	return err
+}
+
+func (p *cockroach) Delete(s store, model *Model, query Query) error {
+	return genericDelete(s, model, query)
 }
 
 func (p *cockroach) SelectOne(s store, model *Model, query Query) error {
@@ -124,7 +128,7 @@ func (p *cockroach) CreateDB() error {
 
 	db, err := openPotentiallyInstrumentedConnection(p, p.urlWithoutDb())
 	if err != nil {
-		return errors.Wrapf(err, "error creating Cockroach database %s", deets.Database)
+		return fmt.Errorf("error creating Cockroach database %s: %w", deets.Database, err)
 	}
 	defer db.Close()
 	query := fmt.Sprintf("CREATE DATABASE %s", p.Quote(deets.Database))
@@ -132,7 +136,7 @@ func (p *cockroach) CreateDB() error {
 
 	_, err = db.Exec(query)
 	if err != nil {
-		return errors.Wrapf(err, "error creating Cockroach database %s", deets.Database)
+		return fmt.Errorf("error creating Cockroach database %s: %w", deets.Database, err)
 	}
 
 	log(logging.Info, "created database %s", deets.Database)
@@ -144,7 +148,7 @@ func (p *cockroach) DropDB() error {
 
 	db, err := openPotentiallyInstrumentedConnection(p, p.urlWithoutDb())
 	if err != nil {
-		return errors.Wrapf(err, "error dropping Cockroach database %s", deets.Database)
+		return fmt.Errorf("error dropping Cockroach database %s: %w", deets.Database, err)
 	}
 	defer db.Close()
 	query := fmt.Sprintf("DROP DATABASE %s CASCADE;", p.Quote(deets.Database))
@@ -152,7 +156,7 @@ func (p *cockroach) DropDB() error {
 
 	_, err = db.Exec(query)
 	if err != nil {
-		return errors.Wrapf(err, "error dropping Cockroach database %s", deets.Database)
+		return fmt.Errorf("error dropping Cockroach database %s: %w", deets.Database, err)
 	}
 
 	log(logging.Info, "dropped database %s", deets.Database)

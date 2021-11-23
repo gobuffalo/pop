@@ -7,12 +7,11 @@ import (
 	"time"
 
 	"github.com/gobuffalo/nulls"
+	"github.com/gobuffalo/pop/v6/logging"
 	"github.com/gobuffalo/validate/v3"
 	"github.com/gobuffalo/validate/v3/validators"
 	"github.com/gofrs/uuid"
 	"github.com/stretchr/testify/suite"
-
-	"github.com/gobuffalo/pop/v5/logging"
 )
 
 var PDB *Connection
@@ -52,18 +51,20 @@ func init() {
 
 	dialect := os.Getenv("SODA_DIALECT")
 
-	if dialect != "" {
-		if err := LoadConfigFile(); err != nil {
-			stdlog.Panic(err)
-		}
-		var err error
-		PDB, err = Connect(dialect)
-		log(logging.Info, "Run test with dialect %v", dialect)
-		if err != nil {
-			stdlog.Panic(err)
-		}
-	} else {
+	if dialect == "" {
 		log(logging.Info, "Skipping integration tests")
+		return
+	}
+
+	if err := LoadConfigFile(); err != nil {
+		stdlog.Panic(err)
+	}
+
+	var err error
+	log(logging.Info, "Run test with dialect %v", dialect)
+	PDB, err = Connect(dialect)
+	if err != nil {
+		stdlog.Panic(err)
 	}
 }
 
@@ -155,6 +156,10 @@ type Taxis []Taxi
 // Validate gets run every time you call a "Validate*" (ValidateAndSave, ValidateAndCreate, ValidateAndUpdate) method.
 // This method is not required and may be deleted.
 func (b *Book) Validate(tx *Connection) (*validate.Errors, error) {
+	// Execute another query to test if Validate causes eager creation to fail
+	if err := tx.All(&Taxis{}); err != nil {
+		return nil, err
+	}
 	return validate.Validate(
 		&validators.StringIsPresent{Field: b.Description, Name: "Description"},
 	), nil

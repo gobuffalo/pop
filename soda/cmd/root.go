@@ -5,8 +5,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/gobuffalo/pop/v5"
-	"github.com/gobuffalo/pop/v5/internal/defaults"
+	"github.com/gobuffalo/pop/v6"
+	"github.com/gobuffalo/pop/v6/internal/defaults"
 	"github.com/spf13/cobra"
 )
 

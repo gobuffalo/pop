@@ -1,13 +1,13 @@
 package ctable
 
 import (
+	"errors"
 	"fmt"
 	"path/filepath"
 	"strings"
 
 	"github.com/gobuffalo/fizz"
 	"github.com/gobuffalo/genny/v2"
-	"github.com/pkg/errors"
 )
 
 // New creates a generator to make files for a table based

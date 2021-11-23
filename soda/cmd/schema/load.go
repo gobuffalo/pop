@@ -1,10 +1,11 @@
 package schema
 
 import (
+	"errors"
+	"fmt"
 	"os"
 
-	"github.com/gobuffalo/pop/v5"
-	"github.com/pkg/errors"
+	"github.com/gobuffalo/pop/v6"
 	"github.com/spf13/cobra"
 )
 
@@ -26,13 +27,13 @@ var LoadCmd = &cobra.Command{
 
 		f, err := os.Open(loadOptions.input)
 		if err != nil {
-			return errors.WithMessage(err, "unable to load schema file")
+			return fmt.Errorf("unable to load schema file: %w", err)
 		}
 		defer f.Close()
 
 		c, err := pop.Connect(loadOptions.env)
 		if err != nil {
-			return errors.WithMessage(err, "unable to connect to database")
+			return fmt.Errorf("unable to connect to database: %w", err)
 		}
 		defer c.Close()
 

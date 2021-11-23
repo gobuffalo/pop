@@ -6,8 +6,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/gobuffalo/pop/v5/columns"
-	"github.com/gobuffalo/pop/v5/logging"
+	"github.com/gobuffalo/pop/v6/columns"
+	"github.com/gobuffalo/pop/v6/logging"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -84,7 +84,14 @@ func (sq *sqlBuilder) compile() {
 				sq.sql = sq.Query.RawSQL.Fragment
 			}
 		} else {
-			sq.sql = sq.buildSelectSQL()
+			switch sq.Query.Operation {
+			case Select:
+				sq.sql = sq.buildSelectSQL()
+			case Delete:
+				sq.sql = sq.buildDeleteSQL()
+			default:
+				panic("unexpected query operation " + sq.Query.Operation)
+			}
 		}
 
 		if inRegex.MatchString(sq.sql) {
@@ -114,6 +121,27 @@ func (sq *sqlBuilder) buildSelectSQL() string {
 	return sql
 }
 
+func (sq *sqlBuilder) buildDeleteSQL() string {
+	fc := sq.buildfromClauses()
+
+	sql := fmt.Sprintf("DELETE FROM %s", fc)
+
+	sql = sq.buildWhereClauses(sql)
+
+	// paginated delete supported by sqlite and mysql
+	// > If SQLite is compiled with the SQLITE_ENABLE_UPDATE_DELETE_LIMIT compile-time option [...] - from https://www.sqlite.org/lang_delete.html
+	//
+	// not generic enough IMO, therefore excluded
+	//
+	//switch sq.Query.Connection.Dialect.Name() {
+	//case nameMySQL, nameSQLite3:
+	//	sql = sq.buildOrderClauses(sql)
+	//	sql = sq.buildPaginationClauses(sql)
+	//}
+
+	return sql
+}
+
 func (sq *sqlBuilder) buildfromClauses() fromClauses {
 	models := []*Model{
 		sq.Model,
@@ -125,7 +153,7 @@ func (sq *sqlBuilder) buildfromClauses() fromClauses {
 	fc := sq.Query.fromClauses
 	for _, m := range models {
 		tableName := m.TableName()
-		asName := m.alias()
+		asName := m.Alias()
 		fc = append(fc, fromClause{
 			From: tableName,
 			As:   asName,
@@ -213,7 +241,7 @@ var columnCacheMutex = sync.RWMutex{}
 
 func (sq *sqlBuilder) buildColumns() columns.Columns {
 	tableName := sq.Model.TableName()
-	asName := sq.Model.alias()
+	asName := sq.Model.Alias()
 	acl := len(sq.AddColumns)
 	if acl == 0 {
 		columnCacheMutex.RLock()

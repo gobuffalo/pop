@@ -2,17 +2,16 @@ package pop
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"reflect"
 	"regexp"
 	"strconv"
 	"strings"
 
+	"github.com/gobuffalo/pop/v6/associations"
+	"github.com/gobuffalo/pop/v6/logging"
 	"github.com/gofrs/uuid"
-	"github.com/pkg/errors"
-
-	"github.com/gobuffalo/pop/v5/associations"
-	"github.com/gobuffalo/pop/v5/logging"
 )
 
 var rLimitOffset = regexp.MustCompile("(?i)(limit [0-9]+ offset [0-9]+)$")
@@ -30,7 +29,7 @@ func (c *Connection) Find(model interface{}, id interface{}) error {
 //	q.Find(&User{}, 1)
 func (q *Query) Find(model interface{}, id interface{}) error {
 	m := NewModel(model, q.Connection.Context())
-	idq := m.whereID()
+	idq := m.WhereID()
 	switch t := id.(type) {
 	case uuid.UUID:
 		return q.Where(idq, t.String()).First(model)
@@ -147,7 +146,7 @@ func (q *Query) All(models interface{}) error {
 	})
 
 	if err != nil {
-		return err //errors.Wrap(err, "unable to fetch records")
+		return fmt.Errorf("unable to fetch records: %w", err)
 	}
 
 	if q.eager {
@@ -229,7 +228,7 @@ func (q *Query) eagerDefaultAssociations(model interface{}) error {
 	// eagerAssociations for a single element
 	assos, err := associations.ForStruct(model, q.eagerFields...)
 	if err != nil {
-		return errors.Wrap(err, "could not retrieve associations")
+		return fmt.Errorf("could not retrieve associations: %w", err)
 	}
 
 	// disable eager mode for current connection.
@@ -269,7 +268,7 @@ func (q *Query) eagerDefaultAssociations(model interface{}) error {
 			err = query.First(association.Interface())
 		}
 
-		if err != nil && errors.Cause(err) != sql.ErrNoRows {
+		if err != nil && !errors.Is(err, sql.ErrNoRows) {
 			return err
 		}
 

@@ -1,7 +1,7 @@
 <p align="center"><img src="logo.png" width="150" height="150"></p>
 
 <p align="center">
-    <a href="https://pkg.go.dev/github.com/gobuffalo/pop/v5"><img src="https://godoc.org/github.com/gobuffalo/pop?status.svg" alt="GoDoc" /></a>
+    <a href="https://pkg.go.dev/github.com/gobuffalo/pop/v6"><img src="https://godoc.org/github.com/gobuffalo/pop?status.svg" alt="GoDoc" /></a>
     <a href="https://github.com/gobuffalo/pop/actions?query=workflow%3ATests+branch%3Amaster"><img src="https://github.com/gobuffalo/pop/workflows/Tests/badge.svg" alt="Build Status" /></a>
 </p>
 

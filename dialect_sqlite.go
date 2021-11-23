@@ -14,16 +14,13 @@ import (
 	"sync"
 	"time"
 
-	"github.com/mattn/go-sqlite3"
-
 	"github.com/gobuffalo/fizz"
 	"github.com/gobuffalo/fizz/translators"
+	"github.com/gobuffalo/pop/v6/columns"
+	"github.com/gobuffalo/pop/v6/internal/defaults"
+	"github.com/gobuffalo/pop/v6/logging"
+	"github.com/mattn/go-sqlite3"
 	_ "github.com/mattn/go-sqlite3" // Load SQLite3 CGo driver
-	"github.com/pkg/errors"
-
-	"github.com/gobuffalo/pop/v5/columns"
-	"github.com/gobuffalo/pop/v5/internal/defaults"
-	"github.com/gobuffalo/pop/v5/logging"
 )
 
 const nameSQLite3 = "sqlite3"
@@ -82,7 +79,7 @@ func (m *sqlite) Create(s store, model *Model, cols columns.Columns) error {
 			} else {
 				query = fmt.Sprintf("INSERT INTO %s DEFAULT VALUES", m.Quote(model.TableName()))
 			}
-			log(logging.SQL, query)
+			log(logging.SQL, query, model.Value)
 			res, err := s.NamedExec(query, model.Value)
 			if err != nil {
 				return err
@@ -96,31 +93,50 @@ func (m *sqlite) Create(s store, model *Model, cols columns.Columns) error {
 			}
 			return nil
 		}
-		return errors.Wrap(genericCreate(s, model, cols, m), "sqlite create")
+		if err := genericCreate(s, model, cols, m); err != nil {
+			return fmt.Errorf("sqlite create: %w", err)
+		}
+		return nil
 	})
 }
 
 func (m *sqlite) Update(s store, model *Model, cols columns.Columns) error {
 	return m.locker(m.smGil, func() error {
-		return errors.Wrap(genericUpdate(s, model, cols, m), "sqlite update")
+		if err := genericUpdate(s, model, cols, m); err != nil {
+			return fmt.Errorf("sqlite update: %w", err)
+		}
+		return nil
 	})
 }
 
 func (m *sqlite) Destroy(s store, model *Model) error {
 	return m.locker(m.smGil, func() error {
-		return errors.Wrap(genericDestroy(s, model, m), "sqlite destroy")
+		if err := genericDestroy(s, model, m); err != nil {
+			return fmt.Errorf("sqlite destroy: %w", err)
+		}
+		return nil
 	})
+}
+
+func (m *sqlite) Delete(s store, model *Model, query Query) error {
+	return genericDelete(s, model, query)
 }
 
 func (m *sqlite) SelectOne(s store, model *Model, query Query) error {
 	return m.locker(m.smGil, func() error {
-		return errors.Wrap(genericSelectOne(s, model, query), "sqlite select one")
+		if err := genericSelectOne(s, model, query); err != nil {
+			return fmt.Errorf("sqlite select one: %w", err)
+		}
+		return nil
 	})
 }
 
 func (m *sqlite) SelectMany(s store, models *Model, query Query) error {
 	return m.locker(m.smGil, func() error {
-		return errors.Wrap(genericSelectMany(s, models, query), "sqlite select many")
+		if err := genericSelectMany(s, models, query); err != nil {
+			return fmt.Errorf("sqlite select many: %w", err)
+		}
+		return nil
 	})
 }
 
@@ -146,16 +162,16 @@ func (m *sqlite) locker(l *sync.Mutex, fn func() error) error {
 func (m *sqlite) CreateDB() error {
 	_, err := os.Stat(m.ConnectionDetails.Database)
 	if err == nil {
-		return errors.Errorf("could not create SQLite database '%s'; database exists", m.ConnectionDetails.Database)
+		return fmt.Errorf("could not create SQLite database '%s'; database exists", m.ConnectionDetails.Database)
 	}
 	dir := filepath.Dir(m.ConnectionDetails.Database)
 	err = os.MkdirAll(dir, 0766)
 	if err != nil {
-		return errors.Wrapf(err, "could not create SQLite database '%s'", m.ConnectionDetails.Database)
+		return fmt.Errorf("could not create SQLite database '%s': %w", m.ConnectionDetails.Database, err)
 	}
 	_, err = os.Create(m.ConnectionDetails.Database)
 	if err != nil {
-		return errors.Wrapf(err, "could not create SQLite database '%s'", m.ConnectionDetails.Database)
+		return fmt.Errorf("could not create SQLite database '%s': %w", m.ConnectionDetails.Database, err)
 	}
 
 	log(logging.Info, "created database '%s'", m.ConnectionDetails.Database)
@@ -165,7 +181,7 @@ func (m *sqlite) CreateDB() error {
 func (m *sqlite) DropDB() error {
 	err := os.Remove(m.ConnectionDetails.Database)
 	if err != nil {
-		return errors.Wrapf(err, "could not drop SQLite database %s", m.ConnectionDetails.Database)
+		return fmt.Errorf("could not drop SQLite database %s: %w", m.ConnectionDetails.Database, err)
 	}
 	log(logging.Info, "dropped database '%s'", m.ConnectionDetails.Database)
 	return nil
@@ -253,7 +269,7 @@ func urlParserSQLite3(cd *ConnectionDetails) error {
 
 	q, err := url.ParseQuery(dbparts[1])
 	if err != nil {
-		return errors.Wrapf(err, "unable to parse sqlite query")
+		return fmt.Errorf("unable to parse sqlite query: %w", err)
 	}
 
 	if cd.Options == nil { // prevent panic

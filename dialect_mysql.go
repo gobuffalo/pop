@@ -7,14 +7,12 @@ import (
 	"os/exec"
 	"strings"
 
-	// Load MySQL Go driver
-	_mysql "github.com/go-sql-driver/mysql"
+	_mysql "github.com/go-sql-driver/mysql" // Load MySQL Go driver
 	"github.com/gobuffalo/fizz"
 	"github.com/gobuffalo/fizz/translators"
-	"github.com/gobuffalo/pop/v5/columns"
-	"github.com/gobuffalo/pop/v5/internal/defaults"
-	"github.com/gobuffalo/pop/v5/logging"
-	"github.com/pkg/errors"
+	"github.com/gobuffalo/pop/v6/columns"
+	"github.com/gobuffalo/pop/v6/internal/defaults"
+	"github.com/gobuffalo/pop/v6/logging"
 )
 
 const nameMySQL = "mysql"
@@ -83,25 +81,53 @@ func (m *mysql) MigrationURL() string {
 }
 
 func (m *mysql) Create(s store, model *Model, cols columns.Columns) error {
-	return errors.Wrap(genericCreate(s, model, cols, m), "mysql create")
+	if err := genericCreate(s, model, cols, m); err != nil {
+		return fmt.Errorf("mysql create: %w", err)
+	}
+	return nil
 }
 
 func (m *mysql) Update(s store, model *Model, cols columns.Columns) error {
-	return errors.Wrap(genericUpdate(s, model, cols, m), "mysql update")
+	if err := genericUpdate(s, model, cols, m); err != nil {
+		return fmt.Errorf("mysql update: %w", err)
+	}
+	return nil
 }
 
 func (m *mysql) Destroy(s store, model *Model) error {
 	stmt := fmt.Sprintf("DELETE FROM %s  WHERE %s = ?", m.Quote(model.TableName()), model.IDField())
 	_, err := genericExec(s, stmt, model.ID())
-	return errors.Wrap(err, "mysql destroy")
+	if err != nil {
+		return fmt.Errorf("mysql destroy: %w", err)
+	}
+	return nil
+}
+
+func (m *mysql) Delete(s store, model *Model, query Query) error {
+	sb := query.toSQLBuilder(model)
+
+	sql := fmt.Sprintf("DELETE FROM %s", m.Quote(model.TableName()))
+	sql = sb.buildWhereClauses(sql)
+
+	_, err := genericExec(s, sql, sb.Args()...)
+	if err != nil {
+		return fmt.Errorf("mysql delete: %w", err)
+	}
+	return nil
 }
 
 func (m *mysql) SelectOne(s store, model *Model, query Query) error {
-	return errors.Wrap(genericSelectOne(s, model, query), "mysql select one")
+	if err := genericSelectOne(s, model, query); err != nil {
+		return fmt.Errorf("mysql select one: %w", err)
+	}
+	return nil
 }
 
 func (m *mysql) SelectMany(s store, models *Model, query Query) error {
-	return errors.Wrap(genericSelectMany(s, models, query), "mysql select many")
+	if err := genericSelectMany(s, models, query); err != nil {
+		return fmt.Errorf("mysql select many: %w", err)
+	}
+	return nil
 }
 
 // CreateDB creates a new database, from the given connection credentials
@@ -109,7 +135,7 @@ func (m *mysql) CreateDB() error {
 	deets := m.ConnectionDetails
 	db, err := openPotentiallyInstrumentedConnection(m, m.urlWithoutDb())
 	if err != nil {
-		return errors.Wrapf(err, "error creating MySQL database %s", deets.Database)
+		return fmt.Errorf("error creating MySQL database %s: %w", deets.Database, err)
 	}
 	defer db.Close()
 	charset := defaults.String(deets.Options["charset"], "utf8mb4")
@@ -119,7 +145,7 @@ func (m *mysql) CreateDB() error {
 
 	_, err = db.Exec(query)
 	if err != nil {
-		return errors.Wrapf(err, "error creating MySQL database %s", deets.Database)
+		return fmt.Errorf("error creating MySQL database %s: %w", deets.Database, err)
 	}
 
 	log(logging.Info, "created database %s", deets.Database)
@@ -131,7 +157,7 @@ func (m *mysql) DropDB() error {
 	deets := m.ConnectionDetails
 	db, err := openPotentiallyInstrumentedConnection(m, m.urlWithoutDb())
 	if err != nil {
-		return errors.Wrapf(err, "error dropping MySQL database %s", deets.Database)
+		return fmt.Errorf("error dropping MySQL database %s: %w", deets.Database, err)
 	}
 	defer db.Close()
 	query := fmt.Sprintf("DROP DATABASE `%s`", deets.Database)
@@ -139,7 +165,7 @@ func (m *mysql) DropDB() error {
 
 	_, err = db.Exec(query)
 	if err != nil {
-		return errors.Wrapf(err, "error dropping MySQL database %s", deets.Database)
+		return fmt.Errorf("error dropping MySQL database %s: %w", deets.Database, err)
 	}
 
 	log(logging.Info, "dropped database %s", deets.Database)
@@ -201,7 +227,7 @@ func newMySQL(deets *ConnectionDetails) (dialect, error) {
 func urlParserMySQL(cd *ConnectionDetails) error {
 	cfg, err := _mysql.ParseDSN(strings.TrimPrefix(cd.URL, "mysql://"))
 	if err != nil {
-		return errors.Wrapf(err, "the URL '%s' is not supported by MySQL driver", cd.URL)
+		return fmt.Errorf("the URL '%s' is not supported by MySQL driver: %w", cd.URL, err)
 	}
 
 	cd.User = cfg.User

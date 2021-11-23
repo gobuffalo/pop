@@ -7,12 +7,9 @@ import (
 	"strings"
 	"time"
 
-	nflect "github.com/gobuffalo/flect/name"
-
-	"github.com/gobuffalo/pop/v5/columns"
-	"github.com/pkg/errors"
-
 	"github.com/gobuffalo/flect"
+	nflect "github.com/gobuffalo/flect/name"
+	"github.com/gobuffalo/pop/v6/columns"
 	"github.com/gofrs/uuid"
 )
 
@@ -78,7 +75,7 @@ func (m *Model) IDField() string {
 func (m *Model) PrimaryKeyType() (string, error) {
 	fbn, err := m.fieldByName("ID")
 	if err != nil {
-		return "", errors.Errorf("model %T is missing required field ID", m.Value)
+		return "", fmt.Errorf("model %T is missing required field ID", m.Value)
 	}
 	return fbn.Type().Name(), nil
 }
@@ -219,11 +216,11 @@ func (m *Model) setUpdatedAt(now time.Time) {
 	}
 }
 
-func (m *Model) whereID() string {
-	return fmt.Sprintf("%s.%s = ?", m.alias(), m.IDField())
+func (m *Model) WhereID() string {
+	return fmt.Sprintf("%s.%s = ?", m.Alias(), m.IDField())
 }
 
-func (m *Model) alias() string {
+func (m *Model) Alias() string {
 	as := m.As
 	if as == "" {
 		as = strings.ReplaceAll(m.TableName(), ".", "_")
@@ -231,8 +228,8 @@ func (m *Model) alias() string {
 	return as
 }
 
-func (m *Model) whereNamedID() string {
-	return fmt.Sprintf("%s.%s = :%s", m.alias(), m.IDField(), m.IDField())
+func (m *Model) WhereNamedID() string {
+	return fmt.Sprintf("%s.%s = :%s", m.Alias(), m.IDField(), m.IDField())
 }
 
 func (m *Model) isSlice() bool {

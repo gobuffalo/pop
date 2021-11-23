@@ -313,7 +313,7 @@ func Test_Exec(t *testing.T) {
 		r := require.New(t)
 
 		user := User{Name: nulls.NewString("Mark 'Awesome' Bates")}
-		tx.Create(&user)
+		r.NoError(tx.Create(&user))
 
 		ctx, _ := tx.Count(user)
 		r.Equal(1, ctx)
@@ -520,6 +520,7 @@ func Test_Create_Non_PK_ID(t *testing.T) {
 		r.NoError(tx.Create(&NonStandardID{OutfacingID: "make sure the tested entry does not have pk=0"}))
 
 		count, err := tx.Count(&NonStandardID{})
+		r.NoError(err)
 		entry := &NonStandardID{
 			OutfacingID: "beautiful to the outside ID",
 		}
@@ -1646,6 +1647,41 @@ func Test_TruncateAll(t *testing.T) {
 		r.NoError(err)
 
 		ctx, _ = tx.Count("users")
+		r.Equal(count, ctx)
+	})
+}
+
+func Test_Delete(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
+
+	transaction(func(tx *Connection) {
+		r := require.New(t)
+
+		songTitles := []string{"Yoshimi Battles the Pink Robots, Pt. 1", "Face Down In The Gutter Of Your Love"}
+		user := User{Name: nulls.NewString("Patrik")}
+
+		r.NoError(tx.Create(&user))
+		r.NotZero(user.ID)
+
+		count, err := tx.Count("songs")
+		r.NoError(err)
+
+		for _, title := range songTitles {
+			err = tx.Create(&Song{Title: title, UserID: user.ID})
+			r.NoError(err)
+		}
+
+		ctx, err := tx.Count("songs")
+		r.NoError(err)
+		r.Equal(count+len(songTitles), ctx)
+
+		err = tx.Where("u_id = ?", user.ID).Delete("songs")
+		r.NoError(err)
+
+		ctx, err = tx.Count("songs")
+		r.NoError(err)
 		r.Equal(count, ctx)
 	})
 }

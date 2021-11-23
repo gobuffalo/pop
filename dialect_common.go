@@ -11,10 +11,9 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/gobuffalo/pop/v5/columns"
-	"github.com/gobuffalo/pop/v5/logging"
+	"github.com/gobuffalo/pop/v6/columns"
+	"github.com/gobuffalo/pop/v6/logging"
 	"github.com/gofrs/uuid"
-	"github.com/pkg/errors"
 )
 
 func init() {
@@ -53,7 +52,7 @@ func genericCreate(s store, model *Model, cols columns.Columns, quoter quotable)
 		cols.Remove(model.IDField())
 		w := cols.Writeable()
 		query := fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s)", quoter.Quote(model.TableName()), w.QuotedString(quoter), w.SymbolizedString())
-		log(logging.SQL, query)
+		log(logging.SQL, query, model.Value)
 		res, err := s.NamedExec(query, model.Value)
 		if err != nil {
 			return err
@@ -81,7 +80,7 @@ func genericCreate(s store, model *Model, cols columns.Columns, quoter quotable)
 		w := cols.Writeable()
 		w.Add(model.IDField())
 		query := fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s)", quoter.Quote(model.TableName()), w.QuotedString(quoter), w.SymbolizedString())
-		log(logging.SQL, query)
+		log(logging.SQL, query, model.Value)
 		stmt, err := s.PrepareNamed(query)
 		if err != nil {
 			return err
@@ -89,17 +88,20 @@ func genericCreate(s store, model *Model, cols columns.Columns, quoter quotable)
 		_, err = stmt.Exec(model.Value)
 		if err != nil {
 			if closeErr := stmt.Close(); closeErr != nil {
-				return errors.Wrapf(err, "failed to close prepared statement: %s", closeErr)
+				return fmt.Errorf("failed to close prepared statement: %s: %w", closeErr, err)
 			}
 			return err
 		}
-		return errors.WithMessage(stmt.Close(), "failed to close statement")
+		if err := stmt.Close(); err != nil {
+			return fmt.Errorf("failed to close statement: %w", err)
+		}
+		return nil
 	}
-	return errors.Errorf("can not use %s as a primary key type!", keyType)
+	return fmt.Errorf("can not use %s as a primary key type!", keyType)
 }
 
 func genericUpdate(s store, model *Model, cols columns.Columns, quoter quotable) error {
-	stmt := fmt.Sprintf("UPDATE %s AS %s SET %s WHERE %s", quoter.Quote(model.TableName()), model.alias(), cols.Writeable().QuotedUpdateString(quoter), model.whereNamedID())
+	stmt := fmt.Sprintf("UPDATE %s AS %s SET %s WHERE %s", quoter.Quote(model.TableName()), model.Alias(), cols.Writeable().QuotedUpdateString(quoter), model.WhereNamedID())
 	log(logging.SQL, stmt, model.ID())
 	_, err := s.NamedExec(stmt, model.Value)
 	if err != nil {
@@ -109,12 +111,18 @@ func genericUpdate(s store, model *Model, cols columns.Columns, quoter quotable)
 }
 
 func genericDestroy(s store, model *Model, quoter quotable) error {
-	stmt := fmt.Sprintf("DELETE FROM %s AS %s WHERE %s", quoter.Quote(model.TableName()), model.alias(), model.whereID())
+	stmt := fmt.Sprintf("DELETE FROM %s AS %s WHERE %s", quoter.Quote(model.TableName()), model.Alias(), model.WhereID())
 	_, err := genericExec(s, stmt, model.ID())
 	if err != nil {
 		return err
 	}
 	return nil
+}
+
+func genericDelete(s store, model *Model, query Query) error {
+	sqlQuery, args := query.ToSQL(model)
+	_, err := genericExec(s, sqlQuery, args...)
+	return err
 }
 
 func genericExec(s store, stmt string, args ...interface{}) (sql.Result, error) {
@@ -149,7 +157,7 @@ func genericLoadSchema(d dialect, r io.Reader) error {
 	// Open DB connection on the target DB
 	db, err := openPotentiallyInstrumentedConnection(d, d.MigrationURL())
 	if err != nil {
-		return errors.WithMessage(err, fmt.Sprintf("unable to load schema for %s", deets.Database))
+		return fmt.Errorf("unable to load schema for %s: %w", deets.Database, err)
 	}
 	defer db.Close()
 
@@ -166,7 +174,7 @@ func genericLoadSchema(d dialect, r io.Reader) error {
 
 	_, err = db.Exec(string(contents))
 	if err != nil {
-		return errors.WithMessage(err, fmt.Sprintf("unable to load schema for %s", deets.Database))
+		return fmt.Errorf("unable to load schema for %s: %w", deets.Database, err)
 	}
 
 	log(logging.Info, "loaded schema for %s", deets.Database)
@@ -189,7 +197,7 @@ func genericDumpSchema(deets *ConnectionDetails, cmd *exec.Cmd, w io.Writer) err
 
 	x := bytes.TrimSpace(bb.Bytes())
 	if len(x) == 0 {
-		return errors.Errorf("unable to dump schema for %s", deets.Database)
+		return fmt.Errorf("unable to dump schema for %s", deets.Database)
 	}
 
 	log(logging.Info, "dumped schema for %s", deets.Database)

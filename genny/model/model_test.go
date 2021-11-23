@@ -1,13 +1,14 @@
 package model
 
 import (
+	"io"
+	"os"
 	"strings"
 	"testing"
 
 	"github.com/gobuffalo/attrs"
 	"github.com/gobuffalo/genny/v2/gentest"
 	"github.com/gobuffalo/genny/v2/gogen"
-	"github.com/gobuffalo/packr/v2"
 	"github.com/stretchr/testify/require"
 )
 
@@ -28,8 +29,7 @@ func Test_New(t *testing.T) {
 	r.NoError(err)
 
 	run := gentest.NewRunner()
-	run.With(g)
-
+	r.NoError(run.With(g))
 	r.NoError(run.Run())
 
 	res := run.Results()
@@ -53,8 +53,7 @@ func Test_New_Standard(t *testing.T) {
 	r.NoError(err)
 
 	run := gentest.NewRunner()
-	run.With(g)
-
+	r.NoError(run.With(g))
 	r.NoError(run.Run())
 
 	res := run.Results()
@@ -62,23 +61,30 @@ func Test_New_Standard(t *testing.T) {
 	r.Len(res.Commands, 0)
 	r.NoError(gentest.CompareFiles([]string{"models/widget.go", "models/widget_test.go"}, res.Files))
 
-	box := packr.New("Test_New_Standard", "../model/_fixtures")
-
 	f, err := res.Find("models/widget_test.go")
 	r.NoError(err)
-	bf, err := box.FindString(f.Name())
+
+	fsys := os.DirFS("_fixtures")
+	bf, err := fsys.Open(f.Name())
 	r.NoError(err)
-	r.Equal(bf, f.String())
+
+	expected, err := io.ReadAll(bf)
+	r.NoError(err)
+	r.Equal(string(expected), f.String())
 
 	f, err = res.Find("models/widget.go")
+	r.NoError(err)
 
 	tf := gogen.FmtTransformer()
 	f, err = tf.Transform(f)
 	r.NoError(err)
 
-	bf, err = box.FindString(f.Name())
+	bf, err = fsys.Open(f.Name())
 	r.NoError(err)
-	r.Equal(clean(bf), clean(f.String()))
+
+	expected, err = io.ReadAll(bf)
+	r.NoError(err)
+	r.Equal(clean(string(expected)), clean(f.String()))
 }
 
 func Test_New_No_Attrs(t *testing.T) {
@@ -90,8 +96,7 @@ func Test_New_No_Attrs(t *testing.T) {
 	r.NoError(err)
 
 	run := gentest.NewRunner()
-	run.With(g)
-
+	r.NoError(run.With(g))
 	r.NoError(run.Run())
 
 	res := run.Results()
@@ -102,10 +107,13 @@ func Test_New_No_Attrs(t *testing.T) {
 	f, err = tf.Transform(f)
 	r.NoError(err)
 
-	box := packr.New("Test_New_No_Attrs", "../model/_fixtures")
-	bf, err := box.FindString("models/widget_empty.go")
+	fsys := os.DirFS("_fixtures")
+	bf, err := fsys.Open("models/widget_empty.go")
 	r.NoError(err)
-	r.Equal(clean(bf), clean(f.String()))
+
+	s, err := io.ReadAll(bf)
+	r.NoError(err)
+	r.Equal(clean(string(s)), clean(f.String()))
 }
 
 func Test_New_XML(t *testing.T) {
@@ -122,8 +130,7 @@ func Test_New_XML(t *testing.T) {
 	r.NoError(err)
 
 	run := gentest.NewRunner()
-	run.With(g)
-
+	r.NoError(run.With(g))
 	r.NoError(run.Run())
 
 	res := run.Results()
@@ -131,23 +138,30 @@ func Test_New_XML(t *testing.T) {
 	r.Len(res.Commands, 0)
 	r.NoError(gentest.CompareFiles([]string{"models/widget.go", "models/widget_test.go"}, res.Files))
 
-	box := packr.New("Test_New_XML", "../model/_fixtures")
-
 	f, err := res.Find("models/widget_test.go")
 	r.NoError(err)
-	bf, err := box.FindString(f.Name())
+
+	fsys := os.DirFS("_fixtures")
+	bf, err := fsys.Open(f.Name())
 	r.NoError(err)
-	r.Equal(bf, f.String())
+
+	s, err := io.ReadAll(bf)
+	r.NoError(err)
+	r.Equal(string(s), f.String())
 
 	f, err = res.Find("models/widget.go")
+	r.NoError(err)
 
 	tf := gogen.FmtTransformer()
 	f, err = tf.Transform(f)
 	r.NoError(err)
 
-	bf, err = box.FindString("models/widget_xml.go")
+	bf, err = fsys.Open("models/widget_xml.go")
 	r.NoError(err)
-	r.Equal(clean(bf), clean(f.String()))
+
+	s, err = io.ReadAll(bf)
+	r.NoError(err)
+	r.Equal(clean(string(s)), clean(f.String()))
 }
 
 func Test_New_JSONAPI(t *testing.T) {
@@ -164,8 +178,7 @@ func Test_New_JSONAPI(t *testing.T) {
 	r.NoError(err)
 
 	run := gentest.NewRunner()
-	run.With(g)
-
+	r.NoError(run.With(g))
 	r.NoError(run.Run())
 
 	res := run.Results()
@@ -173,23 +186,28 @@ func Test_New_JSONAPI(t *testing.T) {
 	r.Len(res.Commands, 0)
 	r.NoError(gentest.CompareFiles([]string{"models/widget.go", "models/widget_test.go"}, res.Files))
 
-	box := packr.New("Test_New_JSONAPI", "../model/_fixtures")
-
 	f, err := res.Find("models/widget_test.go")
 	r.NoError(err)
-	bf, err := box.FindString(f.Name())
+
+	fsys := os.DirFS("_fixtures")
+	bf, err := fsys.Open(f.Name())
 	r.NoError(err)
-	r.Equal(bf, f.String())
+	s, err := io.ReadAll(bf)
+	r.NoError(err)
+	r.Equal(string(s), f.String())
 
 	f, err = res.Find("models/widget.go")
+	r.NoError(err)
 
 	tf := gogen.FmtTransformer()
 	f, err = tf.Transform(f)
 	r.NoError(err)
 
-	bf, err = box.FindString("models/widget_jsonapi.go")
+	bf, err = fsys.Open("models/widget_jsonapi.go")
 	r.NoError(err)
-	r.Equal(clean(bf), clean(f.String()))
+	s, err = io.ReadAll(bf)
+	r.NoError(err)
+	r.Equal(clean(string(s)), clean(f.String()))
 }
 
 func Test_New_Package(t *testing.T) {
@@ -202,8 +220,7 @@ func Test_New_Package(t *testing.T) {
 	r.NoError(err)
 
 	run := gentest.NewRunner()
-	run.With(g)
-
+	r.NoError(run.With(g))
 	r.NoError(run.Run())
 
 	res := run.Results()

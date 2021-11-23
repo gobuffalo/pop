@@ -37,6 +37,11 @@ function cleanup {
 # defer cleanup, so it will be executed even after premature exit
 trap cleanup EXIT
 
+# The cockroach volume is created by the root user if no user is set.
+# Therefore we set the current user according to https://github.com/docker/compose/issues/1532#issuecomment-619548112
+CURRENT_UID="$(id -u):$(id -g)"
+export CURRENT_UID
+
 docker-compose up -d
 sleep 5 # Ensure mysql is online
 
