@@ -1,9 +1,8 @@
 package config
 
 import (
-	"os"
-
 	"errors"
+	"os"
 )
 
 // Options needed for the config generator

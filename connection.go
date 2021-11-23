@@ -2,13 +2,13 @@ package pop
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"sync/atomic"
 	"time"
 
-	"github.com/pkg/errors"
-
-	"github.com/gobuffalo/pop/v5/internal/defaults"
-	"github.com/gobuffalo/pop/v5/internal/randx"
+	"github.com/gobuffalo/pop/v6/internal/defaults"
+	"github.com/gobuffalo/pop/v6/internal/randx"
 )
 
 // Connections contains all available connections
@@ -68,11 +68,11 @@ func NewConnection(deets *ConnectionDetails) (*Connection, error) {
 	if nc, ok := newConnection[deets.Dialect]; ok {
 		c.Dialect, err = nc(deets)
 		if err != nil {
-			return c, errors.Wrap(err, "could not create new connection")
+			return c, fmt.Errorf("could not create new connection: %w", err)
 		}
 		return c, nil
 	}
-	return nil, errors.Errorf("could not found connection creator for %v", deets.Dialect)
+	return nil, fmt.Errorf("could not found connection creator for %v", deets.Dialect)
 }
 
 // Connect takes the name of a connection, default is "development", and will
@@ -90,10 +90,13 @@ func Connect(e string) (*Connection, error) {
 	e = defaults.String(e, "development")
 	c := Connections[e]
 	if c == nil {
-		return c, errors.Errorf("could not find connection named %s", e)
+		return c, fmt.Errorf("could not find connection named %s", e)
 	}
-	err := c.Open()
-	return c, errors.Wrapf(err, "couldn't open connection for %s", e)
+
+	if err := c.Open(); err != nil {
+		return c, fmt.Errorf("couldn't open connection for %s: %w", e, err)
+	}
+	return c, nil
 }
 
 // Open creates a new datasource connection
@@ -127,17 +130,20 @@ func (c *Connection) Open() error {
 	c.Store = &dB{db}
 
 	if d, ok := c.Dialect.(afterOpenable); ok {
-		err = d.AfterOpen(c)
-		if err != nil {
+		if err := d.AfterOpen(c); err != nil {
 			c.Store = nil
+			return fmt.Errorf("could not open database connection: %w", err)
 		}
 	}
-	return errors.Wrap(err, "could not open database connection")
+	return nil
 }
 
 // Close destroys an active datasource connection
 func (c *Connection) Close() error {
-	return errors.Wrap(c.Store.Close(), "couldn't close connection")
+	if err := c.Store.Close(); err != nil {
+		return fmt.Errorf("couldn't close connection: %w", err)
+	}
+	return nil
 }
 
 // Transaction will start a new transaction on the connection. If the inner function
@@ -158,7 +164,7 @@ func (c *Connection) Transaction(fn func(tx *Connection) error) error {
 		}
 
 		if dberr != nil {
-			return errors.Wrap(dberr, "error committing or rolling back transaction")
+			return fmt.Errorf("error committing or rolling back transaction: %w", dberr)
 		}
 
 		return err
@@ -183,7 +189,7 @@ func (c *Connection) NewTransaction() (*Connection, error) {
 	if c.TX == nil {
 		tx, err := c.Store.Transaction()
 		if err != nil {
-			return cn, errors.Wrap(err, "couldn't start a new transaction")
+			return cn, fmt.Errorf("couldn't start a new transaction: %w", err)
 		}
 		var store store = tx
 

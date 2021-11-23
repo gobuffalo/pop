@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/gobuffalo/envy"
-
 	"github.com/stretchr/testify/require"
 )
 

@@ -520,6 +520,7 @@ func Test_Create_Non_PK_ID(t *testing.T) {
 		r.NoError(tx.Create(&NonStandardID{OutfacingID: "make sure the tested entry does not have pk=0"}))
 
 		count, err := tx.Count(&NonStandardID{})
+		r.NoError(err)
 		entry := &NonStandardID{
 			OutfacingID: "beautiful to the outside ID",
 		}

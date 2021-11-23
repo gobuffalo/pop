@@ -3,7 +3,7 @@ package columns_test
 import (
 	"testing"
 
-	"github.com/gobuffalo/pop/v5/columns"
+	"github.com/gobuffalo/pop/v6/columns"
 	"github.com/stretchr/testify/require"
 )
 

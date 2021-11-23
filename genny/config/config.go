@@ -1,15 +1,16 @@
 package config
 
 import (
+	"embed"
 	"fmt"
 	"path/filepath"
 
 	"github.com/gobuffalo/genny/v2"
 	"github.com/gobuffalo/genny/v2/gogen"
-	"github.com/gobuffalo/packr/v2"
 )
 
-var templates = packr.New("pop:genny:config", "../config/templates")
+//go:embed templates/*
+var templates embed.FS
 
 // New generator to create a database.yml file
 func New(opts *Options) (*genny.Generator, error) {
@@ -18,7 +19,7 @@ func New(opts *Options) (*genny.Generator, error) {
 		return g, err
 	}
 
-	f, err := templates.Open(opts.Dialect + ".yml.tmpl")
+	f, err := templates.Open("templates/" + opts.Dialect + ".yml.tmpl")
 	if err != nil {
 		return g, fmt.Errorf("unable to find database.yml template for dialect %s", opts.Dialect)
 	}

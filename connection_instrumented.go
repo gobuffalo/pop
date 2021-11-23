@@ -3,13 +3,13 @@ package pop
 import (
 	"database/sql"
 	"database/sql/driver"
+	"fmt"
 
 	mysqld "github.com/go-sql-driver/mysql"
-	"github.com/gobuffalo/pop/v5/logging"
+	"github.com/gobuffalo/pop/v6/logging"
 	pgx "github.com/jackc/pgx/v4/stdlib"
 	"github.com/jmoiron/sqlx"
 	"github.com/luna-duclos/instrumentedsql"
-	"github.com/pkg/errors"
 )
 
 const instrumentedDriverName = "instrumented-sql-driver"
@@ -85,7 +85,7 @@ func openPotentiallyInstrumentedConnection(c dialect, dsn string) (*sqlx.DB, err
 
 	con, err := sql.Open(driverName, dsn)
 	if err != nil {
-		return nil, errors.Wrap(err, "could not open database connection")
+		return nil, fmt.Errorf("could not open database connection: %w", err)
 	}
 
 	return sqlx.NewDb(con, dialect), nil
