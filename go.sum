@@ -96,8 +96,9 @@ github.com/gobuffalo/attrs v1.0.1 h1:Z84c0uuGKg58mhcLQODAqE/Sbxg8GgwjvV9nekZPs5c
 github.com/gobuffalo/attrs v1.0.1/go.mod h1:qGdnq2RukKtBl4ASJit0OFckc5XGSyTFk98SvRpMFrQ=
 github.com/gobuffalo/envy v1.10.1 h1:ppDLoXv2feQ5nus4IcgtyMdHQkKng2lhJCIm33cblM0=
 github.com/gobuffalo/envy v1.10.1/go.mod h1:AWx4++KnNOW3JOeEvhSaq+mvgAvnMYOY1XSIin4Mago=
-github.com/gobuffalo/fizz v1.10.0 h1:I8vad0PnmR+CLjSnZ5L5jlhBm4S88UIGOoZZL3/3e24=
 github.com/gobuffalo/fizz v1.10.0/go.mod h1:J2XGPO0AfJ1zKw7+2BA+6FEGAkyEsdCOLvN93WCT2WI=
+github.com/gobuffalo/fizz v1.14.0 h1:hicZBYSwSWITXEDUR77tqrLU1/vScXHddd02IaFkkPI=
+github.com/gobuffalo/fizz v1.14.0/go.mod h1:0aF1kAZYCfKqbLM/lmZ3jXFyqqWE/kY/nIOKnNdAYXQ=
 github.com/gobuffalo/flect v0.2.0/go.mod h1:W3K3X9ksuZfir8f/LrfVtWmCDQFfayuylOJ7sz/Fj80=
 github.com/gobuffalo/flect v0.2.4 h1:BSYA8+T60cdyq+vynaSUjqSVI9mDEg9ZfQUXKmfjo4I=
 github.com/gobuffalo/flect v0.2.4/go.mod h1:1ZyCLIbg0YD7sDkzvFdPoOydPtD8y9JQnrOROolUcM8=
@@ -118,6 +119,7 @@ github.com/gobuffalo/packd v1.0.1/go.mod h1:PP2POP3p3RXGz7Jh6eYEf93S7vA2za6xM7QT
 github.com/gobuffalo/plush/v4 v4.0.0/go.mod h1:ErFS3UxKqEb8fpFJT7lYErfN/Nw6vHGiDMTjxpk5bQ0=
 github.com/gobuffalo/plush/v4 v4.1.9 h1:u9rQBuYCeHC0ppKxsZljk5vb1oT8PQa5EMNTAN2337s=
 github.com/gobuffalo/plush/v4 v4.1.9/go.mod h1:9OOII9uAM5pZnhWu1OkQnboXJjaWMQ7kcTl3zNcxvTM=
+github.com/gobuffalo/pop/v6 v6.0.0/go.mod h1:5rd3OnViLhjteR8+0i/mT9Q4CzkTzCoR7tm/9mmAic4=
 github.com/gobuffalo/tags/v3 v3.0.2/go.mod h1:ZQeN6TCTiwAFnS0dNcbDtSgZDwNKSpqajvVtt6mlYpA=
 github.com/gobuffalo/tags/v3 v3.1.2 h1:68sHcwFFDstXyfbk5ovbGcQFDsupgVLs+lw1XZinHJw=
 github.com/gobuffalo/tags/v3 v3.1.2/go.mod h1:o3ldUfKv50jxWAC8eZHXMm8dnKW3YvyZUMr0xqUcZTI=
@@ -219,7 +221,6 @@ github.com/ianlancetaylor/demangle v0.0.0-20181102032728-5e5cf60278f6/go.mod h1:
 github.com/ianlancetaylor/demangle v0.0.0-20200824232613-28f6c0f3b639/go.mod h1:aSSvb/t6k1mPoxDqO4vJh6VOCGPwU4O0C2/Eqndh1Sc=
 github.com/inconshreveable/mousetrap v1.0.0 h1:Z8tu5sraLXCXIcARxBp/8cbvlwVa7Z1NHg9XEKhtSvM=
 github.com/inconshreveable/mousetrap v1.0.0/go.mod h1:PxqpIevigyE2G7u3NXJIT2ANytuPF1OarO4DADm73n8=
-github.com/influxdata/influxdb1-client v0.0.0-20191209144304-8bf82d3c094d/go.mod h1:qj24IKcXYK6Iy9ceXlo3Tc+vtHo9lIhSX5JddghvEPo=
 github.com/jackc/chunkreader v1.0.0 h1:4s39bBR8ByfqH+DKm8rQA3E1LHZWB9XWcrz8fqaZbe0=
 github.com/jackc/chunkreader v1.0.0/go.mod h1:RT6O25fNZIuasFJRyZ4R/Y2BbhasbmZXF9QQ7T3kePo=
 github.com/jackc/chunkreader/v2 v2.0.0/go.mod h1:odVSm741yZoC3dpHEUXIqA9tQRhFrgOHwnPIn9lDKlk=
@@ -776,10 +777,7 @@ gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405/go.mod h1:Co6ibVJAznAaIkqp8
 gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
 gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 h1:YR8cESwS4TdDjEe65xsg0ogRM/Nc3DYOhEAlW+xobZo=
 gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
-gopkg.in/cheggaaa/pb.v1 v1.0.25/go.mod h1:V/YB90LKu/1FcN3WVnfiiE5oMCibMjukxqG/qStrOgw=
 gopkg.in/errgo.v2 v2.1.0/go.mod h1:hNsd1EY+bozCKY1Ytp96fpM3vjJbqLJn88ws8XvfDNI=
-gopkg.in/fsnotify.v1 v1.4.7/go.mod h1:Tz8NjZHkW78fSQdbUxIjBTcgA1z1m8ZHf0WmKUhAMys=
-gopkg.in/gcfg.v1 v1.2.3/go.mod h1:yesOnuUOFQAhST5vPY4nbZsb/huCgGGXlipJsBn0b3o=
 gopkg.in/inconshreveable/log15.v2 v2.0.0-20180818164646-67afb5ed74ec/go.mod h1:aPpfJ7XW+gOuirDoZ8gHhLh3kZ1B08FtV2bbmy7Jv3s=
 gopkg.in/ini.v1 v1.62.0/go.mod h1:pNLf8WUiyNEtQjuu5G5vTm06TEv9tsIgeAvK8hOrP4k=
 gopkg.in/yaml.v2 v2.2.2/go.mod h1:hI93XBmqTisBFMUTm0b8Fm+jr3Dg1NNxqwp+5A1VGuI=
