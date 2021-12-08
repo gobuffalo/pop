@@ -106,6 +106,27 @@ type User struct {
 	Houses       Addresses     `many_to_many:"users_addresses"`
 }
 
+type UserPointerAssocs struct {
+	ID           int           `db:"id"`
+	UserName     string        `db:"user_name"`
+	Email        string        `db:"email"`
+	Name         nulls.String  `db:"name"`
+	Alive        nulls.Bool    `db:"alive"`
+	CreatedAt    time.Time     `db:"created_at"`
+	UpdatedAt    time.Time     `db:"updated_at"`
+	BirthDate    nulls.Time    `db:"birth_date"`
+	Bio          nulls.String  `db:"bio"`
+	Price        nulls.Float64 `db:"price"`
+	FullName     nulls.String  `db:"full_name" select:"name as full_name"`
+	Books        Books         `has_many:"books" order_by:"title asc"`
+	FavoriteSong *Song         `has_one:"song" fk_id:"u_id"`
+	Houses       Addresses     `many_to_many:"users_addresses"`
+}
+
+func (UserPointerAssocs) TableName() string {
+	return "users"
+}
+
 // Validate gets run every time you call a "Validate*" (ValidateAndSave, ValidateAndCreate, ValidateAndUpdate) method.
 // This method is not required and may be deleted.
 func (u *User) Validate(tx *Connection) (*validate.Errors, error) {

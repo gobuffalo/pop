@@ -335,11 +335,14 @@ func preloadHasOne(tx *Connection, asoc *AssociationMetaInfo, mmi *ModelMetaInfo
 			asocValue := slice.Elem().Index(i)
 			if mmi.mapper.FieldByName(mvalue, "ID").Interface() == mmi.mapper.FieldByName(asocValue, foreignField.Path).Interface() ||
 				reflect.DeepEqual(mmi.mapper.FieldByName(mvalue, "ID"), mmi.mapper.FieldByName(asocValue, foreignField.Path)) {
-				if modelAssociationField.Kind() == reflect.Slice || modelAssociationField.Kind() == reflect.Array {
+				switch {
+				case modelAssociationField.Kind() == reflect.Slice || modelAssociationField.Kind() == reflect.Array:
 					modelAssociationField.Set(reflect.Append(modelAssociationField, asocValue))
-					continue
+				case modelAssociationField.Kind() == reflect.Ptr:
+					modelAssociationField.Elem().Set(asocValue)
+				default:
+					modelAssociationField.Set(asocValue)
 				}
-				modelAssociationField.Set(asocValue)
 			}
 		}
 	})
