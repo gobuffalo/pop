@@ -53,6 +53,18 @@ func Test_New_Implementation_For_Nplus1(t *testing.T) {
 		a.Len(book.Writers, 1)
 		a.Equal("Larry", book.Writers[0].Name)
 		a.Equal("Mark", book.User.Name.String)
+
+		usersWithPointers := []UserPointerAssocs{}
+		a.NoError(tx.All(&usersWithPointers))
+
+		// FILL THE HAS-MANY and HAS_ONE
+		a.NoError(preload(tx, &usersWithPointers))
+
+		a.Len(usersWithPointers[0].Books, 1)
+		a.Len(usersWithPointers[1].Books, 1)
+		a.Len(usersWithPointers[2].Books, 1)
+		a.Equal(usersWithPointers[0].FavoriteSong.UserID, users[0].ID)
+		a.Len(usersWithPointers[0].Houses, 1)
 	})
 }
 
