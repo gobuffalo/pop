@@ -1,7 +1,6 @@
 package associations
 
 import (
-	"errors"
 	"fmt"
 	"reflect"
 	"regexp"
@@ -30,7 +29,7 @@ var associationBuilders = map[string]associationBuilder{}
 func ForStruct(s interface{}, fields ...string) (Associations, error) {
 	t, v := getModelDefinition(s)
 	if t.Kind() != reflect.Struct {
-		return nil, errors.New("could not get struct associations: not a struct")
+		return nil, fmt.Errorf("could not get struct associations: not a struct but %T", s)
 	}
 	fields = trimFields(fields)
 	associations := Associations{}
