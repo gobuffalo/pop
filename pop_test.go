@@ -118,7 +118,7 @@ type UserPointerAssocs struct {
 	Bio          nulls.String  `db:"bio"`
 	Price        nulls.Float64 `db:"price"`
 	FullName     nulls.String  `db:"full_name" select:"name as full_name"`
-	Books        Books         `has_many:"books" order_by:"title asc"`
+	Books        Books         `has_many:"books" order_by:"title asc" fk_id:"user_id"`
 	FavoriteSong *Song         `has_one:"song" fk_id:"u_id"`
 	Houses       Addresses     `many_to_many:"users_addresses"`
 }
@@ -214,11 +214,12 @@ type Address struct {
 type Addresses []Address
 
 type UsersAddress struct {
-	ID        int       `db:"id"`
-	UserID    int       `db:"user_id"`
-	AddressID int       `db:"address_id"`
-	CreatedAt time.Time `db:"created_at"`
-	UpdatedAt time.Time `db:"updated_at"`
+	ID                  int       `db:"id"`
+	UserPointerAssocsID int       `db:"user_id"`
+	UserID              int       `db:"user_id"`
+	AddressID           int       `db:"address_id"`
+	CreatedAt           time.Time `db:"created_at"`
+	UpdatedAt           time.Time `db:"updated_at"`
 }
 
 type UsersAddressQuery struct {
