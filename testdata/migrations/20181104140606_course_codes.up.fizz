@@ -1,5 +1,12 @@
+create_table("classes") {
+  t.Column("id", "uuid", {"primary": true})
+  t.Column("topic", "string")
+  t.DisableTimestamps()
+}
+
 create_table("course_codes") {
   t.Column("id", "uuid", {"primary": true})
-  t.Column("course_id", "uuid", {})
+  t.Column("course_id", "uuid", {"null":true})
+  t.Column("class_id", "uuid")
   t.Timestamps()
 }

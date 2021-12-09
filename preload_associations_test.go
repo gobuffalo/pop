@@ -1,10 +1,10 @@
 package pop
 
 import (
-	"testing"
-
 	"github.com/gobuffalo/nulls"
+	"github.com/gofrs/uuid"
 	"github.com/stretchr/testify/require"
+	"testing"
 )
 
 func Test_New_Implementation_For_Nplus1(t *testing.T) {
@@ -82,7 +82,7 @@ func Test_New_Implementation_For_Nplus1_With_UUID(t *testing.T) {
 			courses = append(courses, course)
 			if i == 0 {
 				a.NoError(tx.Create(&CourseCode{
-					CourseID: course.ID,
+					CourseID: uuid.NullUUID{UUID: course.ID, Valid: true},
 				}))
 			}
 		}
@@ -110,6 +110,57 @@ func Test_New_Implementation_For_Nplus1_With_UUID(t *testing.T) {
 		a.Len(parents, 1)
 		a.Len(parents[0].Students, 1)
 		a.Equal(student.ID, parents[0].Students[0].ID)
+	})
+}
+
+func Test_New_Implementation_For_Nplus1_With_NullUUIDs_And_FK_ID(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
+
+	// This test suite prevents regressions of an obscure bug in the preload code which caused
+	// pointer values to be set with their empty values when relations did not exist.
+	//
+	// See also: https://github.com/gobuffalo/pop/issues/139
+	transaction(func(tx *Connection) {
+		a := require.New(t)
+
+		var course Course
+		a.NoError(tx.Create(&course))
+
+		class := &Class{Topic: "math",
+			// The bug only appears when we have two elements in the slice where
+			// one has a relation and the other one has no such relation.
+			CourseCodes: []CourseCode{
+				{Course: &course},
+				{},
+			}}
+
+		// This code basically just sets up
+		a.NoError(tx.Eager().Create(class))
+
+		var expected Class
+		a.NoError(tx.EagerPreload("CourseCodes.Course").First(&expected))
+
+		// What would happen before the patch resolved this issue is that:
+		//
+		// Classes.CourseCodes[0].Course would be the correct value (a filled struct)
+		//
+		//   "course": {
+		//     "id": "fa51f71f-e884-4641-8005-923258b814f9",
+		//     "created_at": "2021-12-09T23:20:10.208019+01:00",
+		//     "updated_at": "2021-12-09T23:20:10.208019+01:00"
+		//   },
+		//
+		// Classes.CourseCodes[1].Course would an "empty" struct of Course even though there is no relation set up:
+		//
+		//	  "course": {
+		//      "id": "00000000-0000-0000-0000-000000000000",
+		//      "created_at": "0001-01-01T00:00:00Z",
+		//      "updated_at": "0001-01-01T00:00:00Z"
+		//    },
+		a.NotNil(expected.CourseCodes[0].Course)
+		a.Nil(expected.CourseCodes[1].Course)
 	})
 }
 

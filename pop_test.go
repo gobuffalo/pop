@@ -291,12 +291,19 @@ type Course struct {
 }
 
 type CourseCode struct {
-	ID        uuid.UUID `json:"id" db:"id"`
-	CreatedAt time.Time `json:"created_at" db:"created_at"`
-	UpdatedAt time.Time `json:"updated_at" db:"updated_at"`
-	CourseID  uuid.UUID `json:"course_id" db:"course_id"`
-	Course    Course    `json:"-" belongs_to:"course"`
+	ID        uuid.UUID     `json:"id" db:"id"`
+	CreatedAt time.Time     `json:"created_at" db:"created_at"`
+	UpdatedAt time.Time     `json:"updated_at" db:"updated_at"`
+	CourseID  uuid.NullUUID `json:"course_id" db:"course_id"`
+	Course    *Course       `json:"course" belongs_to:"course" fk_id:"CourseID"`
+	ClassID   uuid.UUID     `json:"class_id" db:"class_id"`
 	// Course Course `belongs_to:"course"`
+}
+
+type Class struct {
+	ID          uuid.UUID    `json:"id" db:"id"`
+	Topic       string       `json:"topic" db:"topic"`
+	CourseCodes []CourseCode `json:"course_code_id" has_many:"course_codes"`
 }
 
 type ValidatableCar struct {
