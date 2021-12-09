@@ -1,1 +1,2 @@
+drop_table('classes')
 drop_table("course_codes")
