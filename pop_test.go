@@ -214,12 +214,11 @@ type Address struct {
 type Addresses []Address
 
 type UsersAddress struct {
-	ID                  int       `db:"id"`
-	UserPointerAssocsID int       `db:"user_id"`
-	UserID              int       `db:"user_id"`
-	AddressID           int       `db:"address_id"`
-	CreatedAt           time.Time `db:"created_at"`
-	UpdatedAt           time.Time `db:"updated_at"`
+	ID        int       `db:"id"`
+	UserID    int       `db:"user_id"`
+	AddressID int       `db:"address_id"`
+	CreatedAt time.Time `db:"created_at"`
+	UpdatedAt time.Time `db:"updated_at"`
 }
 
 type UsersAddressQuery struct {
