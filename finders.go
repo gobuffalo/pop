@@ -286,7 +286,7 @@ func (q *Query) eagerDefaultAssociations(model interface{}) error {
 			switch v.Kind() {
 			case reflect.Ptr:
 				err = innerQuery.eagerAssociations(v.Interface())
-			case reflect.Struct:
+			default:
 				err = innerQuery.eagerAssociations(v.Addr().Interface())
 			}
 
