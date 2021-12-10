@@ -158,8 +158,19 @@ func Test_New_Implementation_For_Nplus1_With_NullUUIDs_And_FK_ID(t *testing.T) {
 		//      "created_at": "0001-01-01T00:00:00Z",
 		//      "updated_at": "0001-01-01T00:00:00Z"
 		//    },
-		a.NotNil(expected.Hops[0].Server, "%+v", expected.Hops[0])
-		a.Nil(expected.Hops[1].Server)
+		var foundValid, foundEmpty int
+		for _, hop := range expected.Hops {
+			if hop.ServerID.Valid {
+				foundValid++
+				a.NotNil(hop.Server, "%+v", hop)
+			} else {
+				foundEmpty++
+				a.Nil(hop.Server, "%+v", hop)
+			}
+		}
+
+		a.Equal(1, foundValid)
+		a.Equal(1, foundEmpty)
 	})
 }
 
