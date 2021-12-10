@@ -300,15 +300,15 @@ type CourseCode struct {
 
 type NetClient struct {
 	ID   uuid.UUID `json:"id" db:"id"`
-	Hops []Hop     `json:"hop_id" has_many:"course_codes"`
+	Hops []Hop     `json:"hop_id" has_many:"hops"`
 }
 
 type Hop struct {
-	ID          uuid.UUID  `json:"id" db:"id"`
-	NetClient   *NetClient `json:"net_client" belongs_to:"net_client" fk_id:"NetClientID"`
-	NetClientID uuid.UUID  `json:"net_client_id" db:"net_client_id"`
-	Server      *Server    `json:"course" belongs_to:"server" fk_id:"CourseID"`
-	ServerID    uuid.UUID  `json:"server_id" db:"server_id"`
+	ID          uuid.UUID     `json:"id" db:"id"`
+	NetClient   *NetClient    `json:"net_client" belongs_to:"net_client" fk_id:"NetClientID"`
+	NetClientID uuid.UUID     `json:"net_client_id" db:"net_client_id"`
+	Server      *Server       `json:"course" belongs_to:"server" fk_id:"ServerID"`
+	ServerID    uuid.NullUUID `json:"server_id" db:"server_id"`
 }
 
 type Server struct {
