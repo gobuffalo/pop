@@ -307,7 +307,7 @@ type Hop struct {
 	ID          uuid.UUID     `json:"id" db:"id"`
 	NetClient   *NetClient    `json:"net_client" belongs_to:"net_client" fk_id:"NetClientID"`
 	NetClientID uuid.UUID     `json:"net_client_id" db:"net_client_id"`
-	Server      *Server       `json:"course" belongs_to:"server" fk_id:"ServerID"`
+	Server      *Server       `json:"course" belongs_to:"server" fk_id:"ServerID" oder_by:"id asc"`
 	ServerID    uuid.NullUUID `json:"server_id" db:"server_id"`
 }
 
