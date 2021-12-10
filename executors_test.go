@@ -1193,7 +1193,7 @@ func Test_Eager_Creation_Without_Associations(t *testing.T) {
 	transaction(func(tx *Connection) {
 		r := require.New(t)
 		code := CourseCode{
-			Course: &Course{},
+			Course: Course{},
 		}
 
 		err := tx.Eager().Create(&code)

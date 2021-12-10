@@ -2,7 +2,6 @@ package pop
 
 import (
 	"github.com/gobuffalo/nulls"
-	"github.com/gofrs/uuid"
 	"github.com/stretchr/testify/require"
 	"testing"
 )
@@ -82,7 +81,7 @@ func Test_New_Implementation_For_Nplus1_With_UUID(t *testing.T) {
 			courses = append(courses, course)
 			if i == 0 {
 				a.NoError(tx.Create(&CourseCode{
-					CourseID: uuid.NullUUID{UUID: course.ID, Valid: true},
+					CourseID: course.ID,
 				}))
 			}
 		}
@@ -125,28 +124,28 @@ func Test_New_Implementation_For_Nplus1_With_NullUUIDs_And_FK_ID(t *testing.T) {
 	transaction(func(tx *Connection) {
 		a := require.New(t)
 
-		var course Course
-		a.NoError(tx.Create(&course))
+		var server Server
+		a.NoError(tx.Create(&server))
 
-		class := &Class{Topic: "math",
+		class := &NetClient{
 			// The bug only appears when we have two elements in the slice where
 			// one has a relation and the other one has no such relation.
-			CourseCodes: []CourseCode{
-				{Course: &course},
+			Hops: []Hop{
+				{Server: &server},
 				{},
 			}}
 
 		// This code basically just sets up
 		a.NoError(tx.Eager().Create(class))
 
-		var expected Class
+		var expected NetClient
 		a.NoError(tx.EagerPreload("CourseCodes.Course").First(&expected))
 
 		// What would happen before the patch resolved this issue is that:
 		//
 		// Classes.CourseCodes[0].Course would be the correct value (a filled struct)
 		//
-		//   "course": {
+		//   "server": {
 		//     "id": "fa51f71f-e884-4641-8005-923258b814f9",
 		//     "created_at": "2021-12-09T23:20:10.208019+01:00",
 		//     "updated_at": "2021-12-09T23:20:10.208019+01:00"
@@ -154,13 +153,13 @@ func Test_New_Implementation_For_Nplus1_With_NullUUIDs_And_FK_ID(t *testing.T) {
 		//
 		// Classes.CourseCodes[1].Course would an "empty" struct of Course even though there is no relation set up:
 		//
-		//	  "course": {
+		//	  "server": {
 		//      "id": "00000000-0000-0000-0000-000000000000",
 		//      "created_at": "0001-01-01T00:00:00Z",
 		//      "updated_at": "0001-01-01T00:00:00Z"
 		//    },
-		a.NotNil(expected.CourseCodes[0].Course)
-		a.Nil(expected.CourseCodes[1].Course)
+		a.NotNil(expected.Hops[0].Server)
+		a.Nil(expected.Hops[1].Server)
 	})
 }
 
