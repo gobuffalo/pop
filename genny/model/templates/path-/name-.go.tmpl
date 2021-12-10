@@ -12,12 +12,12 @@ import (
 {{- if eq $.model.Encoding.String "jsonapi"}}
 type {{.model.Name.Proper}} struct {
 {{- range $a := .opts.Attrs }}
-    {{$a.Name.Pascalize}} {{$a.GoType}} `jsonapi:"{{ if eq $a.Name.Underscore.String "id" }}primary{{ else }}attr{{ end }},{{$a.Name.Underscore}}" db:"{{$a.Name.Underscore}}"`
+	{{$a.Name.Pascalize}} {{$a.GoType}} `jsonapi:"{{ if eq $a.Name.Underscore.String "id" }}primary{{ else }}attr{{ end }},{{$a.Name.Underscore}}" db:"{{$a.Name.Underscore}}"`
 {{- end }}
 {{- else }}
 type {{.model.Name.Proper}} struct {
 {{- range $a := .opts.Attrs }}
-    {{$a.Name.Pascalize}} {{$a.GoType}} `{{$.model.Encoding}}:"{{$a.Name.Underscore}}" db:"{{$a.Name.Underscore}}"`
+	{{$a.Name.Pascalize}} {{$a.GoType}} `{{$.model.Encoding}}:"{{$a.Name.Underscore}}" db:"{{$a.Name.Underscore}}"`
 {{- end }}
 {{- end }}
 }
