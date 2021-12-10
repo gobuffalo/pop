@@ -139,7 +139,7 @@ func Test_New_Implementation_For_Nplus1_With_NullUUIDs_And_FK_ID(t *testing.T) {
 		a.NoError(tx.Eager().Create(class))
 
 		var expected NetClient
-		a.NoError(tx.EagerPreload("CourseCodes.Course").First(&expected))
+		a.NoError(tx.EagerPreload("Hops.Server").First(&expected))
 
 		// What would happen before the patch resolved this issue is that:
 		//
