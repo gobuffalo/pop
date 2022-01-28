@@ -297,6 +297,7 @@ func (c *Connection) Create(model interface{}, excludeColumns ...string) error {
 				for index := range stms {
 					statements := stms[index].Statements()
 					for _, stm := range statements {
+						log(logging.SQL, stm.Statement, stm.Args...)
 						if c.TX != nil {
 							_, err := c.TX.Exec(c.Dialect.TranslateSQL(stm.Statement), stm.Args...)
 							if err != nil {
