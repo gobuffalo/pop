@@ -12,6 +12,7 @@ builds:
     - darwin
   goarch:
     - amd64
+    - arm64
   env:
     - CGO_ENABLED=1
     - CC=o64-clang
