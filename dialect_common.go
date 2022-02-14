@@ -85,7 +85,7 @@ func genericCreate(s store, model *Model, cols columns.Columns, quoter quotable)
 		if err != nil {
 			return err
 		}
-		_, err = stmt.Exec(model.Value)
+		_, err = stmt.ExecContext(model.ctx, model.Value)
 		if err != nil {
 			if closeErr := stmt.Close(); closeErr != nil {
 				return fmt.Errorf("failed to close prepared statement: %s: %w", closeErr, err)
