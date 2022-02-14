@@ -72,6 +72,16 @@ func ForStruct(s interface{}, fields ...string) (Associations, error) {
 	for i := 0; i < t.NumField(); i++ {
 		f := t.Field(i)
 
+		// inline embedded field
+		if f.Anonymous {
+			innerAssociations, err := ForStruct(v.Field(i).Interface(), fields...)
+			if err != nil {
+				return nil, err
+			}
+			associations = append(associations, innerAssociations...)
+			continue
+		}
+
 		// ignores those fields not included in fields list.
 		if len(fields) > 0 && fieldIgnoredIn(fields, f.Name) {
 			continue
