@@ -476,3 +476,14 @@ type NonStandardID struct {
 	ID          int    `db:"pk"`
 	OutfacingID string `db:"id"`
 }
+
+type InnerStruct struct {
+	ID        int       `db:"id"`
+	CreatedAt time.Time `db:"created_at"`
+	UpdatedAt time.Time `db:"updated_at"`
+}
+
+type EmbeddingStruct struct {
+	InnerStruct
+	AdditionalField string `db:"additional_field"`
+}

@@ -1,0 +1,7 @@
+create_table("embedding_structs") {
+ t.Column("id", "int", { "primary": true })
+
+ t.Column("additional_field", "string", {})
+
+ t.Timestamps()
+}

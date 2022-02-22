@@ -31,33 +31,47 @@ func ForStructWithAlias(s interface{}, tableName, tableAlias, idField string) (c
 		}
 	}
 
-	fieldCount := st.NumField()
+	// recursive functions to also find and add embedded struct fields
+	var findColumns func(st reflect.Type)
+	findColumns = func(t reflect.Type) {
+		if t.Kind() == reflect.Ptr {
+			t = t.Elem()
+		}
 
-	for i := 0; i < fieldCount; i++ {
-		field := st.Field(i)
+		fc := t.NumField()
+		for i := 0; i < fc; i++ {
+			field := t.Field(i)
 
-		popTags := TagsFor(field)
-		tag := popTags.Find("db")
-
-		if !tag.Ignored() && !tag.Empty() {
-			col := tag.Value
-
-			// add writable or readable.
-			tag := popTags.Find("rw")
-			if !tag.Empty() {
-				col = col + "," + tag.Value
+			if field.Anonymous {
+				findColumns(field.Type)
+				continue
 			}
 
-			cs := columns.Add(col)
+			popTags := TagsFor(field)
+			tag := popTags.Find("db")
 
-			// add select clause.
-			tag = popTags.Find("select")
-			if !tag.Empty() {
-				c := cs[0]
-				c.SetSelectSQL(tag.Value)
+			if !tag.Ignored() && !tag.Empty() {
+				col := tag.Value
+
+				// add writable or readable.
+				tag := popTags.Find("rw")
+				if !tag.Empty() {
+					col = col + "," + tag.Value
+				}
+
+				cs := columns.Add(col)
+
+				// add select clause.
+				tag = popTags.Find("select")
+				if !tag.Empty() {
+					c := cs[0]
+					c.SetSelectSQL(tag.Value)
+				}
 			}
 		}
 	}
+
+	findColumns(st)
 
 	return columns
 }

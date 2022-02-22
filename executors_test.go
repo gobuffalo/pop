@@ -533,6 +533,33 @@ func Test_Create_Non_PK_ID(t *testing.T) {
 	})
 }
 
+func Test_Embedded_Struct(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
+	transaction(func(tx *Connection) {
+		r := require.New(t)
+
+		entry := &EmbeddingStruct{
+			InnerStruct:     InnerStruct{},
+			AdditionalField: "I am also important!",
+		}
+		r.NoError(tx.Create(entry))
+
+		var actual EmbeddingStruct
+		r.NoError(tx.Find(&actual, entry.ID))
+		r.Equal(entry.AdditionalField, actual.AdditionalField)
+
+		entry.AdditionalField = entry.AdditionalField + " updated"
+		r.NoError(tx.Update(entry))
+
+		r.NoError(tx.Find(&actual, entry.ID))
+		r.Equal(entry.AdditionalField, actual.AdditionalField)
+
+		r.NoError(tx.Destroy(entry))
+	})
+}
+
 func Test_Eager_Create_Has_Many(t *testing.T) {
 	if PDB == nil {
 		t.Skip("skipping integration tests")
