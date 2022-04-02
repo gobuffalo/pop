@@ -8,6 +8,8 @@ jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
+    container:
+      image: bepsays/ci-goreleaser:1.17.5
     steps:
       - name: Set up Go 1.17
         uses: actions/setup-go@v2
