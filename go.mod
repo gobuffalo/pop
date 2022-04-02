@@ -15,8 +15,8 @@ require (
 	github.com/gobuffalo/plush/v4 v4.1.9
 	github.com/gobuffalo/validate/v3 v3.3.1
 	github.com/gofrs/uuid v4.2.0+incompatible
-	github.com/jackc/pgconn v1.10.1
-	github.com/jackc/pgx/v4 v4.14.1
+	github.com/jackc/pgconn v1.11.0
+	github.com/jackc/pgx/v4 v4.15.0
 	github.com/jmoiron/sqlx v1.3.4
 	github.com/lib/pq v1.10.4
 	github.com/luna-duclos/instrumentedsql v1.1.3
