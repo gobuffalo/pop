@@ -118,8 +118,9 @@ github.com/gobuffalo/nulls v0.4.1/go.mod h1:pp8e1hWTRJZFpMl4fj/CVbSMlaxjeGKkFq4R
 github.com/gobuffalo/packd v1.0.1 h1:U2wXfRr4E9DH8IdsDLlRFwTZTK7hLfq9qT/QHXGVe/0=
 github.com/gobuffalo/packd v1.0.1/go.mod h1:PP2POP3p3RXGz7Jh6eYEf93S7vA2za6xM7QT85L4+VY=
 github.com/gobuffalo/plush/v4 v4.0.0/go.mod h1:ErFS3UxKqEb8fpFJT7lYErfN/Nw6vHGiDMTjxpk5bQ0=
-github.com/gobuffalo/plush/v4 v4.1.9 h1:u9rQBuYCeHC0ppKxsZljk5vb1oT8PQa5EMNTAN2337s=
 github.com/gobuffalo/plush/v4 v4.1.9/go.mod h1:9OOII9uAM5pZnhWu1OkQnboXJjaWMQ7kcTl3zNcxvTM=
+github.com/gobuffalo/plush/v4 v4.1.10 h1:sBTmJJ1Hpj4ExqC4NFmCvAgH6Iq6t58JaWvAl8NEAFc=
+github.com/gobuffalo/plush/v4 v4.1.10/go.mod h1:9OOII9uAM5pZnhWu1OkQnboXJjaWMQ7kcTl3zNcxvTM=
 github.com/gobuffalo/pop/v6 v6.0.0/go.mod h1:5rd3OnViLhjteR8+0i/mT9Q4CzkTzCoR7tm/9mmAic4=
 github.com/gobuffalo/tags/v3 v3.0.2/go.mod h1:ZQeN6TCTiwAFnS0dNcbDtSgZDwNKSpqajvVtt6mlYpA=
 github.com/gobuffalo/tags/v3 v3.1.2 h1:68sHcwFFDstXyfbk5ovbGcQFDsupgVLs+lw1XZinHJw=
@@ -396,8 +397,9 @@ github.com/stretchr/testify v1.3.0/go.mod h1:M5WIy9Dh21IEIfnGCwXGc5bZfKNJtfHm1UV
 github.com/stretchr/testify v1.4.0/go.mod h1:j7eGeouHqKxXV5pUuKE4zz7dFj8WfuZ+81PSLYec5m4=
 github.com/stretchr/testify v1.5.1/go.mod h1:5W2xD1RspED5o8YsWQXVCued0rvSQ+mT+I5cxcmMvtA=
 github.com/stretchr/testify v1.6.1/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
-github.com/stretchr/testify v1.7.0 h1:nwc3DEeHmmLAfoZucVR881uASk0Mfjw8xYJ99tb5CcY=
 github.com/stretchr/testify v1.7.0/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
+github.com/stretchr/testify v1.7.1 h1:5TQK59W5E3v0r2duFAb7P95B6hEeOyEnHRa8MjYSMTY=
+github.com/stretchr/testify v1.7.1/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
 github.com/subosito/gotenv v1.2.0/go.mod h1:N0PQaV/YGNqwC0u51sEeR/aUtSLEXKX9iv69rRypqCw=
 github.com/yuin/goldmark v1.1.25/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 github.com/yuin/goldmark v1.1.27/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=

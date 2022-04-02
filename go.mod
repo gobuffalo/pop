@@ -12,7 +12,7 @@ require (
 	github.com/gobuffalo/genny/v2 v2.0.8
 	github.com/gobuffalo/logger v1.0.6
 	github.com/gobuffalo/nulls v0.4.1
-	github.com/gobuffalo/plush/v4 v4.1.9
+	github.com/gobuffalo/plush/v4 v4.1.10
 	github.com/gobuffalo/validate/v3 v3.3.1
 	github.com/gofrs/uuid v4.2.0+incompatible
 	github.com/jackc/pgconn v1.10.1
@@ -22,7 +22,7 @@ require (
 	github.com/luna-duclos/instrumentedsql v1.1.3
 	github.com/mattn/go-sqlite3 v1.14.9
 	github.com/spf13/cobra v1.4.0
-	github.com/stretchr/testify v1.7.0
+	github.com/stretchr/testify v1.7.1
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 	gopkg.in/yaml.v2 v2.4.0
 )
