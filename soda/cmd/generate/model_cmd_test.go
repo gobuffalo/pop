@@ -1,7 +1,6 @@
 package generate
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -14,9 +13,7 @@ func Test_ModelCmd_NoArg(t *testing.T) {
 	c := ModelCmd
 	c.SetArgs([]string{})
 
-	tdir, err := ioutil.TempDir("", "testapp")
-	r.NoError(err)
-	defer os.RemoveAll(tdir)
+	tdir := t.TempDir()
 
 	pwd, err := os.Getwd()
 	r.NoError(err)
@@ -32,9 +29,7 @@ func Test_ModelCmd_NameOnly(t *testing.T) {
 	c := ModelCmd
 	c.SetArgs([]string{"users"})
 
-	tdir, err := ioutil.TempDir("", "testapp")
-	r.NoError(err)
-	defer os.RemoveAll(tdir)
+	tdir := t.TempDir()
 
 	pwd, err := os.Getwd()
 	r.NoError(err)
