@@ -556,6 +556,13 @@ func Test_Embedded_Struct(t *testing.T) {
 		r.NoError(tx.Find(&actual, entry.ID))
 		r.Equal(entry.AdditionalField, actual.AdditionalField)
 
+		entry.AdditionalField = entry.AdditionalField + "; updated again"
+		count, err := tx.Where("id = ?", entry.ID).UpdateQuery(entry, "additional_field")
+		r.NoError(err)
+		require.Equal(t, int64(1), count)
+		r.NoError(tx.Find(&actual, entry.ID))
+		r.Equal(entry.AdditionalField, actual.AdditionalField)
+
 		r.NoError(tx.Destroy(entry))
 	})
 }
@@ -1490,6 +1497,107 @@ func Test_UpdateColumns(t *testing.T) {
 		r.NoError(tx.Reload(&user))
 		r.Equal(user.Name.String, "Mark") // Name column should not be updated
 		r.Equal(user.UserName, "Fulano")
+	})
+}
+
+func Test_UpdateQuery_NoUpdatedAt(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
+	transaction(func(tx *Connection) {
+		r := require.New(t)
+		r.NoError(PDB.Create(&NonStandardID{OutfacingID: "must-change"}))
+		count, err := PDB.Where("true").UpdateQuery(&NonStandardID{OutfacingID: "has-changed"}, "id")
+		r.NoError(err)
+		r.Equal(int64(1), count)
+		entity := NonStandardID{}
+		r.NoError(PDB.First(&entity))
+		r.Equal("has-changed", entity.OutfacingID)
+	})
+}
+
+func Test_UpdateQuery_NoTransaction(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
+
+	r := require.New(t)
+	u1 := User{Name: nulls.NewString("Foo"), Bio: nulls.NewString("must-not-change-1")}
+	r.NoError(PDB.Create(&u1))
+	r.NoError(PDB.Reload(&u1))
+	count, err := PDB.Where("name = ?", "Nemo").UpdateQuery(&User{Bio: nulls.NewString("did-change")}, "bio")
+	r.NoError(err)
+	require.Equal(t, int64(0), count)
+
+	count, err = PDB.Where("name = ?", "Foo").UpdateQuery(&User{Name: nulls.NewString("Bar")}, "name")
+	r.NoError(err)
+	r.Equal(int64(1), count)
+
+	require.NoError(t, PDB.Destroy(&u1))
+}
+
+func Test_UpdateQuery(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
+	transaction(func(tx *Connection) {
+		r := require.New(t)
+
+		u1 := User{Name: nulls.NewString("Foo"), Bio: nulls.NewString("must-not-change-1")}
+		u2 := User{Name: nulls.NewString("Foo"), Bio: nulls.NewString("must-not-change-2")}
+		u3 := User{Name: nulls.NewString("Baz"), Bio: nulls.NewString("must-not-change-3")}
+		tx.Create(&u1)
+		tx.Create(&u2)
+		tx.Create(&u3)
+		r.NoError(tx.Reload(&u1))
+		r.NoError(tx.Reload(&u2))
+		r.NoError(tx.Reload(&u3))
+		time.Sleep(time.Millisecond * 1)
+
+		// No affected rows
+		count, err := tx.Where("name = ?", "Nemo").UpdateQuery(&User{Bio: nulls.NewString("did-change")}, "bio")
+		r.NoError(err)
+		require.Equal(t, int64(0), count)
+		mustUnchanged := &User{}
+		r.NoError(tx.Find(mustUnchanged, u1.ID))
+		r.Equal(u1.Bio, mustUnchanged.Bio)
+		r.Equal(u1.UpdatedAt, mustUnchanged.UpdatedAt)
+
+		// Correct rows are updated, including updated_at
+		count, err = tx.Where("name = ?", "Foo").UpdateQuery(&User{Name: nulls.NewString("Bar")}, "name")
+		r.NoError(err)
+		r.Equal(int64(2), count)
+
+		u1b, u2b, u3b := &User{}, &User{}, &User{}
+		r.NoError(tx.Find(u1b, u1.ID))
+		r.NoError(tx.Find(u2b, u2.ID))
+		r.NoError(tx.Find(u3b, u3.ID))
+		r.Equal(u1b.Name.String, "Bar")
+		r.Equal(u2b.Name.String, "Bar")
+		r.Equal(u3b.Name.String, "Baz")
+		r.Equal(u1b.Bio.String, "must-not-change-1")
+		r.Equal(u2b.Bio.String, "must-not-change-2")
+		r.Equal(u3b.Bio.String, "must-not-change-3")
+		if tx.Dialect.Name() != nameMySQL { // MySQL timestamps are in seconds
+			r.NotEqual(u1.UpdatedAt, u1b.UpdatedAt)
+			r.NotEqual(u2.UpdatedAt, u2b.UpdatedAt)
+		}
+		r.Equal(u3.UpdatedAt, u3b.UpdatedAt)
+
+		// ID is ignored
+		count, err = tx.Where("true").UpdateQuery(&User{ID: 123, Name: nulls.NewString("Bar")}, "id", "name")
+		r.NoError(tx.Find(u1b, u1.ID))
+		r.NoError(tx.Find(u2b, u2.ID))
+		r.NoError(tx.Find(u3b, u3.ID))
+		r.Equal(u1b.Name.String, "Bar")
+		r.Equal(u2b.Name.String, "Bar")
+		r.Equal(u3b.Name.String, "Bar")
+
+		// Invalid column yields an error
+		count, err = tx.Where("name = ?", "Foo").UpdateQuery(&User{Name: nulls.NewString("Bar")}, "mistake")
+		r.Contains(err.Error(), "could not find name mistake")
+
+		tx.Where("true").Delete(&User{})
 	})
 }
 

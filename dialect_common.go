@@ -14,6 +14,7 @@ import (
 	"github.com/gobuffalo/pop/v6/columns"
 	"github.com/gobuffalo/pop/v6/logging"
 	"github.com/gofrs/uuid"
+	"github.com/jmoiron/sqlx"
 )
 
 func init() {
@@ -108,6 +109,32 @@ func genericUpdate(s store, model *Model, cols columns.Columns, quoter quotable)
 		return err
 	}
 	return nil
+}
+
+func genericUpdateQuery(s store, model *Model, cols columns.Columns, quoter quotable, query Query, bindType int) (int64, error) {
+	q := fmt.Sprintf("UPDATE %s AS %s SET %s", quoter.Quote(model.TableName()), model.Alias(), cols.Writeable().QuotedUpdateString(quoter))
+
+	q, updateArgs, err := sqlx.Named(q, model.Value)
+	if err != nil {
+		return 0, err
+	}
+
+	sb := query.toSQLBuilder(model)
+	q = sb.buildWhereClauses(q)
+
+	q = sqlx.Rebind(bindType, q)
+
+	result, err := genericExec(s, q, append(updateArgs, sb.args...)...)
+	if err != nil {
+		return 0, err
+	}
+
+	n, err := result.RowsAffected()
+	if err != nil {
+		return 0, err
+	}
+
+	return n, err
 }
 
 func genericDestroy(s store, model *Model, quoter quotable) error {
