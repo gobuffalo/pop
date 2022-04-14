@@ -1,3 +1,4 @@
+//go:build sqlite
 // +build sqlite
 
 package pop
@@ -19,6 +20,7 @@ import (
 	"github.com/gobuffalo/pop/v6/columns"
 	"github.com/gobuffalo/pop/v6/internal/defaults"
 	"github.com/gobuffalo/pop/v6/logging"
+	"github.com/jmoiron/sqlx"
 	"github.com/mattn/go-sqlite3"
 	_ "github.com/mattn/go-sqlite3" // Load SQLite3 CGo driver
 )
@@ -107,6 +109,20 @@ func (m *sqlite) Update(s store, model *Model, cols columns.Columns) error {
 		}
 		return nil
 	})
+}
+
+func (m *sqlite) UpdateQuery(s store, model *Model, cols columns.Columns, query Query) (int64, error) {
+	rowsAffected := int64(0)
+	err := m.locker(m.smGil, func() error {
+		if n, err := genericUpdateQuery(s, model, cols, m, query, sqlx.QUESTION); err != nil {
+			rowsAffected = n
+			return fmt.Errorf("sqlite update query: %w", err)
+		} else {
+			rowsAffected = n
+			return nil
+		}
+	})
+	return rowsAffected, err
 }
 
 func (m *sqlite) Destroy(s store, model *Model) error {
