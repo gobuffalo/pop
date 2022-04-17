@@ -282,7 +282,14 @@ func (q *Query) eagerDefaultAssociations(model interface{}) error {
 			v = reflect.Indirect(reflect.ValueOf(model)).FieldByName(inner.Name)
 			innerQuery := Q(query.Connection)
 			innerQuery.eagerFields = inner.Fields
-			err = innerQuery.eagerAssociations(v.Addr().Interface())
+
+			switch v.Kind() {
+			case reflect.Ptr:
+				err = innerQuery.eagerAssociations(v.Interface())
+			default:
+				err = innerQuery.eagerAssociations(v.Addr().Interface())
+			}
+
 			if err != nil {
 				return err
 			}

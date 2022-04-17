@@ -4,8 +4,6 @@ package pop
 
 import (
 	"fmt"
-	"io/ioutil"
-	"os"
 	"path/filepath"
 	"testing"
 
@@ -133,10 +131,8 @@ func Test_ConnectionDetails_Finalize_SQLite_OverrideOptions_Synonym_Path(t *test
 
 func Test_ConnectionDetails_FinalizeOSPath(t *testing.T) {
 	r := require.New(t)
-	d, err := ioutil.TempDir("", "")
-	r.NoError(err)
+	d := t.TempDir()
 	p := filepath.Join(d, "testdb.sqlite")
-	defer os.RemoveAll(p)
 	cd := &ConnectionDetails{
 		Dialect:  "sqlite",
 		Database: p,
@@ -148,10 +144,8 @@ func Test_ConnectionDetails_FinalizeOSPath(t *testing.T) {
 
 func TestSqlite_CreateDB(t *testing.T) {
 	r := require.New(t)
-	dir, err := ioutil.TempDir("", "")
-	r.NoError(err)
+	dir := t.TempDir()
 	p := filepath.Join(dir, "testdb.sqlite")
-	defer os.RemoveAll(p)
 	cd := &ConnectionDetails{
 		Dialect:  "sqlite",
 		Database: p,

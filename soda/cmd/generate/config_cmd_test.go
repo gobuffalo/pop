@@ -1,7 +1,6 @@
 package generate
 
 import (
-	"io/ioutil"
 	"os"
 	"testing"
 
@@ -13,9 +12,7 @@ func Test_ConfigCmd_NoArg(t *testing.T) {
 	c := ConfigCmd
 	c.SetArgs([]string{})
 
-	tdir, err := ioutil.TempDir("", "testapp")
-	r.NoError(err)
-	defer os.RemoveAll(tdir)
+	tdir := t.TempDir()
 
 	pwd, err := os.Getwd()
 	r.NoError(err)

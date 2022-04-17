@@ -128,15 +128,22 @@ func (b *belongsToAssociation) BeforeInterface() interface{} {
 
 func (b *belongsToAssociation) BeforeSetup() error {
 	ownerID := reflect.Indirect(reflect.ValueOf(b.ownerModel.Interface())).FieldByName("ID")
-	if b.ownerID.CanSet() {
-		if n := nulls.New(b.ownerID.Interface()); n != nil {
-			b.ownerID.Set(reflect.ValueOf(n.Parse(ownerID.Interface())))
-		} else if b.ownerID.Kind() == reflect.Ptr {
-			b.ownerID.Set(ownerID.Addr())
+	toSet := b.ownerID
+	switch b.ownerID.Type().Name() {
+	case "NullUUID":
+		b.ownerID.FieldByName("Valid").Set(reflect.ValueOf(true))
+		toSet = b.ownerID.FieldByName("UUID")
+	}
+
+	if toSet.CanSet() {
+		if n := nulls.New(toSet.Interface()); n != nil {
+			toSet.Set(reflect.ValueOf(n.Parse(ownerID.Interface())))
+		} else if toSet.Kind() == reflect.Ptr {
+			toSet.Set(ownerID.Addr())
 		} else {
-			b.ownerID.Set(ownerID)
+			toSet.Set(ownerID)
 		}
 		return nil
 	}
-	return fmt.Errorf("could not set '%s' to '%s'", ownerID, b.ownerID)
+	return fmt.Errorf("could not set '%s' to '%s'", ownerID, toSet)
 }
