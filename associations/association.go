@@ -160,5 +160,9 @@ func fieldIsNil(f reflect.Value) bool {
 
 // IsZeroOfUnderlyingType will check if the value of anything is the equal to the Zero value of that type.
 func IsZeroOfUnderlyingType(x interface{}) bool {
+	if x == nil {
+		return true
+	}
+
 	return reflect.DeepEqual(x, reflect.Zero(reflect.TypeOf(x)).Interface())
 }

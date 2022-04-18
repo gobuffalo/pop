@@ -9,7 +9,7 @@ require (
 	github.com/gobuffalo/envy v1.10.1
 	github.com/gobuffalo/fizz v1.14.0
 	github.com/gobuffalo/flect v0.2.5
-	github.com/gobuffalo/genny/v2 v2.0.8
+	github.com/gobuffalo/genny/v2 v2.0.9
 	github.com/gobuffalo/logger v1.0.6
 	github.com/gobuffalo/nulls v0.4.1
 	github.com/gobuffalo/plush/v4 v4.1.10
@@ -18,7 +18,7 @@ require (
 	github.com/jackc/pgconn v1.11.0
 	github.com/jackc/pgx/v4 v4.15.0
 	github.com/jmoiron/sqlx v1.3.4
-	github.com/lib/pq v1.10.4
+	github.com/lib/pq v1.10.5
 	github.com/luna-duclos/instrumentedsql v1.1.3
 	github.com/mattn/go-sqlite3 v1.14.9
 	github.com/spf13/cobra v1.4.0

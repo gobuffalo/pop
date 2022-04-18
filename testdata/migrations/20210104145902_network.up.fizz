@@ -1,0 +1,18 @@
+create_table("net_clients") {
+  t.Column("id", "uuid", {"primary": true})
+  t.DisableTimestamps()
+}
+
+create_table("servers") {
+  t.Column("id", "uuid", {"primary": true})
+  t.DisableTimestamps()
+}
+
+create_table("hops") {
+  t.Column("id", "uuid", {"primary": true})
+  t.Column("server_id", "uuid", {"null":true})
+  t.ForeignKey("server_id", {"servers": ["id"]}, {})
+  t.Column("net_client_id", "uuid")
+  t.ForeignKey("net_client_id", {"net_clients": ["id"]}, {})
+  t.DisableTimestamps()
+}

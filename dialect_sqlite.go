@@ -169,10 +169,11 @@ func (m *sqlite) CreateDB() error {
 	if err != nil {
 		return fmt.Errorf("could not create SQLite database '%s': %w", m.ConnectionDetails.Database, err)
 	}
-	_, err = os.Create(m.ConnectionDetails.Database)
+	f, err := os.Create(m.ConnectionDetails.Database)
 	if err != nil {
 		return fmt.Errorf("could not create SQLite database '%s': %w", m.ConnectionDetails.Database, err)
 	}
+	_ = f.Close()
 
 	log(logging.Info, "created database '%s'", m.ConnectionDetails.Database)
 	return nil

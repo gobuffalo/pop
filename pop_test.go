@@ -106,6 +106,27 @@ type User struct {
 	Houses       Addresses     `many_to_many:"users_addresses"`
 }
 
+type UserPointerAssocs struct {
+	ID           int           `db:"id"`
+	UserName     string        `db:"user_name"`
+	Email        string        `db:"email"`
+	Name         nulls.String  `db:"name"`
+	Alive        nulls.Bool    `db:"alive"`
+	CreatedAt    time.Time     `db:"created_at"`
+	UpdatedAt    time.Time     `db:"updated_at"`
+	BirthDate    nulls.Time    `db:"birth_date"`
+	Bio          nulls.String  `db:"bio"`
+	Price        nulls.Float64 `db:"price"`
+	FullName     nulls.String  `db:"full_name" select:"name as full_name"`
+	Books        Books         `has_many:"books" order_by:"title asc" fk_id:"user_id"`
+	FavoriteSong *Song         `has_one:"song" fk_id:"u_id"`
+	Houses       Addresses     `many_to_many:"users_addresses"`
+}
+
+func (UserPointerAssocs) TableName() string {
+	return "users"
+}
+
 // Validate gets run every time you call a "Validate*" (ValidateAndSave, ValidateAndCreate, ValidateAndUpdate) method.
 // This method is not required and may be deleted.
 func (u *User) Validate(tx *Connection) (*validate.Errors, error) {
@@ -277,6 +298,23 @@ type CourseCode struct {
 	// Course Course `belongs_to:"course"`
 }
 
+type NetClient struct {
+	ID   uuid.UUID `json:"id" db:"id"`
+	Hops []Hop     `json:"hop_id" has_many:"hops"`
+}
+
+type Hop struct {
+	ID          uuid.UUID     `json:"id" db:"id"`
+	NetClient   *NetClient    `json:"net_client" belongs_to:"net_client" fk_id:"NetClientID"`
+	NetClientID uuid.UUID     `json:"net_client_id" db:"net_client_id"`
+	Server      *Server       `json:"course" belongs_to:"server" fk_id:"ServerID" oder_by:"id asc"`
+	ServerID    uuid.NullUUID `json:"server_id" db:"server_id"`
+}
+
+type Server struct {
+	ID uuid.UUID `json:"id" db:"id"`
+}
+
 type ValidatableCar struct {
 	ID        int64     `db:"id"`
 	Name      string    `db:"name"`
@@ -437,4 +475,15 @@ type CrookedSong struct {
 type NonStandardID struct {
 	ID          int    `db:"pk"`
 	OutfacingID string `db:"id"`
+}
+
+type InnerStruct struct {
+	ID        int       `db:"id"`
+	CreatedAt time.Time `db:"created_at"`
+	UpdatedAt time.Time `db:"updated_at"`
+}
+
+type EmbeddingStruct struct {
+	InnerStruct
+	AdditionalField string `db:"additional_field"`
 }

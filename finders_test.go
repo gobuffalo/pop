@@ -314,6 +314,42 @@ func Test_Find_Eager_Has_One(t *testing.T) {
 	})
 }
 
+func Test_Find_Eager_Has_One_With_Inner_Associations_Pointer(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
+	transaction(func(tx *Connection) {
+		r := require.New(t)
+
+		user := UserPointerAssocs{Name: nulls.NewString("Mark")}
+		err := tx.Create(&user)
+		r.NoError(err)
+
+		coolSong := Song{Title: "Hook - Blues Traveler", UserID: user.ID}
+		err = tx.Create(&coolSong)
+		r.NoError(err)
+
+		u := UserPointerAssocs{}
+		err = tx.Eager("FavoriteSong.ComposedBy").Find(&u, user.ID)
+		r.NoError(err)
+
+		r.NotEqual(u.ID, 0)
+		r.Equal(u.Name.String, "Mark")
+		r.Equal(u.FavoriteSong.ID, coolSong.ID)
+
+		// eager should work with rawquery
+		uid := u.ID
+		u = UserPointerAssocs{}
+		err = tx.RawQuery("select * from users where id=?", uid).First(&u)
+		r.NoError(err)
+		r.Nil(u.FavoriteSong)
+
+		err = tx.RawQuery("select * from users where id=?", uid).Eager("FavoriteSong").First(&u)
+		r.NoError(err)
+		r.Equal(u.FavoriteSong.ID, coolSong.ID)
+	})
+}
+
 func Test_Find_Eager_Has_One_With_Inner_Associations_Struct(t *testing.T) {
 	if PDB == nil {
 		t.Skip("skipping integration tests")

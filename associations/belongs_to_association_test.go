@@ -22,6 +22,11 @@ type barBelongsTo struct {
 	Foo   fooBelongsTo `belongs_to:"foo"`
 }
 
+type barBelongsToNullable struct {
+	FooID uuid.NullUUID `db:"foo_id"`
+	Foo   *fooBelongsTo `belongs_to:"foo"`
+}
+
 func Test_Belongs_To_Association(t *testing.T) {
 	a := require.New(t)
 
@@ -48,5 +53,19 @@ func Test_Belongs_To_Association(t *testing.T) {
 
 	for index := range before {
 		a.Equal(nil, before[index].BeforeInterface())
+	}
+}
+
+func Test_Belongs_To_Nullable_Association(t *testing.T) {
+	a := require.New(t)
+	id, _ := uuid.NewV1()
+
+	bar := barBelongsToNullable{Foo: &fooBelongsTo{id}}
+	as, err := associations.ForStruct(&bar, "Foo")
+	a.NoError(err)
+
+	before := as.AssociationsBeforeCreatable()
+	for index := range before {
+		a.Equal(nil, before[index].BeforeSetup())
 	}
 }
