@@ -21,10 +21,10 @@ jobs:
       - name: Fetch tags
         run: git fetch --depth=1 origin +refs/tags/*:refs/tags/*
 
-      - name: Run GoReleaser
-        uses: goreleaser/goreleaser-action@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GORELEASER_GITHUB_TOKEN }}
-        with:
-          version: latest
-          args: release --rm-dist
+      - name: release dry run
+        run: make release-dry-run
+      - name: setup release environment
+        run: |-
+          echo 'GITHUB_TOKEN=${{secrets.GORELEASER_ACCESS_TOKEN}}' > .release-env
+      - name: release publish
+        run: make release
