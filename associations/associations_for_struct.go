@@ -27,6 +27,11 @@ var associationBuilders = map[string]associationBuilder{}
 // it throws an error when it finds a field that does
 // not exist for a model.
 func ForStruct(s interface{}, fields ...string) (Associations, error) {
+	return forStruct(s, s, fields)
+}
+
+// forStruct is a recursive helper that passes the root model down for embedded fields
+func forStruct(parent, s interface{}, fields []string) (Associations, error) {
 	t, v := getModelDefinition(s)
 	if t.Kind() != reflect.Struct {
 		return nil, fmt.Errorf("could not get struct associations: not a struct but %T", s)
@@ -74,7 +79,20 @@ func ForStruct(s interface{}, fields ...string) (Associations, error) {
 
 		// inline embedded field
 		if f.Anonymous {
-			innerAssociations, err := ForStruct(v.Field(i).Interface(), fields...)
+			field := v.Field(i)
+			// we need field to be a pointer, so that we can later set the value
+			// if the embedded field is of type struct {...}, we have to take its address
+			if field.Kind() != reflect.Ptr {
+				field = field.Addr()
+			}
+			if fieldIsNil(field) {
+				// initialize zero value
+				field = reflect.New(field.Type().Elem())
+				// we can only get in this case if v.Field(i) is a pointer type because it could not be nil otherwise
+				//  => it is safe to set it here as is
+				v.Field(i).Set(field)
+			}
+			innerAssociations, err := forStruct(parent, field.Interface(), fields)
 			if err != nil {
 				return nil, err
 			}
@@ -92,11 +110,12 @@ func ForStruct(s interface{}, fields ...string) (Associations, error) {
 		for name, builder := range associationBuilders {
 			tag := tags.Find(name)
 			if !tag.Empty() {
+				pt, pv := getModelDefinition(parent)
 				params := associationParams{
 					field:             f,
-					model:             s,
-					modelType:         t,
-					modelValue:        v,
+					model:             parent,
+					modelType:         pt,
+					modelValue:        pv,
 					popTags:           tags,
 					innerAssociations: fieldsWithInnerAssociation[f.Name],
 				}

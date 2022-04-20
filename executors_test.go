@@ -1231,6 +1231,138 @@ func Test_Eager_Creation_Without_Associations(t *testing.T) {
 	})
 }
 
+func Test_Eager_Embedded_Struct(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
+	transaction(func(tx *Connection) {
+		r := require.New(t)
+
+		type AssocFields struct {
+			Books        Books     `has_many:"books" order_by:"title asc"`
+			FavoriteSong Song      `has_one:"song" fk_id:"u_id"`
+			Houses       Addresses `many_to_many:"users_addresses"`
+		}
+
+		type User struct {
+			ID        int          `db:"id"`
+			UserName  string       `db:"user_name"`
+			Name      nulls.String `db:"name"`
+			CreatedAt time.Time    `db:"created_at"`
+			UpdatedAt time.Time    `db:"updated_at"`
+
+			AssocFields
+		}
+
+		count, _ := tx.Count(&User{})
+		user := User{
+			UserName: "dumb-dumb",
+			Name:     nulls.NewString("Arthur Dent"),
+			AssocFields: AssocFields{
+				Books:        Books{{Title: "The Hitchhiker's Guide to the Galaxy", Description: "Comedy Science Fiction somewhere in Space", Isbn: "PB42"}},
+				FavoriteSong: Song{Title: "Wish You Were Here", ComposedBy: Composer{Name: "Pink Floyd"}},
+				Houses: Addresses{
+					Address{HouseNumber: 155, Street: "Country Lane"},
+				},
+			},
+		}
+
+		err := tx.Eager().Create(&user)
+		r.NoError(err)
+		r.NotZero(user.ID)
+
+		ctx, _ := tx.Count(&User{})
+		r.Equal(count+1, ctx)
+
+		ctx, _ = tx.Count(&Book{})
+		r.Equal(count+1, ctx)
+
+		ctx, _ = tx.Count(&Song{})
+		r.Equal(count+1, ctx)
+
+		ctx, _ = tx.Count(&Address{})
+		r.Equal(count+1, ctx)
+
+		u := User{}
+		q := tx.Eager().Where("name = ?", user.Name.String)
+		err = q.First(&u)
+		r.NoError(err)
+
+		r.Equal(user.Name.String, u.Name.String)
+		r.Len(u.Books, 1)
+		r.Equal(user.Books[0].Title, u.Books[0].Title)
+		r.Equal(user.FavoriteSong.Title, u.FavoriteSong.Title)
+		r.Len(u.Houses, 1)
+		r.Equal(user.Houses[0].Street, u.Houses[0].Street)
+	})
+}
+
+func Test_Eager_Embedded_Ptr_Struct(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
+	transaction(func(tx *Connection) {
+		r := require.New(t)
+
+		type AssocFields struct {
+			Books        Books     `has_many:"books" order_by:"title asc"`
+			FavoriteSong Song      `has_one:"song" fk_id:"u_id"`
+			Houses       Addresses `many_to_many:"users_addresses"`
+		}
+
+		type User struct {
+			ID        int          `db:"id"`
+			UserName  string       `db:"user_name"`
+			Name      nulls.String `db:"name"`
+			CreatedAt time.Time    `db:"created_at"`
+			UpdatedAt time.Time    `db:"updated_at"`
+
+			*AssocFields
+		}
+
+		count, _ := tx.Count(&User{})
+		user := User{
+			UserName: "dumb-dumb",
+			Name:     nulls.NewString("Arthur Dent"),
+			AssocFields: &AssocFields{
+				Books:        Books{{Title: "The Hitchhiker's Guide to the Galaxy", Description: "Comedy Science Fiction somewhere in Space", Isbn: "PB42"}},
+				FavoriteSong: Song{Title: "Wish You Were Here", ComposedBy: Composer{Name: "Pink Floyd"}},
+				Houses: Addresses{
+					Address{HouseNumber: 155, Street: "Country Lane"},
+				},
+			},
+		}
+
+		err := tx.Eager().Create(&user)
+		r.NoError(err)
+		r.NotZero(user.ID)
+
+		ctx, _ := tx.Count(&User{})
+		r.Equal(count+1, ctx)
+
+		ctx, _ = tx.Count(&Book{})
+		r.Equal(count+1, ctx)
+
+		ctx, _ = tx.Count(&Song{})
+		r.Equal(count+1, ctx)
+
+		ctx, _ = tx.Count(&Address{})
+		r.Equal(count+1, ctx)
+
+		u := User{}
+		q := tx.Eager().Where("name = ?", user.Name.String)
+		err = q.First(&u)
+		r.NoError(err)
+
+		r.Equal(user.Name.String, u.Name.String)
+		r.Len(u.Books, 1)
+		r.Equal(user.Books[0].Title, u.Books[0].Title)
+		r.Equal(user.FavoriteSong.Title, u.FavoriteSong.Title)
+		r.Len(u.Houses, 1)
+		r.Equal(user.Houses[0].Street, u.Houses[0].Street)
+	})
+}
+
 func Test_Create_UUID(t *testing.T) {
 	if PDB == nil {
 		t.Skip("skipping integration tests")
