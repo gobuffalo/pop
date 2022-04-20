@@ -1245,11 +1245,17 @@ func Test_Eager_Embedded_Struct(t *testing.T) {
 		}
 
 		type User struct {
-			ID        int          `db:"id"`
-			UserName  string       `db:"user_name"`
-			Name      nulls.String `db:"name"`
-			CreatedAt time.Time    `db:"created_at"`
-			UpdatedAt time.Time    `db:"updated_at"`
+			ID        int           `db:"id"`
+			UserName  string        `db:"user_name"`
+			Email     string        `db:"email"`
+			Name      nulls.String  `db:"name"`
+			Alive     nulls.Bool    `db:"alive"`
+			CreatedAt time.Time     `db:"created_at"`
+			UpdatedAt time.Time     `db:"updated_at"`
+			BirthDate nulls.Time    `db:"birth_date"`
+			Bio       nulls.String  `db:"bio"`
+			Price     nulls.Float64 `db:"price"`
+			FullName  nulls.String  `db:"full_name" select:"name as full_name"`
 
 			AssocFields
 		}
@@ -1311,11 +1317,17 @@ func Test_Eager_Embedded_Ptr_Struct(t *testing.T) {
 		}
 
 		type User struct {
-			ID        int          `db:"id"`
-			UserName  string       `db:"user_name"`
-			Name      nulls.String `db:"name"`
-			CreatedAt time.Time    `db:"created_at"`
-			UpdatedAt time.Time    `db:"updated_at"`
+			ID        int           `db:"id"`
+			UserName  string        `db:"user_name"`
+			Email     string        `db:"email"`
+			Name      nulls.String  `db:"name"`
+			Alive     nulls.Bool    `db:"alive"`
+			CreatedAt time.Time     `db:"created_at"`
+			UpdatedAt time.Time     `db:"updated_at"`
+			BirthDate nulls.Time    `db:"birth_date"`
+			Bio       nulls.String  `db:"bio"`
+			Price     nulls.Float64 `db:"price"`
+			FullName  nulls.String  `db:"full_name" select:"name as full_name"`
 
 			*AssocFields
 		}
