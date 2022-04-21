@@ -1964,3 +1964,28 @@ func Test_Delete(t *testing.T) {
 		r.Equal(count, ctx)
 	})
 }
+
+func Test_Create_Timestamps_With_NowFunc(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
+	transaction(func(tx *Connection) {
+		r := require.New(t)
+
+		originalNowFunc := nowFunc
+		// ensure the original function is restored
+		defer func() {
+			nowFunc = originalNowFunc
+		}()
+
+		fakeNow, _ := time.Parse(time.RFC3339, "2019-07-14T00:00:00Z")
+		SetNowFunc(func() time.Time { return fakeNow })
+
+		friend:= Friend{FirstName: "Yester", LastName: "Day"}
+		err := tx.Create(&friend)
+		r.NoError(err)
+
+		r.Equal(fakeNow, friend.CreatedAt)
+		r.Equal(fakeNow, friend.UpdatedAt)
+	})
+}
