@@ -4,7 +4,6 @@ Pop does not try to reinvent the wheel! Instead, it uses the already great wheel
 
 Thank you to the following **GIANTS**:
 
-
 * [github.com/cockroachdb/apd](https://godoc.org/github.com/cockroachdb/apd)
 
 * [github.com/cockroachdb/cockroach-go](https://godoc.org/github.com/cockroachdb/cockroach-go)
@@ -29,10 +28,6 @@ Thank you to the following **GIANTS**:
 
 * [github.com/gobuffalo/nulls](https://godoc.org/github.com/gobuffalo/nulls)
 
-* [github.com/gobuffalo/packd](https://godoc.org/github.com/gobuffalo/packd)
-
-* [github.com/gobuffalo/packr/v2](https://godoc.org/github.com/gobuffalo/packr/v2)
-
 * [github.com/gobuffalo/plush](https://godoc.org/github.com/gobuffalo/plush)
 
 * [github.com/gobuffalo/validate](https://godoc.org/github.com/gobuffalo/validate)
@@ -54,8 +49,6 @@ Thank you to the following **GIANTS**:
 * [github.com/mattn/go-isatty](https://godoc.org/github.com/mattn/go-isatty)
 
 * [github.com/mattn/go-sqlite3](https://godoc.org/github.com/mattn/go-sqlite3)
-
-* [github.com/pkg/errors](https://godoc.org/github.com/pkg/errors)
 
 * [github.com/satori/go.uuid](https://godoc.org/github.com/satori/go.uuid)
 

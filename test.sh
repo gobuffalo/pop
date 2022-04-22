@@ -58,7 +58,7 @@ function test {
   ./tsoda create -e $SODA_DIALECT -c ./database.yml -p ./testdata/migrations
   ./tsoda migrate -e $SODA_DIALECT -c ./database.yml -p ./testdata/migrations
   echo "Test..."
-  go test -race -tags sqlite $VERBOSE ./... -count=1
+  go test -race -tags sqlite $VERBOSE -count=1 ./...
 }
 
 function debug_test {

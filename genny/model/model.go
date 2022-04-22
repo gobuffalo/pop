@@ -1,14 +1,18 @@
 package model
 
 import (
+	"embed"
+	"io/fs"
 	"strings"
 
 	"github.com/gobuffalo/flect"
 	"github.com/gobuffalo/flect/name"
 	"github.com/gobuffalo/genny/v2"
 	"github.com/gobuffalo/genny/v2/gogen"
-	"github.com/gobuffalo/packr/v2"
 )
+
+//go:embed templates/*
+var templates embed.FS
 
 // New returns a generator for creating a new model
 func New(opts *Options) (*genny.Generator, error) {
@@ -18,7 +22,12 @@ func New(opts *Options) (*genny.Generator, error) {
 		return g, err
 	}
 
-	if err := g.Box(packr.New("github.com/gobuffalo/pop/v5/genny/model/templates", "../model/templates")); err != nil {
+	sub, err := fs.Sub(templates, "templates")
+	if err != nil {
+		return g, err
+	}
+
+	if err := g.FS(sub); err != nil {
 		return g, err
 	}
 
@@ -46,7 +55,7 @@ func New(opts *Options) (*genny.Generator, error) {
 
 	t := gogen.TemplateTransformer(ctx, help)
 	g.Transformer(t)
-	g.Transformer(genny.Replace("-name-", flect.Singularize(opts.Name)))
-	g.Transformer(genny.Replace("-path-", opts.Path))
+	g.Transformer(genny.Replace("name-", flect.Singularize(opts.Name)))
+	g.Transformer(genny.Replace("path-", opts.Path))
 	return g, nil
 }

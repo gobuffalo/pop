@@ -2,14 +2,17 @@ package generate
 
 import (
 	"context"
+	"os"
+	"os/exec"
 
 	"github.com/gobuffalo/attrs"
 	"github.com/gobuffalo/fizz"
 	"github.com/gobuffalo/genny/v2"
+	"github.com/gobuffalo/genny/v2/gogen"
 	"github.com/gobuffalo/logger"
-	"github.com/gobuffalo/pop/v5"
-	"github.com/gobuffalo/pop/v5/genny/fizz/ctable"
-	gmodel "github.com/gobuffalo/pop/v5/genny/model"
+	"github.com/gobuffalo/pop/v6"
+	"github.com/gobuffalo/pop/v6/genny/fizz/ctable"
+	gmodel "github.com/gobuffalo/pop/v6/genny/model"
 	"github.com/spf13/cobra"
 )
 
@@ -67,8 +70,22 @@ var ModelCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-
 		run.With(g)
+
+		// format generated go files
+		pwd, _ := os.Getwd()
+		g, err = gogen.Fmt(pwd)
+		if err != nil {
+			return err
+		}
+		run.With(g)
+
+		// generated modules may have new dependencies
+		if _, err := os.Stat("go.mod"); err == nil {
+			g = genny.New()
+			g.Command(exec.Command("go", "mod", "tidy"))
+			run.With(g)
+		}
 
 		// Mount migrations generator
 		if !modelCmdConfig.SkipMigration {

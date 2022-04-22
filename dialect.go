@@ -4,7 +4,7 @@ import (
 	"io"
 
 	"github.com/gobuffalo/fizz"
-	"github.com/gobuffalo/pop/v5/columns"
+	"github.com/gobuffalo/pop/v6/columns"
 )
 
 type crudable interface {
@@ -12,6 +12,7 @@ type crudable interface {
 	SelectMany(store, *Model, Query) error
 	Create(store, *Model, columns.Columns) error
 	Update(store, *Model, columns.Columns) error
+	UpdateQuery(store, *Model, columns.Columns, Query) (int64, error)
 	Destroy(store, *Model) error
 	Delete(store, *Model, Query) error
 }

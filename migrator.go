@@ -10,8 +10,7 @@ import (
 	"text/tabwriter"
 	"time"
 
-	"github.com/gobuffalo/pop/v5/logging"
-	"github.com/pkg/errors"
+	"github.com/gobuffalo/pop/v6/logging"
 )
 
 var mrx = regexp.MustCompile(`^(\d+)_([^.]+)(\.[a-z0-9]+)?\.(up|down)\.(sql|fizz)$`)
@@ -59,14 +58,14 @@ func (m Migrator) UpLogOnly() error {
 				}
 				exists, err := c.Where("version = ?", mi.Version).Exists(mtn)
 				if err != nil {
-					return errors.Wrapf(err, "problem checking for migration version %s", mi.Version)
+					return fmt.Errorf("problem checking for migration version %s: %w", mi.Version, err)
 				}
 				if exists {
 					continue
 				}
 				_, err = tx.Store.Exec(fmt.Sprintf("insert into %s (version) values ('%s')", mtn, mi.Version))
 				if err != nil {
-					return errors.Wrapf(err, "problem inserting migration version %s", mi.Version)
+					return fmt.Errorf("problem inserting migration version %s: %w", mi.Version, err)
 				}
 			}
 			return nil
@@ -94,7 +93,7 @@ func (m Migrator) UpTo(step int) (applied int, err error) {
 		for _, mi := range mfs.Migrations {
 			exists, err := c.Where("version = ?", mi.Version).Exists(mtn)
 			if err != nil {
-				return errors.Wrapf(err, "problem checking for migration version %s", mi.Version)
+				return fmt.Errorf("problem checking for migration version %s: %w", mi.Version, err)
 			}
 			if exists {
 				continue
@@ -105,7 +104,10 @@ func (m Migrator) UpTo(step int) (applied int, err error) {
 					return err
 				}
 				_, err = tx.Store.Exec(fmt.Sprintf("insert into %s (version) values ('%s')", mtn, mi.Version))
-				return errors.Wrapf(err, "problem inserting migration version %s", mi.Version)
+				if err != nil {
+					return fmt.Errorf("problem inserting migration version %s: %w", mi.Version, err)
+				}
+				return nil
 			})
 			if err != nil {
 				return err
@@ -134,7 +136,7 @@ func (m Migrator) Down(step int) error {
 		mtn := c.MigrationTableName()
 		count, err := c.Count(mtn)
 		if err != nil {
-			return errors.Wrap(err, "migration down: unable count existing migration")
+			return fmt.Errorf("migration down: unable count existing migration: %w", err)
 		}
 		mfs := m.DownMigrations
 		mfs.Filter(func(mf Migration) bool {
@@ -152,10 +154,10 @@ func (m Migrator) Down(step int) error {
 		for _, mi := range mfs.Migrations {
 			exists, err := c.Where("version = ?", mi.Version).Exists(mtn)
 			if err != nil {
-				return errors.Wrapf(err, "problem checking for migration version %s", mi.Version)
+				return fmt.Errorf("problem checking for migration version %s: %w", mi.Version, err)
 			}
 			if !exists {
-				return errors.Errorf("migration version %s does not exist", mi.Version)
+				return fmt.Errorf("migration version %s does not exist", mi.Version)
 			}
 			err = c.Transaction(func(tx *Connection) error {
 				err := mi.Run(tx)
@@ -163,7 +165,10 @@ func (m Migrator) Down(step int) error {
 					return err
 				}
 				err = tx.RawQuery(fmt.Sprintf("delete from %s where version = ?", mtn), mi.Version).Exec()
-				return errors.Wrapf(err, "problem deleting migration version %s", mi.Version)
+				if err != nil {
+					return fmt.Errorf("problem deleting migration version %s: %w", mi.Version, err)
+				}
+				return nil
 			})
 			if err != nil {
 				return err
@@ -190,7 +195,7 @@ func CreateSchemaMigrations(c *Connection) error {
 	mtn := c.MigrationTableName()
 	err := c.Open()
 	if err != nil {
-		return errors.Wrap(err, "could not open connection")
+		return fmt.Errorf("could not open connection: %w", err)
 	}
 	_, err = c.Store.Exec(fmt.Sprintf("select * from %s", mtn))
 	if err == nil {
@@ -201,11 +206,11 @@ func CreateSchemaMigrations(c *Connection) error {
 		schemaMigrations := newSchemaMigrations(mtn)
 		smSQL, err := c.Dialect.FizzTranslator().CreateTable(schemaMigrations)
 		if err != nil {
-			return errors.Wrap(err, "could not build SQL for schema migration table")
+			return fmt.Errorf("could not build SQL for schema migration table: %w", err)
 		}
 		err = tx.RawQuery(smSQL).Exec()
 		if err != nil {
-			return errors.Wrap(err, smSQL)
+			return fmt.Errorf("could not execute %s: %w", smSQL, err)
 		}
 		return nil
 	})
@@ -228,7 +233,7 @@ func (m Migrator) Status(out io.Writer) error {
 	for _, mf := range m.UpMigrations.Migrations {
 		exists, err := m.Connection.Where("version = ?", mf.Version).Exists(m.Connection.MigrationTableName())
 		if err != nil {
-			return errors.Wrapf(err, "problem with migration")
+			return fmt.Errorf("problem with migration: %w", err)
 		}
 		state := "Pending"
 		if exists {
@@ -271,7 +276,7 @@ func (m Migrator) exec(fn func() error) error {
 
 	err := m.CreateSchemaMigrations()
 	if err != nil {
-		return errors.Wrap(err, "Migrator: problem creating schema migrations")
+		return fmt.Errorf("Migrator: problem creating schema migrations: %w", err)
 	}
 	return fn()
 }

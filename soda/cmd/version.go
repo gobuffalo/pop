@@ -1,4 +1,5 @@
 package cmd
 
 // Version defines the current Pop version.
-const Version = "v5.3.1"
+// this version will also be used by soda(also buffalo-pop)
+const Version = "v6.0.2"

@@ -7,8 +7,8 @@ import (
 	"strings"
 
 	"github.com/gobuffalo/flect"
-	"github.com/gobuffalo/pop/v5/internal/defaults"
-	"github.com/gobuffalo/pop/v5/logging"
+	"github.com/gobuffalo/pop/v6/internal/defaults"
+	"github.com/gobuffalo/pop/v6/logging"
 	"github.com/jmoiron/sqlx"
 	"github.com/jmoiron/sqlx/reflectx"
 )
@@ -268,13 +268,18 @@ func preloadHasMany(tx *Connection, asoc *AssociationMetaInfo, mmi *ModelMetaInf
 	// 3) iterate over every model and fill it with the assoc.
 	foreignField := asoc.getDBFieldTaggedWith(fk)
 	mmi.iterate(func(mvalue reflect.Value) {
-		modelAssociationField := mmi.mapper.FieldByName(mvalue, asoc.Name)
 		for i := 0; i < slice.Elem().Len(); i++ {
 			asocValue := slice.Elem().Index(i)
 			valueField := reflect.Indirect(mmi.mapper.FieldByName(asocValue, foreignField.Path))
 			if mmi.mapper.FieldByName(mvalue, "ID").Interface() == valueField.Interface() ||
 				reflect.DeepEqual(mmi.mapper.FieldByName(mvalue, "ID"), valueField) {
-
+				// IMPORTANT
+				//
+				// FieldByName will initialize the value. It is important that this happens AFTER
+				// we checked whether the field should be set. Otherwise, we'll set a zero value!
+				//
+				// This is most likely the reason for https://github.com/gobuffalo/pop/issues/139
+				modelAssociationField := mmi.mapper.FieldByName(mvalue, asoc.Name)
 				switch {
 				case modelAssociationField.Kind() == reflect.Slice || modelAssociationField.Kind() == reflect.Array:
 					modelAssociationField.Set(reflect.Append(modelAssociationField, asocValue))
@@ -330,16 +335,25 @@ func preloadHasOne(tx *Connection, asoc *AssociationMetaInfo, mmi *ModelMetaInfo
 	//  3) iterate over every model and fill it with the assoc.
 	foreignField := asoc.getDBFieldTaggedWith(fk)
 	mmi.iterate(func(mvalue reflect.Value) {
-		modelAssociationField := mmi.mapper.FieldByName(mvalue, asoc.Name)
 		for i := 0; i < slice.Elem().Len(); i++ {
 			asocValue := slice.Elem().Index(i)
 			if mmi.mapper.FieldByName(mvalue, "ID").Interface() == mmi.mapper.FieldByName(asocValue, foreignField.Path).Interface() ||
 				reflect.DeepEqual(mmi.mapper.FieldByName(mvalue, "ID"), mmi.mapper.FieldByName(asocValue, foreignField.Path)) {
-				if modelAssociationField.Kind() == reflect.Slice || modelAssociationField.Kind() == reflect.Array {
+				// IMPORTANT
+				//
+				// FieldByName will initialize the value. It is important that this happens AFTER
+				// we checked whether the field should be set. Otherwise, we'll set a zero value!
+				//
+				// This is most likely the reason for https://github.com/gobuffalo/pop/issues/139
+				modelAssociationField := mmi.mapper.FieldByName(mvalue, asoc.Name)
+				switch {
+				case modelAssociationField.Kind() == reflect.Slice || modelAssociationField.Kind() == reflect.Array:
 					modelAssociationField.Set(reflect.Append(modelAssociationField, asocValue))
-					continue
+				case modelAssociationField.Kind() == reflect.Ptr:
+					modelAssociationField.Elem().Set(asocValue)
+				default:
+					modelAssociationField.Set(asocValue)
 				}
-				modelAssociationField.Set(asocValue)
 			}
 		}
 	})
@@ -392,13 +406,18 @@ func preloadBelongsTo(tx *Connection, asoc *AssociationMetaInfo, mmi *ModelMetaI
 		if isFieldNilPtr(mvalue, fi) {
 			return
 		}
-		modelAssociationField := mmi.mapper.FieldByName(mvalue, asoc.Name)
 		for i := 0; i < slice.Elem().Len(); i++ {
 			asocValue := slice.Elem().Index(i)
 			fkField := reflect.Indirect(mmi.mapper.FieldByName(mvalue, fi.Path))
-			if fkField.Interface() == mmi.mapper.FieldByName(asocValue, "ID").Interface() ||
-				reflect.DeepEqual(fkField, mmi.mapper.FieldByName(asocValue, "ID")) {
-
+			field := mmi.mapper.FieldByName(asocValue, "ID")
+			if fkField.Interface() == field.Interface() || reflect.DeepEqual(fkField, field) {
+				// IMPORTANT
+				//
+				// FieldByName will initialize the value. It is important that this happens AFTER
+				// we checked whether the field should be set. Otherwise, we'll set a zero value!
+				//
+				// This is most likely the reason for https://github.com/gobuffalo/pop/issues/139
+				modelAssociationField := mmi.mapper.FieldByName(mvalue, asoc.Name)
 				switch {
 				case modelAssociationField.Kind() == reflect.Slice || modelAssociationField.Kind() == reflect.Array:
 					modelAssociationField.Set(reflect.Append(modelAssociationField, asocValue))
@@ -497,11 +516,17 @@ func preloadManyToMany(tx *Connection, asoc *AssociationMetaInfo, mmi *ModelMeta
 	mmi.iterate(func(mvalue reflect.Value) {
 		id := mmi.mapper.FieldByName(mvalue, "ID").Interface()
 		if assocFkIds, ok := mapAssoc[fmt.Sprintf("%v", id)]; ok {
-			modelAssociationField := mmi.mapper.FieldByName(mvalue, asoc.Name)
 			for i := 0; i < slice.Elem().Len(); i++ {
 				asocValue := slice.Elem().Index(i)
 				for _, fkid := range assocFkIds {
 					if fmt.Sprintf("%v", fkid) == fmt.Sprintf("%v", mmi.mapper.FieldByName(asocValue, "ID").Interface()) {
+						// IMPORTANT
+						//
+						// FieldByName will initialize the value. It is important that this happens AFTER
+						// we checked whether the field should be set. Otherwise, we'll set a zero value!
+						//
+						// This is most likely the reason for https://github.com/gobuffalo/pop/issues/139
+						modelAssociationField := mmi.mapper.FieldByName(mvalue, asoc.Name)
 						modelAssociationField.Set(reflect.Append(modelAssociationField, asocValue))
 					}
 				}

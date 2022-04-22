@@ -7,16 +7,18 @@ import (
 	"strings"
 	"time"
 
-	nflect "github.com/gobuffalo/flect/name"
-
-	"github.com/gobuffalo/pop/v5/columns"
-	"github.com/pkg/errors"
-
 	"github.com/gobuffalo/flect"
+	nflect "github.com/gobuffalo/flect/name"
+	"github.com/gobuffalo/pop/v6/columns"
 	"github.com/gofrs/uuid"
 )
 
 var nowFunc = time.Now
+
+// SetNowFunc allows an override of time.Now for customizing CreatedAt/UpdatedAt
+func SetNowFunc(f func() time.Time) {
+	nowFunc = f
+}
 
 // Value is the contents of a `Model`.
 type Value interface{}
@@ -78,7 +80,7 @@ func (m *Model) IDField() string {
 func (m *Model) PrimaryKeyType() (string, error) {
 	fbn, err := m.fieldByName("ID")
 	if err != nil {
-		return "", errors.Errorf("model %T is missing required field ID", m.Value)
+		return "", fmt.Errorf("model %T is missing required field ID", m.Value)
 	}
 	return fbn.Type().Name(), nil
 }

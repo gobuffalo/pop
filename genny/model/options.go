@@ -1,11 +1,12 @@
 package model
 
 import (
+	"errors"
+	"fmt"
 	"path/filepath"
 	"strings"
 
 	"github.com/gobuffalo/attrs"
-	"github.com/pkg/errors"
 )
 
 // Options for generating a new model
@@ -39,7 +40,7 @@ func (opts *Options) Validate() error {
 	}
 	opts.Encoding = strings.ToLower(opts.Encoding)
 	if opts.Encoding != "json" && opts.Encoding != "jsonapi" && opts.Encoding != "xml" {
-		return errors.Errorf("unsupported encoding option %s", opts.Encoding)
+		return fmt.Errorf("unsupported encoding option %s", opts.Encoding)
 	}
 
 	return opts.forceDefaults()

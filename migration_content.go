@@ -2,12 +2,12 @@ package pop
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"text/template"
 
 	"github.com/gobuffalo/fizz"
-	"github.com/pkg/errors"
 )
 
 // MigrationContent returns the content of a migration.
@@ -23,7 +23,7 @@ func MigrationContent(mf Migration, c *Connection, r io.Reader, usingTemplate bo
 		var bb bytes.Buffer
 		err = t.Execute(&bb, c.Dialect.Details())
 		if err != nil {
-			return "", errors.Wrapf(err, "could not execute migration template %s", mf.Path)
+			return "", fmt.Errorf("could not execute migration template %s: %w", mf.Path, err)
 		}
 		content = bb.String()
 	} else {
@@ -33,7 +33,7 @@ func MigrationContent(mf Migration, c *Connection, r io.Reader, usingTemplate bo
 	if mf.Type == "fizz" {
 		content, err = fizz.AString(content, c.Dialect.FizzTranslator())
 		if err != nil {
-			return "", errors.Wrapf(err, "could not fizz the migration %s", mf.Path)
+			return "", fmt.Errorf("could not fizz the migration %s: %w", mf.Path, err)
 		}
 	}
 

@@ -6,18 +6,14 @@ import (
 	"os/exec"
 	"sync"
 
-	// Load pgx driver
-	_ "github.com/jackc/pgx/v4/stdlib"
-
 	"github.com/gobuffalo/fizz"
 	"github.com/gobuffalo/fizz/translators"
+	"github.com/gobuffalo/pop/v6/columns"
+	"github.com/gobuffalo/pop/v6/internal/defaults"
+	"github.com/gobuffalo/pop/v6/logging"
 	"github.com/jackc/pgconn"
+	_ "github.com/jackc/pgx/v4/stdlib" // Load pgx driver
 	"github.com/jmoiron/sqlx"
-	"github.com/pkg/errors"
-
-	"github.com/gobuffalo/pop/v5/columns"
-	"github.com/gobuffalo/pop/v5/internal/defaults"
-	"github.com/gobuffalo/pop/v5/logging"
 )
 
 const namePostgreSQL = "postgres"
@@ -77,18 +73,25 @@ func (p *postgresql) Create(s store, model *Model, cols columns.Columns) error {
 		err = stmt.QueryRow(model.Value).MapScan(id)
 		if err != nil {
 			if closeErr := stmt.Close(); closeErr != nil {
-				return errors.Wrapf(err, "failed to close prepared statement: %s", closeErr)
+				return fmt.Errorf("failed to close prepared statement: %s: %w", closeErr, err)
 			}
 			return err
 		}
 		model.setID(id[model.IDField()])
-		return errors.WithMessage(stmt.Close(), "failed to close statement")
+		if closeErr := stmt.Close(); closeErr != nil {
+			return fmt.Errorf("failed to close statement: %w", closeErr)
+		}
+		return nil
 	}
 	return genericCreate(s, model, cols, p)
 }
 
 func (p *postgresql) Update(s store, model *Model, cols columns.Columns) error {
 	return genericUpdate(s, model, cols, p)
+}
+
+func (p *postgresql) UpdateQuery(s store, model *Model, cols columns.Columns, query Query) (int64, error) {
+	return genericUpdateQuery(s, model, cols, p, query, sqlx.DOLLAR)
 }
 
 func (p *postgresql) Destroy(s store, model *Model) error {
@@ -118,7 +121,7 @@ func (p *postgresql) CreateDB() error {
 
 	db, err := openPotentiallyInstrumentedConnection(p, p.urlWithoutDb())
 	if err != nil {
-		return errors.Wrapf(err, "error creating PostgreSQL database %s", deets.Database)
+		return fmt.Errorf("error creating PostgreSQL database %s: %w", deets.Database, err)
 	}
 	defer db.Close()
 	query := fmt.Sprintf("CREATE DATABASE %s", p.Quote(deets.Database))
@@ -126,7 +129,7 @@ func (p *postgresql) CreateDB() error {
 
 	_, err = db.Exec(query)
 	if err != nil {
-		return errors.Wrapf(err, "error creating PostgreSQL database %s", deets.Database)
+		return fmt.Errorf("error creating PostgreSQL database %s: %w", deets.Database, err)
 	}
 
 	log(logging.Info, "created database %s", deets.Database)
@@ -138,7 +141,7 @@ func (p *postgresql) DropDB() error {
 
 	db, err := openPotentiallyInstrumentedConnection(p, p.urlWithoutDb())
 	if err != nil {
-		return errors.Wrapf(err, "error dropping PostgreSQL database %s", deets.Database)
+		return fmt.Errorf("error dropping PostgreSQL database %s: %w", deets.Database, err)
 	}
 	defer db.Close()
 	query := fmt.Sprintf("DROP DATABASE %s", p.Quote(deets.Database))
@@ -146,7 +149,7 @@ func (p *postgresql) DropDB() error {
 
 	_, err = db.Exec(query)
 	if err != nil {
-		return errors.Wrapf(err, "error dropping PostgreSQL database %s", deets.Database)
+		return fmt.Errorf("error dropping PostgreSQL database %s: %w", deets.Database, err)
 	}
 
 	log(logging.Info, "dropped database %s", deets.Database)

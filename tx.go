@@ -3,11 +3,11 @@ package pop
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"math/rand"
 	"time"
 
 	"github.com/jmoiron/sqlx"
-	"github.com/pkg/errors"
 )
 
 func init() {
@@ -26,7 +26,10 @@ func newTX(ctx context.Context, db *dB, opts *sql.TxOptions) (*Tx, error) {
 	}
 	tx, err := db.BeginTxx(ctx, opts)
 	t.Tx = tx
-	return t, errors.Wrap(err, "could not create new transaction")
+	if err != nil {
+		return nil, fmt.Errorf("could not create new transaction: %w", err)
+	}
+	return t, nil
 }
 
 // TransactionContext simply returns the current transaction,

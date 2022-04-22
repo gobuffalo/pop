@@ -11,10 +11,10 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/gobuffalo/pop/v5/columns"
-	"github.com/gobuffalo/pop/v5/logging"
+	"github.com/gobuffalo/pop/v6/columns"
+	"github.com/gobuffalo/pop/v6/logging"
 	"github.com/gofrs/uuid"
-	"github.com/pkg/errors"
+	"github.com/jmoiron/sqlx"
 )
 
 func init() {
@@ -86,16 +86,19 @@ func genericCreate(s store, model *Model, cols columns.Columns, quoter quotable)
 		if err != nil {
 			return err
 		}
-		_, err = stmt.Exec(model.Value)
+		_, err = stmt.ExecContext(model.ctx, model.Value)
 		if err != nil {
 			if closeErr := stmt.Close(); closeErr != nil {
-				return errors.Wrapf(err, "failed to close prepared statement: %s", closeErr)
+				return fmt.Errorf("failed to close prepared statement: %s: %w", closeErr, err)
 			}
 			return err
 		}
-		return errors.WithMessage(stmt.Close(), "failed to close statement")
+		if err := stmt.Close(); err != nil {
+			return fmt.Errorf("failed to close statement: %w", err)
+		}
+		return nil
 	}
-	return errors.Errorf("can not use %s as a primary key type!", keyType)
+	return fmt.Errorf("can not use %s as a primary key type!", keyType)
 }
 
 func genericUpdate(s store, model *Model, cols columns.Columns, quoter quotable) error {
@@ -106,6 +109,32 @@ func genericUpdate(s store, model *Model, cols columns.Columns, quoter quotable)
 		return err
 	}
 	return nil
+}
+
+func genericUpdateQuery(s store, model *Model, cols columns.Columns, quoter quotable, query Query, bindType int) (int64, error) {
+	q := fmt.Sprintf("UPDATE %s AS %s SET %s", quoter.Quote(model.TableName()), model.Alias(), cols.Writeable().QuotedUpdateString(quoter))
+
+	q, updateArgs, err := sqlx.Named(q, model.Value)
+	if err != nil {
+		return 0, err
+	}
+
+	sb := query.toSQLBuilder(model)
+	q = sb.buildWhereClauses(q)
+
+	q = sqlx.Rebind(bindType, q)
+
+	result, err := genericExec(s, q, append(updateArgs, sb.args...)...)
+	if err != nil {
+		return 0, err
+	}
+
+	n, err := result.RowsAffected()
+	if err != nil {
+		return 0, err
+	}
+
+	return n, err
 }
 
 func genericDestroy(s store, model *Model, quoter quotable) error {
@@ -155,7 +184,7 @@ func genericLoadSchema(d dialect, r io.Reader) error {
 	// Open DB connection on the target DB
 	db, err := openPotentiallyInstrumentedConnection(d, d.MigrationURL())
 	if err != nil {
-		return errors.WithMessage(err, fmt.Sprintf("unable to load schema for %s", deets.Database))
+		return fmt.Errorf("unable to load schema for %s: %w", deets.Database, err)
 	}
 	defer db.Close()
 
@@ -172,7 +201,7 @@ func genericLoadSchema(d dialect, r io.Reader) error {
 
 	_, err = db.Exec(string(contents))
 	if err != nil {
-		return errors.WithMessage(err, fmt.Sprintf("unable to load schema for %s", deets.Database))
+		return fmt.Errorf("unable to load schema for %s: %w", deets.Database, err)
 	}
 
 	log(logging.Info, "loaded schema for %s", deets.Database)
@@ -195,7 +224,7 @@ func genericDumpSchema(deets *ConnectionDetails, cmd *exec.Cmd, w io.Writer) err
 
 	x := bytes.TrimSpace(bb.Bytes())
 	if len(x) == 0 {
-		return errors.Errorf("unable to dump schema for %s", deets.Database)
+		return fmt.Errorf("unable to dump schema for %s", deets.Database)
 	}
 
 	log(logging.Info, "dumped schema for %s", deets.Database)

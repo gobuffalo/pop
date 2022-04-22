@@ -1,15 +1,15 @@
 package pop
 
 import (
+	"fmt"
 	"reflect"
 	"time"
 
-	"github.com/gobuffalo/pop/v5/associations"
-	"github.com/gobuffalo/pop/v5/columns"
-	"github.com/gobuffalo/pop/v5/logging"
+	"github.com/gobuffalo/pop/v6/associations"
+	"github.com/gobuffalo/pop/v6/columns"
+	"github.com/gobuffalo/pop/v6/logging"
 	"github.com/gobuffalo/validate/v3"
 	"github.com/gofrs/uuid"
-	"github.com/pkg/errors"
 )
 
 // Reload fetch fresh data for a given model, using its ID.
@@ -97,6 +97,10 @@ func (c *Connection) Save(model interface{}, excludeColumns ...string) error {
 // If model is a slice, each item of the slice is validated then created in the database.
 func (c *Connection) ValidateAndCreate(model interface{}, excludeColumns ...string) (*validate.Errors, error) {
 	sm := NewModel(model, c.Context())
+
+	isEager := c.eager
+	hasEagerFields := c.eagerFields
+
 	if err := sm.beforeValidate(c); err != nil {
 		return nil, err
 	}
@@ -111,7 +115,7 @@ func (c *Connection) ValidateAndCreate(model interface{}, excludeColumns ...stri
 	if c.eager {
 		asos, err := associations.ForStruct(model, c.eagerFields...)
 		if err != nil {
-			return verrs, errors.Wrap(err, "could not retrieve associations")
+			return verrs, fmt.Errorf("could not retrieve associations: %w", err)
 		}
 
 		if len(asos) == 0 {
@@ -155,6 +159,8 @@ func (c *Connection) ValidateAndCreate(model interface{}, excludeColumns ...stri
 		}
 	}
 
+	c.eager = isEager
+	c.eagerFields = hasEagerFields
 	return verrs, c.Create(model, excludeColumns...)
 }
 
@@ -177,7 +183,7 @@ func (c *Connection) Create(model interface{}, excludeColumns ...string) error {
 			var localIsEager = isEager
 			asos, err := associations.ForStruct(m.Value, c.eagerFields...)
 			if err != nil {
-				return errors.Wrap(err, "could not retrieve associations")
+				return fmt.Errorf("could not retrieve associations: %w", err)
 			}
 
 			if localIsEager && len(asos) == 0 {
@@ -372,6 +378,35 @@ func (c *Connection) Update(model interface{}, excludeColumns ...string) error {
 			return m.afterSave(c)
 		})
 	})
+}
+
+// UpdateQuery updates all rows matched by the query. The new values are read
+// from the first argument, which must be a struct. The column names to be
+// updated must be listed explicitly in subsequent arguments. The ID and
+// CreatedAt columns are never updated. The UpdatedAt column is updated
+// automatically.
+//
+// UpdateQuery does not execute (before|after)(Create|Update|Save) callbacks.
+//
+// Calling UpdateQuery with no columnNames will result in only the UpdatedAt
+// column being updated.
+func (q *Query) UpdateQuery(model interface{}, columnNames ...string) (int64, error) {
+	sm := NewModel(model, q.Connection.Context())
+	modelKind := reflect.TypeOf(reflect.Indirect(reflect.ValueOf(model))).Kind()
+	if modelKind != reflect.Struct {
+		return 0, fmt.Errorf("model must be a struct; got %s", modelKind)
+	}
+
+	cols := columns.NewColumnsWithAlias(sm.TableName(), sm.As, sm.IDField())
+	cols.Add(columnNames...)
+	if _, err := sm.fieldByName("UpdatedAt"); err == nil {
+		cols.Add("updated_at")
+	}
+	cols.Remove(sm.IDField(), "created_at")
+
+	now := nowFunc().Truncate(time.Microsecond)
+	sm.setUpdatedAt(now)
+	return q.Connection.Dialect.UpdateQuery(q.Connection.Store, sm, cols, *q)
 }
 
 // UpdateColumns writes changes from an entry to the database, including only the given columns

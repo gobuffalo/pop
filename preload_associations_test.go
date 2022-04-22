@@ -1,10 +1,9 @@
 package pop
 
 import (
-	"testing"
-
 	"github.com/gobuffalo/nulls"
 	"github.com/stretchr/testify/require"
+	"testing"
 )
 
 func Test_New_Implementation_For_Nplus1(t *testing.T) {
@@ -53,6 +52,18 @@ func Test_New_Implementation_For_Nplus1(t *testing.T) {
 		a.Len(book.Writers, 1)
 		a.Equal("Larry", book.Writers[0].Name)
 		a.Equal("Mark", book.User.Name.String)
+
+		usersWithPointers := []UserPointerAssocs{}
+		a.NoError(tx.All(&usersWithPointers))
+
+		// FILL THE HAS-MANY and HAS_ONE
+		a.NoError(preload(tx, &usersWithPointers))
+
+		a.Len(usersWithPointers[0].Books, 1)
+		a.Len(usersWithPointers[1].Books, 1)
+		a.Len(usersWithPointers[2].Books, 1)
+		a.Equal(usersWithPointers[0].FavoriteSong.UserID, users[0].ID)
+		a.Len(usersWithPointers[0].Houses, 1)
 	})
 }
 
@@ -98,6 +109,68 @@ func Test_New_Implementation_For_Nplus1_With_UUID(t *testing.T) {
 		a.Len(parents, 1)
 		a.Len(parents[0].Students, 1)
 		a.Equal(student.ID, parents[0].Students[0].ID)
+	})
+}
+
+func Test_New_Implementation_For_Nplus1_With_NullUUIDs_And_FK_ID(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
+
+	// This test suite prevents regressions of an obscure bug in the preload code which caused
+	// pointer values to be set with their empty values when relations did not exist.
+	//
+	// See also: https://github.com/gobuffalo/pop/issues/139
+	transaction(func(tx *Connection) {
+		a := require.New(t)
+
+		var server Server
+		a.NoError(tx.Create(&server))
+
+		class := &NetClient{
+			// The bug only appears when we have two elements in the slice where
+			// one has a relation and the other one has no such relation.
+			Hops: []Hop{
+				{Server: &server},
+				{},
+			}}
+
+		// This code basically just sets up
+		a.NoError(tx.Eager().Create(class))
+
+		var expected NetClient
+		a.NoError(tx.EagerPreload("Hops.Server").First(&expected))
+
+		// What would happen before the patch resolved this issue is that:
+		//
+		// Classes.CourseCodes[0].Course would be the correct value (a filled struct)
+		//
+		//   "server": {
+		//     "id": "fa51f71f-e884-4641-8005-923258b814f9",
+		//     "created_at": "2021-12-09T23:20:10.208019+01:00",
+		//     "updated_at": "2021-12-09T23:20:10.208019+01:00"
+		//   },
+		//
+		// Classes.CourseCodes[1].Course would an "empty" struct of Course even though there is no relation set up:
+		//
+		//	  "server": {
+		//      "id": "00000000-0000-0000-0000-000000000000",
+		//      "created_at": "0001-01-01T00:00:00Z",
+		//      "updated_at": "0001-01-01T00:00:00Z"
+		//    },
+		var foundValid, foundEmpty int
+		for _, hop := range expected.Hops {
+			if hop.ServerID.Valid {
+				foundValid++
+				a.NotNil(hop.Server, "%+v", hop)
+			} else {
+				foundEmpty++
+				a.Nil(hop.Server, "%+v", hop)
+			}
+		}
+
+		a.Equal(1, foundValid)
+		a.Equal(1, foundEmpty)
 	})
 }
 

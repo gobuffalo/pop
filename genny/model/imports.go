@@ -9,7 +9,7 @@ import (
 func buildImports(opts *Options) []string {
 	imps := map[string]bool{
 		"github.com/gobuffalo/validate/v3": true,
-		"github.com/gobuffalo/pop/v5":      true,
+		"github.com/gobuffalo/pop/v6":      true,
 	}
 	if opts.Encoding == "jsonapi" {
 		imps["github.com/google/jsonapi"] = true
@@ -29,7 +29,7 @@ func buildImports(opts *Options) []string {
 				imps["github.com/gobuffalo/nulls"] = true
 			}
 			if strings.HasPrefix(a.GoType(), "slices") {
-				imps["github.com/gobuffalo/pop/v5/slices"] = true
+				imps["github.com/gobuffalo/pop/v6/slices"] = true
 			}
 		}
 	}

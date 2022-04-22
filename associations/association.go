@@ -4,7 +4,7 @@ import (
 	"reflect"
 
 	"github.com/gobuffalo/nulls"
-	"github.com/gobuffalo/pop/v5/columns"
+	"github.com/gobuffalo/pop/v6/columns"
 )
 
 // Association represents a definition of a model association
@@ -160,5 +160,9 @@ func fieldIsNil(f reflect.Value) bool {
 
 // IsZeroOfUnderlyingType will check if the value of anything is the equal to the Zero value of that type.
 func IsZeroOfUnderlyingType(x interface{}) bool {
+	if x == nil {
+		return true
+	}
+
 	return reflect.DeepEqual(x, reflect.Zero(reflect.TypeOf(x)).Interface())
 }

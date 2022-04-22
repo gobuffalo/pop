@@ -1,13 +1,12 @@
 package associations
 
 import (
-	"errors"
 	"fmt"
 	"reflect"
 	"regexp"
 	"strings"
 
-	"github.com/gobuffalo/pop/v5/columns"
+	"github.com/gobuffalo/pop/v6/columns"
 )
 
 // If a field match with the regexp, it will be considered as a valid field definition.
@@ -28,9 +27,14 @@ var associationBuilders = map[string]associationBuilder{}
 // it throws an error when it finds a field that does
 // not exist for a model.
 func ForStruct(s interface{}, fields ...string) (Associations, error) {
+	return forStruct(s, s, fields)
+}
+
+// forStruct is a recursive helper that passes the root model down for embedded fields
+func forStruct(parent, s interface{}, fields []string) (Associations, error) {
 	t, v := getModelDefinition(s)
 	if t.Kind() != reflect.Struct {
-		return nil, errors.New("could not get struct associations: not a struct")
+		return nil, fmt.Errorf("could not get struct associations: not a struct but %T", s)
 	}
 	fields = trimFields(fields)
 	associations := Associations{}
@@ -73,6 +77,29 @@ func ForStruct(s interface{}, fields ...string) (Associations, error) {
 	for i := 0; i < t.NumField(); i++ {
 		f := t.Field(i)
 
+		// inline embedded field
+		if f.Anonymous {
+			field := v.Field(i)
+			// we need field to be a pointer, so that we can later set the value
+			// if the embedded field is of type struct {...}, we have to take its address
+			if field.Kind() != reflect.Ptr {
+				field = field.Addr()
+			}
+			if fieldIsNil(field) {
+				// initialize zero value
+				field = reflect.New(field.Type().Elem())
+				// we can only get in this case if v.Field(i) is a pointer type because it could not be nil otherwise
+				//  => it is safe to set it here as is
+				v.Field(i).Set(field)
+			}
+			innerAssociations, err := forStruct(parent, field.Interface(), fields)
+			if err != nil {
+				return nil, err
+			}
+			associations = append(associations, innerAssociations...)
+			continue
+		}
+
 		// ignores those fields not included in fields list.
 		if len(fields) > 0 && fieldIgnoredIn(fields, f.Name) {
 			continue
@@ -83,11 +110,12 @@ func ForStruct(s interface{}, fields ...string) (Associations, error) {
 		for name, builder := range associationBuilders {
 			tag := tags.Find(name)
 			if !tag.Empty() {
+				pt, pv := getModelDefinition(parent)
 				params := associationParams{
 					field:             f,
-					model:             s,
-					modelType:         t,
-					modelValue:        v,
+					model:             parent,
+					modelType:         pt,
+					modelValue:        pv,
 					popTags:           tags,
 					innerAssociations: fieldsWithInnerAssociation[f.Name],
 				}

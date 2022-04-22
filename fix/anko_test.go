@@ -2,23 +2,37 @@ package fix
 
 import (
 	"io"
+	"io/fs"
 	"io/ioutil"
+	"os"
 	"strings"
 	"testing"
 
-	"github.com/gobuffalo/packr/v2"
 	"github.com/stretchr/testify/require"
 )
 
 func Test_Anko(t *testing.T) {
 	r := require.New(t)
-	box := packr.New("./fixtures/anko", "./fixtures/anko")
-	err := box.Walk(func(path string, info packr.File) error {
-		if strings.HasPrefix(path, "pass") {
-			t.Run(path, testPass(path, info))
+	fsys := os.DirFS("fixtures/anko")
+	err := fs.WalkDir(fsys, ".", func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if d.IsDir() {
 			return nil
 		}
-		t.Run(path, testFail(path, info))
+
+		f, err := fsys.Open(path)
+		if err != nil {
+			return err
+		}
+
+		if strings.HasPrefix(path, "pass") {
+			t.Run(path, testPass(path, f))
+			return nil
+		}
+		t.Run(path, testFail(path, f))
 		return nil
 	})
 	r.NoError(err)

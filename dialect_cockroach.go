@@ -1,24 +1,23 @@
 package pop
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"sync"
 
-	// Import PostgreSQL driver
-	_ "github.com/jackc/pgx/v4/stdlib"
-
 	"github.com/gobuffalo/fizz"
 	"github.com/gobuffalo/fizz/translators"
-	"github.com/gobuffalo/pop/v5/columns"
-	"github.com/gobuffalo/pop/v5/internal/defaults"
-	"github.com/gobuffalo/pop/v5/logging"
+	"github.com/gobuffalo/pop/v6/columns"
+	"github.com/gobuffalo/pop/v6/internal/defaults"
+	"github.com/gobuffalo/pop/v6/logging"
+	_ "github.com/jackc/pgx/v4/stdlib" // Import PostgreSQL driver
 	"github.com/jmoiron/sqlx"
-	"github.com/pkg/errors"
 )
 
 const nameCockroach = "cockroach"
@@ -90,18 +89,25 @@ func (p *cockroach) Create(s store, model *Model, cols columns.Columns) error {
 		err = stmt.QueryRow(model.Value).MapScan(id)
 		if err != nil {
 			if closeErr := stmt.Close(); closeErr != nil {
-				return errors.Wrapf(err, "failed to close prepared statement: %s", closeErr)
+				return fmt.Errorf("failed to close prepared statement: %s: %w", closeErr, err)
 			}
 			return err
 		}
 		model.setID(id[model.IDField()])
-		return errors.WithMessage(stmt.Close(), "failed to close statement")
+		if err := stmt.Close(); err != nil {
+			return fmt.Errorf("failed to close statement: %w", err)
+		}
+		return nil
 	}
 	return genericCreate(s, model, cols, p)
 }
 
 func (p *cockroach) Update(s store, model *Model, cols columns.Columns) error {
 	return genericUpdate(s, model, cols, p)
+}
+
+func (p *cockroach) UpdateQuery(s store, model *Model, cols columns.Columns, query Query) (int64, error) {
+	return genericUpdateQuery(s, model, cols, p, query, sqlx.DOLLAR)
 }
 
 func (p *cockroach) Destroy(s store, model *Model) error {
@@ -128,7 +134,7 @@ func (p *cockroach) CreateDB() error {
 
 	db, err := openPotentiallyInstrumentedConnection(p, p.urlWithoutDb())
 	if err != nil {
-		return errors.Wrapf(err, "error creating Cockroach database %s", deets.Database)
+		return fmt.Errorf("error creating Cockroach database %s: %w", deets.Database, err)
 	}
 	defer db.Close()
 	query := fmt.Sprintf("CREATE DATABASE %s", p.Quote(deets.Database))
@@ -136,7 +142,7 @@ func (p *cockroach) CreateDB() error {
 
 	_, err = db.Exec(query)
 	if err != nil {
-		return errors.Wrapf(err, "error creating Cockroach database %s", deets.Database)
+		return fmt.Errorf("error creating Cockroach database %s: %w", deets.Database, err)
 	}
 
 	log(logging.Info, "created database %s", deets.Database)
@@ -148,7 +154,7 @@ func (p *cockroach) DropDB() error {
 
 	db, err := openPotentiallyInstrumentedConnection(p, p.urlWithoutDb())
 	if err != nil {
-		return errors.Wrapf(err, "error dropping Cockroach database %s", deets.Database)
+		return fmt.Errorf("error dropping Cockroach database %s: %w", deets.Database, err)
 	}
 	defer db.Close()
 	query := fmt.Sprintf("DROP DATABASE %s CASCADE;", p.Quote(deets.Database))
@@ -156,7 +162,7 @@ func (p *cockroach) DropDB() error {
 
 	_, err = db.Exec(query)
 	if err != nil {
-		return errors.Wrapf(err, "error dropping Cockroach database %s", deets.Database)
+		return fmt.Errorf("error dropping Cockroach database %s: %w", deets.Database, err)
 	}
 
 	log(logging.Info, "dropped database %s", deets.Database)
@@ -200,13 +206,42 @@ func (p *cockroach) FizzTranslator() fizz.Translator {
 }
 
 func (p *cockroach) DumpSchema(w io.Writer) error {
-	cmd := exec.Command("cockroach", "dump", p.Details().Database, "--dump-mode=schema")
+	cmd := exec.Command("cockroach", "sql", "-e", "SHOW CREATE ALL TABLES", "-d", p.Details().Database, "--format", "raw")
 
 	c := p.ConnectionDetails
 	if defaults.String(c.Options["sslmode"], "disable") == "disable" || strings.Contains(c.RawOptions, "sslmode=disable") {
 		cmd.Args = append(cmd.Args, "--insecure")
 	}
-	return genericDumpSchema(p.Details(), cmd, w)
+	return cockroachDumpSchema(p.Details(), cmd, w)
+}
+
+func cockroachDumpSchema(deets *ConnectionDetails, cmd *exec.Cmd, w io.Writer) error {
+	log(logging.SQL, strings.Join(cmd.Args, " "))
+
+	var bb bytes.Buffer
+
+	cmd.Stdout = &bb
+	cmd.Stderr = os.Stderr
+
+	err := cmd.Run()
+	if err != nil {
+		return err
+	}
+
+	// --format raw returns comments prefixed with # which is invalid, so we make it a valid SQL comment.
+	result := regexp.MustCompile("(?m)^#").ReplaceAll(bb.Bytes(), []byte("-- #"))
+
+	if _, err := w.Write(result); err != nil {
+		return err
+	}
+
+	x := bytes.TrimSpace(result)
+	if len(x) == 0 {
+		return fmt.Errorf("unable to dump schema for %s", deets.Database)
+	}
+
+	log(logging.Info, "dumped schema for %s", deets.Database)
+	return nil
 }
 
 func (p *cockroach) LoadSchema(r io.Reader) error {
