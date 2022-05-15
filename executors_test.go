@@ -556,6 +556,7 @@ func Test_Embedded_Struct(t *testing.T) {
 		r.NoError(tx.Find(&actual, entry.ID))
 		r.Equal(entry.AdditionalField, actual.AdditionalField)
 
+
 		entry.AdditionalField = entry.AdditionalField + "; updated again"
 		count, err := tx.Where("id = ?", entry.ID).UpdateQuery(entry, "additional_field")
 		r.NoError(err)

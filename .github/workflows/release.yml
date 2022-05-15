@@ -9,22 +9,24 @@ jobs:
     name: Release
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
       - name: Set up Go 1.17
         uses: actions/setup-go@v3
         with:
           go-version: 1.17
-        id: go
-      
-      - name: Checkout Code
-        uses: actions/checkout@v3
 
       - name: Fetch tags
         run: git fetch --depth=1 origin +refs/tags/*:refs/tags/*
 
-      - name: Run GoReleaser
-        uses: goreleaser/goreleaser-action@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GORELEASER_GITHUB_TOKEN }}
-        with:
-          version: latest
-          args: release --rm-dist
+      - name: release dry run
+        run: make release-dry-run
+
+      - name: setup release environment
+        run: |-
+          echo 'GITHUB_TOKEN=${{secrets.GORELEASER_GITHUB_TOKEN }}' > .release-env
+
+      - name: release publish
+        run: make release
+
