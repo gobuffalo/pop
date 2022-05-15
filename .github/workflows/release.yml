@@ -22,10 +22,7 @@ jobs:
 
       - name: setup release environment
         run: |-
-          echo 'GITHUB_TOKEN=${{secrets.GORELEASER_GITHUB_TOKEN }}' > .release-env
-
-      - name: release dry run
-        run: make release-dry-run
+          echo 'GITHUB_TOKEN=${{secrets.GORELEASER_TOKEN }}' > .release-env
       
       - name: release publish
         run: make release
