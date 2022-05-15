@@ -1,9 +1,9 @@
-// +build sqlite
-
 package pop
 
 import (
+	"database/sql"
 	"database/sql/driver"
+	"errors"
 	"fmt"
 	"io"
 	"net/url"
@@ -19,8 +19,7 @@ import (
 	"github.com/gobuffalo/pop/v6/columns"
 	"github.com/gobuffalo/pop/v6/internal/defaults"
 	"github.com/gobuffalo/pop/v6/logging"
-	"github.com/mattn/go-sqlite3"
-	_ "github.com/mattn/go-sqlite3" // Load SQLite3 CGo driver
+	"github.com/jmoiron/sqlx"
 )
 
 const nameSQLite3 = "sqlite3"
@@ -39,6 +38,15 @@ type sqlite struct {
 	commonDialect
 	gil   *sync.Mutex
 	smGil *sync.Mutex
+}
+
+func requireSQLite3() error {
+	for _, driverName := range sql.Drivers() {
+		if driverName == nameSQLite3 {
+			return nil
+		}
+	}
+	return errors.New("sqlite3 support was not compiled into the binary")
 }
 
 func (m *sqlite) Name() string {
@@ -107,6 +115,20 @@ func (m *sqlite) Update(s store, model *Model, cols columns.Columns) error {
 		}
 		return nil
 	})
+}
+
+func (m *sqlite) UpdateQuery(s store, model *Model, cols columns.Columns, query Query) (int64, error) {
+	rowsAffected := int64(0)
+	err := m.locker(m.smGil, func() error {
+		if n, err := genericUpdateQuery(s, model, cols, m, query, sqlx.QUESTION); err != nil {
+			rowsAffected = n
+			return fmt.Errorf("sqlite update query: %w", err)
+		} else {
+			rowsAffected = n
+			return nil
+		}
+	})
+	return rowsAffected, err
 }
 
 func (m *sqlite) Destroy(s store, model *Model) error {
@@ -247,6 +269,10 @@ func (m *sqlite) TruncateAll(tx *Connection) error {
 }
 
 func newSQLite(deets *ConnectionDetails) (dialect, error) {
+	err := requireSQLite3()
+	if err != nil {
+		return nil, err
+	}
 	deets.URL = fmt.Sprintf("sqlite3://%s", deets.Database)
 	cd := &sqlite{
 		gil:           &sync.Mutex{},
@@ -312,5 +338,13 @@ func finalizerSQLite(cd *ConnectionDetails) {
 }
 
 func newSQLiteDriver() (driver.Driver, error) {
-	return new(sqlite3.SQLiteDriver), nil
+	err := requireSQLite3()
+	if err != nil {
+		return nil, err
+	}
+	db, err := sql.Open(nameSQLite3, ":memory:?cache=newSQLiteDriver_temporary")
+	if err != nil {
+		return nil, err
+	}
+	return db.Driver(), db.Close()
 }
