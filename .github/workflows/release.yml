@@ -20,13 +20,13 @@ jobs:
       - name: Fetch tags
         run: git fetch --depth=1 origin +refs/tags/*:refs/tags/*
 
-      - name: release dry run
-        run: make release-dry-run
-
       - name: setup release environment
         run: |-
           echo 'GITHUB_TOKEN=${{secrets.GORELEASER_GITHUB_TOKEN }}' > .release-env
 
+      - name: release dry run
+        run: make release-dry-run
+      
       - name: release publish
         run: make release
 
