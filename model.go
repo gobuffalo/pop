@@ -15,6 +15,11 @@ import (
 
 var nowFunc = time.Now
 
+// SetNowFunc allows an override of time.Now for customizing CreatedAt/UpdatedAt
+func SetNowFunc(f func() time.Time) {
+	nowFunc = f
+}
+
 // Value is the contents of a `Model`.
 type Value interface{}
 

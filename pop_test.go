@@ -52,7 +52,7 @@ func init() {
 	dialect := os.Getenv("SODA_DIALECT")
 
 	if dialect == "" {
-		log(logging.Info, "Skipping integration tests")
+		log(logging.Info, "Skipping integration tests because SODA_DIALECT is blank or unset")
 		return
 	}
 

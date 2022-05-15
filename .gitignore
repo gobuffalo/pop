@@ -32,6 +32,7 @@ testdata/migrations/schema.sql
 .grifter/
 vendor/
 .env
+.release-env
 
 # test data
 cockroach-data/

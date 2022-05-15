@@ -13,6 +13,7 @@ import (
 	"github.com/gobuffalo/pop/v6/columns"
 	"github.com/gobuffalo/pop/v6/internal/defaults"
 	"github.com/gobuffalo/pop/v6/logging"
+	"github.com/jmoiron/sqlx"
 )
 
 const nameMySQL = "mysql"
@@ -92,6 +93,14 @@ func (m *mysql) Update(s store, model *Model, cols columns.Columns) error {
 		return fmt.Errorf("mysql update: %w", err)
 	}
 	return nil
+}
+
+func (m *mysql) UpdateQuery(s store, model *Model, cols columns.Columns, query Query) (int64, error) {
+	if n, err := genericUpdateQuery(s, model, cols, m, query, sqlx.QUESTION); err != nil {
+		return n, fmt.Errorf("mysql update query: %w", err)
+	} else {
+		return n, nil
+	}
 }
 
 func (m *mysql) Destroy(s store, model *Model) error {
