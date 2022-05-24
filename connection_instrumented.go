@@ -39,7 +39,7 @@ func instrumentDriver(deets *ConnectionDetails, defaultDriverName string) (drive
 
 	var dr driver.Driver
 	var newDriverName string
-	switch normalizeSynonyms(driverName) {
+	switch NormalizeDialectSynonyms(driverName) {
 	case nameCockroach:
 		fallthrough
 	case namePostgreSQL:
