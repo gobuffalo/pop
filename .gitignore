@@ -33,6 +33,7 @@ testdata/migrations/schema.sql
 vendor/
 .env
 .release-env
+.vscode/
 
 # test data
 cockroach-data/
