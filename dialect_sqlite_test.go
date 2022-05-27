@@ -1,3 +1,4 @@
+//go:build sqlite
 // +build sqlite
 
 package pop
@@ -144,18 +145,51 @@ func Test_ConnectionDetails_FinalizeOSPath(t *testing.T) {
 
 func TestSqlite_CreateDB(t *testing.T) {
 	r := require.New(t)
-	dir := t.TempDir()
-	p := filepath.Join(dir, "testdb.sqlite")
-	cd := &ConnectionDetails{
-		Dialect:  "sqlite",
-		Database: p,
-	}
+
+	cd := &ConnectionDetails{Dialect: "sqlite"}
 	dialect, err := newSQLite(cd)
 	r.NoError(err)
-	r.NoError(dialect.CreateDB())
 
-	// Creating DB twice should produce an error
-	r.EqualError(dialect.CreateDB(), fmt.Sprintf("could not create SQLite database '%s'; database exists", p))
+	t.Run("CreateFile", func(t *testing.T) {
+		dir := t.TempDir()
+		cd.Database = filepath.Join(dir, "testdb.sqlite")
+
+		r.NoError(dialect.CreateDB())
+		r.FileExists(cd.Database)
+	})
+
+	t.Run("MemoryDB_tag", func(t *testing.T) {
+		dir := t.TempDir()
+		cd.Database = filepath.Join(dir, "file::memory:?cache=shared")
+
+		r.NoError(dialect.CreateDB())
+		r.NoFileExists(cd.Database)
+	})
+
+	t.Run("MemoryDB_only", func(t *testing.T) {
+		dir := t.TempDir()
+		cd.Database = filepath.Join(dir, ":memory:")
+
+		r.NoError(dialect.CreateDB())
+		r.NoFileExists(cd.Database)
+	})
+
+	t.Run("MemoryDB_param", func(t *testing.T) {
+		dir := t.TempDir()
+		cd.Database = filepath.Join(dir, "file:foobar?mode=memory&cache=shared")
+
+		r.NoError(dialect.CreateDB())
+		r.NoFileExists(cd.Database)
+	})
+
+	t.Run("CreateFile_ExistingDB", func(t *testing.T) {
+		dir := t.TempDir()
+		cd.Database = filepath.Join(dir, "testdb.sqlite")
+
+		r.NoError(dialect.CreateDB())
+		r.EqualError(dialect.CreateDB(), fmt.Sprintf("could not create SQLite database '%s'; database exists", cd.Database))
+	})
+
 }
 
 func TestSqlite_NewDriver(t *testing.T) {
