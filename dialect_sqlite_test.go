@@ -152,10 +152,10 @@ func TestSqlite_CreateDB(t *testing.T) {
 
 	t.Run("CreateFile", func(t *testing.T) {
 		dir := t.TempDir()
-		cd.Database = filepath.Join(dir, "testdb.sqlite")
+		cd.Database = filepath.Join(dir, "testdb.db")
 
 		r.NoError(dialect.CreateDB())
-		r.FileExists(cd.Database)
+		r.FileExists(filepath.Join(dir, "testdb.db"))
 	})
 
 	t.Run("MemoryDB_tag", func(t *testing.T) {
