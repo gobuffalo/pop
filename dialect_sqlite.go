@@ -182,41 +182,42 @@ func (m *sqlite) locker(l *sync.Mutex, fn func() error) error {
 }
 
 func (m *sqlite) CreateDB() error {
-	durl, err := url.Parse(m.ConnectionDetails.Database)
+	parsedURL, err := url.Parse(m.ConnectionDetails.Database)
 	if err != nil {
 		return err
 	}
 
 	// Checking whether the url specifies in-memory mode
 	// as specified in https://github.com/mattn/go-sqlite3#faq
-	var inMemoryDB bool
-	inMemoryDB = inMemoryDB || durl.Query().Get("mode") == "memory"
-	inMemoryDB = inMemoryDB || strings.Contains(durl.Path, ":memory:")
-	inMemoryDB = inMemoryDB || m.ConnectionDetails.Options["mode"] == "memory"
-	if inMemoryDB {
+	var memOnly bool
+	memOnly = memOnly || parsedURL.Query().Get("mode") == "memory"
+	memOnly = memOnly || strings.Contains(parsedURL.Path, ":memory:")
+	memOnly = memOnly || m.ConnectionDetails.Options["mode"] == "memory"
+	if memOnly {
+		fmt.Println(">> Did not created it because of options <<")
 		log(logging.Info, "in memory db selected, no database file created.")
 
 		return nil
 	}
 
-	_, err = os.Stat(durl.Path)
+	_, err = os.Stat(parsedURL.Path)
 	if err == nil {
-		return fmt.Errorf("could not create SQLite database '%s'; database exists", durl)
+		return fmt.Errorf("could not create SQLite database '%s'; database exists", parsedURL)
 	}
 
-	dir := filepath.Dir(durl.Path)
+	dir := filepath.Dir(parsedURL.Path)
 	err = os.MkdirAll(dir, 0766)
 	if err != nil {
-		return fmt.Errorf("could not create SQLite database '%s': %w", durl, err)
+		return fmt.Errorf("could not create SQLite database directory '%s': %w", dir, err)
 	}
 
-	f, err := os.Create(durl.Path)
+	f, err := os.Create(parsedURL.Path)
 	if err != nil {
-		return fmt.Errorf("could not create SQLite database '%s': %w", durl, err)
+		return fmt.Errorf("could not create SQLite database '%s': %w", parsedURL, err)
 	}
 	_ = f.Close()
 
-	log(logging.Info, "created database '%s'", durl)
+	log(logging.Info, "created database '%s'", parsedURL)
 	return nil
 }
 
