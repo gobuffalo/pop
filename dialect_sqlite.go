@@ -182,26 +182,35 @@ func (m *sqlite) locker(l *sync.Mutex, fn func() error) error {
 }
 
 func (m *sqlite) CreateDB() error {
-	durl := m.ConnectionDetails.Database
+	durl, err := url.Parse(m.ConnectionDetails.Database)
+	if err != nil {
+		return err
+	}
 
 	// Checking whether the url specifies in-memory mode
 	// as specified in https://github.com/mattn/go-sqlite3#faq
-	if strings.Contains(durl, ":memory:") || strings.Contains(durl, "mode=memory") {
+	var inMemoryDB bool
+	inMemoryDB = inMemoryDB || durl.Query().Get("mode") == "memory"
+	inMemoryDB = inMemoryDB || strings.Contains(durl.Path, ":memory:")
+	inMemoryDB = inMemoryDB || m.ConnectionDetails.Options["mode"] == "memory"
+	if inMemoryDB {
 		log(logging.Info, "in memory db selected, no database file created.")
 
 		return nil
 	}
 
-	_, err := os.Stat(durl)
+	_, err = os.Stat(durl.Path)
 	if err == nil {
 		return fmt.Errorf("could not create SQLite database '%s'; database exists", durl)
 	}
-	dir := filepath.Dir(durl)
+
+	dir := filepath.Dir(durl.Path)
 	err = os.MkdirAll(dir, 0766)
 	if err != nil {
 		return fmt.Errorf("could not create SQLite database '%s': %w", durl, err)
 	}
-	f, err := os.Create(durl)
+
+	f, err := os.Create(durl.Path)
 	if err != nil {
 		return fmt.Errorf("could not create SQLite database '%s': %w", durl, err)
 	}
@@ -323,9 +332,11 @@ func finalizerSQLite(cd *ConnectionDetails) {
 	defs := map[string]string{
 		"_busy_timeout": "5000",
 	}
+
 	forced := map[string]string{
 		"_fk": "true",
 	}
+
 	if cd.Options == nil { // prevent panic
 		cd.Options = make(map[string]string)
 	}

@@ -176,10 +176,21 @@ func TestSqlite_CreateDB(t *testing.T) {
 
 	t.Run("MemoryDB_param", func(t *testing.T) {
 		dir := t.TempDir()
-		cd.Database = filepath.Join(dir, "file:foobar?mode=memory&cache=shared")
+		cd.Database = filepath.Join(dir, "foobar?mode=memory&cache=shared")
 
 		r.NoError(dialect.CreateDB())
-		r.NoFileExists(cd.Database)
+		r.NoFileExists(filepath.Join(dir, "foobar"))
+	})
+
+	t.Run("mode memory in the options", func(t *testing.T) {
+		dir := t.TempDir()
+
+		cd := &ConnectionDetails{Dialect: "sqlite"}
+		cd.Database = filepath.Join(dir, "foobar")
+		cd.Options = map[string]string{"mode": "memory"}
+
+		r.NoError(dialect.CreateDB())
+		r.NoFileExists(filepath.Join(dir, "foobar"))
 	})
 
 	t.Run("CreateFile_ExistingDB", func(t *testing.T) {
@@ -188,6 +199,16 @@ func TestSqlite_CreateDB(t *testing.T) {
 
 		r.NoError(dialect.CreateDB())
 		r.EqualError(dialect.CreateDB(), fmt.Sprintf("could not create SQLite database '%s'; database exists", cd.Database))
+	})
+
+	t.Run("create DB without query string", func(t *testing.T) {
+		dir := t.TempDir()
+		cd.Database = filepath.Join(dir, "file.db?_fk=true")
+
+		r.NoError(dialect.CreateDB())
+		r.NoFileExists(filepath.Join(dir, "file.db?_fk=true"))
+
+		r.FileExists(filepath.Join(dir, "file.db"))
 	})
 
 }
