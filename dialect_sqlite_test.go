@@ -155,7 +155,7 @@ func TestSqlite_CreateDB(t *testing.T) {
 		cd.Database = filepath.Join(dir, "testdb.db")
 
 		err := dialect.CreateDB()
-		r.NoError(err, "Expected nil error, got `%v`", err.Error())
+		r.NoError(err, "Expected nil error, got `%v`", err)
 		r.FileExists(filepath.Join(dir, "testdb.db"))
 	})
 
