@@ -189,17 +189,11 @@ func (m *sqlite) CreateDB() error {
 
 	// Checking whether the url specifies in-memory mode
 	// as specified in https://github.com/mattn/go-sqlite3#faq
-	// var memOnly bool
-	// memOnly = memOnly || parsedURL.Query().Get("mode") == "memory"
-	// memOnly = memOnly || strings.Contains(parsedURL.Path, ":memory:")
-	// memOnly = memOnly || m.ConnectionDetails.Options["mode"] == "memory"
-	// if memOnly {
-	// 	log(logging.Info, "in memory db selected, no database file created.")
-
-	// 	return nil
-	// }
-
-	if strings.Contains(m.ConnectionDetails.Database, ":memory:") || strings.Contains(m.ConnectionDetails.Database, "mode=memory") {
+	var memOnly bool
+	memOnly = memOnly || parsedURL.Query().Get("mode") == "memory"
+	memOnly = memOnly || strings.Contains(parsedURL.Path, ":memory:")
+	memOnly = memOnly || m.ConnectionDetails.Options["mode"] == "memory"
+	if memOnly {
 		log(logging.Info, "in memory db selected, no database file created.")
 
 		return nil
@@ -218,7 +212,7 @@ func (m *sqlite) CreateDB() error {
 
 	f, err := os.Create(parsedURL.Path)
 	if err != nil {
-		return fmt.Errorf("could not create SQLite database '%s': %w", parsedURL, err)
+		return fmt.Errorf("could not create SQLite database '%s': %w", parsedURL.Path, err)
 	}
 	_ = f.Close()
 
