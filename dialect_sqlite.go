@@ -212,9 +212,6 @@ func (m *sqlite) CreateDB() error {
 
 	f, err := os.Create(parsedURL.Path)
 	if err != nil {
-		fmt.Println("parsedURL.Path >>", parsedURL.Path)
-		fmt.Println("parsedURL >>", parsedURL)
-
 		return fmt.Errorf("could not create SQLite database '%s': %w", parsedURL.Path, err)
 	}
 	_ = f.Close()
