@@ -152,7 +152,7 @@ func TestSqlite_CreateDB(t *testing.T) {
 
 	t.Run("CreateFile", func(t *testing.T) {
 		dir := t.TempDir()
-		cd.Database = filepath.Join(dir, "testdb.db")
+		cd.Database = filepath.Join(dir, "testdb.sqlite")
 
 		err = dialect.CreateDB()
 		r.NoError(err, "Expected nil error, got `%v`", err)
