@@ -5,8 +5,6 @@ package pop
 
 import (
 	"fmt"
-	"io/ioutil"
-	"os"
 	"path/filepath"
 	"testing"
 
@@ -153,13 +151,9 @@ func TestSqlite_CreateDB(t *testing.T) {
 	r.NoError(err)
 
 	t.Run("CreateFile", func(t *testing.T) {
-		dir, err := ioutil.TempDir("", "")
-		r.NoError(err)
-		t.Cleanup(func() {
-			os.RemoveAll(dir)
-		})
-
+		dir := t.TempDir()
 		cd.Database = filepath.Join(dir, "testdb.db")
+
 		err = dialect.CreateDB()
 		r.NoError(err, "Expected nil error, got `%v`", err)
 		r.FileExists(cd.Database)
