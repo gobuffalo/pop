@@ -5,7 +5,6 @@ package pop
 
 import (
 	"fmt"
-	"os"
 	"path/filepath"
 	"testing"
 
@@ -152,13 +151,8 @@ func TestSqlite_CreateDB(t *testing.T) {
 	r.NoError(err)
 
 	t.Run("CreateFile", func(t *testing.T) {
-		wd, _ := os.Getwd()
-		t.Cleanup(func() {
-			os.Chdir(wd)
-		})
-
-		os.Chdir(t.TempDir())
-		cd.Database = filepath.Join("testdb.sqlite")
+		dir := t.TempDir()
+		cd.Database = filepath.Join(dir, "testdb.sqlite")
 
 		r.NoError(dialect.CreateDB())
 		r.FileExists(cd.Database)

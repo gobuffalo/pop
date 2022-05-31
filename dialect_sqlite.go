@@ -204,7 +204,6 @@ func (m *sqlite) CreateDB() error {
 	}
 
 	dir := filepath.Dir(db)
-
 	if err = os.MkdirAll(dir, 0766); err != nil {
 		return fmt.Errorf("could not create SQLite database directory '%s': %w", dir, err)
 	}
