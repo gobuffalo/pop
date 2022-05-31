@@ -6,180 +6,180 @@ on:
   pull_request:
 
 jobs:
-  # mysql-tests:
-  #   name: MySQL tests - Go v${{ matrix.go-version }}
-  #   runs-on: ubuntu-latest
-  #   strategy:
-  #     matrix:
-  #       go-version:
-  #         - "1.16.x"
-  #         - "1.17.x"
-  #         - "1.18.x"
+  mysql-tests:
+    name: MySQL tests - Go v${{ matrix.go-version }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        go-version:
+          - "1.16.x"
+          - "1.17.x"
+          - "1.18.x"
 
-  #   services:
-  #     mysql:
-  #       image: mysql:5.7
-  #       env:
-  #         MYSQL_ROOT_PASSWORD: root
-  #       ports:
-  #         - 3307:3306
-  #       # needed because the mysql container does not provide a healthcheck
-  #       options: --health-cmd "mysqladmin ping -h localhost" --health-interval 10s --health-timeout 5s --health-retries 5
+    services:
+      mysql:
+        image: mysql:5.7
+        env:
+          MYSQL_ROOT_PASSWORD: root
+        ports:
+          - 3307:3306
+        # needed because the mysql container does not provide a healthcheck
+        options: --health-cmd "mysqladmin ping -h localhost" --health-interval 10s --health-timeout 5s --health-retries 5
 
-  #   steps:
-  #     - uses: actions/checkout@v3
-  #     - name: Setup Go ${{ matrix.go }}
-  #       uses: actions/setup-go@v3
-  #       with:
-  #         go-version: ${{ matrix.go-version }}
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup Go ${{ matrix.go }}
+        uses: actions/setup-go@v3
+        with:
+          go-version: ${{ matrix.go-version }}
 
-  #     - name: Build and run soda
-  #       env:
-  #         SODA_DIALECT: "mysql"
-  #         MYSQL_PORT: 3307
-  #       run: |
-  #         go build -v -tags sqlite -o tsoda ./soda
-  #         ./tsoda drop -e $SODA_DIALECT -p ./testdata/migrations
-  #         ./tsoda create -e $SODA_DIALECT -p ./testdata/migrations
-  #         ./tsoda migrate -e $SODA_DIALECT -p ./testdata/migrations
+      - name: Build and run soda
+        env:
+          SODA_DIALECT: "mysql"
+          MYSQL_PORT: 3307
+        run: |
+          go build -v -tags sqlite -o tsoda ./soda
+          ./tsoda drop -e $SODA_DIALECT -p ./testdata/migrations
+          ./tsoda create -e $SODA_DIALECT -p ./testdata/migrations
+          ./tsoda migrate -e $SODA_DIALECT -p ./testdata/migrations
 
-  #     - name: Test
-  #       env:
-  #         SODA_DIALECT: "mysql"
-  #         MYSQL_PORT: 3307
-  #       run: |
-  #         go test -tags sqlite -race -cover ./...
+      - name: Test
+        env:
+          SODA_DIALECT: "mysql"
+          MYSQL_PORT: 3307
+        run: |
+          go test -tags sqlite -race -cover ./...
 
-  # pg-tests:
-  #   name: PostgreSQL tests - Go v${{ matrix.go-version }}
-  #   runs-on: ubuntu-latest
-  #   strategy:
-  #     matrix:
-  #       go-version:
-  #         - "1.16.x"
-  #         - "1.17.x"
-  #         - "1.18.x"
+  pg-tests:
+    name: PostgreSQL tests - Go v${{ matrix.go-version }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        go-version:
+          - "1.16.x"
+          - "1.17.x"
+          - "1.18.x"
 
-  #   services:
-  #     postgres:
-  #       image: postgres:14
-  #       env:
-  #         POSTGRES_USER: postgres
-  #         POSTGRES_PASSWORD: postgres
-  #         POSTGRES_DB: postgres
-  #       ports:
-  #         - 5432:5432
-  #       # needed because the postgres container does not provide a healthcheck
-  #       options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        # needed because the postgres container does not provide a healthcheck
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
 
-  #   steps:
-  #     - uses: actions/checkout@v3
-  #     - name: Setup Go ${{ matrix.go }}
-  #       uses: actions/setup-go@v3
-  #       with:
-  #         go-version: ${{ matrix.go-version }}
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup Go ${{ matrix.go }}
+        uses: actions/setup-go@v3
+        with:
+          go-version: ${{ matrix.go-version }}
 
-  #     - name: Build and run soda
-  #       env:
-  #         SODA_DIALECT: "postgres"
-  #         POSTGRESQL_URL: "postgres://postgres:postgres@127.0.0.1:${{ job.services.postgres.ports[5432] }}/pop_test?sslmode=disable"
-  #       run: |
-  #         go build -v -tags sqlite -o tsoda ./soda
-  #         ./tsoda drop -e $SODA_DIALECT -p ./testdata/migrations
-  #         ./tsoda create -e $SODA_DIALECT -p ./testdata/migrations
-  #         ./tsoda migrate -e $SODA_DIALECT -p ./testdata/migrations
+      - name: Build and run soda
+        env:
+          SODA_DIALECT: "postgres"
+          POSTGRESQL_URL: "postgres://postgres:postgres@127.0.0.1:${{ job.services.postgres.ports[5432] }}/pop_test?sslmode=disable"
+        run: |
+          go build -v -tags sqlite -o tsoda ./soda
+          ./tsoda drop -e $SODA_DIALECT -p ./testdata/migrations
+          ./tsoda create -e $SODA_DIALECT -p ./testdata/migrations
+          ./tsoda migrate -e $SODA_DIALECT -p ./testdata/migrations
 
-  #     - name: Test
-  #       env:
-  #         SODA_DIALECT: "postgres"
-  #         POSTGRESQL_URL: "postgres://postgres:postgres@127.0.0.1:${{ job.services.postgres.ports[5432] }}/pop_test?sslmode=disable"
-  #       run: |
-  #         go test -tags sqlite -race -cover ./...
+      - name: Test
+        env:
+          SODA_DIALECT: "postgres"
+          POSTGRESQL_URL: "postgres://postgres:postgres@127.0.0.1:${{ job.services.postgres.ports[5432] }}/pop_test?sslmode=disable"
+        run: |
+          go test -tags sqlite -race -cover ./...
 
-  # crdbssl-tests:
-  #   name: Cockroach SSL tests - Go v${{ matrix.go-version }}
-  #   runs-on: ubuntu-latest
-  #   strategy:
-  #     matrix:
-  #       go-version:
-  #         - "1.16.x"
-  #         - "1.17.x"
-  #         - "1.18.x"
+  crdbssl-tests:
+    name: Cockroach SSL tests - Go v${{ matrix.go-version }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        go-version:
+          - "1.16.x"
+          - "1.17.x"
+          - "1.18.x"
 
-  #   steps:
-  #     - uses: actions/checkout@v3
-  #     - name: Setup Go ${{ matrix.go }}
-  #       uses: actions/setup-go@v3
-  #       with:
-  #         go-version: ${{ matrix.go-version }}
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup Go ${{ matrix.go }}
+        uses: actions/setup-go@v3
+        with:
+          go-version: ${{ matrix.go-version }}
 
-  #     - name: Install Cockroach SSL
-  #       run: |
-  #         mkdir -p crdb/certs
-  #         pushd crdb
-  #         wget -qO- https://binaries.cockroachdb.com/cockroach-v20.2.4.linux-amd64.tgz | tar  zxv
-  #         mv cockroach-v20.2.4.linux-amd64/cockroach .
-  #         ./cockroach cert create-ca --certs-dir certs --ca-key key
-  #         ./cockroach cert create-client root --certs-dir certs --ca-key key
-  #         ./cockroach cert create-node localhost 127.0.0.1 `hostname -s` `hostname -f` --certs-dir certs --ca-key key
-  #         ./cockroach start-single-node --certs-dir certs --listen-addr localhost --port 26259 --http-port 8089 --background
-  #         popd
+      - name: Install Cockroach SSL
+        run: |
+          mkdir -p crdb/certs
+          pushd crdb
+          wget -qO- https://binaries.cockroachdb.com/cockroach-v20.2.4.linux-amd64.tgz | tar  zxv
+          mv cockroach-v20.2.4.linux-amd64/cockroach .
+          ./cockroach cert create-ca --certs-dir certs --ca-key key
+          ./cockroach cert create-client root --certs-dir certs --ca-key key
+          ./cockroach cert create-node localhost 127.0.0.1 `hostname -s` `hostname -f` --certs-dir certs --ca-key key
+          ./cockroach start-single-node --certs-dir certs --listen-addr localhost --port 26259 --http-port 8089 --background
+          popd
 
-  #     - name: Build and run soda
-  #       env:
-  #         SODA_DIALECT: "cockroach_ssl"
-  #       run: |
-  #         go build -v -tags sqlite -o tsoda ./soda
-  #         ./tsoda drop -e $SODA_DIALECT -p ./testdata/migrations
-  #         ./tsoda create -e $SODA_DIALECT -p ./testdata/migrations
-  #         ./tsoda migrate -e $SODA_DIALECT -p ./testdata/migrations
+      - name: Build and run soda
+        env:
+          SODA_DIALECT: "cockroach_ssl"
+        run: |
+          go build -v -tags sqlite -o tsoda ./soda
+          ./tsoda drop -e $SODA_DIALECT -p ./testdata/migrations
+          ./tsoda create -e $SODA_DIALECT -p ./testdata/migrations
+          ./tsoda migrate -e $SODA_DIALECT -p ./testdata/migrations
 
-  #     - name: Test
-  #       env:
-  #         SODA_DIALECT: "cockroach_ssl"
-  #       run: |
-  #         go test -tags sqlite -race -cover ./...
+      - name: Test
+        env:
+          SODA_DIALECT: "cockroach_ssl"
+        run: |
+          go test -tags sqlite -race -cover ./...
 
-  # crdb-tests:
-  #   name: Cockroach tests
-  #   runs-on: ubuntu-latest
-  #   strategy:
-  #     matrix:
-  #       go-version:
-  #         - "1.16.x"
-  #         - "1.17.x"
-  #         - "1.18.x"
+  crdb-tests:
+    name: Cockroach tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        go-version:
+          - "1.16.x"
+          - "1.17.x"
+          - "1.18.x"
 
-  #   steps:
-  #     - uses: actions/checkout@v3
-  #     - name: Setup Go ${{ matrix.go }}
-  #       uses: actions/setup-go@v3
-  #       with:
-  #         go-version: ${{ matrix.go-version }}
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup Go ${{ matrix.go }}
+        uses: actions/setup-go@v3
+        with:
+          go-version: ${{ matrix.go-version }}
 
-  #     - name: Install Cockroach
-  #       run: |
-  #         mkdir -p crdb
-  #         pushd crdb
-  #         wget -qO- https://binaries.cockroachdb.com/cockroach-v20.2.4.linux-amd64.tgz | tar  zxv
-  #         mv cockroach-v20.2.4.linux-amd64/cockroach .
-  #         ./cockroach start-single-node --insecure --background
-  #         popd
+      - name: Install Cockroach
+        run: |
+          mkdir -p crdb
+          pushd crdb
+          wget -qO- https://binaries.cockroachdb.com/cockroach-v20.2.4.linux-amd64.tgz | tar  zxv
+          mv cockroach-v20.2.4.linux-amd64/cockroach .
+          ./cockroach start-single-node --insecure --background
+          popd
 
-  #     - name: Build and run soda
-  #       env:
-  #         SODA_DIALECT: "cockroach"
-  #       run: |
-  #         go build -v -tags sqlite -o tsoda ./soda
-  #         ./tsoda drop -e $SODA_DIALECT -p ./testdata/migrations
-  #         ./tsoda create -e $SODA_DIALECT -p ./testdata/migrations
-  #         ./tsoda migrate -e $SODA_DIALECT -p ./testdata/migrations
+      - name: Build and run soda
+        env:
+          SODA_DIALECT: "cockroach"
+        run: |
+          go build -v -tags sqlite -o tsoda ./soda
+          ./tsoda drop -e $SODA_DIALECT -p ./testdata/migrations
+          ./tsoda create -e $SODA_DIALECT -p ./testdata/migrations
+          ./tsoda migrate -e $SODA_DIALECT -p ./testdata/migrations
 
-  #     - name: Test
-  #       env:
-  #         SODA_DIALECT: "cockroach"
-  #       run: |
-  #         go test -tags sqlite -race -cover ./...
+      - name: Test
+        env:
+          SODA_DIALECT: "cockroach"
+        run: |
+          go test -tags sqlite -race -cover ./...
 
   sqlite-tests:
     name: SQLite tests ${{ matrix.os }} - Go v${{ matrix.go-version }}
@@ -188,12 +188,12 @@ jobs:
       matrix:
         go-version:
           - "1.16.x"
-          # - "1.17.x"
-          # - "1.18.x"
+          - "1.17.x"
+          - "1.18.x"
         os:
-          # - "macos-latest"
+          - "macos-latest"
           - "windows-latest"
-          # - "ubuntu-latest"
+          - "ubuntu-latest"
 
     steps:
       - uses: actions/checkout@v3
