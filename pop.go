@@ -56,8 +56,8 @@ func DialectSupported(d string) bool {
 	return false
 }
 
-func NormalizeDialectSynonyms(dialect string) string {
-	d := strings.ToLower(dialect)
+func CanonicalDialect(synonym string) string {
+	d := strings.ToLower(synonym)
 	if syn, ok := dialectSynonyms[d]; ok {
 		d = syn
 	}
