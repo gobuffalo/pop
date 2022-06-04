@@ -20,8 +20,22 @@ var RootCmd = &cobra.Command{
 	Short:        "A tasty treat for all your database needs",
 	PersistentPreRun: func(c *cobra.Command, args []string) {
 		fmt.Printf("pop %s\n\n", Version)
+
+		/* NOTE: Do not use c.PersistentFlags. `c` is not always the
+		RootCmd. The naming is confusing. The meaning of "persistent"
+		in the `PersistentPreRun` is something like "this function will
+		be 'sticky' to all subcommands and will run for them. So `c`
+		can be any subcommands.
+		However, the meaning of "persistent" in the `PersistentFlags`
+		is, as the function comment said, "persistent FlagSet
+		specifically set in the **current command**" so it is sticky
+		to specific command!
+
+		Use c.Flags() or c.Root().Flags() here.
+		*/
+
 		// CLI flag has priority
-		if !c.PersistentFlags().Changed("env") {
+		if !c.Flags().Changed("env") {
 			env = defaults.String(os.Getenv("GO_ENV"), env)
 		}
 		// TODO! Only do this when the command needs it.
