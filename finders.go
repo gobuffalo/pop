@@ -399,3 +399,21 @@ func (q *Query) Select(fields ...string) *Query {
 	}
 	return q
 }
+
+// ReSelect returns a new query with the select columns redefined
+// q = c.Select("field1", "field2")
+// q = q.ReSelect("field1").All(&model)
+// => SELECT field1 FROM models
+func (q *Query) ReSelect(fields ...string) *Query {
+	tmpQuery := Q(q.Connection)
+	q.Clone(tmpQuery)
+	return tmpQuery.ClearSelect().Select(fields...)
+}
+
+// ClearSelect clears the selected columns in the query
+// q = c.Select("field1", "field2").ClearSelect().Select("field1").All(&model)
+// => SELECT field1 FROM models
+func (q *Query) ClearSelect(fields ...string) *Query {
+	q.addColumns = []string{}
+	return q
+}
