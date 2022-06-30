@@ -229,7 +229,7 @@ func (m *sqlite) FizzTranslator() fizz.Translator {
 }
 
 func (m *sqlite) DumpSchema(w io.Writer) error {
-	cmd := exec.Command("sqlite3", m.Details().Database, ".schema")
+	cmd := exec.Command("sqlite3", m.Details().Database, ".schema --nosys")
 	return genericDumpSchema(m.Details(), cmd, w)
 }
 
