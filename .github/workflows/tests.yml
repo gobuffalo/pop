@@ -1,8 +1,7 @@
 name: Tests
 on:
   push:
-    branches:
-      - master
+    branches: [ main ]
   pull_request:
 
 jobs:
@@ -12,7 +11,6 @@ jobs:
     strategy:
       matrix:
         go-version:
-          - "1.16.x"
           - "1.17.x"
           - "1.18.x"
 
@@ -56,7 +54,6 @@ jobs:
     strategy:
       matrix:
         go-version:
-          - "1.16.x"
           - "1.17.x"
           - "1.18.x"
 
@@ -102,7 +99,6 @@ jobs:
     strategy:
       matrix:
         go-version:
-          - "1.16.x"
           - "1.17.x"
           - "1.18.x"
 
@@ -146,7 +142,6 @@ jobs:
     strategy:
       matrix:
         go-version:
-          - "1.16.x"
           - "1.17.x"
           - "1.18.x"
 
@@ -187,7 +182,6 @@ jobs:
     strategy:
       matrix:
         go-version:
-          - "1.16.x"
           - "1.17.x"
           - "1.18.x"
         os:
@@ -213,7 +207,15 @@ jobs:
         shell: bash
 
       - name: Test
+        if: ${{ matrix.os != 'windows-latest' }}
         env:
           SODA_DIALECT: "sqlite"
         run: |
           go test -tags sqlite -race -cover ./...
+
+      - name: Short Test
+        if: ${{ matrix.os == 'windows-latest' }}
+        env:
+          SODA_DIALECT: "sqlite"
+        run: |
+          go test -tags sqlite ./...

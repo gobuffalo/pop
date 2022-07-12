@@ -78,7 +78,7 @@ func (cd *ConnectionDetails) withURL() error {
 		if dialectX.MatchString(ul) {
 			// Guess the dialect from the scheme
 			dialect := ul[:strings.Index(ul, ":")]
-			cd.Dialect = normalizeSynonyms(dialect)
+			cd.Dialect = CanonicalDialect(dialect)
 		} else {
 			return errors.New("no dialect provided, and could not guess it from URL")
 		}
@@ -125,7 +125,7 @@ func (cd *ConnectionDetails) withURL() error {
 // Finalize cleans up the connection details by normalizing names,
 // filling in default values, etc...
 func (cd *ConnectionDetails) Finalize() error {
-	cd.Dialect = normalizeSynonyms(cd.Dialect)
+	cd.Dialect = CanonicalDialect(cd.Dialect)
 
 	if cd.Options == nil { // for safety
 		cd.Options = make(map[string]string)

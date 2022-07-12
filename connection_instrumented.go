@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"database/sql/driver"
 	"fmt"
+	"sync"
 
 	mysqld "github.com/go-sql-driver/mysql"
 	"github.com/gobuffalo/pop/v6/logging"
@@ -13,6 +14,8 @@ import (
 )
 
 const instrumentedDriverName = "instrumented-sql-driver"
+
+var sqlDriverLock = sync.Mutex{}
 
 func instrumentDriver(deets *ConnectionDetails, defaultDriverName string) (driverName, dialect string, err error) {
 	driverName = defaultDriverName
@@ -36,7 +39,7 @@ func instrumentDriver(deets *ConnectionDetails, defaultDriverName string) (drive
 
 	var dr driver.Driver
 	var newDriverName string
-	switch normalizeSynonyms(driverName) {
+	switch CanonicalDialect(driverName) {
 	case nameCockroach:
 		fallthrough
 	case namePostgreSQL:
@@ -55,6 +58,9 @@ func instrumentDriver(deets *ConnectionDetails, defaultDriverName string) (drive
 		}
 		newDriverName = instrumentedDriverName + "-" + nameSQLite3
 	}
+
+	sqlDriverLock.Lock()
+	defer sqlDriverLock.Unlock()
 
 	var found bool
 	for _, n := range sql.Drivers() {
