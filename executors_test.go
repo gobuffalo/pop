@@ -1,6 +1,7 @@
 package pop
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
@@ -531,6 +532,19 @@ func Test_Create_Non_PK_ID(t *testing.T) {
 		r.Equal(count+1, ctx)
 		r.NotZero(entry.ID)
 	})
+}
+
+func Test_Create_Parallel(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
+	for i := 0; i < 5; i++ {
+		i := i
+		t.Run(fmt.Sprintf("case=%d", i), func(t *testing.T) {
+			t.Parallel()
+			require.NoError(t, PDB.Create(&CrookedColour{Name: fmt.Sprintf("Singer %d", i)}))
+		})
+	}
 }
 
 func Test_Embedded_Struct(t *testing.T) {
