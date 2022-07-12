@@ -241,8 +241,13 @@ func (c *Connection) Q() *Query {
 
 // disableEager disables eager mode for current connection.
 func (c *Connection) disableEager() {
-	c.eager = false
-	c.eagerFields = []string{}
+	// The check technically is not required, because (*Connection).Eager() creates a (shallow) copy.
+	// When not reusing eager connections, this should be safe.
+	// However, this write triggers the go race detector.
+	if c.eager {
+		c.eager = false
+		c.eagerFields = []string{}
+	}
 }
 
 // TruncateAll truncates all data from the datasource
