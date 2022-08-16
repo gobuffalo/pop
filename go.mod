@@ -20,7 +20,7 @@ require (
 	github.com/jmoiron/sqlx v1.3.5
 	github.com/lib/pq v1.10.6
 	github.com/luna-duclos/instrumentedsql v1.1.3
-	github.com/mattn/go-sqlite3 v1.14.14
+	github.com/mattn/go-sqlite3 v1.14.15
 	github.com/spf13/cobra v1.5.0
 	github.com/stretchr/testify v1.8.0
 	golang.org/x/sync v0.0.0-20220601150217-0de741cfad7f
