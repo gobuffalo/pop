@@ -8,7 +8,7 @@ require (
 	github.com/gobuffalo/attrs v1.0.2
 	github.com/gobuffalo/envy v1.10.1
 	github.com/gobuffalo/fizz v1.14.2
-	github.com/gobuffalo/flect v0.2.5
+	github.com/gobuffalo/flect v0.3.0
 	github.com/gobuffalo/genny/v2 v2.0.12
 	github.com/gobuffalo/logger v1.0.6
 	github.com/gobuffalo/nulls v0.4.1
