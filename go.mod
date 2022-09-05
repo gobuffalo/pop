@@ -6,7 +6,7 @@ require (
 	github.com/fatih/color v1.13.0
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/gobuffalo/attrs v1.0.2
-	github.com/gobuffalo/envy v1.10.1
+	github.com/gobuffalo/envy v1.10.2
 	github.com/gobuffalo/fizz v1.14.2
 	github.com/gobuffalo/flect v0.2.5
 	github.com/gobuffalo/genny/v2 v2.0.12
