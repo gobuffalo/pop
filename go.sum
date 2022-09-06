@@ -18,7 +18,6 @@ github.com/fatih/structs v1.1.0 h1:Q7juDM0QtcnhCpeyLGQKyg4TOIghuNXrkL32pHAUMxo=
 github.com/fatih/structs v1.1.0/go.mod h1:9NiDSp5zOcgEDl+j00MP/WkGVPOlPRLejGD8Ga6PJ7M=
 github.com/go-kit/log v0.1.0/go.mod h1:zbhenjAZHb184qTLMA9ZjW7ThYL0H2mk7Q6pNt4vbaY=
 github.com/go-logfmt/logfmt v0.5.0/go.mod h1:wCYkCAKZfumFQihp8CzCvQ3paCTfi41vtzG1KdI/P7A=
-github.com/go-sql-driver/mysql v1.5.0/go.mod h1:DCzpHaOWr8IXmIStZouvnhqoel9Qv2LBy8hT2VhHyBg=
 github.com/go-sql-driver/mysql v1.6.0 h1:BCTh4TKNUYmOmMUcQ3IipzF5prigylS7XXjEkfCHuOE=
 github.com/go-sql-driver/mysql v1.6.0/go.mod h1:DCzpHaOWr8IXmIStZouvnhqoel9Qv2LBy8hT2VhHyBg=
 github.com/go-stack/stack v1.8.0/go.mod h1:v0f6uXyyMGvRgIKkXu+yp6POWl0qKG85gN/melR3HDY=
@@ -38,8 +37,8 @@ github.com/gobuffalo/helpers v0.6.5 h1:Quf1KAUae97sdDmm/QP5V9P/0XYpK+HrhnYXU+nf6
 github.com/gobuffalo/helpers v0.6.5/go.mod h1:LA4zcc89tkZsfKpJIWsXLibiqTgZQ4EvDszfxdqr9ZA=
 github.com/gobuffalo/logger v1.0.6 h1:nnZNpxYo0zx+Aj9RfMPBm+x9zAU2OayFh/xrAWi34HU=
 github.com/gobuffalo/logger v1.0.6/go.mod h1:J31TBEHR1QLV2683OXTAItYIg8pv2JMHnF/quuAbMjs=
-github.com/gobuffalo/nulls v0.4.1 h1:k7QVCJfMplv9VRQQLb4N1d8tXUdGvcdMNfp4BfMnG2M=
-github.com/gobuffalo/nulls v0.4.1/go.mod h1:pp8e1hWTRJZFpMl4fj/CVbSMlaxjeGKkFq4RuBZi3w8=
+github.com/gobuffalo/nulls v0.4.2 h1:GAqBR29R3oPY+WCC7JL9KKk9erchaNuV6unsOSZGQkw=
+github.com/gobuffalo/nulls v0.4.2/go.mod h1:EElw2zmBYafU2R9W4Ii1ByIj177wA/pc0JdjtD0EsH8=
 github.com/gobuffalo/packd v1.0.1 h1:U2wXfRr4E9DH8IdsDLlRFwTZTK7hLfq9qT/QHXGVe/0=
 github.com/gobuffalo/packd v1.0.1/go.mod h1:PP2POP3p3RXGz7Jh6eYEf93S7vA2za6xM7QT85L4+VY=
 github.com/gobuffalo/plush/v4 v4.1.13/go.mod h1:s3hUyj/JlwEiJ039OBJevojq9xT40D1pgekw0o88CVU=
@@ -50,7 +49,6 @@ github.com/gobuffalo/tags/v3 v3.1.3/go.mod h1:WAAjKdskZUmdi6EkNjP2SXBwBwRovHsjJs
 github.com/gobuffalo/validate/v3 v3.3.2 h1:GZdJlDy6zDRXF5BnEiY+pGvGDFx95atMIWd3N3MMseE=
 github.com/gobuffalo/validate/v3 v3.3.2/go.mod h1:jiEEw+N7KbAP2aInFxGnfitI0g7HjXqcp5hDD6TaQDU=
 github.com/gofrs/uuid v4.0.0+incompatible/go.mod h1:b2aQJv3Z4Fp6yNu3cdSllBxTCLRxnplIgP/c0N/04lM=
-github.com/gofrs/uuid v4.1.0+incompatible/go.mod h1:b2aQJv3Z4Fp6yNu3cdSllBxTCLRxnplIgP/c0N/04lM=
 github.com/gofrs/uuid v4.2.0+incompatible h1:yyYWMnhkhrKwwr8gAOcOCYxOOscHgDS9yZgBrnJfGa0=
 github.com/gofrs/uuid v4.2.0+incompatible/go.mod h1:b2aQJv3Z4Fp6yNu3cdSllBxTCLRxnplIgP/c0N/04lM=
 github.com/google/renameio v0.1.0/go.mod h1:KWCgfxg9yswjAJkECMjeO8J8rahYeXnNhOm40UhjYkI=
@@ -107,7 +105,6 @@ github.com/jackc/puddle v0.0.0-20190413234325-e4ced69a3a2b/go.mod h1:m4B5Dj62Y0f
 github.com/jackc/puddle v0.0.0-20190608224051-11cab39313c9/go.mod h1:m4B5Dj62Y0fbyuIc15OsIqK0+JU8nkqQjsgx7dvjSWk=
 github.com/jackc/puddle v1.1.3/go.mod h1:m4B5Dj62Y0fbyuIc15OsIqK0+JU8nkqQjsgx7dvjSWk=
 github.com/jackc/puddle v1.3.0/go.mod h1:m4B5Dj62Y0fbyuIc15OsIqK0+JU8nkqQjsgx7dvjSWk=
-github.com/jmoiron/sqlx v1.3.4/go.mod h1:2BljVx/86SuTyjE+aPYlHCTNvZrnJXghYGpNiXLBMCQ=
 github.com/jmoiron/sqlx v1.3.5 h1:vFFPA71p1o5gAeqtEAwLU4dnX2napprKtHr7PYIcN3g=
 github.com/jmoiron/sqlx v1.3.5/go.mod h1:nRVWtLre0KfCLJvgxzCsLVMogSvQ1zNJtpYr2Ccp0mQ=
 github.com/joho/godotenv v1.4.0 h1:3l4+N6zfMWnkbPEXKng2o2/MR5mSwTrBih4ZEkkz1lg=
@@ -141,7 +138,6 @@ github.com/mattn/go-isatty v0.0.12/go.mod h1:cbi8OIDigv2wuxKPP5vlRcQ1OAZbq2CE4Ky
 github.com/mattn/go-isatty v0.0.14 h1:yVuAays6BHfxijgZPzw+3Zlu5yQgKGP2/hcQbHb7S9Y=
 github.com/mattn/go-isatty v0.0.14/go.mod h1:7GGIvUiUoEMVVmxf/4nioHXj79iQHKdU27kJ6hsGG94=
 github.com/mattn/go-sqlite3 v1.14.6/go.mod h1:NyWgC/yNuGj7Q9rpYnZvas74GogHl5/Z4A/KQRfk6bU=
-github.com/mattn/go-sqlite3 v1.14.9/go.mod h1:NyWgC/yNuGj7Q9rpYnZvas74GogHl5/Z4A/KQRfk6bU=
 github.com/mattn/go-sqlite3 v1.14.15 h1:vfoHhTN1af61xCRSWzFIWzx2YskyMTwHLrExkBOjvxI=
 github.com/mattn/go-sqlite3 v1.14.15/go.mod h1:2eHXhiwb8IkHr+BDWZGa96P6+rkvnG63S2DGjv9HUNg=
 github.com/microcosm-cc/bluemonday v1.0.16 h1:kHmAq2t7WPWLjiGvzKa5o3HzSfahUKiOq7fAPUiMNIc=
