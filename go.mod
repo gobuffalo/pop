@@ -14,7 +14,7 @@ require (
 	github.com/gobuffalo/nulls v0.4.1
 	github.com/gobuffalo/plush/v4 v4.1.14
 	github.com/gobuffalo/validate/v3 v3.3.2
-	github.com/gofrs/uuid v4.2.0+incompatible
+	github.com/gofrs/uuid v4.3.0+incompatible
 	github.com/jackc/pgconn v1.13.0
 	github.com/jackc/pgx/v4 v4.17.1
 	github.com/jmoiron/sqlx v1.3.5
