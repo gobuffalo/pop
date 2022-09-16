@@ -1,7 +1,8 @@
 name: Tests
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
   pull_request:
 
 jobs:
@@ -22,7 +23,7 @@ jobs:
         ports:
           - 3307:3306
         # needed because the mysql container does not provide a healthcheck
-        options: --health-cmd "mysqladmin ping -h localhost" --health-interval 10s --health-timeout 5s --health-retries 5
+        options: --health-cmd "mysqladmin ping -h localhost" --health-interval 5s --health-timeout 5s --health-retries 10
 
     steps:
       - uses: actions/checkout@v3
@@ -59,15 +60,15 @@ jobs:
 
     services:
       postgres:
-        image: postgres:14
+        image: postgres:10
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
           POSTGRES_DB: postgres
         ports:
-          - 5432:5432
+          - 5433:5432
         # needed because the postgres container does not provide a healthcheck
-        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+        options: --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
 
     steps:
       - uses: actions/checkout@v3
@@ -113,8 +114,10 @@ jobs:
         run: |
           mkdir -p crdb/certs
           pushd crdb
-          wget -qO- https://binaries.cockroachdb.com/cockroach-v20.2.4.linux-amd64.tgz | tar  zxv
-          mv cockroach-v20.2.4.linux-amd64/cockroach .
+          wget -qO- https://binaries.cockroachdb.com/cockroach-v21.1.19.linux-amd64.tgz | tar -xz
+          mv cockroach-v21.1.19.linux-amd64/* .
+          ln -s `pwd`/cockroach /usr/local/bin/
+          cockroach version
           ./cockroach cert create-ca --certs-dir certs --ca-key key
           ./cockroach cert create-client root --certs-dir certs --ca-key key
           ./cockroach cert create-node localhost 127.0.0.1 `hostname -s` `hostname -f` --certs-dir certs --ca-key key
@@ -156,14 +159,16 @@ jobs:
         run: |
           mkdir -p crdb
           pushd crdb
-          wget -qO- https://binaries.cockroachdb.com/cockroach-v20.2.4.linux-amd64.tgz | tar  zxv
-          mv cockroach-v20.2.4.linux-amd64/cockroach .
+          wget -qO- https://binaries.cockroachdb.com/cockroach-v21.1.19.linux-amd64.tgz | tar -xz
+          mv cockroach-v21.1.19.linux-amd64/* .
+          ln -s `pwd`/cockroach /usr/local/bin/
           ./cockroach start-single-node --insecure --background
           popd
 
       - name: Build and run soda
         env:
           SODA_DIALECT: "cockroach"
+          COCKROACH_PORT: 26257
         run: |
           go build -v -tags sqlite -o tsoda ./soda
           ./tsoda drop -e $SODA_DIALECT -p ./testdata/migrations
@@ -173,6 +178,7 @@ jobs:
       - name: Test
         env:
           SODA_DIALECT: "cockroach"
+          COCKROACH_PORT: 26257
         run: |
           go test -tags sqlite -race -cover ./...
 
