@@ -9,7 +9,7 @@ mysql:
     readTimeout: 5s
 
 postgres:
-  url: {{ envOr "POSTGRESQL_URL" "postgres://postgres:postgres@localhost:5432/pop_test?sslmode=disable" }}
+  url: {{ envOr "POSTGRESQL_URL" "postgres://postgres:postgres@localhost:5433/pop_test?sslmode=disable" }}
   pool: 25
 
 cockroach:
@@ -29,5 +29,5 @@ cockroach_ssl:
 
 sqlite:
   dialect: "sqlite3"
-  database: "./sql_scripts/sqlite/test.sqlite"
+  database: "tmp/test.sqlite"
 
