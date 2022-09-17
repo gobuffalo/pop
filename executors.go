@@ -381,6 +381,35 @@ func (c *Connection) Update(model interface{}, excludeColumns ...string) error {
 	})
 }
 
+// UpdateQuery updates all rows matched by the query. The new values are read
+// from the first argument, which must be a struct. The column names to be
+// updated must be listed explicitly in subsequent arguments. The ID and
+// CreatedAt columns are never updated. The UpdatedAt column is updated
+// automatically.
+//
+// UpdateQuery does not execute (before|after)(Create|Update|Save) callbacks.
+//
+// Calling UpdateQuery with no columnNames will result in only the UpdatedAt
+// column being updated.
+func (q *Query) UpdateQuery(model interface{}, columnNames ...string) (int64, error) {
+	sm := NewModel(model, q.Connection.Context())
+	modelKind := reflect.TypeOf(reflect.Indirect(reflect.ValueOf(model))).Kind()
+	if modelKind != reflect.Struct {
+		return 0, fmt.Errorf("model must be a struct; got %s", modelKind)
+	}
+
+	cols := columns.NewColumnsWithAlias(sm.TableName(), sm.As, sm.IDField())
+	cols.Add(columnNames...)
+	if _, err := sm.fieldByName("UpdatedAt"); err == nil {
+		cols.Add("updated_at")
+	}
+	cols.Remove(sm.IDField(), "created_at")
+
+	now := nowFunc().Truncate(time.Microsecond)
+	sm.setUpdatedAt(now)
+	return q.Connection.Dialect.UpdateQuery(q.Connection.Store, sm, cols, *q)
+}
+
 // UpdateColumns writes changes from an entry to the database, including only the given columns
 // or all columns if no column names are provided.
 // It updates the `updated_at` column automatically if you include `updated_at` in columnNames.

@@ -2,6 +2,7 @@ package pop
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"sync/atomic"
@@ -185,21 +186,26 @@ func (c *Connection) Rollback(fn func(tx *Connection)) error {
 
 // NewTransaction starts a new transaction on the connection
 func (c *Connection) NewTransaction() (*Connection, error) {
+	return c.NewTransactionContextOptions(c.Context(), nil)
+}
+
+// NewTransactionContext starts a new transaction on the connection using the provided context
+func (c *Connection) NewTransactionContext(ctx context.Context) (*Connection, error) {
+	return c.NewTransactionContextOptions(ctx, nil)
+}
+
+// NewTransactionContextOptions starts a new transaction on the connection using the provided context and transaction options
+func (c *Connection) NewTransactionContextOptions(ctx context.Context, options *sql.TxOptions) (*Connection, error) {
 	var cn *Connection
 	if c.TX == nil {
-		tx, err := c.Store.Transaction()
+		tx, err := c.Store.TransactionContextOptions(ctx, options)
 		if err != nil {
 			return cn, fmt.Errorf("couldn't start a new transaction: %w", err)
 		}
-		var store store = tx
 
-		// Rewrap the store if it was a context store
-		if cs, ok := c.Store.(contextStore); ok {
-			store = contextStore{store: store, ctx: cs.ctx}
-		}
 		cn = &Connection{
 			ID:      randx.String(30),
-			Store:   store,
+			Store:   contextStore{store: tx, ctx: ctx},
 			Dialect: c.Dialect,
 			TX:      tx,
 		}
@@ -235,8 +241,13 @@ func (c *Connection) Q() *Query {
 
 // disableEager disables eager mode for current connection.
 func (c *Connection) disableEager() {
-	c.eager = false
-	c.eagerFields = []string{}
+	// The check technically is not required, because (*Connection).Eager() creates a (shallow) copy.
+	// When not reusing eager connections, this should be safe.
+	// However, this write triggers the go race detector.
+	if c.eager {
+		c.eager = false
+		c.eagerFields = []string{}
+	}
 }
 
 // TruncateAll truncates all data from the datasource

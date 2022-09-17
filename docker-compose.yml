@@ -1,4 +1,4 @@
-version: '2'
+version: '2.1'
 
 services:
   mysql:
@@ -13,7 +13,7 @@ services:
     ports:
       - "3306:3306"
   postgres:
-    image: postgres:9.6
+    image: postgres:10.21
     environment:
       - POSTGRES_DB=pop_test
       - POSTGRES_USER=postgres
@@ -25,7 +25,7 @@ services:
       - ./sqldumps:/docker-entrypoint-initdb.d
   cockroach:
     image: cockroachdb/cockroach:v20.2.4
-    user: ${CURRENT_UID:?"Please run as follows 'CURRENT_UID=$(id -u):$(id -g) docker-compose up'"}
+    user: ${CURRENT_UID:?"Please run as follows 'CURRENT_UID=$$(id -u):$$(id -g) docker-compose up'"}
     ports:
       - "26257:26257"
     volumes:

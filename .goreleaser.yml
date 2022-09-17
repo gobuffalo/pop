@@ -1,5 +1,6 @@
 # GoReleaser config
 
+---
 before:
   hooks:
     - go mod tidy
@@ -14,8 +15,23 @@ builds:
     - amd64
   env:
     - CGO_ENABLED=1
-    - CC=o64-clang
-    - CXX=o64-clang++
+    - CC=/osxcross/target/bin/o64-clang
+    - CXX=/osxcross/target/bin/o64-clang++
+  flags:
+    - -tags
+    - sqlite
+
+- id: pop_darwin_arm64
+  binary: soda
+  main: soda/main.go
+  goos:
+    - darwin
+  goarch:
+    - arm64
+  env:
+    - CGO_ENABLED=1
+    - CC=/osxcross/target/bin/oa64-clang
+    - CXX=/osxcross/target/bin/oa64-clang++
   flags:
     - -tags
     - sqlite
@@ -24,7 +40,7 @@ builds:
   binary: soda
   main: soda/main.go
   env:
-    - CGO_ENABLED=1
+    - CGO_ENABLED=0
   flags:
     - -tags
     - sqlite

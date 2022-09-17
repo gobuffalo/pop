@@ -1,9 +1,9 @@
-// +build sqlite
-
 package pop
 
 import (
+	"database/sql"
 	"database/sql/driver"
+	"errors"
 	"fmt"
 	"io"
 	"net/url"
@@ -19,8 +19,7 @@ import (
 	"github.com/gobuffalo/pop/v6/columns"
 	"github.com/gobuffalo/pop/v6/internal/defaults"
 	"github.com/gobuffalo/pop/v6/logging"
-	"github.com/mattn/go-sqlite3"
-	_ "github.com/mattn/go-sqlite3" // Load SQLite3 CGo driver
+	"github.com/jmoiron/sqlx"
 )
 
 const nameSQLite3 = "sqlite3"
@@ -39,6 +38,15 @@ type sqlite struct {
 	commonDialect
 	gil   *sync.Mutex
 	smGil *sync.Mutex
+}
+
+func requireSQLite3() error {
+	for _, driverName := range sql.Drivers() {
+		if driverName == nameSQLite3 {
+			return nil
+		}
+	}
+	return errors.New("sqlite3 support was not compiled into the binary")
 }
 
 func (m *sqlite) Name() string {
@@ -109,6 +117,20 @@ func (m *sqlite) Update(s store, model *Model, cols columns.Columns) error {
 	})
 }
 
+func (m *sqlite) UpdateQuery(s store, model *Model, cols columns.Columns, query Query) (int64, error) {
+	rowsAffected := int64(0)
+	err := m.locker(m.smGil, func() error {
+		if n, err := genericUpdateQuery(s, model, cols, m, query, sqlx.QUESTION); err != nil {
+			rowsAffected = n
+			return fmt.Errorf("sqlite update query: %w", err)
+		} else {
+			rowsAffected = n
+			return nil
+		}
+	})
+	return rowsAffected, err
+}
+
 func (m *sqlite) Destroy(s store, model *Model) error {
 	return m.locker(m.smGil, func() error {
 		if err := genericDestroy(s, model, m); err != nil {
@@ -160,22 +182,32 @@ func (m *sqlite) locker(l *sync.Mutex, fn func() error) error {
 }
 
 func (m *sqlite) CreateDB() error {
-	_, err := os.Stat(m.ConnectionDetails.Database)
-	if err == nil {
-		return fmt.Errorf("could not create SQLite database '%s'; database exists", m.ConnectionDetails.Database)
+	durl := m.ConnectionDetails.Database
+
+	// Checking whether the url specifies in-memory mode
+	// as specified in https://github.com/mattn/go-sqlite3#faq
+	if strings.Contains(durl, ":memory:") || strings.Contains(durl, "mode=memory") {
+		log(logging.Info, "in memory db selected, no database file created.")
+
+		return nil
 	}
-	dir := filepath.Dir(m.ConnectionDetails.Database)
+
+	_, err := os.Stat(durl)
+	if err == nil {
+		return fmt.Errorf("could not create SQLite database '%s'; database exists", durl)
+	}
+	dir := filepath.Dir(durl)
 	err = os.MkdirAll(dir, 0766)
 	if err != nil {
-		return fmt.Errorf("could not create SQLite database '%s': %w", m.ConnectionDetails.Database, err)
+		return fmt.Errorf("could not create SQLite database '%s': %w", durl, err)
 	}
-	f, err := os.Create(m.ConnectionDetails.Database)
+	f, err := os.Create(durl)
 	if err != nil {
-		return fmt.Errorf("could not create SQLite database '%s': %w", m.ConnectionDetails.Database, err)
+		return fmt.Errorf("could not create SQLite database '%s': %w", durl, err)
 	}
 	_ = f.Close()
 
-	log(logging.Info, "created database '%s'", m.ConnectionDetails.Database)
+	log(logging.Info, "created database '%s'", durl)
 	return nil
 }
 
@@ -247,6 +279,10 @@ func (m *sqlite) TruncateAll(tx *Connection) error {
 }
 
 func newSQLite(deets *ConnectionDetails) (dialect, error) {
+	err := requireSQLite3()
+	if err != nil {
+		return nil, err
+	}
 	deets.URL = fmt.Sprintf("sqlite3://%s", deets.Database)
 	cd := &sqlite{
 		gil:           &sync.Mutex{},
@@ -312,5 +348,13 @@ func finalizerSQLite(cd *ConnectionDetails) {
 }
 
 func newSQLiteDriver() (driver.Driver, error) {
-	return new(sqlite3.SQLiteDriver), nil
+	err := requireSQLite3()
+	if err != nil {
+		return nil, err
+	}
+	db, err := sql.Open(nameSQLite3, ":memory:?cache=newSQLiteDriver_temporary")
+	if err != nil {
+		return nil, err
+	}
+	return db.Driver(), db.Close()
 }

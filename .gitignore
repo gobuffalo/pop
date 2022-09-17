@@ -32,6 +32,8 @@ testdata/migrations/schema.sql
 .grifter/
 vendor/
 .env
+.release-env
+.vscode/
 
 # test data
 cockroach-data/

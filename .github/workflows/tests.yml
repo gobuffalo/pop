@@ -1,8 +1,7 @@
 name: Tests
 on:
   push:
-    branches:
-      - master
+    branches: [ main ]
   pull_request:
 
 jobs:
@@ -12,8 +11,8 @@ jobs:
     strategy:
       matrix:
         go-version:
-          - "1.16.x"
           - "1.17.x"
+          - "1.18.x"
 
     services:
       mysql:
@@ -26,9 +25,9 @@ jobs:
         options: --health-cmd "mysqladmin ping -h localhost" --health-interval 10s --health-timeout 5s --health-retries 5
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Setup Go ${{ matrix.go }}
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v3
         with:
           go-version: ${{ matrix.go-version }}
 
@@ -55,8 +54,8 @@ jobs:
     strategy:
       matrix:
         go-version:
-          - "1.16.x"
           - "1.17.x"
+          - "1.18.x"
 
     services:
       postgres:
@@ -71,9 +70,9 @@ jobs:
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Setup Go ${{ matrix.go }}
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v3
         with:
           go-version: ${{ matrix.go-version }}
 
@@ -100,13 +99,13 @@ jobs:
     strategy:
       matrix:
         go-version:
-          - "1.16.x"
           - "1.17.x"
+          - "1.18.x"
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Setup Go ${{ matrix.go }}
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v3
         with:
           go-version: ${{ matrix.go-version }}
 
@@ -143,13 +142,13 @@ jobs:
     strategy:
       matrix:
         go-version:
-          - "1.16.x"
           - "1.17.x"
+          - "1.18.x"
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Setup Go ${{ matrix.go }}
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v3
         with:
           go-version: ${{ matrix.go-version }}
 
@@ -183,17 +182,17 @@ jobs:
     strategy:
       matrix:
         go-version:
-          - "1.16.x"
           - "1.17.x"
+          - "1.18.x"
         os:
           - "macos-latest"
           - "windows-latest"
           - "ubuntu-latest"
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Setup Go ${{ matrix.go }}
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v3
         with:
           go-version: ${{ matrix.go-version }}
 
@@ -208,7 +207,15 @@ jobs:
         shell: bash
 
       - name: Test
+        if: ${{ matrix.os != 'windows-latest' }}
         env:
           SODA_DIALECT: "sqlite"
         run: |
           go test -tags sqlite -race -cover ./...
+
+      - name: Short Test
+        if: ${{ matrix.os == 'windows-latest' }}
+        env:
+          SODA_DIALECT: "sqlite"
+        run: |
+          go test -tags sqlite ./...
