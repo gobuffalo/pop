@@ -286,7 +286,7 @@ func (c *Connection) Create(model interface{}, excludeColumns ...string) error {
 					}
 					stm := after[index].AfterProcess()
 					if c.TX != nil && !stm.Empty() {
-						_, err := c.TX.Exec(c.Dialect.TranslateSQL(stm.Statement), stm.Args...)
+						err := c.RawQuery(c.Dialect.TranslateSQL(stm.Statement), stm.Args...).Exec()
 						if err != nil {
 							return err
 						}
@@ -297,14 +297,7 @@ func (c *Connection) Create(model interface{}, excludeColumns ...string) error {
 				for index := range stms {
 					statements := stms[index].Statements()
 					for _, stm := range statements {
-						if c.TX != nil {
-							_, err := c.TX.Exec(c.Dialect.TranslateSQL(stm.Statement), stm.Args...)
-							if err != nil {
-								return err
-							}
-							continue
-						}
-						_, err = c.Store.Exec(c.Dialect.TranslateSQL(stm.Statement), stm.Args...)
+						err := c.RawQuery(c.Dialect.TranslateSQL(stm.Statement), stm.Args...).Exec()
 						if err != nil {
 							return err
 						}
