@@ -25,6 +25,31 @@ func Test_Map_MarshalJSON(t *testing.T) {
 	r.Equal([]byte(`{"a":"b"}`), b)
 }
 
+func Test_Map_UnmarshalJSON(t *testing.T) {
+	r := require.New(t)
+
+	m := Map{}
+	err := json.Unmarshal([]byte(`{"a":"b"}`), &m)
+	r.NoError(err)
+	r.Equal("b", m["a"])
+}
+
+// for the next test case
+type Ship struct {
+	Name string
+	Crew Map `json:"crew"`
+}
+
+func Test_Map_UnmarshalJSON_Nested(t *testing.T) {
+	r := require.New(t)
+
+	p := &Ship{}
+	err := json.Unmarshal([]byte(`{"crew":{"captain":"Han", "navigator":"Chewie"}}`), p)
+	r.NoError(err)
+	r.Equal("Han", p.Crew["captain"])
+	r.Equal("Chewie", p.Crew["navigator"])
+}
+
 func Test_Map_UnMarshalJSON_uninitialized_map_does_not_panic(t *testing.T) {
 	r := require.New(t)
 
