@@ -169,6 +169,27 @@ func (ami *AssociationMetaInfo) targetPrimaryID() string {
 	}
 }
 
+func getAllAssociationIds(idField *reflectx.FieldInfo, mmi *ModelMetaInfo) []interface{} {
+	ids := []interface{}{}
+
+	mmi.Model.iterate(func(m *Model) error {
+		if idField.Path == "ID" {
+			ids = append(ids, m.ID())
+			return nil
+		}
+
+		v, err := m.fieldByName(idField.Path)
+		if err != nil {
+			return err
+		}
+
+		ids = append(ids, normalizeValue(v.Interface()))
+		return nil
+	})
+
+	return ids
+}
+
 func (ami *AssociationMetaInfo) fkName() string {
 	t := ami.Field.Type
 	if t.Kind() == reflect.Slice || t.Kind() == reflect.Array {
@@ -241,22 +262,7 @@ func preloadHasMany(tx *Connection, asoc *AssociationMetaInfo, mmi *ModelMetaInf
 	// 1) get all associations ids.
 	// 1.1) In here I pick ids from model meta info directly.
 	idField := asoc.getDBFieldTaggedWith(asoc.targetPrimaryID())
-	ids := []interface{}{}
-	mmi.Model.iterate(func(m *Model) error {
-		if idField.Path == "ID" {
-			ids = append(ids, m.ID())
-			return nil
-		}
-
-		v, err := m.fieldByName(idField.Path)
-		if err != nil {
-			return err
-		}
-
-		ids = append(ids, normalizeValue(v.Interface()))
-		return nil
-	})
-
+	ids := getAllAssociationIds(idField, mmi)
 	if len(ids) == 0 {
 		return nil
 	}
@@ -273,6 +279,7 @@ func preloadHasMany(tx *Connection, asoc *AssociationMetaInfo, mmi *ModelMetaInf
 
 	slice := asoc.toSlice()
 
+	//
 	if strings.TrimSpace(asoc.Field.Tag.Get("order_by")) != "" {
 		q.Order(asoc.Field.Tag.Get("order_by"))
 	}
@@ -306,10 +313,10 @@ func preloadHasMany(tx *Connection, asoc *AssociationMetaInfo, mmi *ModelMetaInf
 				//
 				// This is most likely the reason for https://github.com/gobuffalo/pop/issues/139
 				modelAssociationField := mmi.mapper.FieldByName(mvalue, asoc.Name)
-				switch {
-				case modelAssociationField.Kind() == reflect.Slice || modelAssociationField.Kind() == reflect.Array:
+				switch modelAssociationField.Kind() {
+				case reflect.Slice, reflect.Array:
 					modelAssociationField.Set(reflect.Append(modelAssociationField, asocValue))
-				case modelAssociationField.Kind() == reflect.Ptr:
+				case reflect.Ptr:
 					modelAssociationField.Elem().Set(reflect.Append(modelAssociationField.Elem(), asocValue))
 				default:
 					modelAssociationField.Set(asocValue)
@@ -324,22 +331,7 @@ func preloadHasMany(tx *Connection, asoc *AssociationMetaInfo, mmi *ModelMetaInf
 func preloadHasOne(tx *Connection, asoc *AssociationMetaInfo, mmi *ModelMetaInfo) error {
 	// 1) get all associations ids.
 	idField := asoc.getDBFieldTaggedWith(asoc.targetPrimaryID())
-	ids := []interface{}{}
-	mmi.Model.iterate(func(m *Model) error {
-		if idField.Path == "ID" {
-			ids = append(ids, m.ID())
-			return nil
-		}
-
-		v, err := m.fieldByName(idField.Path)
-		if err != nil {
-			return err
-		}
-
-		ids = append(ids, normalizeValue(v.Interface()))
-		return nil
-	})
-
+	ids := getAllAssociationIds(idField, mmi)
 	if len(ids) == 0 {
 		return nil
 	}
@@ -383,10 +375,10 @@ func preloadHasOne(tx *Connection, asoc *AssociationMetaInfo, mmi *ModelMetaInfo
 				//
 				// This is most likely the reason for https://github.com/gobuffalo/pop/issues/139
 				modelAssociationField := mmi.mapper.FieldByName(mvalue, asoc.Name)
-				switch {
-				case modelAssociationField.Kind() == reflect.Slice || modelAssociationField.Kind() == reflect.Array:
+				switch modelAssociationField.Kind() {
+				case reflect.Slice, reflect.Array:
 					modelAssociationField.Set(reflect.Append(modelAssociationField, asocValue))
-				case modelAssociationField.Kind() == reflect.Ptr:
+				case reflect.Ptr:
 					modelAssociationField.Elem().Set(asocValue)
 				default:
 					modelAssociationField.Set(asocValue)
@@ -456,10 +448,10 @@ func preloadBelongsTo(tx *Connection, asoc *AssociationMetaInfo, mmi *ModelMetaI
 				//
 				// This is most likely the reason for https://github.com/gobuffalo/pop/issues/139
 				modelAssociationField := mmi.mapper.FieldByName(mvalue, asoc.Name)
-				switch {
-				case modelAssociationField.Kind() == reflect.Slice || modelAssociationField.Kind() == reflect.Array:
+				switch modelAssociationField.Kind() {
+				case reflect.Slice, reflect.Array:
 					modelAssociationField.Set(reflect.Append(modelAssociationField, asocValue))
-				case modelAssociationField.Kind() == reflect.Ptr:
+				case reflect.Ptr:
 					modelAssociationField.Elem().Set(asocValue)
 				default:
 					modelAssociationField.Set(asocValue)
@@ -475,22 +467,7 @@ func preloadManyToMany(tx *Connection, asoc *AssociationMetaInfo, mmi *ModelMeta
 	// 1) get all associations ids.
 	// 1.1) In here I pick ids from model meta info directly.
 	idField := asoc.getDBFieldTaggedWith(asoc.targetPrimaryID())
-	ids := []interface{}{}
-	mmi.Model.iterate(func(m *Model) error {
-		if idField.Path == "ID" {
-			ids = append(ids, m.ID())
-			return nil
-		}
-
-		v, err := m.fieldByName(idField.Path)
-		if err != nil {
-			return err
-		}
-
-		ids = append(ids, normalizeValue(v.Interface()))
-		return nil
-	})
-
+	ids := getAllAssociationIds(idField, mmi)
 	if len(ids) == 0 {
 		return nil
 	}
@@ -508,13 +485,13 @@ func preloadManyToMany(tx *Connection, asoc *AssociationMetaInfo, mmi *ModelMeta
 	sql := fmt.Sprintf("SELECT %s, %s FROM %s WHERE %s in (?)", modelAssociationName, assocFkName, manyToManyTableName, modelAssociationName)
 	sql, args, _ := sqlx.In(sql, ids)
 	sql = tx.Dialect.TranslateSQL(sql)
-	log(logging.SQL, sql, args...)
 
 	cn, err := tx.Store.Transaction()
 	if err != nil {
 		return err
 	}
 
+	log(logging.SQL, sql, args...)
 	rows, err := cn.Queryx(sql, args...)
 	if err != nil {
 		return err
