@@ -10,6 +10,7 @@ import (
 
 	"github.com/gobuffalo/pop/v6/internal/defaults"
 	"github.com/gobuffalo/pop/v6/internal/randx"
+	"github.com/gobuffalo/pop/v6/logging"
 )
 
 // Connections contains all available connections
@@ -151,21 +152,37 @@ func (c *Connection) Close() error {
 // returns an error then the transaction will be rolled back, otherwise the transaction
 // will automatically commit at the end.
 func (c *Connection) Transaction(fn func(tx *Connection) error) error {
-	return c.Dialect.Lock(func() error {
+	return c.Dialect.Lock(func() (err error) {
 		var dberr error
+
+		log(logging.SQL, "--- BEGIN Transaction ---")
 		cn, err := c.NewTransaction()
 		if err != nil {
 			return err
 		}
+
+		defer func() {
+			if ex := recover(); ex != nil {
+				log(logging.SQL, "--- ROLLBACK Transaction (inner function panic) ---")
+				dberr = cn.TX.Rollback()
+				if dberr != nil {
+					err = fmt.Errorf("database error while inner panic rollback: %w", dberr)
+				}
+				err = fmt.Errorf("transaction was rolled back due to inner panic")
+			}
+		}()
+
 		err = fn(cn)
 		if err != nil {
+			log(logging.SQL, "--- ROLLBACK Transaction ---")
 			dberr = cn.TX.Rollback()
 		} else {
+			log(logging.SQL, "--- END Transaction ---")
 			dberr = cn.TX.Commit()
 		}
 
 		if dberr != nil {
-			return fmt.Errorf("error committing or rolling back transaction: %w", dberr)
+			return fmt.Errorf("database error on committing or rolling back transaction: %w", dberr)
 		}
 
 		return err
