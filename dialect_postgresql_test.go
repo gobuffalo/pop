@@ -8,10 +8,29 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func Test_PostgreSQL_ConnectionDetails_Values_Finalize(t *testing.T) {
+	r := require.New(t)
+
+	cd := &ConnectionDetails{
+		Dialect:  "postgres",
+		Database: "database",
+		Host:     "host",
+		Port:     "1234",
+		User:     "user",
+		Password: "pass#",
+	}
+	err := cd.Finalize()
+	r.NoError(err)
+
+	p := &postgresql{commonDialect: commonDialect{ConnectionDetails: cd}}
+
+	r.Equal("postgres://user:pass%23@host:1234/database?", p.URL())
+}
+
 func Test_PostgreSQL_Connection_String(t *testing.T) {
 	r := require.New(t)
 
-	url := "host=host port=1234 dbname=database user=user password=pass"
+	url := "host=host port=1234 dbname=database user=user password=pass#"
 	cd := &ConnectionDetails{
 		Dialect: "postgres",
 		URL:     url,
@@ -22,7 +41,7 @@ func Test_PostgreSQL_Connection_String(t *testing.T) {
 	r.Equal(url, cd.URL)
 	r.Equal("postgres", cd.Dialect)
 	r.Equal("host", cd.Host)
-	r.Equal("pass", cd.Password)
+	r.Equal("pass#", cd.Password)
 	r.Equal("1234", cd.Port)
 	r.Equal("user", cd.User)
 	r.Equal("database", cd.Database)
@@ -31,7 +50,7 @@ func Test_PostgreSQL_Connection_String(t *testing.T) {
 func Test_PostgreSQL_Connection_String_Options(t *testing.T) {
 	r := require.New(t)
 
-	url := "host=host port=1234 dbname=database user=user password=pass sslmode=disable fallback_application_name=test_app connect_timeout=10 sslcert=/some/location sslkey=/some/other/location sslrootcert=/root/location"
+	url := "host=host port=1234 dbname=database user=user password=pass# sslmode=disable fallback_application_name=test_app connect_timeout=10 sslcert=/some/location sslkey=/some/other/location sslrootcert=/root/location"
 	cd := &ConnectionDetails{
 		Dialect: "postgres",
 		URL:     url,
