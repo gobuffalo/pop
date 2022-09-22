@@ -19,7 +19,7 @@ jobs:
       mysql:
         image: mysql:5.7
         env:
-          MYSQL_ROOT_PASSWORD: root
+          MYSQL_ROOT_PASSWORD: root#
         ports:
           - 3307:3306
         # needed because the mysql container does not provide a healthcheck
@@ -63,7 +63,7 @@ jobs:
         image: postgres:10
         env:
           POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
+          POSTGRES_PASSWORD: postgres#
           POSTGRES_DB: postgres
         ports:
           - 5433:5432
@@ -80,7 +80,7 @@ jobs:
       - name: Build and run soda
         env:
           SODA_DIALECT: "postgres"
-          POSTGRESQL_URL: "postgres://postgres:postgres@127.0.0.1:${{ job.services.postgres.ports[5432] }}/pop_test?sslmode=disable"
+          POSTGRESQL_URL: "postgres://postgres:postgres%23@127.0.0.1:${{ job.services.postgres.ports[5432] }}/pop_test?sslmode=disable"
         run: |
           go build -v -tags sqlite -o tsoda ./soda
           ./tsoda drop -e $SODA_DIALECT -p ./testdata/migrations
@@ -90,7 +90,7 @@ jobs:
       - name: Test
         env:
           SODA_DIALECT: "postgres"
-          POSTGRESQL_URL: "postgres://postgres:postgres@127.0.0.1:${{ job.services.postgres.ports[5432] }}/pop_test?sslmode=disable"
+          POSTGRESQL_URL: "postgres://postgres:postgres%23@127.0.0.1:${{ job.services.postgres.ports[5432] }}/pop_test?sslmode=disable"
         run: |
           go test -tags sqlite -race -cover ./...
 

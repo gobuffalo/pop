@@ -4,12 +4,12 @@ mysql:
   host: {{ envOr "MYSQL_HOST" "127.0.0.1"  }}
   port: {{ envOr "MYSQL_PORT" "3306"  }}
   user: {{ envOr "MYSQL_USER"  "root"  }}
-  password: {{ envOr "MYSQL_PASSWORD"  "root"  }}
+  password: {{ envOr "MYSQL_PASSWORD"  "root#"  }}
   options:
     readTimeout: 5s
 
 postgres:
-  url: {{ envOr "POSTGRESQL_URL" "postgres://postgres:postgres@localhost:5433/pop_test?sslmode=disable" }}
+  url: {{ envOr "POSTGRESQL_URL" "postgres://postgres:postgres%23@localhost:5433/pop_test?sslmode=disable" }}
   pool: 25
 
 cockroach:
