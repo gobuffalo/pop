@@ -32,6 +32,12 @@ jobs:
         with:
           go-version: ${{ matrix.go-version }}
 
+      - name: Setup MySQL environment
+        run: |
+          mysqldump --version
+          echo $HOME
+          echo -e "[mysqldump]\ncolumn-statistics=0" > $HOME/.my.cnf
+
       - name: Build and run soda
         env:
           SODA_DIALECT: "mysql"
