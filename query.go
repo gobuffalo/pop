@@ -145,7 +145,7 @@ func (q *Query) Where(stmt string, args ...interface{}) *Query {
 			inq = append(inq, "?")
 		}
 		qs := fmt.Sprintf("(%s)", strings.Join(inq, ","))
-		stmt = strings.Replace(stmt, "(?)", qs, 1)
+		stmt = inRegex.ReplaceAllString(stmt, " IN "+qs)
 	}
 	q.whereClauses = append(q.whereClauses, clause{stmt, args})
 	return q
