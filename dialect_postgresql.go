@@ -239,12 +239,12 @@ func urlParserPostgreSQL(cd *ConnectionDetails) error {
 	options := []string{"fallback_application_name"}
 	for i := range options {
 		if opt, ok := conf.RuntimeParams[options[i]]; ok {
-			cd.Options[options[i]] = opt
+			cd.setOption(options[i], opt)
 		}
 	}
 
 	if conf.TLSConfig == nil {
-		cd.Options["sslmode"] = "disable"
+		cd.setOption("sslmode", "disable")
 	}
 
 	return nil
