@@ -3,6 +3,7 @@ package pop
 import (
 	"fmt"
 	"io"
+	"net/url"
 	"os/exec"
 	"sync"
 
@@ -162,7 +163,7 @@ func (p *postgresql) URL() string {
 		return c.URL
 	}
 	s := "postgres://%s:%s@%s:%s/%s?%s"
-	return fmt.Sprintf(s, c.User, c.Password, c.Host, c.Port, c.Database, c.OptionsString(""))
+	return fmt.Sprintf(s, c.User, url.QueryEscape(c.Password), c.Host, c.Port, c.Database, c.OptionsString(""))
 }
 
 func (p *postgresql) urlWithoutDb() string {
@@ -172,7 +173,7 @@ func (p *postgresql) urlWithoutDb() string {
 	// To avoid a connection problem if the user db is not here, we use the default "postgres"
 	// db, just like the other client tools do.
 	s := "postgres://%s:%s@%s:%s/postgres?%s"
-	return fmt.Sprintf(s, c.User, c.Password, c.Host, c.Port, c.OptionsString(""))
+	return fmt.Sprintf(s, c.User, url.QueryEscape(c.Password), c.Host, c.Port, c.OptionsString(""))
 }
 
 func (p *postgresql) MigrationURL() string {
