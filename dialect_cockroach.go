@@ -210,7 +210,7 @@ func (p *cockroach) DumpSchema(w io.Writer) error {
 	cmd := exec.Command("cockroach", "sql", "-e", "SHOW CREATE ALL TABLES", "-d", p.Details().Database, "--format", "raw")
 
 	c := p.ConnectionDetails
-	if defaults.String(c.Options["sslmode"], "disable") == "disable" || strings.Contains(c.RawOptions, "sslmode=disable") {
+	if defaults.String(c.option("sslmode"), "disable") == "disable" || strings.Contains(c.RawOptions, "sslmode=disable") {
 		cmd.Args = append(cmd.Args, "--insecure")
 	}
 	return cockroachDumpSchema(p.Details(), cmd, w)
@@ -302,13 +302,13 @@ func newCockroach(deets *ConnectionDetails) (dialect, error) {
 		translateCache: map[string]string{},
 		mu:             sync.Mutex{},
 	}
-	d.info.client = deets.Options["application_name"]
+	d.info.client = deets.option("application_name")
 	return d, nil
 }
 
 func finalizerCockroach(cd *ConnectionDetails) {
 	appName := filepath.Base(os.Args[0])
-	cd.Options["application_name"] = defaults.String(cd.Options["application_name"], appName)
+	cd.setOptionWithDefault("application_name", cd.option("application_name"), appName)
 	cd.Port = defaults.String(cd.Port, portCockroach)
 	if cd.URL != "" {
 		cd.URL = "postgres://" + trimCockroachPrefix(cd.URL)

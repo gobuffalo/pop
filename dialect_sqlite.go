@@ -167,7 +167,7 @@ func (m *sqlite) Lock(fn func() error) error {
 }
 
 func (m *sqlite) locker(l *sync.Mutex, fn func() error) error {
-	if defaults.String(m.Details().Options["lock"], "true") == "true" {
+	if defaults.String(m.Details().option("lock"), "true") == "true" {
 		defer l.Unlock()
 		l.Lock()
 	}
@@ -309,11 +309,8 @@ func urlParserSQLite3(cd *ConnectionDetails) error {
 		return fmt.Errorf("unable to parse sqlite query: %w", err)
 	}
 
-	if cd.Options == nil { // prevent panic
-		cd.Options = make(map[string]string)
-	}
 	for k := range q {
-		cd.Options[k] = q.Get(k)
+		cd.setOption(k, q.Get(k))
 	}
 
 	return nil
@@ -326,20 +323,17 @@ func finalizerSQLite(cd *ConnectionDetails) {
 	forced := map[string]string{
 		"_fk": "true",
 	}
-	if cd.Options == nil { // prevent panic
-		cd.Options = make(map[string]string)
-	}
 
-	for k, v := range defs {
-		cd.Options[k] = defaults.String(cd.Options[k], v)
+	for k, def := range defs {
+		cd.setOptionWithDefault(k, cd.option(k), def)
 	}
 
 	for k, v := range forced {
 		// respect user specified options but print warning!
-		cd.Options[k] = defaults.String(cd.Options[k], v)
-		if cd.Options[k] != v { // when user-defined option exists
-			log(logging.Warn, "IMPORTANT! '%s: %s' option is required to work properly but your current setting is '%v: %v'.", k, v, k, cd.Options[k])
-			log(logging.Warn, "It is highly recommended to remove '%v: %v' option from your config!", k, cd.Options[k])
+		cd.setOptionWithDefault(k, cd.option(k), v)
+		if cd.option(k) != v { // when user-defined option exists
+			log(logging.Warn, "IMPORTANT! '%s: %s' option is required to work properly but your current setting is '%v: %v'.", k, v, k, cd.option(k))
+			log(logging.Warn, "It is highly recommended to remove '%v: %v' option from your config!", k, cd.option(k))
 		} // or override with `cd.Options[k] = v`?
 		if cd.URL != "" && !strings.Contains(cd.URL, k+"="+v) {
 			log(logging.Warn, "IMPORTANT! '%s=%s' option is required to work properly. Please add it to the database URL in the config!", k, v)

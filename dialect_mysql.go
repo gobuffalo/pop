@@ -148,8 +148,8 @@ func (m *mysql) CreateDB() error {
 		return fmt.Errorf("error creating MySQL database %s: %w", deets.Database, err)
 	}
 	defer db.Close()
-	charset := defaults.String(deets.Options["charset"], "utf8mb4")
-	encoding := defaults.String(deets.Options["collation"], "utf8mb4_general_ci")
+	charset := defaults.String(deets.option("charset"), "utf8mb4")
+	encoding := defaults.String(deets.option("collation"), "utf8mb4_general_ci")
 	query := fmt.Sprintf("CREATE DATABASE `%s` DEFAULT CHARSET `%s` DEFAULT COLLATE `%s`", deets.Database, charset, encoding)
 	log(logging.SQL, query)
 
@@ -242,11 +242,10 @@ func urlParserMySQL(cd *ConnectionDetails) error {
 	cd.User = cfg.User
 	cd.Password = cfg.Passwd
 	cd.Database = cfg.DBName
-	if cd.Options == nil { // prevent panic
-		cd.Options = make(map[string]string)
-	}
+
 	// NOTE: use cfg.Params if want to fill options with full parameters
-	cd.Options["collation"] = cfg.Collation
+	cd.setOption("collation", cfg.Collation)
+
 	if cfg.Net == "unix" {
 		cd.Port = "socket" // trick. see: `URL()`
 		cd.Host = cfg.Addr
@@ -274,20 +273,16 @@ func finalizerMySQL(cd *ConnectionDetails) {
 		"multiStatements": "true",
 	}
 
-	if cd.Options == nil { // prevent panic
-		cd.Options = make(map[string]string)
-	}
-
-	for k, v := range defs {
-		cd.Options[k] = defaults.String(cd.Options[k], v)
+	for k, def := range defs {
+		cd.setOptionWithDefault(k, cd.option(k), def)
 	}
 
 	for k, v := range forced {
 		// respect user specified options but print warning!
-		cd.Options[k] = defaults.String(cd.Options[k], v)
-		if cd.Options[k] != v { // when user-defined option exists
-			log(logging.Warn, "IMPORTANT! '%s: %s' option is required to work properly but your current setting is '%v: %v'.", k, v, k, cd.Options[k])
-			log(logging.Warn, "It is highly recommended to remove '%v: %v' option from your config!", k, cd.Options[k])
+		cd.setOptionWithDefault(k, cd.option(k), v)
+		if cd.option(k) != v { // when user-defined option exists
+			log(logging.Warn, "IMPORTANT! '%s: %s' option is required to work properly but your current setting is '%v: %v'.", k, v, k, cd.option(k))
+			log(logging.Warn, "It is highly recommended to remove '%v: %v' option from your config!", k, cd.option(k))
 		} // or override with `cd.Options[k] = v`?
 		if cd.URL != "" && !strings.Contains(cd.URL, k+"="+v) {
 			log(logging.Warn, "IMPORTANT! '%s=%s' option is required to work properly. Please add it to the database URL in the config!", k, v)
