@@ -1,3 +1,4 @@
+//go:build !appengine
 // +build !appengine
 
 package pop
@@ -9,7 +10,7 @@ import (
 )
 
 func newSchemaMigrations(name string) fizz.Table {
-	return fizz.Table{
+	tab := fizz.Table{
 		Name: name,
 		Columns: []fizz.Column{
 			{
@@ -24,4 +25,9 @@ func newSchemaMigrations(name string) fizz.Table {
 			{Name: fmt.Sprintf("%s_version_idx", name), Columns: []string{"version"}, Unique: true},
 		},
 	}
+	// this is for https://github.com/gobuffalo/pop/issues/659.
+	// primary key is not necessary for the migration table but it looks like
+	// some database engine versions requires it for index.
+	tab.PrimaryKey("version")
+	return tab
 }
