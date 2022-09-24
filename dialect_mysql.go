@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os/exec"
+	"regexp"
 	"strings"
 
 	_mysql "github.com/go-sql-driver/mysql" // Load MySQL Go driver
@@ -112,17 +113,17 @@ func (m *mysql) Destroy(s store, model *Model) error {
 	return nil
 }
 
+var asRegex = regexp.MustCompile(`\sAS\s\S+`) // exactly " AS non-spaces"
+
 func (m *mysql) Delete(s store, model *Model, query Query) error {
-	sb := query.toSQLBuilder(model)
+	sqlQuery, args := query.ToSQL(model)
+	// * MySQL does not support table alias for DELETE syntax until 8.0.
+	// * Do not generate SQL manually if they may have `WHERE IN`.
+	// * Spaces are intentionally added to make it easy to see on the log.
+	sqlQuery = asRegex.ReplaceAllString(sqlQuery, "  ")
 
-	sql := fmt.Sprintf("DELETE FROM %s", m.Quote(model.TableName()))
-	sql = sb.buildWhereClauses(sql)
-
-	_, err := genericExec(s, sql, sb.Args()...)
-	if err != nil {
-		return fmt.Errorf("mysql delete: %w", err)
-	}
-	return nil
+	_, err := genericExec(s, sqlQuery, args...)
+	return err
 }
 
 func (m *mysql) SelectOne(s store, model *Model, query Query) error {

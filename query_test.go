@@ -74,10 +74,21 @@ func Test_Where_In_Slice(t *testing.T) {
 		r.NoError(tx.Create(u2))
 		r.NoError(tx.Create(u3))
 
+		Debug = true
+		defer func() { Debug = false }()
+
 		var songs []Song
 		err := tx.Where("id in (?)", []uuid.UUID{u1.ID, u3.ID}).Where("title = ?", "A").All(&songs)
 		r.NoError(err)
 		r.Len(songs, 2)
+
+		// especially https://github.com/gobuffalo/pop/issues/699
+		err = tx.Where("id in (?)", []uuid.UUID{u1.ID, u3.ID}).Delete(&Song{})
+		r.NoError(err)
+
+		var remainingSongs []Song
+		r.NoError(tx.All(&remainingSongs))
+		r.Len(remainingSongs, 1)
 	})
 }
 
