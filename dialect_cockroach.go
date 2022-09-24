@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -175,13 +176,13 @@ func (p *cockroach) URL() string {
 		return c.URL
 	}
 	s := "postgres://%s:%s@%s:%s/%s?%s"
-	return fmt.Sprintf(s, c.User, c.Password, c.Host, c.Port, c.Database, c.OptionsString(""))
+	return fmt.Sprintf(s, c.User, url.QueryEscape(c.Password), c.Host, c.Port, c.Database, c.OptionsString(""))
 }
 
 func (p *cockroach) urlWithoutDb() string {
 	c := p.ConnectionDetails
 	s := "postgres://%s:%s@%s:%s/?%s"
-	return fmt.Sprintf(s, c.User, c.Password, c.Host, c.Port, c.OptionsString(""))
+	return fmt.Sprintf(s, c.User, url.QueryEscape(c.Password), c.Host, c.Port, c.OptionsString(""))
 }
 
 func (p *cockroach) MigrationURL() string {

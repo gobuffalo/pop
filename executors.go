@@ -273,7 +273,8 @@ func (c *Connection) Create(model interface{}, excludeColumns ...string) error {
 							if IsZeroOfUnderlyingType(id) {
 								return c.Create(m.Value)
 							}
-							exists, errE := Q(c).Exists(i)
+
+							exists, errE := Q(c).Where(m.WhereID(), id).Exists(i)
 							if errE != nil || !exists {
 								return c.Create(m.Value)
 							}
