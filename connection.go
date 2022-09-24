@@ -145,6 +145,7 @@ func (c *Connection) Close() error {
 	if err := c.Store.Close(); err != nil {
 		return fmt.Errorf("couldn't close connection: %w", err)
 	}
+	c.Store = nil
 	return nil
 }
 

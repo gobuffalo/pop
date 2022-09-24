@@ -28,6 +28,21 @@ func Test_Connection_SimpleFlow(t *testing.T) {
 	r.NoError(err)
 }
 
+func Test_Connection_Open_Close_Reopen(t *testing.T) {
+	r := require.New(t)
+
+	c, err := NewConnection(&ConnectionDetails{
+		URL: "sqlite://file::memory:?_fk=true",
+	})
+	r.NoError(err)
+
+	for i := 0; i < 2; i++ {
+		r.NoError(c.Open())
+		r.NoError(c.Transaction(func(c *Connection) error { return nil }))
+		r.NoError(c.Close())
+	}
+}
+
 func Test_Connection_Open_NoDialect(t *testing.T) {
 	r := require.New(t)
 
