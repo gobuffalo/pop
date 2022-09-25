@@ -213,6 +213,10 @@ func Q(c *Connection) *Query {
 // from the `Model` passed in.
 func (q Query) ToSQL(model *Model, addColumns ...string) (string, []interface{}) {
 	sb := q.toSQLBuilder(model, addColumns...)
+	// nil model is allowed only when if RawSQL is provided.
+	if model == nil && (q.RawSQL == nil || q.RawSQL.Fragment == "") {
+		return "", nil
+	}
 	return sb.String(), sb.Args()
 }
 

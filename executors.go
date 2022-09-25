@@ -20,10 +20,16 @@ func (c *Connection) Reload(model interface{}) error {
 	})
 }
 
+// TODO: consider merging the following two methods.
+
 // Exec runs the given query.
 func (q *Query) Exec() error {
 	return q.Connection.timeFunc("Exec", func() error {
 		sql, args := q.ToSQL(nil)
+		if sql == "" {
+			return fmt.Errorf("empty query")
+		}
+
 		log(logging.SQL, sql, args...)
 		_, err := q.Connection.Store.Exec(sql, args...)
 		return err
@@ -36,6 +42,10 @@ func (q *Query) ExecWithCount() (int, error) {
 	count := int64(0)
 	return int(count), q.Connection.timeFunc("Exec", func() error {
 		sql, args := q.ToSQL(nil)
+		if sql == "" {
+			return fmt.Errorf("empty query")
+		}
+
 		log(logging.SQL, sql, args...)
 		result, err := q.Connection.Store.Exec(sql, args...)
 		if err != nil {
