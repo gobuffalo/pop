@@ -386,3 +386,22 @@ func Test_ToSQL_RawQuery(t *testing.T) {
 		a.Equal(args, []interface{}{"random", "query"})
 	})
 }
+
+func Test_RawQuery_Empty(t *testing.T) {
+	Debug = true
+	defer func() { Debug = false }()
+
+	t.Run("EmptyQuery", func(t *testing.T) {
+		r := require.New(t)
+		transaction(func(tx *Connection) {
+			r.Error(tx.Q().Exec())
+		})
+	})
+
+	t.Run("EmptyRawQuery", func(t *testing.T) {
+		r := require.New(t)
+		transaction(func(tx *Connection) {
+			r.Error(tx.RawQuery("").Exec())
+		})
+	})
+}

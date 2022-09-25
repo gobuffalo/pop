@@ -17,6 +17,8 @@ type sqlBuilder struct {
 	AddColumns []string
 	sql        string
 	args       []interface{}
+	isCompiled bool
+	err        error
 }
 
 func newSQLBuilder(q Query, m *Model, addColumns ...string) *sqlBuilder {
@@ -25,6 +27,7 @@ func newSQLBuilder(q Query, m *Model, addColumns ...string) *sqlBuilder {
 		Model:      m,
 		AddColumns: addColumns,
 		args:       []interface{}{},
+		isCompiled: false,
 	}
 }
 
@@ -53,19 +56,15 @@ func hasLimitOrOffset(sqlString string) bool {
 }
 
 func (sq *sqlBuilder) String() string {
-	if sq.sql == "" {
+	if !sq.isCompiled {
 		sq.compile()
 	}
 	return sq.sql
 }
 
 func (sq *sqlBuilder) Args() []interface{} {
-	if len(sq.args) == 0 {
-		if len(sq.Query.RawSQL.Arguments) > 0 {
-			sq.args = sq.Query.RawSQL.Arguments
-		} else {
-			sq.compile()
-		}
+	if !sq.isCompiled {
+		sq.compile()
 	}
 	return sq.args
 }
@@ -83,7 +82,12 @@ func (sq *sqlBuilder) compile() {
 				}
 				sq.sql = sq.Query.RawSQL.Fragment
 			}
+			sq.args = sq.Query.RawSQL.Arguments
 		} else {
+			if sq.Model == nil {
+				sq.err = fmt.Errorf("sqlBuilder.compile() called but no RawSQL and Model specified")
+				return
+			}
 			switch sq.Query.Operation {
 			case Select:
 				sq.sql = sq.buildSelectSQL()
