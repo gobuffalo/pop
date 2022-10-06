@@ -7,12 +7,12 @@ require (
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/gobuffalo/attrs v1.0.3
 	github.com/gobuffalo/envy v1.10.2
-	github.com/gobuffalo/fizz v1.14.3
+	github.com/gobuffalo/fizz v1.14.4
 	github.com/gobuffalo/flect v0.3.0
-	github.com/gobuffalo/genny/v2 v2.0.13
+	github.com/gobuffalo/genny/v2 v2.1.0
 	github.com/gobuffalo/logger v1.0.7
 	github.com/gobuffalo/nulls v0.4.2
-	github.com/gobuffalo/plush/v4 v4.1.15
+	github.com/gobuffalo/plush/v4 v4.1.16
 	github.com/gobuffalo/validate/v3 v3.3.3
 	github.com/gofrs/uuid v4.3.0+incompatible
 	github.com/jackc/pgconn v1.13.0
@@ -23,6 +23,6 @@ require (
 	github.com/mattn/go-sqlite3 v1.14.15
 	github.com/spf13/cobra v1.5.0
 	github.com/stretchr/testify v1.8.0
-	golang.org/x/sync v0.0.0-20220923202941-7f9b1623fab7
+	golang.org/x/sync v0.0.0-20220929204114-8fcdb60fdcc0
 	gopkg.in/yaml.v2 v2.4.0
 )
