@@ -85,8 +85,7 @@ builds:
     - amd64
 
 archives:
-  -
-    format_overrides:
+  - format_overrides:
       - goos: windows
         format: zip
 
@@ -104,11 +103,10 @@ changelog:
       - '^test:'
 
 brews:
-  -
-    name: 'pop'
+  - name: 'pop'
     tap:
       owner: gobuffalo
       name: homebrew-tap
-    homepage: "https://gobuffalo.io/docs/db/getting-started"
+    homepage: "https://gobuffalo.io/documentation/database/pop/"
     description: "A Tasty Treat For All Your Database Needs"
     skip_upload: "auto"
