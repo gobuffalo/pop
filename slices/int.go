@@ -27,8 +27,10 @@ func (i *Int) Scan(src interface{}) error {
 	default:
 		return fmt.Errorf("scan source was not []byte nor string but %T", src)
 	}
-	*i = strToInt(str)
-	return nil
+
+	v, err := strToInt(str)
+	*i = v
+	return err
 }
 
 // Value implements the driver.Valuer interface.
@@ -56,12 +58,23 @@ func (i *Int) UnmarshalText(text []byte) error {
 	return nil
 }
 
-func strToInt(s string) []int {
+func strToInt(s string) ([]int, error) {
 	r := strings.Trim(s, "{}")
 	a := make([]int, 0, 10)
-	for _, t := range strings.Split(r, ",") {
-		i, _ := strconv.Atoi(t)
+
+	split := strings.Split(r, ",")
+	// Split returns [""] when splitting the empty string.
+	if len(split) == 1 && split[0] == "" {
+		return a, nil
+	}
+
+	for _, t := range split {
+		i, err := strconv.Atoi(t)
+		if err != nil {
+			return nil, err
+		}
 		a = append(a, i)
 	}
-	return a
+
+	return a, nil
 }
