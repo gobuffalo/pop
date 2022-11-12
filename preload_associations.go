@@ -460,13 +460,13 @@ func preloadManyToMany(tx *Connection, asoc *AssociationMetaInfo, mmi *ModelMeta
 	sql := fmt.Sprintf("SELECT %s, %s FROM %s WHERE %s in (?)", modelAssociationName, assocFkName, manyToManyTableName, modelAssociationName)
 	sql, args, _ := sqlx.In(sql, ids)
 	sql = tx.Dialect.TranslateSQL(sql)
-	log(logging.SQL, sql, args...)
 
 	cn, err := tx.Store.Transaction()
 	if err != nil {
 		return err
 	}
 
+	txlog(logging.SQL, cn, sql, args...)
 	rows, err := cn.Queryx(sql, args...)
 	if err != nil {
 		return err

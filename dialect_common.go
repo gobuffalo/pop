@@ -53,7 +53,7 @@ func genericCreate(s store, model *Model, cols columns.Columns, quoter quotable)
 		cols.Remove(model.IDField())
 		w := cols.Writeable()
 		query := fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s)", quoter.Quote(model.TableName()), w.QuotedString(quoter), w.SymbolizedString())
-		log(logging.SQL, query, model.Value)
+		txlog(logging.SQL, s, query, model.Value)
 		res, err := s.NamedExec(query, model.Value)
 		if err != nil {
 			return err
@@ -81,7 +81,7 @@ func genericCreate(s store, model *Model, cols columns.Columns, quoter quotable)
 		w := cols.Writeable()
 		w.Add(model.IDField())
 		query := fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s)", quoter.Quote(model.TableName()), w.QuotedString(quoter), w.SymbolizedString())
-		log(logging.SQL, query, model.Value)
+		txlog(logging.SQL, s, query, model.Value)
 		stmt, err := s.PrepareNamed(query)
 		if err != nil {
 			return err
@@ -103,7 +103,7 @@ func genericCreate(s store, model *Model, cols columns.Columns, quoter quotable)
 
 func genericUpdate(s store, model *Model, cols columns.Columns, quoter quotable) error {
 	stmt := fmt.Sprintf("UPDATE %s AS %s SET %s WHERE %s", quoter.Quote(model.TableName()), model.Alias(), cols.Writeable().QuotedUpdateString(quoter), model.WhereNamedID())
-	log(logging.SQL, stmt, model.ID())
+	txlog(logging.SQL, s, stmt, model.ID())
 	_, err := s.NamedExec(stmt, model.Value)
 	if err != nil {
 		return err
@@ -153,14 +153,14 @@ func genericDelete(s store, model *Model, query Query) error {
 }
 
 func genericExec(s store, stmt string, args ...interface{}) (sql.Result, error) {
-	log(logging.SQL, stmt, args...)
+	txlog(logging.SQL, s, stmt, args...)
 	res, err := s.Exec(stmt, args...)
 	return res, err
 }
 
 func genericSelectOne(s store, model *Model, query Query) error {
 	sqlQuery, args := query.ToSQL(model)
-	log(logging.SQL, sqlQuery, args...)
+	txlog(logging.SQL, query.Connection, sqlQuery, args...)
 	err := s.Get(model.Value, sqlQuery, args...)
 	if err != nil {
 		return err
@@ -170,7 +170,7 @@ func genericSelectOne(s store, model *Model, query Query) error {
 
 func genericSelectMany(s store, models *Model, query Query) error {
 	sqlQuery, args := query.ToSQL(models)
-	log(logging.SQL, sqlQuery, args...)
+	txlog(logging.SQL, query.Connection, sqlQuery, args...)
 	err := s.Select(models.Value, sqlQuery, args...)
 	if err != nil {
 		return err
