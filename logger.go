@@ -50,30 +50,35 @@ var txlog = func(lvl logging.Level, anon interface{}, s string, args ...interfac
 		} else {
 			s = fmt.Sprintf("%s - %s", lvl, s)
 		}
-
-		connID := ""
-		txID := 0
-		switch typed := anon.(type) {
-		case *Connection:
-			connID = typed.ID
-			if typed.TX != nil {
-				txID = typed.TX.ID
-			}
-		case *Tx:
-			txID = typed.ID
-		case store:
-			tx, err := typed.Transaction()
-			if err == nil {
-				txID = tx.ID
-			}
-		}
-		s = fmt.Sprintf("%s (conn=%v, tx=%v)", s, connID, txID)
 	} else {
 		s = fmt.Sprintf(s, args...)
 		s = fmt.Sprintf("%s - %s", lvl, s)
 	}
+
+	connID := ""
+	txID := 0
+	switch typed := anon.(type) {
+	case *Connection:
+		connID = typed.ID
+		if typed.TX != nil {
+			txID = typed.TX.ID
+		}
+	case *Tx:
+		txID = typed.ID
+	case store:
+		tx, err := typed.Transaction()
+		if err == nil {
+			txID = tx.ID
+		}
+	}
+
+	if connID != "" || txID != 0 {
+		s = fmt.Sprintf("%s (conn=%v, tx=%v)", s, connID, txID)
+	}
+
 	if Color {
 		s = color.YellowString(s)
 	}
+
 	defaultStdLogger.Println(s)
 }

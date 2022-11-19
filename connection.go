@@ -168,9 +168,9 @@ func (c *Connection) Transaction(fn func(tx *Connection) error) error {
 				txlog(logging.SQL, cn, "ROLLBACK Transaction (inner function panic) ---")
 				dberr = cn.TX.Rollback()
 				if dberr != nil {
-					err = fmt.Errorf("database error while inner panic rollback: %w", dberr)
+					txlog(logging.Error, cn, "database error while inner panic rollback: %w", dberr)
 				}
-				err = fmt.Errorf("transaction was rolled back due to inner panic")
+				panic(ex)
 			}
 		}()
 
