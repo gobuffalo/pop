@@ -30,7 +30,7 @@ func (q *Query) Exec() error {
 			return fmt.Errorf("empty query")
 		}
 
-		log(logging.SQL, sql, args...)
+		txlog(logging.SQL, q.Connection, sql, args...)
 		_, err := q.Connection.Store.Exec(sql, args...)
 		return err
 	})
@@ -46,7 +46,7 @@ func (q *Query) ExecWithCount() (int, error) {
 			return fmt.Errorf("empty query")
 		}
 
-		log(logging.SQL, sql, args...)
+		txlog(logging.SQL, q.Connection, sql, args...)
 		result, err := q.Connection.Store.Exec(sql, args...)
 		if err != nil {
 			return err

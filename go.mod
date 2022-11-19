@@ -14,15 +14,15 @@ require (
 	github.com/gobuffalo/nulls v0.4.2
 	github.com/gobuffalo/plush/v4 v4.1.16
 	github.com/gobuffalo/validate/v3 v3.3.3
-	github.com/gofrs/uuid v4.3.0+incompatible
+	github.com/gofrs/uuid v4.3.1+incompatible
 	github.com/jackc/pgconn v1.13.0
 	github.com/jackc/pgx/v4 v4.17.2
 	github.com/jmoiron/sqlx v1.3.5
 	github.com/lib/pq v1.10.7
 	github.com/luna-duclos/instrumentedsql v1.1.3
-	github.com/mattn/go-sqlite3 v1.14.15
-	github.com/spf13/cobra v1.5.0
-	github.com/stretchr/testify v1.8.0
-	golang.org/x/sync v0.0.0-20220929204114-8fcdb60fdcc0
+	github.com/mattn/go-sqlite3 v1.14.16
+	github.com/spf13/cobra v1.6.1
+	github.com/stretchr/testify v1.8.1
+	golang.org/x/sync v0.1.0
 	gopkg.in/yaml.v2 v2.4.0
 )
