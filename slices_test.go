@@ -44,6 +44,7 @@ func (s *PostgreSQLSuite) Test_Int() {
 		err = tx.Reload(c)
 		r.NoError(err)
 		r.Equal(slices.Int{1, 2, 3}, c.Int)
+		r.Equal(slices.Float{}, c.Float)
 	})
 }
 
@@ -59,6 +60,7 @@ func (s *PostgreSQLSuite) Test_Float() {
 
 		err = tx.Reload(c)
 		r.NoError(err)
+		r.Equal(slices.Int{}, c.Int)
 		r.Equal(slices.Float{1.0, 2.1, 3.2}, c.Float)
 	})
 }
