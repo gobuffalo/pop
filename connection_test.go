@@ -138,10 +138,10 @@ func Test_Connection_Transaction(t *testing.T) {
 	})
 
 	t.Run("Panic", func(t *testing.T) {
-		err = c.Transaction(func(c *Connection) error {
-			panic("inner function panic")
+		r.PanicsWithValue("inner function panic", func() {
+			c.Transaction(func(c *Connection) error {
+				panic("inner function panic")
+			})
 		})
-		r.ErrorContains(err, "panic")
-		r.ErrorContains(err, "rolled back")
 	})
 }
