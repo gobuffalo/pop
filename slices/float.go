@@ -27,8 +27,9 @@ func (f *Float) Scan(src interface{}) error {
 	default:
 		return fmt.Errorf("scan source was not []byte nor string but %T", src)
 	}
-	*f = strToFloat(str)
-	return nil
+	v, err := strToFloat(str)
+	*f = v
+	return err
 }
 
 // Value implements the driver.Valuer interface.
@@ -56,12 +57,22 @@ func (f *Float) UnmarshalText(text []byte) error {
 	return nil
 }
 
-func strToFloat(s string) []float64 {
+func strToFloat(s string) ([]float64, error) {
 	r := strings.Trim(s, "{}")
 	a := make([]float64, 0, 10)
-	for _, t := range strings.Split(r, ",") {
-		i, _ := strconv.ParseFloat(t, 64)
-		a = append(a, i)
+
+	elems := strings.Split(r, ",")
+	if len(elems) == 1 && elems[0] == "" {
+		return a, nil
 	}
-	return a
+
+	for _, t := range elems {
+		f, err := strconv.ParseFloat(t, 64)
+		if err != nil {
+			return nil, err
+		}
+		a = append(a, f)
+	}
+
+	return a, nil
 }
