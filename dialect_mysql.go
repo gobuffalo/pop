@@ -82,31 +82,31 @@ func (m *mysql) MigrationURL() string {
 	return m.URL()
 }
 
-func (m *mysql) Create(s store, model *Model, cols columns.Columns) error {
-	if err := genericCreate(s, model, cols, m); err != nil {
+func (m *mysql) Create(c *Connection, model *Model, cols columns.Columns) error {
+	if err := genericCreate(c, model, cols, m); err != nil {
 		return fmt.Errorf("mysql create: %w", err)
 	}
 	return nil
 }
 
-func (m *mysql) Update(s store, model *Model, cols columns.Columns) error {
-	if err := genericUpdate(s, model, cols, m); err != nil {
+func (m *mysql) Update(c *Connection, model *Model, cols columns.Columns) error {
+	if err := genericUpdate(c, model, cols, m); err != nil {
 		return fmt.Errorf("mysql update: %w", err)
 	}
 	return nil
 }
 
-func (m *mysql) UpdateQuery(s store, model *Model, cols columns.Columns, query Query) (int64, error) {
-	if n, err := genericUpdateQuery(s, model, cols, m, query, sqlx.QUESTION); err != nil {
+func (m *mysql) UpdateQuery(c *Connection, model *Model, cols columns.Columns, query Query) (int64, error) {
+	if n, err := genericUpdateQuery(c, model, cols, m, query, sqlx.QUESTION); err != nil {
 		return n, fmt.Errorf("mysql update query: %w", err)
 	} else {
 		return n, nil
 	}
 }
 
-func (m *mysql) Destroy(s store, model *Model) error {
+func (m *mysql) Destroy(c *Connection, model *Model) error {
 	stmt := fmt.Sprintf("DELETE FROM %s  WHERE %s = ?", m.Quote(model.TableName()), model.IDField())
-	_, err := genericExec(s, stmt, model.ID())
+	_, err := genericExec(c, stmt, model.ID())
 	if err != nil {
 		return fmt.Errorf("mysql destroy: %w", err)
 	}
@@ -115,26 +115,26 @@ func (m *mysql) Destroy(s store, model *Model) error {
 
 var asRegex = regexp.MustCompile(`\sAS\s\S+`) // exactly " AS non-spaces"
 
-func (m *mysql) Delete(s store, model *Model, query Query) error {
+func (m *mysql) Delete(c *Connection, model *Model, query Query) error {
 	sqlQuery, args := query.ToSQL(model)
 	// * MySQL does not support table alias for DELETE syntax until 8.0.
 	// * Do not generate SQL manually if they may have `WHERE IN`.
 	// * Spaces are intentionally added to make it easy to see on the log.
 	sqlQuery = asRegex.ReplaceAllString(sqlQuery, "  ")
 
-	_, err := genericExec(s, sqlQuery, args...)
+	_, err := genericExec(c, sqlQuery, args...)
 	return err
 }
 
-func (m *mysql) SelectOne(s store, model *Model, query Query) error {
-	if err := genericSelectOne(s, model, query); err != nil {
+func (m *mysql) SelectOne(c *Connection, model *Model, query Query) error {
+	if err := genericSelectOne(c, model, query); err != nil {
 		return fmt.Errorf("mysql select one: %w", err)
 	}
 	return nil
 }
 
-func (m *mysql) SelectMany(s store, models *Model, query Query) error {
-	if err := genericSelectMany(s, models, query); err != nil {
+func (m *mysql) SelectMany(c *Connection, models *Model, query Query) error {
+	if err := genericSelectMany(c, models, query); err != nil {
 		return fmt.Errorf("mysql select many: %w", err)
 	}
 	return nil

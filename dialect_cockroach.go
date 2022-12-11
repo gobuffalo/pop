@@ -66,7 +66,7 @@ func (p *cockroach) Details() *ConnectionDetails {
 	return p.ConnectionDetails
 }
 
-func (p *cockroach) Create(s store, model *Model, cols columns.Columns) error {
+func (p *cockroach) Create(c *Connection, model *Model, cols columns.Columns) error {
 	keyType, err := model.PrimaryKeyType()
 	if err != nil {
 		return err
@@ -81,8 +81,8 @@ func (p *cockroach) Create(s store, model *Model, cols columns.Columns) error {
 		} else {
 			query = fmt.Sprintf("INSERT INTO %s DEFAULT VALUES returning %s", p.Quote(model.TableName()), model.IDField())
 		}
-		txlog(logging.SQL, s, query, model.Value)
-		stmt, err := s.PrepareNamed(query)
+		txlog(logging.SQL, c, query, model.Value)
+		stmt, err := c.Store.PrepareNamed(query)
 		if err != nil {
 			return err
 		}
@@ -100,33 +100,33 @@ func (p *cockroach) Create(s store, model *Model, cols columns.Columns) error {
 		}
 		return nil
 	}
-	return genericCreate(s, model, cols, p)
+	return genericCreate(c, model, cols, p)
 }
 
-func (p *cockroach) Update(s store, model *Model, cols columns.Columns) error {
-	return genericUpdate(s, model, cols, p)
+func (p *cockroach) Update(c *Connection, model *Model, cols columns.Columns) error {
+	return genericUpdate(c, model, cols, p)
 }
 
-func (p *cockroach) UpdateQuery(s store, model *Model, cols columns.Columns, query Query) (int64, error) {
-	return genericUpdateQuery(s, model, cols, p, query, sqlx.DOLLAR)
+func (p *cockroach) UpdateQuery(c *Connection, model *Model, cols columns.Columns, query Query) (int64, error) {
+	return genericUpdateQuery(c, model, cols, p, query, sqlx.DOLLAR)
 }
 
-func (p *cockroach) Destroy(s store, model *Model) error {
+func (p *cockroach) Destroy(c *Connection, model *Model) error {
 	stmt := p.TranslateSQL(fmt.Sprintf("DELETE FROM %s AS %s WHERE %s", p.Quote(model.TableName()), model.Alias(), model.WhereID()))
-	_, err := genericExec(s, stmt, model.ID())
+	_, err := genericExec(c, stmt, model.ID())
 	return err
 }
 
-func (p *cockroach) Delete(s store, model *Model, query Query) error {
-	return genericDelete(s, model, query)
+func (p *cockroach) Delete(c *Connection, model *Model, query Query) error {
+	return genericDelete(c, model, query)
 }
 
-func (p *cockroach) SelectOne(s store, model *Model, query Query) error {
-	return genericSelectOne(s, model, query)
+func (p *cockroach) SelectOne(c *Connection, model *Model, query Query) error {
+	return genericSelectOne(c, model, query)
 }
 
-func (p *cockroach) SelectMany(s store, models *Model, query Query) error {
-	return genericSelectMany(s, models, query)
+func (p *cockroach) SelectMany(c *Connection, models *Model, query Query) error {
+	return genericSelectMany(c, models, query)
 }
 
 func (p *cockroach) CreateDB() error {

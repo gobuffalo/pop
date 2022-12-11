@@ -255,7 +255,7 @@ func (c *Connection) Create(model interface{}, excludeColumns ...string) error {
 			m.setUpdatedAt(now)
 			m.setCreatedAt(now)
 
-			if err = c.Dialect.Create(c.Store, m, cols); err != nil {
+			if err = c.Dialect.Create(c, m, cols); err != nil {
 				return err
 			}
 
@@ -372,7 +372,7 @@ func (c *Connection) Update(model interface{}, excludeColumns ...string) error {
 			now := nowFunc().Truncate(time.Microsecond)
 			m.setUpdatedAt(now)
 
-			if err = c.Dialect.Update(c.Store, m, cols); err != nil {
+			if err = c.Dialect.Update(c, m, cols); err != nil {
 				return err
 			}
 			if err = m.afterUpdate(c); err != nil {
@@ -410,7 +410,7 @@ func (q *Query) UpdateQuery(model interface{}, columnNames ...string) (int64, er
 
 	now := nowFunc().Truncate(time.Microsecond)
 	sm.setUpdatedAt(now)
-	return q.Connection.Dialect.UpdateQuery(q.Connection.Store, sm, cols, *q)
+	return q.Connection.Dialect.UpdateQuery(q.Connection, sm, cols, *q)
 }
 
 // UpdateColumns writes changes from an entry to the database, including only the given columns
@@ -446,7 +446,7 @@ func (c *Connection) UpdateColumns(model interface{}, columnNames ...string) err
 			now := nowFunc().Truncate(time.Microsecond)
 			m.setUpdatedAt(now)
 
-			if err = c.Dialect.Update(c.Store, m, cols); err != nil {
+			if err = c.Dialect.Update(c, m, cols); err != nil {
 				return err
 			}
 			if err = m.afterUpdate(c); err != nil {
@@ -470,7 +470,7 @@ func (c *Connection) Destroy(model interface{}) error {
 			if err = m.beforeDestroy(c); err != nil {
 				return err
 			}
-			if err = c.Dialect.Destroy(c.Store, m); err != nil {
+			if err = c.Dialect.Destroy(c, m); err != nil {
 				return err
 			}
 
@@ -484,7 +484,7 @@ func (q *Query) Delete(model interface{}) error {
 
 	return q.Connection.timeFunc("Delete", func() error {
 		m := NewModel(model, q.Connection.Context())
-		err := q.Connection.Dialect.Delete(q.Connection.Store, m, *q)
+		err := q.Connection.Dialect.Delete(q.Connection, m, *q)
 		if err != nil {
 			return err
 		}
