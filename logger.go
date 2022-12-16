@@ -50,30 +50,32 @@ var txlog = func(lvl logging.Level, anon interface{}, s string, args ...interfac
 		} else {
 			s = fmt.Sprintf("%s - %s", lvl, s)
 		}
+
+		connID := ""
+		txID := 0
+		extra := ""
+		switch typed := anon.(type) {
+		case *Connection:
+			connID = typed.ID
+			if typed.TX != nil {
+				txID = typed.TX.ID
+			}
+
+			extra = printStats(&typed.Store)
+		case *Tx:
+			txID = typed.ID
+		case store:
+			if t, ok := typed.(*Tx); ok {
+				txID = t.ID
+			}
+
+			extra = printStats(&typed)
+		}
+
+		s = fmt.Sprintf("%s (conn=%v, tx=%v%v)", s, connID, txID, extra)
 	} else {
 		s = fmt.Sprintf(s, args...)
 		s = fmt.Sprintf("%s - %s", lvl, s)
-	}
-
-	connID := ""
-	txID := 0
-	switch typed := anon.(type) {
-	case *Connection:
-		connID = typed.ID
-		if typed.TX != nil {
-			txID = typed.TX.ID
-		}
-	case *Tx:
-		txID = typed.ID
-	case store:
-		tx, err := typed.Transaction()
-		if err == nil {
-			txID = tx.ID
-		}
-	}
-
-	if connID != "" || txID != 0 {
-		s = fmt.Sprintf("%s (conn=%v, tx=%v)", s, connID, txID)
 	}
 
 	if Color {
@@ -81,4 +83,15 @@ var txlog = func(lvl logging.Level, anon interface{}, s string, args ...interfac
 	}
 
 	defaultStdLogger.Println(s)
+}
+
+// printStats returns a string represent connection pool information from
+// the given store.
+func printStats(s *store) string {
+	if db, ok := (*s).(*dB); ok {
+		s := db.Stats()
+		return fmt.Sprintf(", maxconn: %d, openconn: %d, in-use: %d, idle: %d", s.MaxOpenConnections, s.OpenConnections, s.InUse, s.Idle)
+	}
+
+	return ""
 }

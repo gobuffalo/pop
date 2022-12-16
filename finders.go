@@ -69,7 +69,7 @@ func (q *Query) First(model interface{}) error {
 	err := q.Connection.timeFunc("First", func() error {
 		q.Limit(1)
 		m := NewModel(model, q.Connection.Context())
-		if err := q.Connection.Dialect.SelectOne(q.Connection.Store, m, *q); err != nil {
+		if err := q.Connection.Dialect.SelectOne(q.Connection, m, *q); err != nil {
 			return err
 		}
 		return m.afterFind(q.Connection)
@@ -102,7 +102,7 @@ func (q *Query) Last(model interface{}) error {
 		q.Limit(1)
 		q.Order("created_at DESC, id DESC")
 		m := NewModel(model, q.Connection.Context())
-		if err := q.Connection.Dialect.SelectOne(q.Connection.Store, m, *q); err != nil {
+		if err := q.Connection.Dialect.SelectOne(q.Connection, m, *q); err != nil {
 			return err
 		}
 		return m.afterFind(q.Connection)
@@ -134,7 +134,7 @@ func (c *Connection) All(models interface{}) error {
 func (q *Query) All(models interface{}) error {
 	err := q.Connection.timeFunc("All", func() error {
 		m := NewModel(models, q.Connection.Context())
-		err := q.Connection.Dialect.SelectMany(q.Connection.Store, m, *q)
+		err := q.Connection.Dialect.SelectMany(q.Connection, m, *q)
 		if err != nil {
 			return err
 		}

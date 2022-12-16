@@ -42,7 +42,7 @@ func (commonDialect) Quote(key string) string {
 	return strings.Join(parts, ".")
 }
 
-func genericCreate(s store, model *Model, cols columns.Columns, quoter quotable) error {
+func genericCreate(c *Connection, model *Model, cols columns.Columns, quoter quotable) error {
 	keyType, err := model.PrimaryKeyType()
 	if err != nil {
 		return err
@@ -53,8 +53,8 @@ func genericCreate(s store, model *Model, cols columns.Columns, quoter quotable)
 		cols.Remove(model.IDField())
 		w := cols.Writeable()
 		query := fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s)", quoter.Quote(model.TableName()), w.QuotedString(quoter), w.SymbolizedString())
-		txlog(logging.SQL, s, query, model.Value)
-		res, err := s.NamedExec(query, model.Value)
+		txlog(logging.SQL, c, query, model.Value)
+		res, err := c.Store.NamedExec(query, model.Value)
 		if err != nil {
 			return err
 		}
@@ -81,8 +81,8 @@ func genericCreate(s store, model *Model, cols columns.Columns, quoter quotable)
 		w := cols.Writeable()
 		w.Add(model.IDField())
 		query := fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s)", quoter.Quote(model.TableName()), w.QuotedString(quoter), w.SymbolizedString())
-		txlog(logging.SQL, s, query, model.Value)
-		stmt, err := s.PrepareNamed(query)
+		txlog(logging.SQL, c, query, model.Value)
+		stmt, err := c.Store.PrepareNamed(query)
 		if err != nil {
 			return err
 		}
@@ -101,17 +101,17 @@ func genericCreate(s store, model *Model, cols columns.Columns, quoter quotable)
 	return fmt.Errorf("can not use %s as a primary key type!", keyType)
 }
 
-func genericUpdate(s store, model *Model, cols columns.Columns, quoter quotable) error {
+func genericUpdate(c *Connection, model *Model, cols columns.Columns, quoter quotable) error {
 	stmt := fmt.Sprintf("UPDATE %s AS %s SET %s WHERE %s", quoter.Quote(model.TableName()), model.Alias(), cols.Writeable().QuotedUpdateString(quoter), model.WhereNamedID())
-	txlog(logging.SQL, s, stmt, model.ID())
-	_, err := s.NamedExec(stmt, model.Value)
+	txlog(logging.SQL, c, stmt, model.ID())
+	_, err := c.Store.NamedExec(stmt, model.Value)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func genericUpdateQuery(s store, model *Model, cols columns.Columns, quoter quotable, query Query, bindType int) (int64, error) {
+func genericUpdateQuery(c *Connection, model *Model, cols columns.Columns, quoter quotable, query Query, bindType int) (int64, error) {
 	q := fmt.Sprintf("UPDATE %s AS %s SET %s", quoter.Quote(model.TableName()), model.Alias(), cols.Writeable().QuotedUpdateString(quoter))
 
 	q, updateArgs, err := sqlx.Named(q, model.Value)
@@ -124,7 +124,7 @@ func genericUpdateQuery(s store, model *Model, cols columns.Columns, quoter quot
 
 	q = sqlx.Rebind(bindType, q)
 
-	result, err := genericExec(s, q, append(updateArgs, sb.args...)...)
+	result, err := genericExec(c, q, append(updateArgs, sb.args...)...)
 	if err != nil {
 		return 0, err
 	}
@@ -137,41 +137,41 @@ func genericUpdateQuery(s store, model *Model, cols columns.Columns, quoter quot
 	return n, err
 }
 
-func genericDestroy(s store, model *Model, quoter quotable) error {
+func genericDestroy(c *Connection, model *Model, quoter quotable) error {
 	stmt := fmt.Sprintf("DELETE FROM %s AS %s WHERE %s", quoter.Quote(model.TableName()), model.Alias(), model.WhereID())
-	_, err := genericExec(s, stmt, model.ID())
+	_, err := genericExec(c, stmt, model.ID())
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func genericDelete(s store, model *Model, query Query) error {
+func genericDelete(c *Connection, model *Model, query Query) error {
 	sqlQuery, args := query.ToSQL(model)
-	_, err := genericExec(s, sqlQuery, args...)
+	_, err := genericExec(c, sqlQuery, args...)
 	return err
 }
 
-func genericExec(s store, stmt string, args ...interface{}) (sql.Result, error) {
-	txlog(logging.SQL, s, stmt, args...)
-	res, err := s.Exec(stmt, args...)
+func genericExec(c *Connection, stmt string, args ...interface{}) (sql.Result, error) {
+	txlog(logging.SQL, c, stmt, args...)
+	res, err := c.Store.Exec(stmt, args...)
 	return res, err
 }
 
-func genericSelectOne(s store, model *Model, query Query) error {
+func genericSelectOne(c *Connection, model *Model, query Query) error {
 	sqlQuery, args := query.ToSQL(model)
 	txlog(logging.SQL, query.Connection, sqlQuery, args...)
-	err := s.Get(model.Value, sqlQuery, args...)
+	err := c.Store.Get(model.Value, sqlQuery, args...)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func genericSelectMany(s store, models *Model, query Query) error {
+func genericSelectMany(c *Connection, models *Model, query Query) error {
 	sqlQuery, args := query.ToSQL(models)
 	txlog(logging.SQL, query.Connection, sqlQuery, args...)
-	err := s.Select(models.Value, sqlQuery, args...)
+	err := c.Store.Select(models.Value, sqlQuery, args...)
 	if err != nil {
 		return err
 	}

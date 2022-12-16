@@ -30,4 +30,6 @@ cockroach_ssl:
 sqlite:
   dialect: "sqlite3"
   database: "tmp/test.sqlite"
+  options:
+    lock: true
 
