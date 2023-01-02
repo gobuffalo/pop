@@ -364,6 +364,7 @@ type CallbacksUser struct {
 	AfterU    string    `db:"after_u"`
 	AfterD    string    `db:"after_d"`
 	AfterF    string    `db:"after_f"`
+	AfterEF   string    `db:"after_ef"`
 	CreatedAt time.Time `json:"created_at" db:"created_at"`
 	UpdatedAt time.Time `json:"updated_at" db:"updated_at"`
 }
@@ -417,6 +418,11 @@ func (u *CallbacksUser) AfterDestroy(tx *Connection) error {
 
 func (u *CallbacksUser) AfterFind(tx *Connection) error {
 	u.AfterF = "AfterFind"
+	return nil
+}
+
+func (u *CallbacksUser) AfterEagerFind(tx *Connection) error {
+	u.AfterEF = "AfterEagerFind"
 	return nil
 }
 
