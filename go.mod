@@ -6,7 +6,7 @@ replace github.com/mattn/go-sqlite3 => github.com/mattn/go-sqlite3 v1.14.0
 
 require (
 	github.com/fatih/color v1.9.0
-	github.com/go-sql-driver/mysql v1.5.0
+	github.com/go-sql-driver/mysql v1.6.0
 	github.com/gobuffalo/attrs v0.1.0
 	github.com/gobuffalo/envy v1.8.1
 	github.com/gobuffalo/fizz v1.10.0
@@ -22,7 +22,7 @@ require (
 	github.com/gofrs/uuid v3.2.0+incompatible
 	github.com/jackc/pgconn v1.6.0
 	github.com/jackc/pgx/v4 v4.6.0
-	github.com/jmoiron/sqlx v1.2.0
+	github.com/jmoiron/sqlx v1.3.5
 	github.com/lib/pq v1.3.0
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible
 	github.com/pkg/errors v0.9.1
