@@ -3,6 +3,7 @@ package pop
 import (
 	"database/sql"
 	"fmt"
+	"golang.org/x/sync/errgroup"
 	"reflect"
 	"regexp"
 	"strconv"
@@ -236,62 +237,69 @@ func (q *Query) eagerDefaultAssociations(model interface{}) error {
 	q.eager = false
 	q.Connection.eager = false
 
-	for _, association := range assos {
+	eg := new(errgroup.Group)
+
+	for k := range assos {
+		association := assos[k]
 		if association.Skipped() {
 			continue
 		}
 
-		query := Q(q.Connection)
+		eg.Go(func() error {
+			query := Q(q.Connection)
 
-		whereCondition, args := association.Constraint()
-		query = query.Where(whereCondition, args...)
+			whereCondition, args := association.Constraint()
+			query = query.Where(whereCondition, args...)
 
-		// validates if association is Sortable
-		sortable := (*associations.AssociationSortable)(nil)
-		t := reflect.TypeOf(association)
-		if t.Implements(reflect.TypeOf(sortable).Elem()) {
-			m := reflect.ValueOf(association).MethodByName("OrderBy")
-			out := m.Call([]reflect.Value{})
-			orderClause := out[0].String()
-			if orderClause != "" {
-				query = query.Order(orderClause)
+			// validates if association is Sortable
+			sortable := (*associations.AssociationSortable)(nil)
+			t := reflect.TypeOf(association)
+			if t.Implements(reflect.TypeOf(sortable).Elem()) {
+				m := reflect.ValueOf(association).MethodByName("OrderBy")
+				out := m.Call([]reflect.Value{})
+				orderClause := out[0].String()
+				if orderClause != "" {
+					query = query.Order(orderClause)
+				}
 			}
-		}
 
-		sqlSentence, args := query.ToSQL(&Model{Value: association.Interface()})
-		query = query.RawQuery(sqlSentence, args...)
+			sqlSentence, args := query.ToSQL(&Model{Value: association.Interface()})
+			query = query.RawQuery(sqlSentence, args...)
 
-		if association.Kind() == reflect.Slice || association.Kind() == reflect.Array {
-			err = query.All(association.Interface())
-		}
+			if association.Kind() == reflect.Slice || association.Kind() == reflect.Array {
+				err = query.All(association.Interface())
+			}
 
-		if association.Kind() == reflect.Struct {
-			err = query.First(association.Interface())
-		}
+			if association.Kind() == reflect.Struct {
+				err = query.First(association.Interface())
+			}
 
-		if err != nil && errors.Cause(err) != sql.ErrNoRows {
-			return err
-		}
-
-		// load all inner associations.
-		innerAssociations := association.InnerAssociations()
-		for _, inner := range innerAssociations {
-			v = reflect.Indirect(reflect.ValueOf(model)).FieldByName(inner.Name)
-			innerQuery := Q(query.Connection)
-			innerQuery.eagerFields = []string{inner.Fields}
-			err = innerQuery.eagerAssociations(v.Addr().Interface())
-			if err != nil {
+			if err != nil && errors.Cause(err) != sql.ErrNoRows {
 				return err
 			}
-		}
+
+			// load all inner associations.
+			innerAssociations := association.InnerAssociations()
+			for _, inner := range innerAssociations {
+				v = reflect.Indirect(reflect.ValueOf(model)).FieldByName(inner.Name)
+				innerQuery := Q(query.Connection)
+				innerQuery.eagerFields = []string{inner.Fields}
+				err = innerQuery.eagerAssociations(v.Addr().Interface())
+				if err != nil {
+					return err
+				}
+			}
+			return nil
+		})
 	}
-	return nil
+
+	return eg.Wait()
 }
 
 // Exists returns true/false if a record exists in the database that matches
 // the query.
 //
-// 	q.Where("name = ?", "mark").Exists(&User{})
+//	q.Where("name = ?", "mark").Exists(&User{})
 func (q *Query) Exists(model interface{}) (bool, error) {
 	tmpQuery := Q(q.Connection)
 	q.Clone(tmpQuery) // avoid meddling with original query
