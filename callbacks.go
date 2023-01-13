@@ -20,14 +20,17 @@ type AfterEagerFindable interface {
 }
 
 func (m *Model) afterFind(c *Connection, eager bool) error {
-	if x, ok := m.Value.(AfterFindable); ok && !eager {
-		if err := x.AfterFind(c); err != nil {
-			return err
+	if eager {
+		if x, ok := m.Value.(AfterEagerFindable); ok {
+			if err := x.AfterEagerFind(c); err != nil {
+				return err
+			}
 		}
-	}
-	if x, ok := m.Value.(AfterEagerFindable); ok && eager {
-		if err := x.AfterEagerFind(c); err != nil {
-			return err
+	} else {
+		if x, ok := m.Value.(AfterFindable); ok {
+			if err := x.AfterFind(c); err != nil {
+				return err
+			}
 		}
 	}
 
@@ -46,13 +49,17 @@ func (m *Model) afterFind(c *Connection, eager bool) error {
 			wg.Go(func() error {
 				y := rv.Index(i)
 				y = y.Addr()
-				if x, ok := y.Interface().(AfterFindable); ok && !eager {
-					return x.AfterFind(c)
+
+				if eager {
+					if x, ok := y.Interface().(AfterEagerFindable); ok {
+						return x.AfterEagerFind(c)
+					}
+				} else {
+					if x, ok := y.Interface().(AfterFindable); ok {
+						return x.AfterFind(c)
+					}
 				}
 
-				if x, ok := y.Interface().(AfterEagerFindable); ok && eager {
-					return x.AfterEagerFind(c)
-				}
 				return nil
 			})
 		}(i)
