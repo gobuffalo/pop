@@ -45,24 +45,21 @@ func (m *Model) afterFind(c *Connection, eager bool) error {
 
 	wg := &errgroup.Group{}
 	for i := 0; i < rv.Len(); i++ {
-		func(i int) {
-			wg.Go(func() error {
-				y := rv.Index(i)
-				y = y.Addr()
+		elem := rv.Index(i).Addr()
 
-				if eager {
-					if x, ok := y.Interface().(AfterEagerFindable); ok {
-						return x.AfterEagerFind(c)
-					}
-				} else {
-					if x, ok := y.Interface().(AfterFindable); ok {
-						return x.AfterFind(c)
-					}
-				}
-
-				return nil
-			})
-		}(i)
+		if eager {
+			if x, ok := elem.Interface().(AfterEagerFindable); ok {
+				wg.Go(func() error {
+					return x.AfterEagerFind(c)
+				})
+			}
+		} else {
+			if x, ok := elem.Interface().(AfterFindable); ok {
+				wg.Go(func() error {
+					return x.AfterFind(c)
+				})
+			}
+		}
 	}
 
 	return wg.Wait()
