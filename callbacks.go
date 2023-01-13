@@ -12,9 +12,21 @@ type AfterFindable interface {
 	AfterFind(*Connection) error
 }
 
-func (m *Model) afterFind(c *Connection) error {
-	if x, ok := m.Value.(AfterFindable); ok {
+// AfterEagerFindable callback will be called after a record, or records,
+// has been retrieved from the database and their associations have been
+// eagerly loaded.
+type AfterEagerFindable interface {
+	AfterEagerFind(*Connection) error
+}
+
+func (m *Model) afterFind(c *Connection, eager bool) error {
+	if x, ok := m.Value.(AfterFindable); ok && !eager {
 		if err := x.AfterFind(c); err != nil {
+			return err
+		}
+	}
+	if x, ok := m.Value.(AfterEagerFindable); ok && eager {
+		if err := x.AfterEagerFind(c); err != nil {
 			return err
 		}
 	}
@@ -34,8 +46,12 @@ func (m *Model) afterFind(c *Connection) error {
 			wg.Go(func() error {
 				y := rv.Index(i)
 				y = y.Addr()
-				if x, ok := y.Interface().(AfterFindable); ok {
+				if x, ok := y.Interface().(AfterFindable); ok && !eager {
 					return x.AfterFind(c)
+				}
+
+				if x, ok := y.Interface().(AfterEagerFindable); ok && eager {
+					return x.AfterEagerFind(c)
 				}
 				return nil
 			})
