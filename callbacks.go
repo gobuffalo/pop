@@ -20,14 +20,17 @@ type AfterEagerFindable interface {
 }
 
 func (m *Model) afterFind(c *Connection, eager bool) error {
-	if x, ok := m.Value.(AfterFindable); ok && !eager {
-		if err := x.AfterFind(c); err != nil {
-			return err
+	if eager {
+		if x, ok := m.Value.(AfterEagerFindable); ok {
+			if err := x.AfterEagerFind(c); err != nil {
+				return err
+			}
 		}
-	}
-	if x, ok := m.Value.(AfterEagerFindable); ok && eager {
-		if err := x.AfterEagerFind(c); err != nil {
-			return err
+	} else {
+		if x, ok := m.Value.(AfterFindable); ok {
+			if err := x.AfterFind(c); err != nil {
+				return err
+			}
 		}
 	}
 
@@ -42,20 +45,21 @@ func (m *Model) afterFind(c *Connection, eager bool) error {
 
 	wg := &errgroup.Group{}
 	for i := 0; i < rv.Len(); i++ {
-		func(i int) {
-			wg.Go(func() error {
-				y := rv.Index(i)
-				y = y.Addr()
-				if x, ok := y.Interface().(AfterFindable); ok && !eager {
-					return x.AfterFind(c)
-				}
+		elem := rv.Index(i).Addr()
 
-				if x, ok := y.Interface().(AfterEagerFindable); ok && eager {
+		if eager {
+			if x, ok := elem.Interface().(AfterEagerFindable); ok {
+				wg.Go(func() error {
 					return x.AfterEagerFind(c)
-				}
-				return nil
-			})
-		}(i)
+				})
+			}
+		} else {
+			if x, ok := elem.Interface().(AfterFindable); ok {
+				wg.Go(func() error {
+					return x.AfterFind(c)
+				})
+			}
+		}
 	}
 
 	return wg.Wait()
