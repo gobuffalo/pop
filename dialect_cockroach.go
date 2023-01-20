@@ -17,6 +17,7 @@ import (
 	"github.com/gobuffalo/pop/v6/columns"
 	"github.com/gobuffalo/pop/v6/internal/defaults"
 	"github.com/gobuffalo/pop/v6/logging"
+	"github.com/gofrs/uuid"
 	_ "github.com/jackc/pgx/v4/stdlib" // Import PostgreSQL driver
 	"github.com/jmoiron/sqlx"
 )
@@ -77,17 +78,17 @@ func (p *cockroach) Create(c *Connection, model *Model, cols columns.Columns) er
 		w := cols.Writeable()
 		var query string
 		if len(w.Cols) > 0 {
-			query = fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s) returning %s", p.Quote(model.TableName()), w.QuotedString(p), w.SymbolizedString(), model.IDField())
+			query = fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s) RETURNING %s", p.Quote(model.TableName()), w.QuotedString(p), w.SymbolizedString(), model.IDField())
 		} else {
-			query = fmt.Sprintf("INSERT INTO %s DEFAULT VALUES returning %s", p.Quote(model.TableName()), model.IDField())
+			query = fmt.Sprintf("INSERT INTO %s DEFAULT VALUES RETURNING %s", p.Quote(model.TableName()), model.IDField())
 		}
 		txlog(logging.SQL, c, query, model.Value)
-		stmt, err := c.Store.PrepareNamed(query)
+		stmt, err := c.Store.PrepareNamedContext(model.ctx, query)
 		if err != nil {
 			return err
 		}
 		id := map[string]interface{}{}
-		err = stmt.QueryRow(model.Value).MapScan(id)
+		err = stmt.QueryRowContext(model.ctx, model.Value).MapScan(id)
 		if err != nil {
 			if closeErr := stmt.Close(); closeErr != nil {
 				return fmt.Errorf("failed to close prepared statement: %s: %w", closeErr, err)
@@ -95,6 +96,40 @@ func (p *cockroach) Create(c *Connection, model *Model, cols columns.Columns) er
 			return err
 		}
 		model.setID(id[model.IDField()])
+		if err := stmt.Close(); err != nil {
+			return fmt.Errorf("failed to close statement: %w", err)
+		}
+		return nil
+
+	case "UUID":
+		var query string
+		if model.ID() == emptyUUID {
+			cols.Remove(model.IDField())
+			w := cols.Writeable()
+			if len(w.Cols) > 0 {
+				query = fmt.Sprintf("INSERT INTO %s (%s, %s) VALUES (gen_random_uuid(), %s) RETURNING %s", p.Quote(model.TableName()), model.IDField(), w.QuotedString(p), w.SymbolizedString(), model.IDField())
+			} else {
+				query = fmt.Sprintf("INSERT INTO %s (%s) VALUES (gen_random_uuid()) RETURNING %s", p.Quote(model.TableName()), model.IDField(), model.IDField())
+			}
+		} else {
+			w := cols.Writeable()
+			w.Add(model.IDField())
+			query = fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s) RETURNING %s", p.Quote(model.TableName()), w.QuotedString(p), w.SymbolizedString(), model.IDField())
+		}
+		txlog(logging.SQL, c, query, model.Value)
+		stmt, err := c.Store.PrepareNamedContext(model.ctx, query)
+		if err != nil {
+			return err
+		}
+		var id uuid.UUID
+		err = stmt.QueryRowContext(model.ctx, model.Value).Scan(&id)
+		if err != nil {
+			if closeErr := stmt.Close(); closeErr != nil {
+				return fmt.Errorf("failed to close prepared statement: %s: %w", closeErr, err)
+			}
+			return err
+		}
+		model.setID(id)
 		if err := stmt.Close(); err != nil {
 			return fmt.Errorf("failed to close statement: %w", err)
 		}
