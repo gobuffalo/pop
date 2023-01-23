@@ -54,7 +54,7 @@ func genericCreate(c *Connection, model *Model, cols columns.Columns, quoter quo
 		w := cols.Writeable()
 		query := fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s)", quoter.Quote(model.TableName()), w.QuotedString(quoter), w.SymbolizedString())
 		txlog(logging.SQL, c, query, model.Value)
-		res, err := c.Store.NamedExec(query, model.Value)
+		res, err := c.Store.NamedExecContext(model.ctx, query, model.Value)
 		if err != nil {
 			return err
 		}
@@ -82,19 +82,8 @@ func genericCreate(c *Connection, model *Model, cols columns.Columns, quoter quo
 		w.Add(model.IDField())
 		query := fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s)", quoter.Quote(model.TableName()), w.QuotedString(quoter), w.SymbolizedString())
 		txlog(logging.SQL, c, query, model.Value)
-		stmt, err := c.Store.PrepareNamed(query)
-		if err != nil {
-			return err
-		}
-		_, err = stmt.ExecContext(model.ctx, model.Value)
-		if err != nil {
-			if closeErr := stmt.Close(); closeErr != nil {
-				return fmt.Errorf("failed to close prepared statement: %s: %w", closeErr, err)
-			}
-			return err
-		}
-		if err := stmt.Close(); err != nil {
-			return fmt.Errorf("failed to close statement: %w", err)
+		if _, err := c.Store.NamedExecContext(model.ctx, query, model.Value); err != nil {
+			return fmt.Errorf("named insert: %w", err)
 		}
 		return nil
 	}
@@ -104,7 +93,7 @@ func genericCreate(c *Connection, model *Model, cols columns.Columns, quoter quo
 func genericUpdate(c *Connection, model *Model, cols columns.Columns, quoter quotable) error {
 	stmt := fmt.Sprintf("UPDATE %s AS %s SET %s WHERE %s", quoter.Quote(model.TableName()), model.Alias(), cols.Writeable().QuotedUpdateString(quoter), model.WhereNamedID())
 	txlog(logging.SQL, c, stmt, model.ID())
-	_, err := c.Store.NamedExec(stmt, model.Value)
+	_, err := c.Store.NamedExecContext(model.ctx, stmt, model.Value)
 	if err != nil {
 		return err
 	}
@@ -154,14 +143,14 @@ func genericDelete(c *Connection, model *Model, query Query) error {
 
 func genericExec(c *Connection, stmt string, args ...interface{}) (sql.Result, error) {
 	txlog(logging.SQL, c, stmt, args...)
-	res, err := c.Store.Exec(stmt, args...)
+	res, err := c.Store.ExecContext(c.Context(), stmt, args...)
 	return res, err
 }
 
 func genericSelectOne(c *Connection, model *Model, query Query) error {
 	sqlQuery, args := query.ToSQL(model)
 	txlog(logging.SQL, query.Connection, sqlQuery, args...)
-	err := c.Store.Get(model.Value, sqlQuery, args...)
+	err := c.Store.GetContext(model.ctx, model.Value, sqlQuery, args...)
 	if err != nil {
 		return err
 	}
@@ -171,7 +160,7 @@ func genericSelectOne(c *Connection, model *Model, query Query) error {
 func genericSelectMany(c *Connection, models *Model, query Query) error {
 	sqlQuery, args := query.ToSQL(models)
 	txlog(logging.SQL, query.Connection, sqlQuery, args...)
-	err := c.Store.Select(models.Value, sqlQuery, args...)
+	err := c.Store.SelectContext(models.ctx, models.Value, sqlQuery, args...)
 	if err != nil {
 		return err
 	}

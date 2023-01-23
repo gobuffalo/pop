@@ -1405,9 +1405,11 @@ func Test_Create_UUID(t *testing.T) {
 
 		count, _ := tx.Count(&Song{})
 		song := Song{Title: "Automatic Buffalo"}
+		r.Equal(uuid.Nil, song.ID)
 		err := tx.Create(&song)
 		r.NoError(err)
 		r.NotZero(song.ID)
+		r.NotEqual(uuid.Nil, song.ID)
 
 		ctx, _ := tx.Count(&Song{})
 		r.Equal(count+1, ctx)
@@ -1520,10 +1522,13 @@ func Test_UpdateQuery_NoUpdatedAt(t *testing.T) {
 	}
 	transaction(func(tx *Connection) {
 		r := require.New(t)
+		existing, err := PDB.Count(&NonStandardID{}) // from previous test runs
+		r.NoError(err)
+		r.GreaterOrEqual(existing, 0)
 		r.NoError(PDB.Create(&NonStandardID{OutfacingID: "must-change"}))
 		count, err := PDB.Where("true").UpdateQuery(&NonStandardID{OutfacingID: "has-changed"}, "id")
 		r.NoError(err)
-		r.Equal(int64(1), count)
+		r.Equal(int64(existing+1), count)
 		entity := NonStandardID{}
 		r.NoError(PDB.First(&entity))
 		r.Equal("has-changed", entity.OutfacingID)

@@ -13,6 +13,7 @@ type store interface {
 	Select(interface{}, string, ...interface{}) error
 	Get(interface{}, string, ...interface{}) error
 	NamedExec(string, interface{}) (sql.Result, error)
+	NamedQuery(query string, arg interface{}) (*sqlx.Rows, error)
 	Exec(string, ...interface{}) (sql.Result, error)
 	PrepareNamed(string) (*sqlx.NamedStmt, error)
 	Transaction() (*Tx, error)
@@ -24,6 +25,7 @@ type store interface {
 	SelectContext(context.Context, interface{}, string, ...interface{}) error
 	GetContext(context.Context, interface{}, string, ...interface{}) error
 	NamedExecContext(context.Context, string, interface{}) (sql.Result, error)
+	NamedQueryContext(ctx context.Context, query string, arg interface{}) (*sqlx.Rows, error)
 	ExecContext(context.Context, string, ...interface{}) (sql.Result, error)
 	PrepareNamedContext(context.Context, string) (*sqlx.NamedStmt, error)
 	TransactionContext(context.Context) (*Tx, error)

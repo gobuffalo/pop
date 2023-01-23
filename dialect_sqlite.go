@@ -88,7 +88,7 @@ func (m *sqlite) Create(c *Connection, model *Model, cols columns.Columns) error
 				query = fmt.Sprintf("INSERT INTO %s DEFAULT VALUES", m.Quote(model.TableName()))
 			}
 			txlog(logging.SQL, c, query, model.Value)
-			res, err := c.Store.NamedExec(query, model.Value)
+			res, err := c.Store.NamedExecContext(model.ctx, query, model.Value)
 			if err != nil {
 				return err
 			}

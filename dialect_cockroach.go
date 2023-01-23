@@ -2,6 +2,7 @@ package pop
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"io"
 	"net/url"
@@ -83,22 +84,19 @@ func (p *cockroach) Create(c *Connection, model *Model, cols columns.Columns) er
 			query = fmt.Sprintf("INSERT INTO %s DEFAULT VALUES RETURNING %s", p.Quote(model.TableName()), model.IDField())
 		}
 		txlog(logging.SQL, c, query, model.Value)
-		stmt, err := c.Store.PrepareNamedContext(model.ctx, query)
+		rows, err := c.Store.NamedQueryContext(model.ctx, query, model.Value)
 		if err != nil {
-			return err
+			return fmt.Errorf("named insert: %w", err)
 		}
-		id := map[string]interface{}{}
-		err = stmt.QueryRowContext(model.ctx, model.Value).MapScan(id)
-		if err != nil {
-			if closeErr := stmt.Close(); closeErr != nil {
-				return fmt.Errorf("failed to close prepared statement: %s: %w", closeErr, err)
-			}
-			return err
+		defer rows.Close()
+		if !rows.Next() {
+			return errors.New("named insert: no rows")
 		}
-		model.setID(id[model.IDField()])
-		if err := stmt.Close(); err != nil {
-			return fmt.Errorf("failed to close statement: %w", err)
+		var id interface{}
+		if err := rows.Scan(&id); err != nil {
+			return fmt.Errorf("named insert: scan: %w", err)
 		}
+		model.setID(id)
 		return nil
 
 	case "UUID":
@@ -117,22 +115,19 @@ func (p *cockroach) Create(c *Connection, model *Model, cols columns.Columns) er
 			query = fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s) RETURNING %s", p.Quote(model.TableName()), w.QuotedString(p), w.SymbolizedString(), model.IDField())
 		}
 		txlog(logging.SQL, c, query, model.Value)
-		stmt, err := c.Store.PrepareNamedContext(model.ctx, query)
+		rows, err := c.Store.NamedQueryContext(model.ctx, query, model.Value)
 		if err != nil {
-			return err
+			return fmt.Errorf("named insert: %w", err)
+		}
+		defer rows.Close()
+		if !rows.Next() {
+			return errors.New("named insert: no rows")
 		}
 		var id uuid.UUID
-		err = stmt.QueryRowContext(model.ctx, model.Value).Scan(&id)
-		if err != nil {
-			if closeErr := stmt.Close(); closeErr != nil {
-				return fmt.Errorf("failed to close prepared statement: %s: %w", closeErr, err)
-			}
-			return err
+		if err := rows.Scan(&id); err != nil {
+			return fmt.Errorf("named insert: scan: %w", err)
 		}
 		model.setID(id)
-		if err := stmt.Close(); err != nil {
-			return fmt.Errorf("failed to close statement: %w", err)
-		}
 		return nil
 	}
 	return genericCreate(c, model, cols, p)

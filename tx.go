@@ -54,3 +54,8 @@ func (tx *Tx) Transaction() (*Tx, error) {
 func (tx *Tx) Close() error {
 	return nil
 }
+
+// Workaround for https://github.com/jmoiron/sqlx/issues/447
+func (tx *Tx) NamedQueryContext(ctx context.Context, query string, arg interface{}) (*sqlx.Rows, error) {
+	return sqlx.NamedQueryContext(ctx, tx, query, arg)
+}
