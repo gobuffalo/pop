@@ -384,11 +384,12 @@ func Test_Save_With_Slice(t *testing.T) {
 		r.Zero(u[0].ID)
 		r.Zero(u[1].ID)
 
-		r.NoError(tx.Save(&u))
+		r.NoError(tx.Save(u))
 		r.NotZero(u[0].ID)
 		r.NotZero(u[1].ID)
 
 		uat := u[0].UpdatedAt.UnixNano()
+		time.Sleep(1 * time.Second)
 
 		r.NoError(tx.Save(u))
 		r.NotEqual(uat, u[0].UpdatedAt.UnixNano())
