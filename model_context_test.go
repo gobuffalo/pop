@@ -102,6 +102,9 @@ func Test_ModelContext(t *testing.T) {
 	t.Run("cache_busting", func(t *testing.T) {
 		r := require.New(t)
 
+		r.NoError(PDB.WithContext(context.WithValue(context.Background(), "prefix", "a")).Destroy(&ContextTable{ID: "expectedA"}))
+		r.NoError(PDB.WithContext(context.WithValue(context.Background(), "prefix", "b")).Destroy(&ContextTable{ID: "expectedB"}))
+
 		var expectedA, expectedB ContextTable
 		expectedA.ID = "expectedA"
 		expectedB.ID = "expectedB"

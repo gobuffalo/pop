@@ -1,6 +1,7 @@
 package pop
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"net/url"
@@ -61,27 +62,24 @@ func (p *postgresql) Create(c *Connection, model *Model, cols columns.Columns) e
 		w := cols.Writeable()
 		var query string
 		if len(w.Cols) > 0 {
-			query = fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s) returning %s", p.Quote(model.TableName()), w.QuotedString(p), w.SymbolizedString(), model.IDField())
+			query = fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s) RETURNING %s", p.Quote(model.TableName()), w.QuotedString(p), w.SymbolizedString(), model.IDField())
 		} else {
-			query = fmt.Sprintf("INSERT INTO %s DEFAULT VALUES returning %s", p.Quote(model.TableName()), model.IDField())
+			query = fmt.Sprintf("INSERT INTO %s DEFAULT VALUES RETURNING %s", p.Quote(model.TableName()), model.IDField())
 		}
 		txlog(logging.SQL, c, query, model.Value)
-		stmt, err := c.Store.PrepareNamed(query)
+		rows, err := c.Store.NamedQueryContext(model.ctx, query, model.Value)
 		if err != nil {
-			return err
+			return fmt.Errorf("named insert: %w", err)
 		}
-		id := map[string]interface{}{}
-		err = stmt.QueryRow(model.Value).MapScan(id)
-		if err != nil {
-			if closeErr := stmt.Close(); closeErr != nil {
-				return fmt.Errorf("failed to close prepared statement: %s: %w", closeErr, err)
-			}
-			return err
+		defer rows.Close()
+		if !rows.Next() {
+			return errors.New("named insert: no rows")
 		}
-		model.setID(id[model.IDField()])
-		if closeErr := stmt.Close(); closeErr != nil {
-			return fmt.Errorf("failed to close statement: %w", closeErr)
+		var id interface{}
+		if err := rows.Scan(&id); err != nil {
+			return fmt.Errorf("named insert: scan: %w", err)
 		}
+		model.setID(id)
 		return nil
 	}
 	return genericCreate(c, model, cols, p)

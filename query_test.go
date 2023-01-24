@@ -388,9 +388,9 @@ func Test_ToSQL_RawQuery(t *testing.T) {
 }
 
 func Test_RawQuery_Empty(t *testing.T) {
-	Debug = true
-	defer func() { Debug = false }()
-
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
 	t.Run("EmptyQuery", func(t *testing.T) {
 		r := require.New(t)
 		transaction(func(tx *Connection) {
