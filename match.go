@@ -26,7 +26,7 @@ func ParseMigrationFilename(filename string) (*Match, error) {
 	if m[3] == "" {
 		dbType = "all"
 	} else {
-		dbType = normalizeSynonyms(m[3][1:])
+		dbType = CanonicalDialect(m[3][1:])
 		if !DialectSupported(dbType) {
 			return nil, fmt.Errorf("unsupported dialect %s", dbType)
 		}

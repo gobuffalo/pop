@@ -12,10 +12,25 @@ type AfterFindable interface {
 	AfterFind(*Connection) error
 }
 
-func (m *Model) afterFind(c *Connection) error {
-	if x, ok := m.Value.(AfterFindable); ok {
-		if err := x.AfterFind(c); err != nil {
-			return err
+// AfterEagerFindable callback will be called after a record, or records,
+// has been retrieved from the database and their associations have been
+// eagerly loaded.
+type AfterEagerFindable interface {
+	AfterEagerFind(*Connection) error
+}
+
+func (m *Model) afterFind(c *Connection, eager bool) error {
+	if eager {
+		if x, ok := m.Value.(AfterEagerFindable); ok {
+			if err := x.AfterEagerFind(c); err != nil {
+				return err
+			}
+		}
+	} else {
+		if x, ok := m.Value.(AfterFindable); ok {
+			if err := x.AfterFind(c); err != nil {
+				return err
+			}
 		}
 	}
 
@@ -30,16 +45,21 @@ func (m *Model) afterFind(c *Connection) error {
 
 	wg := &errgroup.Group{}
 	for i := 0; i < rv.Len(); i++ {
-		func(i int) {
-			wg.Go(func() error {
-				y := rv.Index(i)
-				y = y.Addr()
-				if x, ok := y.Interface().(AfterFindable); ok {
+		elem := rv.Index(i).Addr()
+
+		if eager {
+			if x, ok := elem.Interface().(AfterEagerFindable); ok {
+				wg.Go(func() error {
+					return x.AfterEagerFind(c)
+				})
+			}
+		} else {
+			if x, ok := elem.Interface().(AfterFindable); ok {
+				wg.Go(func() error {
 					return x.AfterFind(c)
-				}
-				return nil
-			})
-		}(i)
+				})
+			}
+		}
 	}
 
 	return wg.Wait()

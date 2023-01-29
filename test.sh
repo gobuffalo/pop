@@ -1,84 +1,61 @@
 #!/bin/bash
 
-########################################################
-# test.sh is a wrapper to execute integration tests for
-# pop.
-########################################################
-
 set -e
-clear
 
-VERBOSE=""
-DEBUG='NO'
+# NOTE: See also docker-compose.yml and database.yml to configure database
+# properties.
+export MYSQL_PORT=3307
+export COCKROACH_PORT=26258
 
-for i in "$@"
-do
-case $i in
-    -v)
-    VERBOSE="-v"
-    shift
-    ;;
-    -d)
-    DEBUG='YES'
-    shift
-    ;;
-    *)
-      # unknown option
-    ;;
-esac
-done
+COMPOSE=docker-compose
+which docker-compose || COMPOSE="docker compose"
+
+args=$@
 
 function cleanup {
   echo "Cleanup resources..."
-  docker-compose down
+  $COMPOSE down
+  docker volume prune -f
   rm tsoda
-  find ./sql_scripts/sqlite -name *.sqlite* -delete
+  find ./tmp -name *.sqlite* -delete || true
 }
 # defer cleanup, so it will be executed even after premature exit
 trap cleanup EXIT
 
-# The cockroach volume is created by the root user if no user is set.
-# Therefore we set the current user according to https://github.com/docker/compose/issues/1532#issuecomment-619548112
-CURRENT_UID="$(id -u):$(id -g)"
-export CURRENT_UID
-
-docker-compose up -d
-sleep 5 # Ensure mysql is online
-
-go build -v -tags sqlite -o tsoda ./soda
-
-export GO111MODULE=on
-
 function test {
-  echo "!!! Testing $1"
   export SODA_DIALECT=$1
-  echo ./tsoda -v
-  echo "Setup..."
+
+  echo ""
+  echo "######################################################################"
+  echo "### Running unit tests for $SODA_DIALECT"
   ./tsoda drop -e $SODA_DIALECT -c ./database.yml -p ./testdata/migrations
   ./tsoda create -e $SODA_DIALECT -c ./database.yml -p ./testdata/migrations
   ./tsoda migrate -e $SODA_DIALECT -c ./database.yml -p ./testdata/migrations
-  echo "Test..."
-  go test -race -tags sqlite $VERBOSE -count=1 ./...
+  go test -cover -race -tags sqlite -count=1 $args ./...
 }
 
 function debug_test {
-    echo "!!! Debug Testing $1"
-    export SODA_DIALECT=$1
-    echo ./tsoda -v
-    echo "Setup..."
-    ./tsoda drop -e $SODA_DIALECT -c ./database.yml -p ./testdata/migrations
-    ./tsoda create -e $SODA_DIALECT -c ./database.yml -p ./testdata/migrations
-    ./tsoda migrate -e $SODA_DIALECT -c ./database.yml -p ./testdata/migrations
-    echo "Test and debug..."
-    dlv test github.com/gobuffalo/pop
+  export SODA_DIALECT=$1
+
+  echo ""
+  echo "######################################################################"
+  echo "### Running unit tests for $SODA_DIALECT"
+  ./tsoda drop -e $SODA_DIALECT -c ./database.yml -p ./testdata/migrations
+  ./tsoda create -e $SODA_DIALECT -c ./database.yml -p ./testdata/migrations
+  ./tsoda migrate -e $SODA_DIALECT -c ./database.yml -p ./testdata/migrations
+  dlv test github.com/gobuffalo/pop
 }
 
-dialects=("postgres" "cockroach" "mysql" "sqlite")
+dialects="postgres cockroach mysql sqlite"
 
-for dialect in "${dialects[@]}" ; do
-  if [ $DEBUG = 'NO' ]; then
-  test ${dialect}
-  else
-  debug_test ${dialect}
-  fi
+$COMPOSE up --wait
+
+go build -v -tags sqlite -o tsoda ./soda
+
+for dialect in $dialects; do
+	if [ "$DEBUG" = "YES" ]; then
+		debug_test ${dialect}
+	else
+		test ${dialect}
+	fi
 done

@@ -9,18 +9,29 @@ import (
 	"github.com/gobuffalo/pop/v6/logging"
 )
 
-type logger func(lvl logging.Level, s string, args ...interface{})
-
 // Debug mode, to toggle verbose log traces
 var Debug = false
 
 // Color mode, to toggle colored logs
 var Color = true
 
-var log logger
+// SetLogger overrides the default logger.
+func SetLogger(logger func(level logging.Level, s string, args ...interface{})) {
+	log = logger
+}
 
-var defaultStdLogger = stdlog.New(os.Stdout, "[POP] ", stdlog.LstdFlags)
-var defaultLogger = func(lvl logging.Level, s string, args ...interface{}) {
+// SetLogger overrides the default logger.
+func SetTxLogger(logger func(level logging.Level, anon interface{}, s string, args ...interface{})) {
+	txlog = logger
+}
+
+var defaultStdLogger = stdlog.New(os.Stderr, "[POP] ", stdlog.LstdFlags)
+
+var log = func(lvl logging.Level, s string, args ...interface{}) {
+	txlog(lvl, nil, s, args...)
+}
+
+var txlog = func(lvl logging.Level, anon interface{}, s string, args ...interface{}) {
 	if !Debug && lvl <= logging.Debug {
 		return
 	}
@@ -39,20 +50,48 @@ var defaultLogger = func(lvl logging.Level, s string, args ...interface{}) {
 		} else {
 			s = fmt.Sprintf("%s - %s", lvl, s)
 		}
+
+		connID := ""
+		txID := 0
+		extra := ""
+		switch typed := anon.(type) {
+		case *Connection:
+			connID = typed.ID
+			if typed.TX != nil {
+				txID = typed.TX.ID
+			}
+
+			extra = printStats(&typed.Store)
+		case *Tx:
+			txID = typed.ID
+		case store:
+			if t, ok := typed.(*Tx); ok {
+				txID = t.ID
+			}
+
+			extra = printStats(&typed)
+		}
+
+		s = fmt.Sprintf("%s (conn=%v, tx=%v%v)", s, connID, txID, extra)
 	} else {
 		s = fmt.Sprintf(s, args...)
 		s = fmt.Sprintf("%s - %s", lvl, s)
 	}
+
 	if Color {
 		s = color.YellowString(s)
 	}
+
 	defaultStdLogger.Println(s)
 }
 
-// SetLogger overrides the default logger.
-//
-// The logger must implement the following interface:
-// type logger func(lvl logging.Level, s string, args ...interface{})
-func SetLogger(l logger) {
-	log = l
+// printStats returns a string represent connection pool information from
+// the given store.
+func printStats(s *store) string {
+	if db, ok := (*s).(*dB); ok {
+		s := db.Stats()
+		return fmt.Sprintf(", maxconn: %d, openconn: %d, in-use: %d, idle: %d", s.MaxOpenConnections, s.OpenConnections, s.InUse, s.Idle)
+	}
+
+	return ""
 }

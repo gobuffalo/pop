@@ -145,7 +145,7 @@ func (q *Query) Where(stmt string, args ...interface{}) *Query {
 			inq = append(inq, "?")
 		}
 		qs := fmt.Sprintf("(%s)", strings.Join(inq, ","))
-		stmt = strings.Replace(stmt, "(?)", qs, 1)
+		stmt = inRegex.ReplaceAllString(stmt, " IN "+qs)
 	}
 	q.whereClauses = append(q.whereClauses, clause{stmt, args})
 	return q
@@ -213,6 +213,10 @@ func Q(c *Connection) *Query {
 // from the `Model` passed in.
 func (q Query) ToSQL(model *Model, addColumns ...string) (string, []interface{}) {
 	sb := q.toSQLBuilder(model, addColumns...)
+	// nil model is allowed only when if RawSQL is provided.
+	if model == nil && (q.RawSQL == nil || q.RawSQL.Fragment == "") {
+		return "", nil
+	}
 	return sb.String(), sb.Args()
 }
 

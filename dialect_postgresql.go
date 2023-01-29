@@ -1,8 +1,10 @@
 package pop
 
 import (
+	"errors"
 	"fmt"
 	"io"
+	"net/url"
 	"os/exec"
 	"sync"
 
@@ -49,7 +51,7 @@ func (p *postgresql) Details() *ConnectionDetails {
 	return p.ConnectionDetails
 }
 
-func (p *postgresql) Create(s store, model *Model, cols columns.Columns) error {
+func (p *postgresql) Create(c *Connection, model *Model, cols columns.Columns) error {
 	keyType, err := model.PrimaryKeyType()
 	if err != nil {
 		return err
@@ -60,59 +62,56 @@ func (p *postgresql) Create(s store, model *Model, cols columns.Columns) error {
 		w := cols.Writeable()
 		var query string
 		if len(w.Cols) > 0 {
-			query = fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s) returning %s", p.Quote(model.TableName()), w.QuotedString(p), w.SymbolizedString(), model.IDField())
+			query = fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s) RETURNING %s", p.Quote(model.TableName()), w.QuotedString(p), w.SymbolizedString(), model.IDField())
 		} else {
-			query = fmt.Sprintf("INSERT INTO %s DEFAULT VALUES returning %s", p.Quote(model.TableName()), model.IDField())
+			query = fmt.Sprintf("INSERT INTO %s DEFAULT VALUES RETURNING %s", p.Quote(model.TableName()), model.IDField())
 		}
-		log(logging.SQL, query, model.Value)
-		stmt, err := s.PrepareNamed(query)
+		txlog(logging.SQL, c, query, model.Value)
+		rows, err := c.Store.NamedQueryContext(model.ctx, query, model.Value)
 		if err != nil {
-			return err
+			return fmt.Errorf("named insert: %w", err)
 		}
-		id := map[string]interface{}{}
-		err = stmt.QueryRow(model.Value).MapScan(id)
-		if err != nil {
-			if closeErr := stmt.Close(); closeErr != nil {
-				return fmt.Errorf("failed to close prepared statement: %s: %w", closeErr, err)
-			}
-			return err
+		defer rows.Close()
+		if !rows.Next() {
+			return errors.New("named insert: no rows")
 		}
-		model.setID(id[model.IDField()])
-		if closeErr := stmt.Close(); closeErr != nil {
-			return fmt.Errorf("failed to close statement: %w", closeErr)
+		var id interface{}
+		if err := rows.Scan(&id); err != nil {
+			return fmt.Errorf("named insert: scan: %w", err)
 		}
+		model.setID(id)
 		return nil
 	}
-	return genericCreate(s, model, cols, p)
+	return genericCreate(c, model, cols, p)
 }
 
-func (p *postgresql) Update(s store, model *Model, cols columns.Columns) error {
-	return genericUpdate(s, model, cols, p)
+func (p *postgresql) Update(c *Connection, model *Model, cols columns.Columns) error {
+	return genericUpdate(c, model, cols, p)
 }
 
-func (p *postgresql) UpdateQuery(s store, model *Model, cols columns.Columns, query Query) (int64, error) {
-	return genericUpdateQuery(s, model, cols, p, query, sqlx.DOLLAR)
+func (p *postgresql) UpdateQuery(c *Connection, model *Model, cols columns.Columns, query Query) (int64, error) {
+	return genericUpdateQuery(c, model, cols, p, query, sqlx.DOLLAR)
 }
 
-func (p *postgresql) Destroy(s store, model *Model) error {
+func (p *postgresql) Destroy(c *Connection, model *Model) error {
 	stmt := p.TranslateSQL(fmt.Sprintf("DELETE FROM %s AS %s WHERE %s", p.Quote(model.TableName()), model.Alias(), model.WhereID()))
-	_, err := genericExec(s, stmt, model.ID())
+	_, err := genericExec(c, stmt, model.ID())
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (p *postgresql) Delete(s store, model *Model, query Query) error {
-	return genericDelete(s, model, query)
+func (p *postgresql) Delete(c *Connection, model *Model, query Query) error {
+	return genericDelete(c, model, query)
 }
 
-func (p *postgresql) SelectOne(s store, model *Model, query Query) error {
-	return genericSelectOne(s, model, query)
+func (p *postgresql) SelectOne(c *Connection, model *Model, query Query) error {
+	return genericSelectOne(c, model, query)
 }
 
-func (p *postgresql) SelectMany(s store, models *Model, query Query) error {
-	return genericSelectMany(s, models, query)
+func (p *postgresql) SelectMany(c *Connection, models *Model, query Query) error {
+	return genericSelectMany(c, models, query)
 }
 
 func (p *postgresql) CreateDB() error {
@@ -162,7 +161,7 @@ func (p *postgresql) URL() string {
 		return c.URL
 	}
 	s := "postgres://%s:%s@%s:%s/%s?%s"
-	return fmt.Sprintf(s, c.User, c.Password, c.Host, c.Port, c.Database, c.OptionsString(""))
+	return fmt.Sprintf(s, c.User, url.QueryEscape(c.Password), c.Host, c.Port, c.Database, c.OptionsString(""))
 }
 
 func (p *postgresql) urlWithoutDb() string {
@@ -172,7 +171,7 @@ func (p *postgresql) urlWithoutDb() string {
 	// To avoid a connection problem if the user db is not here, we use the default "postgres"
 	// db, just like the other client tools do.
 	s := "postgres://%s:%s@%s:%s/postgres?%s"
-	return fmt.Sprintf(s, c.User, c.Password, c.Host, c.Port, c.OptionsString(""))
+	return fmt.Sprintf(s, c.User, url.QueryEscape(c.Password), c.Host, c.Port, c.OptionsString(""))
 }
 
 func (p *postgresql) MigrationURL() string {
@@ -238,12 +237,12 @@ func urlParserPostgreSQL(cd *ConnectionDetails) error {
 	options := []string{"fallback_application_name"}
 	for i := range options {
 		if opt, ok := conf.RuntimeParams[options[i]]; ok {
-			cd.Options[options[i]] = opt
+			cd.setOption(options[i], opt)
 		}
 	}
 
 	if conf.TLSConfig == nil {
-		cd.Options["sslmode"] = "disable"
+		cd.setOption("sslmode", "disable")
 	}
 
 	return nil

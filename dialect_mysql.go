@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os/exec"
+	"regexp"
 	"strings"
 
 	_mysql "github.com/go-sql-driver/mysql" // Load MySQL Go driver
@@ -81,59 +82,59 @@ func (m *mysql) MigrationURL() string {
 	return m.URL()
 }
 
-func (m *mysql) Create(s store, model *Model, cols columns.Columns) error {
-	if err := genericCreate(s, model, cols, m); err != nil {
+func (m *mysql) Create(c *Connection, model *Model, cols columns.Columns) error {
+	if err := genericCreate(c, model, cols, m); err != nil {
 		return fmt.Errorf("mysql create: %w", err)
 	}
 	return nil
 }
 
-func (m *mysql) Update(s store, model *Model, cols columns.Columns) error {
-	if err := genericUpdate(s, model, cols, m); err != nil {
+func (m *mysql) Update(c *Connection, model *Model, cols columns.Columns) error {
+	if err := genericUpdate(c, model, cols, m); err != nil {
 		return fmt.Errorf("mysql update: %w", err)
 	}
 	return nil
 }
 
-func (m *mysql) UpdateQuery(s store, model *Model, cols columns.Columns, query Query) (int64, error) {
-	if n, err := genericUpdateQuery(s, model, cols, m, query, sqlx.QUESTION); err != nil {
+func (m *mysql) UpdateQuery(c *Connection, model *Model, cols columns.Columns, query Query) (int64, error) {
+	if n, err := genericUpdateQuery(c, model, cols, m, query, sqlx.QUESTION); err != nil {
 		return n, fmt.Errorf("mysql update query: %w", err)
 	} else {
 		return n, nil
 	}
 }
 
-func (m *mysql) Destroy(s store, model *Model) error {
+func (m *mysql) Destroy(c *Connection, model *Model) error {
 	stmt := fmt.Sprintf("DELETE FROM %s  WHERE %s = ?", m.Quote(model.TableName()), model.IDField())
-	_, err := genericExec(s, stmt, model.ID())
+	_, err := genericExec(c, stmt, model.ID())
 	if err != nil {
 		return fmt.Errorf("mysql destroy: %w", err)
 	}
 	return nil
 }
 
-func (m *mysql) Delete(s store, model *Model, query Query) error {
-	sb := query.toSQLBuilder(model)
+var asRegex = regexp.MustCompile(`\sAS\s\S+`) // exactly " AS non-spaces"
 
-	sql := fmt.Sprintf("DELETE FROM %s", m.Quote(model.TableName()))
-	sql = sb.buildWhereClauses(sql)
+func (m *mysql) Delete(c *Connection, model *Model, query Query) error {
+	sqlQuery, args := query.ToSQL(model)
+	// * MySQL does not support table alias for DELETE syntax until 8.0.
+	// * Do not generate SQL manually if they may have `WHERE IN`.
+	// * Spaces are intentionally added to make it easy to see on the log.
+	sqlQuery = asRegex.ReplaceAllString(sqlQuery, "  ")
 
-	_, err := genericExec(s, sql, sb.Args()...)
-	if err != nil {
-		return fmt.Errorf("mysql delete: %w", err)
-	}
-	return nil
+	_, err := genericExec(c, sqlQuery, args...)
+	return err
 }
 
-func (m *mysql) SelectOne(s store, model *Model, query Query) error {
-	if err := genericSelectOne(s, model, query); err != nil {
+func (m *mysql) SelectOne(c *Connection, model *Model, query Query) error {
+	if err := genericSelectOne(c, model, query); err != nil {
 		return fmt.Errorf("mysql select one: %w", err)
 	}
 	return nil
 }
 
-func (m *mysql) SelectMany(s store, models *Model, query Query) error {
-	if err := genericSelectMany(s, models, query); err != nil {
+func (m *mysql) SelectMany(c *Connection, models *Model, query Query) error {
+	if err := genericSelectMany(c, models, query); err != nil {
 		return fmt.Errorf("mysql select many: %w", err)
 	}
 	return nil
@@ -147,8 +148,8 @@ func (m *mysql) CreateDB() error {
 		return fmt.Errorf("error creating MySQL database %s: %w", deets.Database, err)
 	}
 	defer db.Close()
-	charset := defaults.String(deets.Options["charset"], "utf8mb4")
-	encoding := defaults.String(deets.Options["collation"], "utf8mb4_general_ci")
+	charset := defaults.String(deets.option("charset"), "utf8mb4")
+	encoding := defaults.String(deets.option("collation"), "utf8mb4_general_ci")
 	query := fmt.Sprintf("CREATE DATABASE `%s` DEFAULT CHARSET `%s` DEFAULT COLLATE `%s`", deets.Database, charset, encoding)
 	log(logging.SQL, query)
 
@@ -192,10 +193,9 @@ func (m *mysql) FizzTranslator() fizz.Translator {
 
 func (m *mysql) DumpSchema(w io.Writer) error {
 	deets := m.Details()
-	// Github CI is currently using mysql:5.7 but the mysqldump version doesn't seem to match
-	cmd := exec.Command("mysqldump", "--column-statistics=0", "-d", "-h", deets.Host, "-P", deets.Port, "-u", deets.User, fmt.Sprintf("--password=%s", deets.Password), deets.Database)
+	cmd := exec.Command("mysqldump", "-d", "-h", deets.Host, "-P", deets.Port, "-u", deets.User, fmt.Sprintf("--password=%s", deets.Password), deets.Database)
 	if deets.Port == "socket" {
-		cmd = exec.Command("mysqldump", "--column-statistics=0", "-d", "-S", deets.Host, "-u", deets.User, fmt.Sprintf("--password=%s", deets.Password), deets.Database)
+		cmd = exec.Command("mysqldump", "-d", "-S", deets.Host, "-u", deets.User, fmt.Sprintf("--password=%s", deets.Password), deets.Database)
 	}
 	return genericDumpSchema(deets, cmd, w)
 }
@@ -242,11 +242,10 @@ func urlParserMySQL(cd *ConnectionDetails) error {
 	cd.User = cfg.User
 	cd.Password = cfg.Passwd
 	cd.Database = cfg.DBName
-	if cd.Options == nil { // prevent panic
-		cd.Options = make(map[string]string)
-	}
+
 	// NOTE: use cfg.Params if want to fill options with full parameters
-	cd.Options["collation"] = cfg.Collation
+	cd.setOption("collation", cfg.Collation)
+
 	if cfg.Net == "unix" {
 		cd.Port = "socket" // trick. see: `URL()`
 		cd.Host = cfg.Addr
@@ -274,20 +273,16 @@ func finalizerMySQL(cd *ConnectionDetails) {
 		"multiStatements": "true",
 	}
 
-	if cd.Options == nil { // prevent panic
-		cd.Options = make(map[string]string)
-	}
-
-	for k, v := range defs {
-		cd.Options[k] = defaults.String(cd.Options[k], v)
+	for k, def := range defs {
+		cd.setOptionWithDefault(k, cd.option(k), def)
 	}
 
 	for k, v := range forced {
 		// respect user specified options but print warning!
-		cd.Options[k] = defaults.String(cd.Options[k], v)
-		if cd.Options[k] != v { // when user-defined option exists
-			log(logging.Warn, "IMPORTANT! '%s: %s' option is required to work properly but your current setting is '%v: %v'.", k, v, k, cd.Options[k])
-			log(logging.Warn, "It is highly recommended to remove '%v: %v' option from your config!", k, cd.Options[k])
+		cd.setOptionWithDefault(k, cd.option(k), v)
+		if cd.option(k) != v { // when user-defined option exists
+			log(logging.Warn, "IMPORTANT! '%s: %s' option is required to work properly but your current setting is '%v: %v'.", k, v, k, cd.option(k))
+			log(logging.Warn, "It is highly recommended to remove '%v: %v' option from your config!", k, cd.option(k))
 		} // or override with `cd.Options[k] = v`?
 		if cd.URL != "" && !strings.Contains(cd.URL, k+"="+v) {
 			log(logging.Warn, "IMPORTANT! '%s=%s' option is required to work properly. Please add it to the database URL in the config!", k, v)

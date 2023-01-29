@@ -56,8 +56,14 @@ func DialectSupported(d string) bool {
 	return false
 }
 
-func normalizeSynonyms(dialect string) string {
-	d := strings.ToLower(dialect)
+// CanonicalDialect checks if the given synonym (could be a valid dialect too)
+// is a registered synonym and returns the canonical dialect for the synonym.
+// Otherwise, it returns the lowercase value of the given synonym.
+//
+// Note that it does not check if the return value is a valid (supported)
+// dialect so you need to check it with `DialectSupported()`.
+func CanonicalDialect(synonym string) string {
+	d := strings.ToLower(synonym)
 	if syn, ok := dialectSynonyms[d]; ok {
 		d = syn
 	}

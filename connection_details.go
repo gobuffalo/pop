@@ -7,6 +7,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/gobuffalo/pop/v6/internal/defaults"
@@ -46,8 +47,10 @@ type ConnectionDetails struct {
 	// Defaults to 0 "unlimited". See https://golang.org/pkg/database/sql/#DB.SetConnMaxIdleTime
 	ConnMaxIdleTime time.Duration
 	// Defaults to `false`. See https://godoc.org/github.com/jmoiron/sqlx#DB.Unsafe
-	Unsafe  bool
-	Options map[string]string
+	Unsafe bool
+	// Options stores Connection Details options
+	Options     map[string]string
+	optionsLock *sync.Mutex
 	// Query string encoded options from URL. Example: "sslmode=disable"
 	RawOptions string
 	// UseInstrumentedDriver if set to true uses a wrapper for the underlying driver which exposes tracing
@@ -78,7 +81,7 @@ func (cd *ConnectionDetails) withURL() error {
 		if dialectX.MatchString(ul) {
 			// Guess the dialect from the scheme
 			dialect := ul[:strings.Index(ul, ":")]
-			cd.Dialect = normalizeSynonyms(dialect)
+			cd.Dialect = CanonicalDialect(dialect)
 		} else {
 			return errors.New("no dialect provided, and could not guess it from URL")
 		}
@@ -125,7 +128,7 @@ func (cd *ConnectionDetails) withURL() error {
 // Finalize cleans up the connection details by normalizing names,
 // filling in default values, etc...
 func (cd *ConnectionDetails) Finalize() error {
-	cd.Dialect = normalizeSynonyms(cd.Dialect)
+	cd.Dialect = CanonicalDialect(cd.Dialect)
 
 	if cd.Options == nil { // for safety
 		cd.Options = make(map[string]string)
@@ -189,4 +192,35 @@ func (cd *ConnectionDetails) OptionsString(s string) string {
 		}
 	}
 	return strings.TrimLeft(s, "&")
+}
+
+// option returns the value stored in ConnecitonDetails.Options with key k.
+func (cd *ConnectionDetails) option(k string) string {
+	if cd.Options == nil {
+		return ""
+	}
+	return defaults.String(cd.Options[k], "")
+}
+
+// setOptionWithDefault stores given value v in ConnectionDetails.Options
+// with key k. If v is empty string, it stores def instead.
+// It uses locking mechanism to make the operation safe.
+func (cd *ConnectionDetails) setOptionWithDefault(k, v, def string) {
+	cd.setOption(k, defaults.String(v, def))
+}
+
+// setOption stores given value v in ConnectionDetails.Options with key k.
+// It uses locking mechanism to make the operation safe.
+func (cd *ConnectionDetails) setOption(k, v string) {
+	if cd.optionsLock == nil {
+		cd.optionsLock = &sync.Mutex{}
+	}
+
+	cd.optionsLock.Lock()
+	if cd.Options == nil { // prevent panic
+		cd.Options = make(map[string]string)
+	}
+
+	cd.Options[k] = v
+	cd.optionsLock.Unlock()
 }

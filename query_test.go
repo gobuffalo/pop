@@ -17,20 +17,28 @@ func Test_Where(t *testing.T) {
 	m := NewModel(new(Enemy), context.Background())
 
 	q := PDB.Where("id = ?", 1)
-	sql, _ := q.ToSQL(m)
+	sql, args := q.ToSQL(m)
 	a.Equal(ts("SELECT enemies.A FROM enemies AS enemies WHERE id = ?"), sql)
+	a.Equal([]interface{}{1}, args)
 
 	q.Where("first_name = ? and last_name = ?", "Mark", "Bates")
-	sql, _ = q.ToSQL(m)
+	sql, args = q.ToSQL(m)
 	a.Equal(ts("SELECT enemies.A FROM enemies AS enemies WHERE id = ? AND first_name = ? and last_name = ?"), sql)
+	a.Equal([]interface{}{1, "Mark", "Bates"}, args)
 
 	q = PDB.Where("name = ?", "Mark 'Awesome' Bates")
-	sql, _ = q.ToSQL(m)
+	sql, args = q.ToSQL(m)
 	a.Equal(ts("SELECT enemies.A FROM enemies AS enemies WHERE name = ?"), sql)
+	a.Equal([]interface{}{"Mark 'Awesome' Bates"}, args)
 
 	q = PDB.Where("name = ?", "'; truncate users; --")
 	sql, _ = q.ToSQL(m)
 	a.Equal(ts("SELECT enemies.A FROM enemies AS enemies WHERE name = ?"), sql)
+
+	q = PDB.Where("id is not null") // no args
+	sql, args = q.ToSQL(m)
+	a.Equal(ts("SELECT enemies.A FROM enemies AS enemies WHERE id is not null"), sql)
+	a.Equal([]interface{}{}, args)
 }
 
 func Test_Where_In(t *testing.T) {
@@ -42,15 +50,12 @@ func Test_Where_In(t *testing.T) {
 		u1 := &Song{Title: "A"}
 		u2 := &Song{Title: "B"}
 		u3 := &Song{Title: "C"}
-		err := tx.Create(u1)
-		r.NoError(err)
-		err = tx.Create(u2)
-		r.NoError(err)
-		err = tx.Create(u3)
-		r.NoError(err)
+		r.NoError(tx.Create(u1))
+		r.NoError(tx.Create(u2))
+		r.NoError(tx.Create(u3))
 
 		var songs []Song
-		err = tx.Where("id in (?)", u1.ID, u3.ID).All(&songs)
+		err := tx.Where("id in (?)", u1.ID, u3.ID).All(&songs)
 		r.NoError(err)
 		r.Len(songs, 2)
 	})
@@ -65,17 +70,48 @@ func Test_Where_In_Slice(t *testing.T) {
 		u1 := &Song{Title: "A"}
 		u2 := &Song{Title: "A"}
 		u3 := &Song{Title: "A"}
-		err := tx.Create(u1)
-		r.NoError(err)
-		err = tx.Create(u2)
-		r.NoError(err)
-		err = tx.Create(u3)
-		r.NoError(err)
+		r.NoError(tx.Create(u1))
+		r.NoError(tx.Create(u2))
+		r.NoError(tx.Create(u3))
+
+		Debug = true
+		defer func() { Debug = false }()
 
 		var songs []Song
-		err = tx.Where("id in (?)", []uuid.UUID{u1.ID, u3.ID}).Where("title = ?", "A").All(&songs)
+		err := tx.Where("id in (?)", []uuid.UUID{u1.ID, u3.ID}).Where("title = ?", "A").All(&songs)
 		r.NoError(err)
 		r.Len(songs, 2)
+
+		// especially https://github.com/gobuffalo/pop/issues/699
+		err = tx.Where("id in (?)", []uuid.UUID{u1.ID, u3.ID}).Delete(&Song{})
+		r.NoError(err)
+
+		var remainingSongs []Song
+		r.NoError(tx.All(&remainingSongs))
+		r.Len(remainingSongs, 1)
+	})
+}
+
+func Test_Where_In_One(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
+	r := require.New(t)
+	transaction(func(tx *Connection) {
+		u1 := &Song{Title: "A"}
+		u2 := &Song{Title: "B"}
+		u3 := &Song{Title: "C"}
+		r.NoError(tx.Create(u1))
+		r.NoError(tx.Create(u2))
+		r.NoError(tx.Create(u3))
+
+		Debug = true
+		defer func() { Debug = false }()
+
+		var songs []Song
+		err := tx.Where("id in (?)", u1.ID).All(&songs)
+		r.NoError(err)
+		r.Len(songs, 1)
 	})
 }
 
@@ -88,15 +124,58 @@ func Test_Where_In_Complex(t *testing.T) {
 		u1 := &Song{Title: "A"}
 		u2 := &Song{Title: "A"}
 		u3 := &Song{Title: "A"}
-		err := tx.Create(u1)
-		r.NoError(err)
-		err = tx.Create(u2)
-		r.NoError(err)
-		err = tx.Create(u3)
-		r.NoError(err)
+		r.NoError(tx.Create(u1))
+		r.NoError(tx.Create(u2))
+		r.NoError(tx.Create(u3))
 
 		var songs []Song
-		err = tx.Where("id in (?)", u1.ID, u3.ID).Where("title = ?", "A").All(&songs)
+		err := tx.Where("id in (?)", u1.ID, u3.ID).Where("title = ?", "A").All(&songs)
+		r.NoError(err)
+		r.Len(songs, 2)
+	})
+}
+
+func Test_Where_In_Complex_One(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
+	r := require.New(t)
+	transaction(func(tx *Connection) {
+		u1 := &Song{Title: "A"}
+		u2 := &Song{Title: "A"}
+		u3 := &Song{Title: "A"}
+		r.NoError(tx.Create(u1))
+		r.NoError(tx.Create(u2))
+		r.NoError(tx.Create(u3))
+
+		Debug = true
+		defer func() { Debug = false }()
+
+		var songs []Song
+		err := tx.Where("id in (?)", u3.ID).Where("title = ?", "A").All(&songs)
+		r.NoError(err)
+		r.Len(songs, 1)
+	})
+}
+
+func Test_Where_In_Space(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
+	r := require.New(t)
+	transaction(func(tx *Connection) {
+		u1 := &Song{Title: "A"}
+		u2 := &Song{Title: "B"}
+		u3 := &Song{Title: "C"}
+		r.NoError(tx.Create(u1))
+		r.NoError(tx.Create(u2))
+		r.NoError(tx.Create(u3))
+
+		Debug = true
+		defer func() { Debug = false }()
+
+		var songs []Song
+		err := tx.Where("id in ( ? )", u1.ID, u3.ID).All(&songs)
 		r.NoError(err)
 		r.Len(songs, 2)
 	})
@@ -127,15 +206,12 @@ func Test_Order_With_Args(t *testing.T) {
 		u1 := &Song{Title: "A"}
 		u2 := &Song{Title: "B"}
 		u3 := &Song{Title: "C"}
-		err := tx.Create(u1)
-		r.NoError(err)
-		err = tx.Create(u2)
-		r.NoError(err)
-		err = tx.Create(u3)
-		r.NoError(err)
+		r.NoError(tx.Create(u1))
+		r.NoError(tx.Create(u2))
+		r.NoError(tx.Create(u3))
 
 		var songs []Song
-		err = tx.Where("id in (?)", []uuid.UUID{u1.ID, u2.ID, u3.ID}).
+		err := tx.Where("id in (?)", []uuid.UUID{u1.ID, u2.ID, u3.ID}).
 			Order("title > ? DESC", "A").Order("title").
 			All(&songs)
 		r.NoError(err)
@@ -308,5 +384,24 @@ func Test_ToSQL_RawQuery(t *testing.T) {
 		q, args := query.ToSQL(nil)
 		a.Equal(q, tx.Dialect.TranslateSQL("this is some ? raw ?"))
 		a.Equal(args, []interface{}{"random", "query"})
+	})
+}
+
+func Test_RawQuery_Empty(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
+	t.Run("EmptyQuery", func(t *testing.T) {
+		r := require.New(t)
+		transaction(func(tx *Connection) {
+			r.Error(tx.Q().Exec())
+		})
+	})
+
+	t.Run("EmptyRawQuery", func(t *testing.T) {
+		r := require.New(t)
+		transaction(func(tx *Connection) {
+			r.Error(tx.RawQuery("").Exec())
+		})
 	})
 }

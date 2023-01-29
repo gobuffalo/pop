@@ -45,6 +45,10 @@ func Test_Callbacks(t *testing.T) {
 		r.Equal("AF", user.AfterF)
 		r.NoError(tx.Find(user, user.ID))
 		r.Equal("AfterFind", user.AfterF)
+		r.Empty(user.AfterEF)
+
+		r.NoError(tx.Eager().Find(user, user.ID))
+		r.Equal("AfterEagerFind", user.AfterEF)
 
 		r.NoError(tx.Destroy(user))
 
@@ -70,11 +74,16 @@ func Test_Callbacks_on_Slice(t *testing.T) {
 
 		users := CallbacksUsers{}
 		r.NoError(tx.All(&users))
-
 		r.Len(users, 2)
-
 		for _, u := range users {
 			r.Equal("AfterFind", u.AfterF)
+			r.Empty(u.AfterEF)
+		}
+
+		r.NoError(tx.Eager().All(&users))
+		r.Len(users, 2)
+		for _, u := range users {
+			r.Equal("AfterEagerFind", u.AfterEF)
 		}
 	})
 }

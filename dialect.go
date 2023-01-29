@@ -8,13 +8,13 @@ import (
 )
 
 type crudable interface {
-	SelectOne(store, *Model, Query) error
-	SelectMany(store, *Model, Query) error
-	Create(store, *Model, columns.Columns) error
-	Update(store, *Model, columns.Columns) error
-	UpdateQuery(store, *Model, columns.Columns, Query) (int64, error)
-	Destroy(store, *Model) error
-	Delete(store, *Model, Query) error
+	SelectOne(*Connection, *Model, Query) error
+	SelectMany(*Connection, *Model, Query) error
+	Create(*Connection, *Model, columns.Columns) error
+	Update(*Connection, *Model, columns.Columns) error
+	UpdateQuery(*Connection, *Model, columns.Columns, Query) (int64, error)
+	Destroy(*Connection, *Model) error
+	Delete(*Connection, *Model, Query) error
 }
 
 type fizzable interface {

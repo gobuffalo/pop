@@ -66,13 +66,14 @@ func (c *Connection) First(model interface{}) error {
 //
 //	q.Where("name = ?", "mark").First(&User{})
 func (q *Query) First(model interface{}) error {
+	var m *Model
 	err := q.Connection.timeFunc("First", func() error {
 		q.Limit(1)
-		m := NewModel(model, q.Connection.Context())
-		if err := q.Connection.Dialect.SelectOne(q.Connection.Store, m, *q); err != nil {
+		m = NewModel(model, q.Connection.Context())
+		if err := q.Connection.Dialect.SelectOne(q.Connection, m, *q); err != nil {
 			return err
 		}
-		return m.afterFind(q.Connection)
+		return m.afterFind(q.Connection, false)
 	})
 
 	if err != nil {
@@ -80,10 +81,14 @@ func (q *Query) First(model interface{}) error {
 	}
 
 	if q.eager {
-		err = q.eagerAssociations(model)
+		err := q.eagerAssociations(model)
 		q.disableEager()
-		return err
+		if err != nil {
+			return err
+		}
+		return m.afterFind(q.Connection, true)
 	}
+
 	return nil
 }
 
@@ -98,14 +103,15 @@ func (c *Connection) Last(model interface{}) error {
 //
 //	q.Where("name = ?", "mark").Last(&User{})
 func (q *Query) Last(model interface{}) error {
+	var m *Model
 	err := q.Connection.timeFunc("Last", func() error {
 		q.Limit(1)
 		q.Order("created_at DESC, id DESC")
-		m := NewModel(model, q.Connection.Context())
-		if err := q.Connection.Dialect.SelectOne(q.Connection.Store, m, *q); err != nil {
+		m = NewModel(model, q.Connection.Context())
+		if err := q.Connection.Dialect.SelectOne(q.Connection, m, *q); err != nil {
 			return err
 		}
-		return m.afterFind(q.Connection)
+		return m.afterFind(q.Connection, false)
 	})
 
 	if err != nil {
@@ -115,7 +121,10 @@ func (q *Query) Last(model interface{}) error {
 	if q.eager {
 		err = q.eagerAssociations(model)
 		q.disableEager()
-		return err
+		if err != nil {
+			return err
+		}
+		return m.afterFind(q.Connection, true)
 	}
 
 	return nil
@@ -132,17 +141,20 @@ func (c *Connection) All(models interface{}) error {
 //
 //	q.Where("name = ?", "mark").All(&[]User{})
 func (q *Query) All(models interface{}) error {
+	var m *Model
 	err := q.Connection.timeFunc("All", func() error {
-		m := NewModel(models, q.Connection.Context())
-		err := q.Connection.Dialect.SelectMany(q.Connection.Store, m, *q)
+		m = NewModel(models, q.Connection.Context())
+		err := q.Connection.Dialect.SelectMany(q.Connection, m, *q)
 		if err != nil {
 			return err
 		}
+
 		err = q.paginateModel(models)
 		if err != nil {
 			return err
 		}
-		return m.afterFind(q.Connection)
+
+		return m.afterFind(q.Connection, false)
 	})
 
 	if err != nil {
@@ -152,7 +164,10 @@ func (q *Query) All(models interface{}) error {
 	if q.eager {
 		err = q.eagerAssociations(models)
 		q.disableEager()
-		return err
+		if err != nil {
+			return err
+		}
+		return m.afterFind(q.Connection, true)
 	}
 
 	return nil
@@ -301,7 +316,7 @@ func (q *Query) eagerDefaultAssociations(model interface{}) error {
 // Exists returns true/false if a record exists in the database that matches
 // the query.
 //
-// 	q.Where("name = ?", "mark").Exists(&User{})
+//	q.Where("name = ?", "mark").Exists(&User{})
 func (q *Query) Exists(model interface{}) (bool, error) {
 	tmpQuery := Q(q.Connection)
 	q.Clone(tmpQuery) // avoid meddling with original query
@@ -325,7 +340,7 @@ func (q *Query) Exists(model interface{}) (bool, error) {
 		}
 
 		existsQuery := fmt.Sprintf("SELECT EXISTS (%s)", query)
-		log(logging.SQL, existsQuery, args...)
+		txlog(logging.SQL, q.Connection, existsQuery, args...)
 		return q.Connection.Store.Get(&res, existsQuery, args...)
 	})
 	return res, err
@@ -371,7 +386,7 @@ func (q Query) CountByField(model interface{}, field string) (int, error) {
 		}
 
 		countQuery := fmt.Sprintf("SELECT COUNT(%s) AS row_count FROM (%s) a", field, query)
-		log(logging.SQL, countQuery, args...)
+		txlog(logging.SQL, q.Connection, countQuery, args...)
 		return q.Connection.Store.Get(res, countQuery, args...)
 	})
 	return res.Count, err
