@@ -2,7 +2,7 @@ package pop
 
 import (
 	"bytes"
-	"errors"
+	"database/sql"
 	"fmt"
 	"io"
 	"net/url"
@@ -90,11 +90,17 @@ func (p *cockroach) Create(c *Connection, model *Model, cols columns.Columns) er
 		}
 		defer rows.Close()
 		if !rows.Next() {
-			return errors.New("named insert: no rows")
+			if err := rows.Err(); err != nil {
+				return fmt.Errorf("named insert: next: %w", err)
+			}
+			return fmt.Errorf("named insert: %w", sql.ErrNoRows)
 		}
 		var id interface{}
 		if err := rows.Scan(&id); err != nil {
 			return fmt.Errorf("named insert: scan: %w", err)
+		}
+		if err := rows.Close(); err != nil {
+			return fmt.Errorf("named insert: close: %w", err)
 		}
 		model.setID(id)
 		return nil
@@ -121,11 +127,17 @@ func (p *cockroach) Create(c *Connection, model *Model, cols columns.Columns) er
 		}
 		defer rows.Close()
 		if !rows.Next() {
-			return errors.New("named insert: no rows")
+			if err := rows.Err(); err != nil {
+				return fmt.Errorf("named insert: next: %w", err)
+			}
+			return fmt.Errorf("named insert: %w", sql.ErrNoRows)
 		}
 		var id uuid.UUID
 		if err := rows.Scan(&id); err != nil {
 			return fmt.Errorf("named insert: scan: %w", err)
+		}
+		if err := rows.Close(); err != nil {
+			return fmt.Errorf("named insert: close: %w", err)
 		}
 		model.setID(id)
 		return nil
