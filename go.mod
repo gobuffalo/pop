@@ -26,3 +26,6 @@ require (
 	golang.org/x/sync v0.1.0
 	gopkg.in/yaml.v2 v2.4.0
 )
+
+// Fixes: https://security.snyk.io/vuln/SNYK-GOLANG-GOLANGORGXNETHTTP2HPACK-3358253
+replace golang.org/x/net => golang.org/x/net v0.8.0
