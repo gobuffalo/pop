@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/XSAM/otelsql"
 	mysqld "github.com/go-sql-driver/mysql"
 	"github.com/gobuffalo/pop/v6/logging"
 	pgx "github.com/jackc/pgx/v4/stdlib"
@@ -84,12 +85,13 @@ func instrumentDriver(deets *ConnectionDetails, defaultDriverName string) (drive
 // a custom driver name when using instrumentation, this detection would fail
 // otherwise.
 func openPotentiallyInstrumentedConnection(c dialect, dsn string) (*sqlx.DB, error) {
+	fmt.Println("OPEN POTENTIALLY")
 	driverName, dialect, err := instrumentDriver(c.Details(), c.DefaultDriver())
 	if err != nil {
 		return nil, err
 	}
 
-	con, err := sql.Open(driverName, dsn)
+	con, err := otelsql.Open(driverName, dsn)
 	if err != nil {
 		return nil, fmt.Errorf("could not open database connection: %w", err)
 	}

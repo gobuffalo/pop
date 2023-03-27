@@ -3,6 +3,7 @@ module github.com/gobuffalo/pop/v6
 go 1.16
 
 require (
+	github.com/XSAM/otelsql v0.20.0 // indirect
 	github.com/fatih/color v1.13.0
 	github.com/go-sql-driver/mysql v1.7.0
 	github.com/gobuffalo/attrs v1.0.3
@@ -22,7 +23,7 @@ require (
 	github.com/luna-duclos/instrumentedsql v1.1.3
 	github.com/mattn/go-sqlite3 v1.14.16
 	github.com/spf13/cobra v1.6.1
-	github.com/stretchr/testify v1.8.1
+	github.com/stretchr/testify v1.8.2
 	golang.org/x/sync v0.1.0
 	gopkg.in/yaml.v2 v2.4.0
 )
