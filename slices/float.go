@@ -20,6 +20,9 @@ func (f Float) Interface() interface{} {
 func (f *Float) Scan(src interface{}) error {
 	var str string
 	switch t := src.(type) {
+	case nil:
+		*f = make([]float64, 0)
+		return nil
 	case []byte:
 		str = string(t)
 	case string:

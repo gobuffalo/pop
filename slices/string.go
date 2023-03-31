@@ -24,6 +24,10 @@ func (s String) Interface() interface{} {
 // Scan implements the sql.Scanner interface.
 // It allows to read the string slice from the database value.
 func (s *String) Scan(src interface{}) error {
+	if src == nil {
+		*s = make([]string, 0)
+		return nil
+	}
 	// Still relying on pq driver to help with string arrays.
 	ss := pq.StringArray(*s)
 	err := ss.Scan(src)

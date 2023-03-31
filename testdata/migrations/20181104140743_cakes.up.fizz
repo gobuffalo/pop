@@ -4,6 +4,8 @@
     t.Column("int_slice", "int[]", {"null": true})
     t.Column("float_slice", "numeric[]", {"null": true})
     t.Column("string_slice", "varchar[]", {"null": true})
+    t.Column("uuid_slice", "uuid[]", {"null": true})
+    t.Column("map", "json", {"null": true})
     t.Timestamps()
 }
 {{ end -}}

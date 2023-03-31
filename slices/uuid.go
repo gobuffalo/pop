@@ -24,6 +24,9 @@ func (s UUID) Interface() interface{} {
 func (s *UUID) Scan(src interface{}) error {
 	var b []byte
 	switch t := src.(type) {
+	case nil:
+		*s = make([]uuid.UUID, 0)
+		return nil
 	case []byte:
 		b = t
 	case string:

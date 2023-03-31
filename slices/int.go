@@ -20,6 +20,9 @@ func (i Int) Interface() interface{} {
 func (i *Int) Scan(src interface{}) error {
 	var str string
 	switch t := src.(type) {
+	case nil:
+		*i = make([]int, 0)
+		return nil
 	case []byte:
 		str = string(t)
 	case string:

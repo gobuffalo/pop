@@ -8,6 +8,14 @@ import (
 )
 
 func Test_String_Scan(t *testing.T) {
+	t.Run("empty slice", func(t *testing.T) {
+		r := require.New(t)
+		in := "{}"
+		v := &String{}
+		r.NoError(v.Scan(in))
+		r.Len(*v, 0)
+	})
+
 	r := require.New(t)
 	in := `{"This has a comma,","This has a double quote\"","Also a single'"}`
 	s := &String{}
