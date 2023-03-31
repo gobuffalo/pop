@@ -491,6 +491,9 @@ func preloadManyToMany(tx *Connection, asoc *AssociationMetaInfo, mmi *ModelMeta
 			fkids = append(fkids, row[1])
 		}
 	}
+	if err := rows.Err(); err != nil {
+		return err
+	}
 
 	q := tx.Q()
 	q.eager = false
