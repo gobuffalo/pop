@@ -24,7 +24,8 @@ func (s String) Interface() interface{} {
 // Scan implements the sql.Scanner interface.
 // It allows to read the string slice from the database value.
 func (s *String) Scan(src interface{}) error {
-	if src == nil {
+	switch src.(type) {
+	case nil:
 		*s = make([]string, 0)
 		return nil
 	}
