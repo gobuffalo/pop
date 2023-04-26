@@ -37,7 +37,7 @@ func NewFileMigrator(path string, c *Connection) (FileMigrator, error) {
 		if content == "" {
 			return nil
 		}
-		err = tx.RawQuery(content).Exec()
+		_, err = tx.Store.Exec(content)
 		if err != nil {
 			return fmt.Errorf("error executing %s, sql: %s: %w", mf.Path, content, err)
 		}
