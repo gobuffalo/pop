@@ -229,15 +229,16 @@ func (m *sqlite) FizzTranslator() fizz.Translator {
 }
 
 func (m *sqlite) DumpSchema(w io.Writer) error {
-	cmd := exec.Command("sqlite3", m.Details().Database, ".schema")
+	cmd := exec.Command("sqlite3", m.Details().Database, ".schema --nosys")
 	return genericDumpSchema(m.Details(), cmd, w)
 }
 
 func (m *sqlite) LoadSchema(r io.Reader) error {
 	cmd := exec.Command("sqlite3", m.ConnectionDetails.Database)
+	cmd.Stderr = os.Stderr
 	in, err := cmd.StdinPipe()
 	if err != nil {
-		return err
+		return fmt.Errorf("could not open stdin to SQLite database %s: %w", m.ConnectionDetails.Database, err)
 	}
 	go func() {
 		defer in.Close()
@@ -246,12 +247,12 @@ func (m *sqlite) LoadSchema(r io.Reader) error {
 	log(logging.SQL, strings.Join(cmd.Args, " "))
 	err = cmd.Start()
 	if err != nil {
-		return err
+		return fmt.Errorf("could not load schema to SQLite database %s: %w", m.ConnectionDetails.Database, err)
 	}
 
 	err = cmd.Wait()
 	if err != nil {
-		return err
+		return fmt.Errorf("command failure loading schema to SQLite database %s: %w", m.ConnectionDetails.Database, err)
 	}
 
 	log(logging.Info, "loaded schema for %s", m.Details().Database)

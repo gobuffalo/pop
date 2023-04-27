@@ -4,6 +4,7 @@
 package pop
 
 import (
+	"bytes"
 	"fmt"
 	"path/filepath"
 	"testing"
@@ -195,4 +196,23 @@ func TestSqlite_CreateDB(t *testing.T) {
 func TestSqlite_NewDriver(t *testing.T) {
 	_, err := newSQLiteDriver()
 	require.NoError(t, err)
+}
+
+func TestSqlite_NoDumpSysTables(t *testing.T) {
+	r := require.New(t)
+
+	dir := t.TempDir()
+	cd := &ConnectionDetails{Dialect: "sqlite", Database: filepath.Join(dir, "testdb.sqlite")}
+	c, err := NewConnection(cd)
+	r.NoError(err)
+	r.NoError(c.Open())
+
+	r.NoError(c.RawQuery("CREATE TABLE aitest (id integer primary key autoincrement);").Exec())
+
+
+	schema := new(bytes.Buffer)
+	r.NoError(c.Dialect.DumpSchema(schema))
+
+	r.Contains(schema.String(), "CREATE TABLE aitest")
+	r.NotContains(schema.String(), "CREATE TABLE sqlite_sequence")
 }
