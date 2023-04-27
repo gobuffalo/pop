@@ -19,7 +19,7 @@ import (
 	"github.com/gobuffalo/pop/v6/internal/defaults"
 	"github.com/gobuffalo/pop/v6/logging"
 	"github.com/gofrs/uuid"
-	_ "github.com/jackc/pgx/v4/stdlib" // Import PostgreSQL driver
+	_ "github.com/jackc/pgx/v5/stdlib" // Import PostgreSQL driver
 	"github.com/jmoiron/sqlx"
 )
 

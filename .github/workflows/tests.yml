@@ -12,8 +12,8 @@ jobs:
     strategy:
       matrix:
         go-version:
-          - "1.17.x"
           - "1.18.x"
+          - "1.19.x"
 
     services:
       mysql:
@@ -61,8 +61,8 @@ jobs:
     strategy:
       matrix:
         go-version:
-          - "1.17.x"
           - "1.18.x"
+          - "1.19.x"
 
     services:
       postgres:
@@ -106,8 +106,8 @@ jobs:
     strategy:
       matrix:
         go-version:
-          - "1.17.x"
           - "1.18.x"
+          - "1.19.x"
 
     steps:
       - uses: actions/checkout@v3
@@ -151,8 +151,8 @@ jobs:
     strategy:
       matrix:
         go-version:
-          - "1.17.x"
           - "1.18.x"
+          - "1.19.x"
 
     steps:
       - uses: actions/checkout@v3
@@ -194,8 +194,8 @@ jobs:
     strategy:
       matrix:
         go-version:
-          - "1.17.x"
           - "1.18.x"
+          - "1.19.x"
         os:
           - "macos-latest"
           - "windows-latest"
