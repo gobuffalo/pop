@@ -51,7 +51,7 @@ func (m Migrator) UpLogOnly() error {
 		mtn := c.MigrationTableName()
 		mfs := m.UpMigrations
 		sort.Sort(mfs)
-		return c.Transaction(func(tx *Connection) error {
+		fn := func(tx *Connection) error {
 			for _, mi := range mfs.Migrations {
 				if !m.migrationIsCompatible(c.Dialect, mi) {
 					continue
@@ -69,7 +69,16 @@ func (m Migrator) UpLogOnly() error {
 				}
 			}
 			return nil
-		})
+		}
+
+		if c.TX != nil {
+			// if the connection already has a transaction open,
+			// there should not be any nested transactions as
+			// support for those varies accross SQL dialects
+			return fn(c)
+		}
+
+		return c.Transaction(fn)
 	})
 }
 
@@ -98,7 +107,7 @@ func (m Migrator) UpTo(step int) (applied int, err error) {
 			if exists {
 				continue
 			}
-			err = c.Transaction(func(tx *Connection) error {
+			runStep := func(tx *Connection) error {
 				err := mi.Run(tx)
 				if err != nil {
 					return err
@@ -108,7 +117,16 @@ func (m Migrator) UpTo(step int) (applied int, err error) {
 					return fmt.Errorf("problem inserting migration version %s: %w", mi.Version, err)
 				}
 				return nil
-			})
+			}
+			if c.TX != nil {
+				// if the connection already has a transaction
+				// open, there should not be any nested
+				// transactions as support for those varies
+				// accross SQL dialects
+				err = runStep(c)
+			} else {
+				err = c.Transaction(runStep)
+			}
 			if err != nil {
 				return err
 			}
@@ -159,7 +177,7 @@ func (m Migrator) Down(step int) error {
 			if !exists {
 				return fmt.Errorf("migration version %s does not exist", mi.Version)
 			}
-			err = c.Transaction(func(tx *Connection) error {
+			runStep := func(tx *Connection) error {
 				err := mi.Run(tx)
 				if err != nil {
 					return err
@@ -169,7 +187,16 @@ func (m Migrator) Down(step int) error {
 					return fmt.Errorf("problem deleting migration version %s: %w", mi.Version, err)
 				}
 				return nil
-			})
+			}
+			if c.TX != nil {
+				// if the connection already has a transaction
+				// open, there should not be any nested
+				// transactions as support for those varies
+				// accross SQL dialects
+				err = runStep(c)
+			} else {
+				err = c.Transaction(runStep)
+			}
 			if err != nil {
 				return err
 			}
@@ -202,7 +229,7 @@ func CreateSchemaMigrations(c *Connection) error {
 		return nil
 	}
 
-	return c.Transaction(func(tx *Connection) error {
+	fn := func(tx *Connection) error {
 		schemaMigrations := newSchemaMigrations(mtn)
 		smSQL, err := c.Dialect.FizzTranslator().CreateTable(schemaMigrations)
 		if err != nil {
@@ -213,7 +240,16 @@ func CreateSchemaMigrations(c *Connection) error {
 			return fmt.Errorf("could not execute %s: %w", smSQL, err)
 		}
 		return nil
-	})
+	}
+
+	if c.TX != nil {
+		// if the connection already has a transaction open, there
+		// should not be any nested transactions as support for those
+		// varies accross SQL dialects
+		return fn(c)
+	}
+
+	return c.Transaction(fn)
 }
 
 // CreateSchemaMigrations sets up a table to track migrations. This is an idempotent
