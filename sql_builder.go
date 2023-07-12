@@ -109,12 +109,10 @@ func (sq *sqlBuilder) compile() {
 	}
 }
 
-func (sq *sqlBuilder) buildSelectSQL() string {
-	cols := sq.buildColumns()
-
+func (sq *sqlBuilder) buildSelectSQLWithColumns(cols string) string {
 	fc := sq.buildfromClauses()
 
-	sql := fmt.Sprintf("SELECT %s FROM %s", cols.Readable().SelectString(), fc)
+	sql := fmt.Sprintf("SELECT %s FROM %s", cols, fc)
 
 	sql = sq.buildJoinClauses(sql)
 	sql = sq.buildWhereClauses(sql)
@@ -125,27 +123,17 @@ func (sq *sqlBuilder) buildSelectSQL() string {
 	return sql
 }
 
+func (sq *sqlBuilder) buildSelectSQL() string {
+	return sq.buildSelectSQLWithColumns(sq.buildColumns().Readable().SelectString())
+}
+
 func (sq *sqlBuilder) buildDeleteSQL() string {
 	fc := sq.buildfromClauses()
 
-	sql := fmt.Sprintf("DELETE FROM %s", fc)
+	idField := sq.Model.Alias() + "." + sq.Model.IDField()
+	subQuery := sq.buildSelectSQLWithColumns(idField)
 
-	sql = sq.buildJoinClauses(sql)
-
-	sql = sq.buildWhereClauses(sql)
-
-	// paginated delete supported by sqlite and mysql
-	// > If SQLite is compiled with the SQLITE_ENABLE_UPDATE_DELETE_LIMIT compile-time option [...] - from https://www.sqlite.org/lang_delete.html
-	//
-	// not generic enough IMO, therefore excluded
-	//
-	//switch sq.Query.Connection.Dialect.Name() {
-	//case nameMySQL, nameSQLite3:
-	//	sql = sq.buildOrderClauses(sql)
-	//	sql = sq.buildPaginationClauses(sql)
-	//}
-
-	return sql
+	return fmt.Sprintf("DELETE FROM %s WHERE %s IN (%s)", fc, idField, subQuery)
 }
 
 func (sq *sqlBuilder) buildfromClauses() fromClauses {
