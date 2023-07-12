@@ -2008,3 +2008,38 @@ func Test_Create_Timestamps_With_NowFunc(t *testing.T) {
 		r.Equal(fakeNow, friend.UpdatedAt)
 	})
 }
+
+func Test_Delete_With_Join(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
+
+	transaction(func(tx *Connection) {
+		r := require.New(t)
+
+		songTitles := []string{"Waterpumpee", "Respectness"}
+		composer := Composer{Name: "Seeed"}
+
+		r.NoError(tx.Create(&composer))
+		r.NotZero(composer.ID)
+
+		count, err := tx.Count("songs")
+		r.NoError(err)
+
+		for _, title := range songTitles {
+			err = tx.Create(&Song{Title: title, ComposedByID: composer.ID})
+			r.NoError(err)
+		}
+
+		ctx, err := tx.Count("songs")
+		r.NoError(err)
+		r.Equal(count+len(songTitles), ctx)
+
+		err = tx.Q().Join("composers", "composers.id = composed_by_id").Where("composers.name = ?", composer.Name).Delete("songs")
+		r.NoError(err)
+
+		ctx, err = tx.Count("songs")
+		r.NoError(err)
+		r.Equal(count, ctx)
+	})
+}

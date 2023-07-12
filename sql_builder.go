@@ -130,6 +130,8 @@ func (sq *sqlBuilder) buildDeleteSQL() string {
 
 	sql := fmt.Sprintf("DELETE FROM %s", fc)
 
+	sql = sq.buildJoinClauses(sql)
+
 	sql = sq.buildWhereClauses(sql)
 
 	// paginated delete supported by sqlite and mysql
