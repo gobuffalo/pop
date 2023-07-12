@@ -116,18 +116,27 @@ func (m *mysql) Destroy(c *Connection, model *Model) error {
 var asRegex = regexp.MustCompile(`\sAS\s\S+`) // exactly " AS non-spaces"
 
 func (m *mysql) Delete(c *Connection, model *Model, query Query) error {
-	sqlQuery, args := query.ToSQL(model)
-	// * MySQL does not support table alias for DELETE syntax until 8.0.
-	// * Do not generate SQL manually if they may have `WHERE IN`.
-	// * Spaces are intentionally added to make it easy to see on the log.
-	sqlQuery = asRegex.ReplaceAllString(sqlQuery, "  ")
+	sb := query.toSQLBuilder(model)
 
-	_, err := genericExec(c, sqlQuery, args...)
-	return err
+	// mysql is tricky, because you cannot do a subquery on tables that you update/delete
+	// However, it supports joins and whatnot on DELETE statements, so we just replace the SELECT
+	// with a DELETE and run the query.
+	sql := sb.buildSelectSQLWithColumns(model.Alias())
+	sql, found := strings.CutPrefix(sql, "SELECT")
+	if !found {
+		panic("expected to get a SELECT query")
+	}
+	sql = "DELETE" + sql
+
+	_, err := genericExec(s, sql, sb.Args()...)
+	if err != nil {
+		return fmt.Errorf("mysql delete: %w", err)
+	}
+	return nil
 }
 
 func (m *mysql) SelectOne(c *Connection, model *Model, query Query) error {
-	if err := genericSelectOne(c, model, query); err != nil {
+	if err := genericSelectOne(s, model, query); err != nil {
 		return fmt.Errorf("mysql select one: %w", err)
 	}
 	return nil
