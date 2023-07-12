@@ -122,10 +122,11 @@ func (m *mysql) Delete(c *Connection, model *Model, query Query) error {
 	// However, it supports joins and whatnot on DELETE statements, so we just replace the SELECT
 	// with a DELETE and run the query.
 	sql := sb.buildSelectSQLWithColumns(model.Alias())
-	sql, found := strings.CutPrefix(sql, "SELECT")
-	if !found {
-		panic("expected to get a SELECT query")
+
+	if !strings.HasPrefix(sql, "SELECT") {
+		panic("expected to get a SELECT statement")
 	}
+	sql = sql[len("SELECT"):]
 	sql = "DELETE" + sql
 
 	_, err := genericExec(s, sql, sb.Args()...)
