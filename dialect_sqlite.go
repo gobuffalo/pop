@@ -79,7 +79,9 @@ func (m *sqlite) Create(c *Connection, model *Model, cols columns.Columns) error
 		switch keyType {
 		case "int", "int64":
 			var id int64
-			cols.Remove(model.IDField())
+			if model.UsingAutoIncrement() {
+				cols.Remove(model.IDField())
+			}
 			w := cols.Writeable()
 			var query string
 			if len(w.Cols) > 0 {
@@ -92,12 +94,15 @@ func (m *sqlite) Create(c *Connection, model *Model, cols columns.Columns) error
 			if err != nil {
 				return err
 			}
-			id, err = res.LastInsertId()
-			if err == nil {
-				model.setID(id)
-			}
-			if err != nil {
-				return err
+			// If the model isn't using auto_increment, the id is already set
+			if model.UsingAutoIncrement() {
+				id, err = res.LastInsertId()
+				if err == nil {
+					model.setID(id)
+				}
+				if err != nil {
+					return err
+				}
 			}
 			return nil
 		}
