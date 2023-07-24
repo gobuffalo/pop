@@ -13,7 +13,12 @@ type Columns struct {
 	lock       *sync.RWMutex
 	TableName  string
 	TableAlias string
-	IDField    string
+	IDField    IDField
+}
+
+type IDField struct {
+	Name      string
+	Writeable bool
 }
 
 // Add a column to the list.
@@ -75,7 +80,7 @@ func (c *Columns) Add(names ...string) []*Column {
 				} else if xs[1] == "w" {
 					col.Readable = false
 				}
-			} else if col.Name == c.IDField {
+			} else if col.Name == c.IDField.Name && c.IDField.Writeable == false {
 				col.Writeable = false
 			}
 
@@ -158,13 +163,13 @@ func (c Columns) SymbolizedString() string {
 }
 
 // NewColumns constructs a list of columns for a given table name.
-func NewColumns(tableName, idField string) Columns {
+func NewColumns(tableName string, idField IDField) Columns {
 	return NewColumnsWithAlias(tableName, "", idField)
 }
 
 // NewColumnsWithAlias constructs a list of columns for a given table
 // name, using a given alias for the table.
-func NewColumnsWithAlias(tableName, tableAlias, idField string) Columns {
+func NewColumnsWithAlias(tableName, tableAlias string, idField IDField) Columns {
 	return Columns{
 		lock:       &sync.RWMutex{},
 		Cols:       map[string]*Column{},

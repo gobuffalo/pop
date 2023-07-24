@@ -58,7 +58,9 @@ func (p *postgresql) Create(c *Connection, model *Model, cols columns.Columns) e
 	}
 	switch keyType {
 	case "int", "int64":
-		cols.Remove(model.IDField())
+		if model.UsingAutoIncrement() {
+			cols.Remove(model.IDField())
+		}
 		w := cols.Writeable()
 		var query string
 		if len(w.Cols) > 0 {

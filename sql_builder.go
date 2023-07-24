@@ -255,7 +255,7 @@ func (sq *sqlBuilder) buildColumns() columns.Columns {
 		if ok && cols.TableAlias == asName {
 			return cols
 		}
-		cols = columns.ForStructWithAlias(sq.Model.Value, tableName, asName, sq.Model.IDField())
+		cols = columns.ForStructWithAlias(sq.Model.Value, tableName, asName, columns.IDField{Name: sq.Model.IDField(), Writeable: !sq.Model.UsingAutoIncrement()})
 		columnCacheMutex.Lock()
 		columnCache[tableName] = cols
 		columnCacheMutex.Unlock()
@@ -263,7 +263,7 @@ func (sq *sqlBuilder) buildColumns() columns.Columns {
 	}
 
 	// acl > 0
-	cols := columns.NewColumns("", sq.Model.IDField())
+	cols := columns.NewColumns("", columns.IDField{Name: sq.Model.IDField(), Writeable: !sq.Model.UsingAutoIncrement()})
 	cols.Add(sq.AddColumns...)
 	return cols
 }

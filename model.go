@@ -85,6 +85,13 @@ func (m *Model) PrimaryKeyType() (string, error) {
 	return fbn.Type().Name(), nil
 }
 
+// UsingAutoIncrement returns true if the model is not opting out of autoincrement
+func (m *Model) UsingAutoIncrement() bool {
+	tag, err := m.tagForFieldByName(m.IDField(), "no_auto_increment")
+	// if there is no `no_auto_increment` tag, or tag isn't true, then we default to relying on auto increment
+	return err != nil || tag != "true"
+}
+
 // TableNameAble interface allows for the customize table mapping
 // between a name and the database. For example the value
 // `User{}` will automatically map to "users". Implementing `TableNameAble`
@@ -122,7 +129,7 @@ func (m *Model) TableName() string {
 }
 
 func (m *Model) Columns() columns.Columns {
-	return columns.ForStructWithAlias(m.Value, m.TableName(), m.As, m.IDField())
+	return columns.ForStructWithAlias(m.Value, m.TableName(), m.As, columns.IDField{Name: m.IDField(), Writeable: !m.UsingAutoIncrement()})
 }
 
 func (m *Model) cacheKey(t reflect.Type) string {
@@ -240,6 +247,18 @@ func (m *Model) WhereNamedID() string {
 func (m *Model) isSlice() bool {
 	v := reflect.Indirect(reflect.ValueOf(m.Value))
 	return v.Kind() == reflect.Slice || v.Kind() == reflect.Array
+}
+
+func (m *Model) tagForFieldByName(fieldName string, tagName string) (string, error) {
+	el := reflect.TypeOf(m.Value).Elem()
+	if el.Kind() != reflect.Struct {
+		return "", fmt.Errorf("model is not a struct")
+	}
+	fbn, ok := el.FieldByName(fieldName)
+	if !ok {
+		return "", fmt.Errorf("model does not have a field named %s", fieldName)
+	}
+	return fbn.Tag.Get(tagName), nil
 }
 
 func (m *Model) iterate(fn modelIterable) error {

@@ -362,7 +362,7 @@ func (c *Connection) Update(model interface{}, excludeColumns ...string) error {
 			}
 
 			tn := m.TableName()
-			cols := columns.ForStructWithAlias(model, tn, m.As, m.IDField())
+			cols := columns.ForStructWithAlias(model, tn, m.As, columns.IDField{Name: m.IDField(), Writeable: !m.UsingAutoIncrement()})
 			cols.Remove(m.IDField(), "created_at")
 
 			if tn == sm.TableName() {
@@ -401,7 +401,7 @@ func (q *Query) UpdateQuery(model interface{}, columnNames ...string) (int64, er
 		return 0, fmt.Errorf("model must be a struct; got %s", modelKind)
 	}
 
-	cols := columns.NewColumnsWithAlias(sm.TableName(), sm.As, sm.IDField())
+	cols := columns.NewColumnsWithAlias(sm.TableName(), sm.As, columns.IDField{Name: sm.IDField(), Writeable: !sm.UsingAutoIncrement()})
 	cols.Add(columnNames...)
 	if _, err := sm.fieldByName("UpdatedAt"); err == nil {
 		cols.Add("updated_at")
@@ -435,11 +435,11 @@ func (c *Connection) UpdateColumns(model interface{}, columnNames ...string) err
 
 			cols := columns.Columns{}
 			if len(columnNames) > 0 && tn == sm.TableName() {
-				cols = columns.NewColumnsWithAlias(tn, m.As, sm.IDField())
+				cols = columns.NewColumnsWithAlias(tn, m.As, columns.IDField{Name: sm.IDField(), Writeable: !sm.UsingAutoIncrement()})
 				cols.Add(columnNames...)
 
 			} else {
-				cols = columns.ForStructWithAlias(model, tn, m.As, m.IDField())
+				cols = columns.ForStructWithAlias(model, tn, m.As, columns.IDField{Name: m.IDField(), Writeable: !m.UsingAutoIncrement()})
 			}
 			cols.Remove("id", "created_at")
 
