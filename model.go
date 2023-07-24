@@ -87,7 +87,7 @@ func (m *Model) PrimaryKeyType() (string, error) {
 
 // UsingAutoIncrement returns true if the model is not opting out of autoincrement
 func (m *Model) UsingAutoIncrement() bool {
-	tag, err := m.tagForFieldByName(m.IDField(), "no_auto_increment")
+	tag, err := m.tagForFieldByName(strings.ToUpper(m.IDField()), "no_auto_increment")
 	// if there is no `no_auto_increment` tag, or tag isn't true, then we default to relying on auto increment
 	return err != nil || tag != "true"
 }

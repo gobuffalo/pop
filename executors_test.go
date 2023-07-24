@@ -2008,3 +2008,25 @@ func Test_Create_Timestamps_With_NowFunc(t *testing.T) {
 		r.Equal(fakeNow, friend.UpdatedAt)
 	})
 }
+
+func Test_Update_Non_Auto_Increment_ID(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
+	transaction(func(tx *Connection) {
+		r := require.New(t)
+
+		firstID := 2
+		client := &UpstreamCopyWithoutAutoIncrement{
+			ID: firstID,
+		}
+		r.NoError(tx.Create(client))
+		r.Equal(firstID, client.ID)
+
+		updatedID := 4
+		client.ID = updatedID
+		r.NoError(tx.Update(client))
+		r.NoError(tx.Reload(client))
+		r.Equal(updatedID, client.ID)
+	})
+}

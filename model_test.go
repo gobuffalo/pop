@@ -214,3 +214,39 @@ func Test_WhereID(t *testing.T) {
 	m = Model{Value: &testNormalID{ID: 1}}
 	r.Equal("id", m.IDField())
 }
+
+type testNoAutoincrement struct {
+	ID        int `db:"id" no_auto_increment:"true"`
+	CreatedAt int `db:"created_at"`
+	UpdatedAt int `db:"updated_at"`
+}
+
+func (t testNoAutoincrement) TableName() string {
+	return "foo.bar"
+}
+
+func Test_NoAutoIncrementID(t *testing.T) {
+	r := require.New(t)
+	m := NewModel(&testNoAutoincrement{ID: 1}, context.Background())
+
+	r.Equal("foo_bar.id = ?", m.WhereID())
+	r.Equal(false, m.UsingAutoIncrement())
+}
+
+type testUsingAutoincrementByDefault struct {
+	ID        int `db:"id"`
+	CreatedAt int `db:"created_at"`
+	UpdatedAt int `db:"updated_at"`
+}
+
+func (t testUsingAutoincrementByDefault) TableName() string {
+	return "foo.bar"
+}
+
+func Test_UsingAutoIncrementByDefaultID(t *testing.T) {
+	r := require.New(t)
+	m := NewModel(&testUsingAutoincrementByDefault{ID: 1}, context.Background())
+
+	r.Equal("foo_bar.id = ?", m.WhereID())
+	r.Equal(true, m.UsingAutoIncrement())
+}

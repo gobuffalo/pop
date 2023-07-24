@@ -115,3 +115,14 @@ func Test_Columns_ID_Field_Not_ID(t *testing.T) {
 	r.Equal(1, len(c.Cols), "%+v", c)
 	r.Equal(&columns.Column{Name: "notid", Writeable: false, Readable: true, SelectSQL: "non_standard_id.notid"}, c.Cols["notid"])
 }
+
+func Test_Columns_IDField_NoAutoIncrement(t *testing.T) {
+	type withIDNoAutoIncrement struct {
+		ID int `db:"id" no_auto_increment:"true"`
+	}
+
+	r := require.New(t)
+	c := columns.ForStructWithAlias(withIDNoAutoIncrement{ID: 2}, "with_id_no_auto_increment", "", columns.IDField{Name: "id", Writeable: true})
+	r.Equal(1, len(c.Cols), "%+v", c)
+	r.Equal(&columns.Column{Name: "id", Writeable: true, Readable: true, SelectSQL: "with_id_no_auto_increment.id"}, c.Cols["id"])
+}

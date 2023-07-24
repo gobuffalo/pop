@@ -493,3 +493,9 @@ type EmbeddingStruct struct {
 	InnerStruct
 	AdditionalField string `db:"additional_field"`
 }
+
+type UpstreamCopyWithoutAutoIncrement struct {
+	ID        int       `db:"id" no_auto_increment:"true"`
+	CreatedAt time.Time `db:"created_at"`
+	UpdatedAt time.Time `db:"updated_at"`
+}
