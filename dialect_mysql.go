@@ -43,7 +43,7 @@ func (m *mysql) DefaultDriver() string {
 }
 
 func (mysql) Quote(key string) string {
-	return fmt.Sprintf("`%s`", key)
+	return quoteIdentifiers(key, "`")
 }
 
 func (m *mysql) Details() *ConnectionDetails {

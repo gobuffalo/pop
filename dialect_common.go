@@ -29,17 +29,22 @@ func (commonDialect) Lock(fn func() error) error {
 	return fn()
 }
 
-func (commonDialect) Quote(key string) string {
-	parts := strings.Split(key, ".")
+func quoteIdentifiers(s, quote string) string {
+	parts := strings.Split(s, ".")
 
 	for i, part := range parts {
-		part = strings.Trim(part, `"`)
+		part = strings.Trim(part, quote)
 		part = strings.TrimSpace(part)
 
-		parts[i] = fmt.Sprintf(`"%v"`, part)
+		parts[i] = quote + part + quote
 	}
 
 	return strings.Join(parts, ".")
+
+}
+
+func (commonDialect) Quote(key string) string {
+	return quoteIdentifiers(key, `"`)
 }
 
 func genericCreate(c *Connection, model *Model, cols columns.Columns, quoter quotable) error {

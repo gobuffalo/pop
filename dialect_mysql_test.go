@@ -244,3 +244,12 @@ func (s *MySQLSuite) Test_MySQL_DDL_Schema() {
 	err = PDB.Dialect.DumpSchema(f)
 	r.Error(err)
 }
+
+func Test_MySQL_Quote(t *testing.T) {
+	r := require.New(t)
+
+	m := &mysql{}
+	r.Equal("`table_name`", m.Quote("table_name"))
+	r.Equal("`schema`.`table_name`", m.Quote("schema.table_name"))
+	r.Equal("`schema`.`table_name`", m.Quote(m.Quote("schema.table_name")))
+}
