@@ -129,7 +129,12 @@ func (m *mysql) Delete(c *Connection, model *Model, query Query) error {
 	sql = sql[len("SELECT"):]
 	sql = "DELETE" + sql
 
-	_, err := genericExec(s, sql, sb.Args()...)
+	// * MySQL does not support table alias for DELETE syntax until 8.0.
+	// * Do not generate SQL manually if they may have `WHERE IN`.
+	// * Spaces are intentionally added to make it easy to see on the log.
+	sql = asRegex.ReplaceAllString(sql, "  ")
+
+	_, err := genericExec(c, sql, sb.Args()...)
 	if err != nil {
 		return fmt.Errorf("mysql delete: %w", err)
 	}
@@ -137,7 +142,7 @@ func (m *mysql) Delete(c *Connection, model *Model, query Query) error {
 }
 
 func (m *mysql) SelectOne(c *Connection, model *Model, query Query) error {
-	if err := genericSelectOne(s, model, query); err != nil {
+	if err := genericSelectOne(c, model, query); err != nil {
 		return fmt.Errorf("mysql select one: %w", err)
 	}
 	return nil
