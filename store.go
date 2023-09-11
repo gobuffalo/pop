@@ -21,6 +21,8 @@ type store interface {
 	Commit() error
 	Close() error
 
+	SQLDB() *sql.DB
+
 	// Context versions to wrap with contextStore
 	SelectContext(context.Context, interface{}, string, ...interface{}) error
 	GetContext(context.Context, interface{}, string, ...interface{}) error

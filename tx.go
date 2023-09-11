@@ -18,11 +18,13 @@ func init() {
 type Tx struct {
 	ID int
 	*sqlx.Tx
+	db *sql.DB
 }
 
 func newTX(ctx context.Context, db *dB, opts *sql.TxOptions) (*Tx, error) {
 	t := &Tx{
 		ID: rand.Int(),
+		db: db.SQLDB(),
 	}
 	tx, err := db.BeginTxx(ctx, opts)
 	t.Tx = tx
@@ -30,6 +32,10 @@ func newTX(ctx context.Context, db *dB, opts *sql.TxOptions) (*Tx, error) {
 		return nil, fmt.Errorf("could not create new transaction: %w", err)
 	}
 	return t, nil
+}
+
+func (tx *Tx) SQLDB() *sql.DB {
+	return tx.db
 }
 
 // TransactionContext simply returns the current transaction,

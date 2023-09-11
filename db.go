@@ -11,6 +11,10 @@ type dB struct {
 	*sqlx.DB
 }
 
+func (db *dB) SQLDB() *sql.DB {
+	return db.DB.DB
+}
+
 func (db *dB) TransactionContext(ctx context.Context) (*Tx, error) {
 	return newTX(ctx, db, nil)
 }
