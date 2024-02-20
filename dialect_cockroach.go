@@ -1,6 +1,7 @@
 package pop
 
 import (
+	"bufio"
 	"bytes"
 	"database/sql"
 	"fmt"
@@ -9,7 +10,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"regexp"
 	"strings"
 	"sync"
 
@@ -249,7 +249,7 @@ func (p *cockroach) FizzTranslator() fizz.Translator {
 }
 
 func (p *cockroach) DumpSchema(w io.Writer) error {
-	cmd := exec.Command("cockroach", "sql", "-e", "SHOW CREATE ALL TABLES", "-d", p.Details().Database, "--format", "raw")
+	cmd := exec.Command("cockroach", "sql", "--url", p.Details().URL, "-e", "SHOW CREATE ALL TABLES", "--format", "raw")
 
 	c := p.ConnectionDetails
 	if defaults.String(c.option("sslmode"), "disable") == "disable" || strings.Contains(c.RawOptions, "sslmode=disable") {
@@ -271,15 +271,24 @@ func cockroachDumpSchema(deets *ConnectionDetails, cmd *exec.Cmd, w io.Writer) e
 		return err
 	}
 
-	// --format raw returns comments prefixed with # which is invalid, so we make it a valid SQL comment.
-	result := regexp.MustCompile("(?m)^#").ReplaceAll(bb.Bytes(), []byte("-- #"))
-
-	if _, err := w.Write(result); err != nil {
+	var written int
+	s := bufio.NewScanner(&bb)
+	for s.Scan() {
+		// --format raw returns lots of useless comments starting with #
+		if bytes.HasPrefix(s.Bytes(), []byte{'#'}) {
+			continue
+		}
+		if n, err := fmt.Fprintln(w, s.Text()); err != nil {
+			return err
+		} else {
+			written += n
+		}
+	}
+	if err := s.Err(); err != nil {
 		return err
 	}
 
-	x := bytes.TrimSpace(result)
-	if len(x) == 0 {
+	if written == 0 {
 		return fmt.Errorf("unable to dump schema for %s", deets.Database)
 	}
 
