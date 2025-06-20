@@ -9,8 +9,8 @@ import (
 
 	"github.com/gobuffalo/flect"
 	nflect "github.com/gobuffalo/flect/name"
-	"github.com/gobuffalo/pop/v6/columns"
 	"github.com/gofrs/uuid"
+	"github.com/ory/pop/v6/columns"
 )
 
 var nowFunc = time.Now

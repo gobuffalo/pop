@@ -16,10 +16,10 @@ import (
 
 	"github.com/gobuffalo/fizz"
 	"github.com/gobuffalo/fizz/translators"
-	"github.com/gobuffalo/pop/v6/columns"
-	"github.com/gobuffalo/pop/v6/internal/defaults"
-	"github.com/gobuffalo/pop/v6/logging"
 	"github.com/jmoiron/sqlx"
+	"github.com/ory/pop/v6/columns"
+	"github.com/ory/pop/v6/internal/defaults"
+	"github.com/ory/pop/v6/logging"
 )
 
 const nameSQLite3 = "sqlite3"

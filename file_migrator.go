@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/gobuffalo/pop/v6/logging"
+	"github.com/ory/pop/v6/logging"
 )
 
 // FileMigrator is a migrator for SQL and Fizz

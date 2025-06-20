@@ -9,9 +9,9 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/gobuffalo/pop/v6/internal/defaults"
-	"github.com/gobuffalo/pop/v6/internal/randx"
-	"github.com/gobuffalo/pop/v6/logging"
+	"github.com/ory/pop/v6/internal/defaults"
+	"github.com/ory/pop/v6/internal/randx"
+	"github.com/ory/pop/v6/logging"
 )
 
 // Connections contains all available connections

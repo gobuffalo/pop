@@ -17,12 +17,12 @@ import (
 
 	"github.com/gobuffalo/fizz"
 	"github.com/gobuffalo/fizz/translators"
-	"github.com/gobuffalo/pop/v6/columns"
-	"github.com/gobuffalo/pop/v6/internal/defaults"
-	"github.com/gobuffalo/pop/v6/logging"
 	"github.com/gofrs/uuid"
 	_ "github.com/jackc/pgx/v5/stdlib" // Import PostgreSQL driver
 	"github.com/jmoiron/sqlx"
+	"github.com/ory/pop/v6/columns"
+	"github.com/ory/pop/v6/internal/defaults"
+	"github.com/ory/pop/v6/logging"
 )
 
 const nameCockroach = "cockroach"

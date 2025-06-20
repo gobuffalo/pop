@@ -11,10 +11,10 @@ import (
 	"sync"
 
 	mysqld "github.com/go-sql-driver/mysql"
-	"github.com/gobuffalo/pop/v6/logging"
 	pgx "github.com/jackc/pgx/v5/stdlib"
 	"github.com/jmoiron/sqlx"
 	"github.com/luna-duclos/instrumentedsql"
+	"github.com/ory/pop/v6/logging"
 )
 
 const instrumentedDriverName = "instrumented-sql-driver"

@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"github.com/gobuffalo/pop/v6/internal/randx"
 	"github.com/jmoiron/sqlx"
+	"github.com/ory/pop/v6/internal/randx"
 )
 
 // Tx stores a transaction with an ID to keep track.

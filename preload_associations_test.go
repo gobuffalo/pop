@@ -120,7 +120,7 @@ func Test_New_Implementation_For_Nplus1_With_NullUUIDs_And_FK_ID(t *testing.T) {
 	// This test suite prevents regressions of an obscure bug in the preload code which caused
 	// pointer values to be set with their empty values when relations did not exist.
 	//
-	// See also: https://github.com/gobuffalo/pop/issues/139
+	// See also: https://github.com/ory/pop/issues/139
 	transaction(func(tx *Connection) {
 		a := require.New(t)
 

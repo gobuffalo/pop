@@ -7,10 +7,10 @@ import (
 	"time"
 
 	"github.com/gobuffalo/nulls"
-	"github.com/gobuffalo/pop/v6/logging"
 	"github.com/gobuffalo/validate/v3"
 	"github.com/gobuffalo/validate/v3/validators"
 	"github.com/gofrs/uuid"
+	"github.com/ory/pop/v6/logging"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -457,7 +457,7 @@ type Student struct {
 	UpdatedAt time.Time `json:"updated_at" db:"updated_at"`
 }
 
-// https://github.com/gobuffalo/pop/issues/302
+// https://github.com/ory/pop/issues/302
 type Parent struct {
 	ID        uuid.UUID  `json:"id" db:"id"`
 	CreatedAt time.Time  `json:"created_at" db:"created_at"`

@@ -9,9 +9,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/gobuffalo/pop/v6/associations"
-	"github.com/gobuffalo/pop/v6/logging"
 	"github.com/gofrs/uuid"
+	"github.com/ory/pop/v6/associations"
+	"github.com/ory/pop/v6/logging"
 )
 
 var rLimitOffset = regexp.MustCompile("(?i)(limit [0-9]+ offset [0-9]+)$")

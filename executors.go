@@ -5,11 +5,11 @@ import (
 	"reflect"
 	"time"
 
-	"github.com/gobuffalo/pop/v6/associations"
-	"github.com/gobuffalo/pop/v6/columns"
-	"github.com/gobuffalo/pop/v6/logging"
 	"github.com/gobuffalo/validate/v3"
 	"github.com/gofrs/uuid"
+	"github.com/ory/pop/v6/associations"
+	"github.com/ory/pop/v6/columns"
+	"github.com/ory/pop/v6/logging"
 )
 
 // Reload fetch fresh data for a given model, using its ID.

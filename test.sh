@@ -43,7 +43,7 @@ function debug_test {
   ./tsoda drop -e $SODA_DIALECT -c ./database.yml -p ./testdata/migrations
   ./tsoda create -e $SODA_DIALECT -c ./database.yml -p ./testdata/migrations
   ./tsoda migrate -e $SODA_DIALECT -c ./database.yml -p ./testdata/migrations
-  dlv test github.com/gobuffalo/pop
+  dlv test github.com/ory/pop
 }
 
 dialects="postgres cockroach mysql sqlite"

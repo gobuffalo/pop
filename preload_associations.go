@@ -7,10 +7,10 @@ import (
 	"strings"
 
 	"github.com/gobuffalo/flect"
-	"github.com/gobuffalo/pop/v6/internal/defaults"
-	"github.com/gobuffalo/pop/v6/logging"
 	"github.com/jmoiron/sqlx"
 	"github.com/jmoiron/sqlx/reflectx"
+	"github.com/ory/pop/v6/internal/defaults"
+	"github.com/ory/pop/v6/logging"
 )
 
 var validFieldRegexp = regexp.MustCompile(`^(([a-zA-Z0-9]*)(\.[a-zA-Z0-9]+)?)+$`)
@@ -278,7 +278,7 @@ func preloadHasMany(tx *Connection, asoc *AssociationMetaInfo, mmi *ModelMetaInf
 				// FieldByName will initialize the value. It is important that this happens AFTER
 				// we checked whether the field should be set. Otherwise, we'll set a zero value!
 				//
-				// This is most likely the reason for https://github.com/gobuffalo/pop/issues/139
+				// This is most likely the reason for https://github.com/ory/pop/issues/139
 				modelAssociationField := mmi.mapper.FieldByName(mvalue, asoc.Name)
 				switch {
 				case modelAssociationField.Kind() == reflect.Slice || modelAssociationField.Kind() == reflect.Array:
@@ -344,7 +344,7 @@ func preloadHasOne(tx *Connection, asoc *AssociationMetaInfo, mmi *ModelMetaInfo
 				// FieldByName will initialize the value. It is important that this happens AFTER
 				// we checked whether the field should be set. Otherwise, we'll set a zero value!
 				//
-				// This is most likely the reason for https://github.com/gobuffalo/pop/issues/139
+				// This is most likely the reason for https://github.com/ory/pop/issues/139
 				modelAssociationField := mmi.mapper.FieldByName(mvalue, asoc.Name)
 				switch {
 				case modelAssociationField.Kind() == reflect.Slice || modelAssociationField.Kind() == reflect.Array:
@@ -416,7 +416,7 @@ func preloadBelongsTo(tx *Connection, asoc *AssociationMetaInfo, mmi *ModelMetaI
 				// FieldByName will initialize the value. It is important that this happens AFTER
 				// we checked whether the field should be set. Otherwise, we'll set a zero value!
 				//
-				// This is most likely the reason for https://github.com/gobuffalo/pop/issues/139
+				// This is most likely the reason for https://github.com/ory/pop/issues/139
 				modelAssociationField := mmi.mapper.FieldByName(mvalue, asoc.Name)
 				switch {
 				case modelAssociationField.Kind() == reflect.Slice || modelAssociationField.Kind() == reflect.Array:
@@ -528,7 +528,7 @@ func preloadManyToMany(tx *Connection, asoc *AssociationMetaInfo, mmi *ModelMeta
 						// FieldByName will initialize the value. It is important that this happens AFTER
 						// we checked whether the field should be set. Otherwise, we'll set a zero value!
 						//
-						// This is most likely the reason for https://github.com/gobuffalo/pop/issues/139
+						// This is most likely the reason for https://github.com/ory/pop/issues/139
 						modelAssociationField := mmi.mapper.FieldByName(mvalue, asoc.Name)
 						modelAssociationField.Set(reflect.Append(modelAssociationField, asocValue))
 					}

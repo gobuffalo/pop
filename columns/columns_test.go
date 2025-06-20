@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/gobuffalo/pop/v6/columns"
+	"github.com/ory/pop/v6/columns"
 	"github.com/stretchr/testify/require"
 )
 

@@ -1,4 +1,4 @@
-PACKAGE_NAME          := github.com/gobuffalo/pop
+PACKAGE_NAME          := github.com/ory/pop
 GOLANG_CROSS_VERSION  ?= v1.22
 
 TAGS ?= "sqlite"

@@ -82,7 +82,7 @@ func Test_Where_In_Slice(t *testing.T) {
 		r.NoError(err)
 		r.Len(songs, 2)
 
-		// especially https://github.com/gobuffalo/pop/issues/699
+		// especially https://github.com/ory/pop/issues/699
 		err = tx.Where("id in (?)", []uuid.UUID{u1.ID, u3.ID}).Delete(&Song{})
 		r.NoError(err)
 
