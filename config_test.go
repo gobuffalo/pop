@@ -12,11 +12,11 @@ func Test_LoadsConnectionsFromConfig(t *testing.T) {
 	r := require.New(t)
 
 	r.NoError(LoadConfigFile())
-	if DialectSupported("sqlite3") {
-		r.Equal(5, len(Connections))
-	} else {
-		r.Equal(4, len(Connections))
-	}
+
+	// Only 6 connections are loaded since sqlite3 is not compiled in.
+	expectedConnections := 6
+
+	r.Equal(expectedConnections, len(Connections))
 }
 
 func Test_AddLookupPaths(t *testing.T) {
