@@ -64,6 +64,13 @@ mysql:
 }
 
 func Test_Save_With_ExcludeColumns_On_Association(t *testing.T) {
-	// This test is not compatible with the current User model (no Pets field, Name is nulls.String).
-	// Remove or comment out this test to fix build errors.
+	if PDB == nil {
+		t.Skip("skipping integration test")
+	}
+
+	t.Skip("Test temporarily disabled - needs implementation of exclude columns for nested associations")
+
+	// When implemented, this test should verify that columns can be excluded from
+	// associated models during a save operation. The implementation would need to
+	// handle dot notation like "pets.type" to exclude columns on nested models.
 }
