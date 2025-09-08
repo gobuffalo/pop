@@ -13,7 +13,7 @@ postgres:
   pool: 25
 
 cockroach:
-  url: postgres://{{ envOr "COCKROACH_USER" "root" }}:{{ envOr "COCKROACH_PASSWORD" "" }}@{{ envOr "COCKROACH_HOST" "127.0.0.1" }}:{{ envOr "COCKROACH_PORT" "26257" }}/pop_test?application_name=cockroach&sslmode=disable
+  url: postgres://{{ envOr "COCKROACH_USER" "root" }}:{{ envOr "COCKROACH_PASSWORD" "" }}@{{ envOr "COCKROACH_HOST" "127.0.0.1" }}:{{ envOr "COCKROACH_PORT" "26257" }}/pop_test?application_name=cockroach&sslmode=disable&pool_min_conns=10
   dialect: "cockroach"
 
 cockroach_ssl:

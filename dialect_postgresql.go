@@ -125,7 +125,7 @@ func (p *postgresql) CreateDB() error {
 	// createdb -h db -p 5432 -U postgres enterprise_development
 	deets := p.ConnectionDetails
 
-	db, _, err := openPotentiallyInstrumentedConnection(context.Background(), p, p.urlWithoutDb())
+	db, _, err := openPotentiallyInstrumentedConnection(context.Background(), p, p.urlWithoutDB())
 	if err != nil {
 		return fmt.Errorf("error creating PostgreSQL database %s: %w", deets.Database, err)
 	}
@@ -145,7 +145,7 @@ func (p *postgresql) CreateDB() error {
 func (p *postgresql) DropDB() error {
 	deets := p.ConnectionDetails
 
-	db, _, err := openPotentiallyInstrumentedConnection(context.Background(), p, p.urlWithoutDb())
+	db, _, err := openPotentiallyInstrumentedConnection(context.Background(), p, p.urlWithoutDB())
 	if err != nil {
 		return fmt.Errorf("error dropping PostgreSQL database %s: %w", deets.Database, err)
 	}
@@ -171,10 +171,10 @@ func (p *postgresql) URL() string {
 	return fmt.Sprintf(s, c.User, url.QueryEscape(c.Password), c.Host, c.Port, c.Database, c.OptionsString(""))
 }
 
-func (p *postgresql) urlWithoutDb() string {
+func (p *postgresql) urlWithoutDB() string {
 	c := p.ConnectionDetails
 	// https://github.com/gobuffalo/buffalo/issues/836
-	// If the db is not precised, postgresql takes the username as the database to connect on.
+	// If the db is not specified, postgresql takes the username as the database to connect on.
 	// To avoid a connection problem if the user db is not here, we use the default "postgres"
 	// db, just like the other client tools do.
 	s := "postgres://%s:%s@%s:%s/postgres?%s"

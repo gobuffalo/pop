@@ -21,7 +21,7 @@ func Test_MySQL_URL_As_Is(t *testing.T) {
 
 	m := &mysql{commonDialect{ConnectionDetails: cd}}
 	r.Equal("user:pass@(host:port)/dbase?opt=value", m.URL())
-	r.Equal("user:pass@(host:port)/?opt=value", m.urlWithoutDb())
+	r.Equal("user:pass@(host:port)/?opt=value", m.urlWithoutDB())
 	r.Equal("user:pass@(host:port)/dbase?opt=value", m.MigrationURL())
 }
 
@@ -41,7 +41,7 @@ func Test_MySQL_URL_Override_withURL(t *testing.T) {
 
 	m := &mysql{commonDialect{ConnectionDetails: cd}}
 	r.Equal("user:pass@(host:port)/dbase?opt=value", m.URL())
-	r.Equal("user:pass@(host:port)/?opt=value", m.urlWithoutDb())
+	r.Equal("user:pass@(host:port)/?opt=value", m.urlWithoutDB())
 	r.Equal("user:pass@(host:port)/dbase?opt=value", m.MigrationURL())
 }
 
@@ -56,7 +56,7 @@ func Test_MySQL_URL_With_Values(t *testing.T) {
 		Options:  map[string]string{"opt": "value"},
 	}}}
 	r.Equal("user:pass@(host:port)/dbase?opt=value", m.URL())
-	r.Equal("user:pass@(host:port)/?opt=value", m.urlWithoutDb())
+	r.Equal("user:pass@(host:port)/?opt=value", m.urlWithoutDB())
 	r.Equal("user:pass@(host:port)/dbase?opt=value", m.MigrationURL())
 }
 
@@ -126,7 +126,7 @@ func Test_MySQL_URL_urlParserMySQL_Socket(t *testing.T) {
 	cd.URL = ""
 	m := &mysql{commonDialect{ConnectionDetails: cd}}
 	r.True(strings.HasPrefix(m.URL(), "unix(/tmp/socket)/dbase?"))
-	r.True(strings.HasPrefix(m.urlWithoutDb(), "unix(/tmp/socket)/?"))
+	r.True(strings.HasPrefix(m.urlWithoutDB(), "unix(/tmp/socket)/?"))
 }
 
 func Test_MySQL_URL_urlParserMySQL_Unsupported(t *testing.T) {

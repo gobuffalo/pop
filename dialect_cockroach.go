@@ -177,7 +177,7 @@ func (p *cockroach) CreateDB() error {
 	// createdb -h db -p 5432 -U cockroach enterprise_development
 	deets := p.ConnectionDetails
 
-	db, _, err := openPotentiallyInstrumentedConnection(context.Background(), p, p.urlWithoutDb())
+	db, _, err := openPotentiallyInstrumentedConnection(context.Background(), p, p.urlWithoutDB())
 	if err != nil {
 		return fmt.Errorf("error creating Cockroach database %s: %w", deets.Database, err)
 	}
@@ -197,7 +197,7 @@ func (p *cockroach) CreateDB() error {
 func (p *cockroach) DropDB() error {
 	deets := p.ConnectionDetails
 
-	db, _, err := openPotentiallyInstrumentedConnection(context.Background(), p, p.urlWithoutDb())
+	db, _, err := openPotentiallyInstrumentedConnection(context.Background(), p, p.urlWithoutDB())
 	if err != nil {
 		return fmt.Errorf("error dropping Cockroach database %s: %w", deets.Database, err)
 	}
@@ -236,7 +236,7 @@ func (p *cockroach) url() *url.URL {
 	}
 }
 
-func (p *cockroach) urlWithoutDb() string {
+func (p *cockroach) urlWithoutDB() string {
 	u := p.url()
 	u.Path = "/"
 	return u.String()

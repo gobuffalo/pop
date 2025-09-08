@@ -2,7 +2,7 @@ version: '2.1'
 
 services:
   mysql:
-    image: mysql:5.7
+    image: mysql:8.1
     environment:
       - MYSQL_ROOT_PASSWORD=root#
       - MYSQL_DATABASE=pop_test
@@ -18,7 +18,7 @@ services:
       start_period: 3s
 
   postgres:
-    image: postgres:10
+    image: postgres:17
     environment:
       - POSTGRES_DB=pop_test
       - POSTGRES_USER=postgres
@@ -27,14 +27,14 @@ services:
     ports:
       - "5433:5432"
     healthcheck:
-      test: ["CMD", "pg_isready"]
+      test: ["CMD", "pg_isready", "-d", "postgres", "-U", "postgres"]
       interval: 5s
       timeout: 5s
       retries: 10
       start_period: 3s
 
   cockroach:
-    image: cockroachdb/cockroach:latest-v21.1
+    image: cockroachdb/cockroach:latest-v25.3
     ports:
       - "26258:26257"
       - "8081:8080"

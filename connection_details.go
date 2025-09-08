@@ -10,9 +10,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/luna-duclos/instrumentedsql"
 	"github.com/ory/pop/v6/internal/defaults"
 	"github.com/ory/pop/v6/logging"
+	"go.opentelemetry.io/otel/trace"
 )
 
 // ConnectionDetails stores the data needed to connect to a datasource
@@ -53,21 +53,8 @@ type ConnectionDetails struct {
 	optionsLock *sync.Mutex
 	// Query string encoded options from URL. Example: "sslmode=disable"
 	RawOptions string
-	// UseInstrumentedDriver if set to true uses a wrapper for the underlying driver which exposes tracing
-	// information in the Open Tracing, Open Census, Google, and AWS Xray format. This is useful when using
-	// tracing with Jaeger, DataDog, Zipkin, or other tracing software.
-	UseInstrumentedDriver bool
-	// InstrumentedDriverOptions sets the options for the instrumented driver. These options are empty by default meaning
-	// that instrumentation is disabled.
-	//
-	// For more information check out the docs at https://github.com/luna-duclos/instrumentedsql. If you use Open Tracing, these options
-	// could looks as follows:
-	//
-	//		InstrumentedDriverOptions: []instrumentedsql.Opt{instrumentedsql.WithTracer(opentracing.NewTracer(true))}
-	//
-	// It is also recommended to include `instrumentedsql.WithOmitArgs()` which prevents SQL arguments (e.g. passwords)
-	// from being traced or logged.
-	InstrumentedDriverOptions []instrumentedsql.Opt
+	// TracerProvider is the OpenTelemetry tracer provider to use for tracing SQL calls.
+	TracerProvider trace.TracerProvider
 }
 
 var dialectX = regexp.MustCompile(`\S+://`)

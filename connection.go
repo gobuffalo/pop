@@ -98,6 +98,9 @@ func Connect(e string) (*Connection, error) {
 	if err := c.Open(); err != nil {
 		return c, fmt.Errorf("couldn't open connection for %s: %w", e, err)
 	}
+	if err := c.Store.PingContext(context.Background()); err != nil {
+		return c, fmt.Errorf("couldn't ping database for %s: %w", e, err)
+	}
 	return c, nil
 }
 
@@ -272,7 +275,7 @@ func (c *Connection) TruncateAll() error {
 	return c.Dialect.TruncateAll(c)
 }
 
-func (c *Connection) timeFunc(name string, fn func() error) error {
+func (c *Connection) timeFunc(_ string, fn func() error) error {
 	start := time.Now()
 	err := fn()
 	atomic.AddInt64(&c.Elapsed, int64(time.Since(start)))

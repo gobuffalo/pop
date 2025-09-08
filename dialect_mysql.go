@@ -74,7 +74,7 @@ func (m *mysql) URL() string {
 	return fmt.Sprintf(s, user, addr, cd.Database, cd.OptionsString(""))
 }
 
-func (m *mysql) urlWithoutDb() string {
+func (m *mysql) urlWithoutDB() string {
 	cd := m.ConnectionDetails
 	return strings.Replace(m.URL(), "/"+cd.Database+"?", "/?", 1)
 }
@@ -144,7 +144,7 @@ func (m *mysql) SelectMany(c *Connection, models *Model, query Query) error {
 // CreateDB creates a new database, from the given connection credentials
 func (m *mysql) CreateDB() error {
 	deets := m.ConnectionDetails
-	db, _, err := openPotentiallyInstrumentedConnection(context.Background(), m, m.urlWithoutDb())
+	db, _, err := openPotentiallyInstrumentedConnection(context.Background(), m, m.urlWithoutDB())
 	if err != nil {
 		return fmt.Errorf("error creating MySQL database %s: %w", deets.Database, err)
 	}
@@ -166,7 +166,7 @@ func (m *mysql) CreateDB() error {
 // DropDB drops an existing database, from the given connection credentials
 func (m *mysql) DropDB() error {
 	deets := m.ConnectionDetails
-	db, _, err := openPotentiallyInstrumentedConnection(context.Background(), m, m.urlWithoutDb())
+	db, _, err := openPotentiallyInstrumentedConnection(context.Background(), m, m.urlWithoutDB())
 	if err != nil {
 		return fmt.Errorf("error dropping MySQL database %s: %w", deets.Database, err)
 	}

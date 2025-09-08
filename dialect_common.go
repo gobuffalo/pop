@@ -87,7 +87,7 @@ func genericCreate(c *Connection, model *Model, cols columns.Columns, quoter quo
 		}
 		return nil
 	}
-	return fmt.Errorf("can not use %s as a primary key type!", keyType)
+	return fmt.Errorf("can not use %s as a primary key type", keyType)
 }
 
 func genericUpdate(c *Connection, model *Model, cols columns.Columns, quoter quotable) error {

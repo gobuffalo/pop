@@ -20,7 +20,7 @@ func SetLogger(logger func(level logging.Level, s string, args ...interface{})) 
 	log = logger
 }
 
-// SetLogger overrides the default logger.
+// SetTxLogger overrides the default transaction logger.
 func SetTxLogger(logger func(level logging.Level, anon interface{}, s string, args ...interface{})) {
 	txlog = logger
 }

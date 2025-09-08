@@ -36,7 +36,7 @@ func TestSpecificSuites(t *testing.T) {
 	switch os.Getenv("SODA_DIALECT") {
 	case "postgres":
 		suite.Run(t, &PostgreSQLSuite{})
-	case "mysql", "mysql_travis":
+	case "mysql":
 		suite.Run(t, &MySQLSuite{})
 	case "sqlite":
 		suite.Run(t, &SQLiteSuite{})

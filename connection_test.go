@@ -94,6 +94,7 @@ func Test_Connection_NewTransaction(t *testing.T) {
 
 		// does not start a new transaction
 		ntx, err := tx.NewTransaction()
+		r.NoError(err)
 		r.Equal(tx, ntx)
 
 		r.NoError(tx.TX.Rollback())

@@ -185,12 +185,12 @@ func (q *Query) Limit(limit int) *Query {
 	return q
 }
 
-// Preload activates preload eager Mode automatically.
+// EagerPreload activates preload eager Mode automatically.
 func (c *Connection) EagerPreload(fields ...string) *Query {
 	return Q(c).EagerPreload(fields...)
 }
 
-// Preload activates preload eager Mode automatically.
+// EagerPreload activates preload eager Mode automatically.
 func (q *Query) EagerPreload(fields ...string) *Query {
 	q.Eager(fields...)
 	q.eagerMode = EagerPreload

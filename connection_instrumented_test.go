@@ -1,101 +1,70 @@
 package pop
 
 import (
-	"context"
-	"fmt"
 	"os"
-	"strings"
-	"sync"
-	"time"
+	"slices"
 
-	"github.com/luna-duclos/instrumentedsql"
 	"github.com/stretchr/testify/suite"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+	"go.opentelemetry.io/otel/sdk/trace/tracetest"
 )
 
 func testInstrumentedDriver(p *suite.Suite) {
-	r := p.Require()
-	deets := *Connections[os.Getenv("SODA_DIALECT")].Dialect.Details()
-
-	ctx, cancel := context.WithTimeout(context.TODO(), time.Second*5)
-	defer cancel()
-
-	// The WaitGroup and channel ensures that the logger is properly called. This can only happen
-	// when the instrumented driver is working as expected and returns the expected query.
 	var (
-		queryMySQL = "SELECT 1 FROM DUAL WHERE 1=?"
-		queryOther = "SELECT 1 WHERE 1=?"
-		mc         = make(chan string)
-		wg         sync.WaitGroup
+		queryMySQL = "SELECT 1 FROM DUAL WHERE (1+1)=?"
+		query      = "SELECT 1 WHERE (1+1)=?"
 		expected   = []string{
-			"SELECT 1 FROM DUAL WHERE 1=?",
-			"SELECT 1 FROM DUAL WHERE 1=$1",
-			"SELECT 1 WHERE 1=?",
-			"SELECT 1 WHERE 1=$1",
+			"SELECT 1 FROM DUAL WHERE (1+1)=?",
+			"SELECT 1 FROM DUAL WHERE (1+1)=$1",
+			"SELECT 1 WHERE (1+1)=?",
+			"SELECT 1 WHERE (1+1)=$1",
 		}
+		r        = p.Require()
+		recorder = tracetest.NewSpanRecorder()
+		provider = sdktrace.NewTracerProvider(sdktrace.WithSpanProcessor(recorder))
+		tracer   = provider.Tracer("test")
+		deets    = *Connections[os.Getenv("SODA_DIALECT")].Dialect.Details()
 	)
-
-	query := queryOther
+	deets.TracerProvider = provider
 	if os.Getenv("SODA_DIALECT") == "mysql" {
 		query = queryMySQL
 	}
-
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		var messages []string
-		var found bool
-		for {
-			select {
-			case m := <-mc:
-				p.T().Logf("Received message: %s", m)
-				messages = append(messages, m)
-				for _, e := range expected {
-					if strings.Contains(m, e) {
-						p.T().Logf("Found part %s in %s", e, m)
-						found = true
-						break
-					}
-				}
-			case <-ctx.Done():
-				if !found {
-					r.FailNow(fmt.Sprintf("Expected tracer to return the \"%s\" query but only the following messages have been received:\n\n\t%s", query, strings.Join(messages, "\n\t")))
-					return
-				}
-				return
-			}
-		}
-	}()
-
-	var checker = instrumentedsql.LoggerFunc(func(ctx context.Context, msg string, keyvals ...interface{}) {
-		p.T().Logf("Instrumentation received message: %s - %+v", msg, keyvals)
-		mc <- fmt.Sprintf("%s - %+v", msg, keyvals)
-	})
-
-	deets.UseInstrumentedDriver = true
-	deets.InstrumentedDriverOptions = []instrumentedsql.Opt{instrumentedsql.WithLogger(checker)}
 
 	c, err := NewConnection(&deets)
 	r.NoError(err)
 	r.NoError(c.Open())
 
-	err = c.WithContext(context.TODO()).RawQuery(query, 1).Exec()
+	ctx, span := tracer.Start(p.T().Context(), "parent")
+
+	err = c.WithContext(ctx).RawQuery(query, 2).Exec()
 	r.NoError(err)
 
-	wg.Wait()
+	span.End()
+
+	var foundStatement bool
+	for _, span := range recorder.Ended() {
+		for _, attr := range span.Attributes() {
+			if slices.ContainsFunc(expected, func(s string) bool { return attr.Key == "db.statement" && attr.Value.AsString() == s }) {
+				foundStatement = true
+			}
+			r.NotContains(attr.Value.AsString(), "2", "expected attributes to not contain query arguments")
+		}
+	}
+	r.True(foundStatement, "expected to find db.statement attribute with query inside span")
 }
 
-func (s *PostgreSQLSuite) Test_Instrumentation() {
+func (s *PostgreSQLSuite) TestInstrumentationPostgreSQL() {
 	testInstrumentedDriver(&s.Suite)
 }
 
-func (s *MySQLSuite) Test_Instrumentation() {
+func (s *MySQLSuite) TestInstrumentationMySQL() {
 	testInstrumentedDriver(&s.Suite)
 }
 
-func (s *SQLiteSuite) Test_Instrumentation() {
+func (s *SQLiteSuite) TestInstrumentationSQLite() {
 	testInstrumentedDriver(&s.Suite)
 }
 
-func (s *CockroachSuite) Test_Instrumentation() {
+func (s *CockroachSuite) TestInstrumentationCockroachDB() {
 	testInstrumentedDriver(&s.Suite)
 }
