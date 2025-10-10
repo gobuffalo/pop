@@ -55,6 +55,8 @@ type ConnectionDetails struct {
 	RawOptions string
 	// TracerProvider is the OpenTelemetry tracer provider to use for tracing SQL calls.
 	TracerProvider trace.TracerProvider
+	// AllowMinPool enables min pool enforcement.
+	AllowMinPool bool
 }
 
 var dialectX = regexp.MustCompile(`\S+://`)
