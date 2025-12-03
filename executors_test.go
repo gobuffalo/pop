@@ -2014,3 +2014,44 @@ func Test_Create_Timestamps_With_NowFunc(t *testing.T) {
 		r.Equal(fakeNow, friend.UpdatedAt)
 	})
 }
+
+func Test_Create_Timestamps_With_NowFunc_Local(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
+	transaction(func(tx *Connection) {
+		r := require.New(t)
+
+		fakeNow, _ := time.Parse(time.RFC3339, "2019-07-14T00:00:00Z")
+		tx = tx.WithNowFuncContext(t.Context(), func() time.Time { return fakeNow })
+
+		friend := Friend{FirstName: "Yester", LastName: "Day"}
+		err := tx.Create(&friend)
+		r.NoError(err)
+
+		r.Equal(fakeNow, friend.CreatedAt)
+		r.Equal(fakeNow, friend.UpdatedAt)
+	})
+}
+
+func Test_Update_Timestamps_With_NowFunc_Local(t *testing.T) {
+	if PDB == nil {
+		t.Skip("skipping integration tests")
+	}
+	transaction(func(tx *Connection) {
+		r := require.New(t)
+		fakeNow, _ := time.Parse(time.RFC3339, "2019-07-14T00:00:00Z")
+
+		friend := Friend{FirstName: "Yester", LastName: "Day"}
+		err := tx.Create(&friend)
+		r.NoError(err)
+		r.NotEqual(fakeNow, friend.CreatedAt)
+		r.NotEqual(fakeNow, friend.UpdatedAt)
+
+		tx = tx.WithNowFuncContext(t.Context(), func() time.Time { return fakeNow })
+		err = tx.Update(&friend)
+		r.NoError(err)
+
+		r.Equal(fakeNow, friend.UpdatedAt)
+	})
+}

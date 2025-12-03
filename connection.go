@@ -239,6 +239,16 @@ func (c *Connection) WithContext(ctx context.Context) *Connection {
 	return cn
 }
 
+// WithContext returns a copy of the connection, wrapped with a context.
+func (c *Connection) WithNowFuncContext(ctx context.Context, nowFunc func() time.Time) *Connection {
+	cn := c.copy()
+	cn.Store = contextStore{
+		store: cn.Store,
+		ctx:   context.WithValue(ctx, nowFuncCtxKey, nowFunc),
+	}
+	return cn
+}
+
 func (c *Connection) copy() *Connection {
 	// TODO: checkme. it copies and creates a new Connection (and a new ID)
 	// with the same TX which could make confusions and complexity in usage.
