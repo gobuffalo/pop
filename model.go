@@ -20,6 +20,10 @@ func SetNowFunc(f func() time.Time) {
 	nowFunc = f
 }
 
+type nowFuncCtx struct{}
+
+var nowFuncCtxKey nowFuncCtx
+
 // Value is the contents of a `Model`.
 type Value interface{}
 
@@ -257,4 +261,25 @@ func (m *Model) iterate(fn modelIterable) error {
 	}
 
 	return fn(m)
+}
+
+// NowTime uses the time function in the context if present,
+// otherwise it uses the global time function `nowFunc`.
+// This is useful to override locally (in a scoped way) the time function,
+// without affecting other places, because overriding `nowFunc` is not thread-safe,
+// and even if it was, multiple goroutines overriding the global time function would yield non-deterministic
+// timestamps.
+// In practice, overriding the time function is only useful in tests.
+// Application code should simply run `pop.SetNowFunc` in the `init()` function of the package which gets run once,
+// sequentially, in a deterministic order.
+func NowTime(ctx context.Context) time.Time {
+	if nowFuncCtx := ctx.Value(nowFuncCtxKey); nowFuncCtx != nil {
+		fn, ok := nowFuncCtx.(func() time.Time)
+		if !ok {
+			panic(fmt.Sprintf("nowFunc is present in context and not nil, but is not a function returning a time.Time: %T", nowFuncCtx))
+		}
+		return fn()
+	}
+
+	return nowFunc()
 }

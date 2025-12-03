@@ -251,7 +251,7 @@ func (c *Connection) Create(model interface{}, excludeColumns ...string) error {
 				cols.Remove(excludeColumns...)
 			}
 
-			now := nowFunc().Truncate(time.Microsecond)
+			now := NowTime(c.Context()).Truncate(time.Microsecond)
 			m.setUpdatedAt(now)
 			m.setCreatedAt(now)
 
@@ -369,7 +369,7 @@ func (c *Connection) Update(model interface{}, excludeColumns ...string) error {
 				cols.Remove(excludeColumns...)
 			}
 
-			now := nowFunc().Truncate(time.Microsecond)
+			now := NowTime(c.Context()).Truncate(time.Microsecond)
 			m.setUpdatedAt(now)
 
 			if err = c.Dialect.Update(c, m, cols); err != nil {
@@ -408,7 +408,7 @@ func (q *Query) UpdateQuery(model interface{}, columnNames ...string) (int64, er
 	}
 	cols.Remove(sm.IDField(), "created_at")
 
-	now := nowFunc().Truncate(time.Microsecond)
+	now := NowTime(q.Connection.Context()).Truncate(time.Microsecond)
 	sm.setUpdatedAt(now)
 	return q.Connection.Dialect.UpdateQuery(q.Connection, sm, cols, *q)
 }
@@ -443,7 +443,7 @@ func (c *Connection) UpdateColumns(model interface{}, columnNames ...string) err
 			}
 			cols.Remove("id", "created_at")
 
-			now := nowFunc().Truncate(time.Microsecond)
+			now := NowTime(c.Context()).Truncate(time.Microsecond)
 			m.setUpdatedAt(now)
 
 			if err = c.Dialect.Update(c, m, cols); err != nil {
