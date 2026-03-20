@@ -205,13 +205,15 @@ func TestSqlite_NoDumpSysTables(t *testing.T) {
 	c, err := NewConnection(cd)
 	r.NoError(err)
 	r.NoError(c.Open())
+	defer c.Close()
 
 	r.NoError(c.RawQuery("CREATE TABLE aitest (id integer primary key autoincrement);").Exec())
-
 
 	schema := new(bytes.Buffer)
 	r.NoError(c.Dialect.DumpSchema(schema))
 
 	r.Contains(schema.String(), "CREATE TABLE aitest")
 	r.NotContains(schema.String(), "CREATE TABLE sqlite_sequence")
+
+	r.NoError(c.Close())
 }
