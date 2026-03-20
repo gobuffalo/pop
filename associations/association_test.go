@@ -3,10 +3,11 @@ package associations
 import (
 	"database/sql"
 	"fmt"
+	"testing"
+
 	"github.com/gobuffalo/nulls"
 	"github.com/gofrs/uuid"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func Test_IsZeroOfUnderlyingType(t *testing.T) {

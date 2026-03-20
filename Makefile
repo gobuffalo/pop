@@ -1,5 +1,5 @@
 PACKAGE_NAME          := github.com/gobuffalo/pop
-GOLANG_CROSS_VERSION  ?= v1.18
+GOLANG_CROSS_VERSION  ?= v1.25
 
 TAGS ?= "sqlite"
 GO_BIN ?= go
