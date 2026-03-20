@@ -243,12 +243,9 @@ jobs:
       - crdbssl-tests
       - crdb-tests
       - sqlite-tests
-    env:
-      status: ${{ needs.mysql-tests.result == 'success' && needs.pg-tests.result == 'success' && needs.crdbssl-tests.result == 'success' && needs.crdb-tests.result == 'success' && needs.sqlite-tests.result == 'success' && 'success' || 'failure' }}
     steps:
-      - name: Mark the job as succeeded
-        if: env.status == 'success'
-        run: exit 0
-      - name: Mark the job as failed
-        if: env.status != 'success'
+      - name: Fail if any required job did not succeed
+        if: ${{ contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') }}
         run: exit 1
+      - name: All tests passed
+        run: echo "All tests passed!"
