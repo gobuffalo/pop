@@ -233,6 +233,8 @@ jobs:
           go test -tags sqlite ./...
 
   tests-complete:
+    # run regardless of status of previous jobs
+    if: always()
     name: Tests complete
     runs-on: ubuntu-latest
     needs: 
@@ -241,6 +243,12 @@ jobs:
       - crdbssl-tests
       - crdb-tests
       - sqlite-tests
+    env:
+      status: ${{ needs.mysql-tests.result == 'success' && needs.pg-tests.result == 'success' && needs.crdbssl-tests.result == 'success' && needs.crdb-tests.result == 'success' && needs.sqlite-tests.result == 'success' && 'success' || 'failure' }}
     steps:
-      - name: All tests complete
-        run: echo "All tests complete"
+      - name: Mark the job as succeeded
+        if: env.status == 'success'
+        run: exit 0
+      - name: Mark the job as failed
+        if: env.status != 'success'
+        run: exit 1
