@@ -34,7 +34,7 @@ services:
       start_period: 3s
 
   cockroach:
-    image: cockroachdb/cockroach:latest-v21.1
+    image: cockroachdb/cockroach:latest-v26.1
     ports:
       - "26258:26257"
       - "8081:8080"
