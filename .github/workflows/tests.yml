@@ -14,6 +14,12 @@ jobs:
         go-version:
           - "1.17.x"
           - "1.18.x"
+          - "1.19.x"
+          - "1.20.x"
+          - "1.21.x"
+          - "1.22.x"
+          - "1.23.x"
+          - "1.24.x"
 
     services:
       mysql:
@@ -63,6 +69,12 @@ jobs:
         go-version:
           - "1.17.x"
           - "1.18.x"
+          - "1.19.x"
+          - "1.20.x"
+          - "1.21.x"
+          - "1.22.x"
+          - "1.23.x"
+          - "1.24.x"
 
     services:
       postgres:
@@ -108,6 +120,12 @@ jobs:
         go-version:
           - "1.17.x"
           - "1.18.x"
+          - "1.19.x"
+          - "1.20.x"
+          - "1.21.x"
+          - "1.22.x"
+          - "1.23.x"
+          - "1.24.x"
 
     steps:
       - uses: actions/checkout@v3
@@ -153,6 +171,12 @@ jobs:
         go-version:
           - "1.17.x"
           - "1.18.x"
+          - "1.19.x"
+          - "1.20.x"
+          - "1.21.x"
+          - "1.22.x"
+          - "1.23.x"
+          - "1.24.x"
 
     steps:
       - uses: actions/checkout@v3
@@ -196,6 +220,12 @@ jobs:
         go-version:
           - "1.17.x"
           - "1.18.x"
+          - "1.19.x"
+          - "1.20.x"
+          - "1.21.x"
+          - "1.22.x"
+          - "1.23.x"
+          - "1.24.x"
         os:
           - "macos-latest"
           - "windows-latest"
