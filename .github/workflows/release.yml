@@ -21,4 +21,3 @@ jobs:
           echo 'GITHUB_TOKEN=${{secrets.GORELEASER_PAT }}' > .release-env
       - name: run goreleaser
         run: make release
-
