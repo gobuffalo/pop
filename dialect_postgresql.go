@@ -13,7 +13,7 @@ import (
 	"github.com/gobuffalo/pop/v6/columns"
 	"github.com/gobuffalo/pop/v6/internal/defaults"
 	"github.com/gobuffalo/pop/v6/logging"
-	"github.com/jackc/pgconn"
+	"github.com/jackc/pgx/v5/pgconn"
 	_ "github.com/jackc/pgx/v5/stdlib" // Load pgx driver
 	"github.com/jmoiron/sqlx"
 )
@@ -226,7 +226,7 @@ func newPostgreSQL(deets *ConnectionDetails) (dialect, error) {
 }
 
 // urlParserPostgreSQL parses the options the same way jackc/pgconn does:
-// https://pkg.go.dev/github.com/jackc/pgconn?tab=doc#ParseConfig
+// https://pkg.go.dev/github.com/jackc/pgx/v5/pgconn#ParseConfig
 // After parsed, they are set to ConnectionDetails instance
 func urlParserPostgreSQL(cd *ConnectionDetails) error {
 	conf, err := pgconn.ParseConfig(cd.URL)
