@@ -84,7 +84,7 @@ func (h *hasOneAssociation) AfterSetup() error {
 		return nil
 	}
 	ownerID := reflect.Indirect(reflect.ValueOf(h.owner)).FieldByName("ID").Interface()
-	if om.Kind() == reflect.Ptr {
+	if om.Kind() == reflect.Pointer {
 		om = om.Elem()
 	}
 	fval := om.FieldByName(h.ownerName + "ID")

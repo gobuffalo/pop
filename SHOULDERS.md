@@ -45,7 +45,7 @@ Thank you to the following **GIANTS**:
 * [github.com/jackc/pgproto3/v2](https://godoc.org/github.com/jackc/pgproto3/v2)
 * [github.com/jackc/pgservicefile](https://godoc.org/github.com/jackc/pgservicefile)
 * [github.com/jackc/pgtype](https://godoc.org/github.com/jackc/pgtype)
-* [github.com/jackc/pgx/v4](https://godoc.org/github.com/jackc/pgx/v4)
+* [github.com/jackc/pgx/v5](https://godoc.org/github.com/jackc/pgx/v5)
 * [github.com/jackc/puddle](https://godoc.org/github.com/jackc/puddle)
 * [github.com/jmoiron/sqlx](https://godoc.org/github.com/jmoiron/sqlx)
 * [github.com/joho/godotenv](https://godoc.org/github.com/joho/godotenv)
