@@ -1,7 +1,6 @@
 package pop
 
 import (
-	"io/ioutil"
 	"os"
 	"strings"
 	"testing"
@@ -215,7 +214,7 @@ func (s *MySQLSuite) Test_MySQL_DDL_Operations() {
 func (s *MySQLSuite) Test_MySQL_DDL_Schema() {
 	r := s.Require()
 
-	f, err := ioutil.TempFile(os.TempDir(), "pop_test_mysql_dump")
+	f, err := os.CreateTemp(os.TempDir(), "pop_test_mysql_dump")
 	r.NoError(err)
 	defer func() {
 		f.Close()
