@@ -18,7 +18,7 @@ services:
       start_period: 3s
 
   postgres:
-    image: postgres:10
+    image: postgres:18
     environment:
       - POSTGRES_DB=pop_test
       - POSTGRES_USER=postgres
