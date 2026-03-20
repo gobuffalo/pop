@@ -6,12 +6,8 @@
 
 version: 2
 updates:
-  - package-ecosystem: "docker"
-    directory: "/.devcontainer"
-    schedule:
-      interval: daily
   - package-ecosystem: "docker-compose"
-    directory: "/.devcontainer"
+    directory: "/"
     schedule:
       interval: daily
   - package-ecosystem: "github-actions"
