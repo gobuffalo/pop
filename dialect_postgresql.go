@@ -13,7 +13,7 @@ import (
 	"github.com/gobuffalo/pop/v6/columns"
 	"github.com/gobuffalo/pop/v6/internal/defaults"
 	"github.com/gobuffalo/pop/v6/logging"
-	"github.com/jackc/pgconn"
+	"github.com/jackc/pgx/v5/pgconn"
 	_ "github.com/jackc/pgx/v5/stdlib" // Load pgx driver
 	"github.com/jmoiron/sqlx"
 )
