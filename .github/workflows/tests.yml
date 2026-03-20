@@ -231,3 +231,16 @@ jobs:
           SODA_DIALECT: "sqlite"
         run: |
           go test -tags sqlite ./...
+
+  tests-complete:
+    name: Tests complete
+    runs-on: ubuntu-latest
+    needs: 
+      - mysql-tests
+      - pg-tests
+      - crdbssl-tests
+      - crdb-tests
+      - sqlite-tests
+    steps:
+      - name: All tests complete
+        run: echo "All tests complete"
