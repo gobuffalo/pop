@@ -18,6 +18,6 @@ jobs:
           fetch-depth: 0
       - name: setup environment
         run: |-
-          echo 'GITHUB_TOKEN=${{secrets.GORELEASER_PAT }}' > .release-env
+          echo 'GITHUB_TOKEN=${{ secrets.GORELEASER_PAT }}' > .release-env
       - name: run goreleaser
         run: make release
