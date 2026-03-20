@@ -1,9 +1,20 @@
 package pop
 
 import (
+	"crypto/rand"
+	"crypto/rsa"
+	"crypto/sha256"
+	"crypto/x509"
+	"crypto/x509/pkix"
+	"encoding/pem"
+	"fmt"
+	"math/big"
+	"net"
 	"os"
 	"os/user"
+	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 )
@@ -47,16 +58,93 @@ func Test_PostgreSQL_Connection_String(t *testing.T) {
 	r.Equal("database", cd.Database)
 }
 
+func genPrivateKey(tb testing.TB, caKeyPath string) *rsa.PrivateKey {
+	tb.Helper()
+
+	key, err := rsa.GenerateKey(rand.Reader, 4096)
+	require.NoError(tb, err)
+
+	f, err := os.Create(caKeyPath)
+	require.NoError(tb, err)
+	require.NoError(tb, pem.Encode(f, &pem.Block{
+		Type:  "RSA PRIVATE KEY",
+		Bytes: x509.MarshalPKCS1PrivateKey(key),
+	}))
+	require.NoError(tb, f.Close())
+	return key
+}
+
+func genCertificate(tb testing.TB, template, parent *x509.Certificate, pub *rsa.PublicKey, priv *rsa.PrivateKey, path string) {
+	caBytes, err := x509.CreateCertificate(rand.Reader, template, parent, pub, priv)
+	require.NoError(tb, err)
+
+	f, err := os.Create(path)
+	require.NoError(tb, err)
+	defer f.Close()
+	require.NoError(tb, pem.Encode(f, &pem.Block{
+		Type:  "CERTIFICATE",
+		Bytes: caBytes,
+	}))
+}
+
+func setupCerts(tb testing.TB, caKeyPath string, caCertPath string, serverKeyPath string, serverCertPath string) {
+	tb.Helper()
+	snLimit := new(big.Int).Lsh(big.NewInt(1), 128) // 128-bit serial number limit
+
+	caKey := genPrivateKey(tb, caKeyPath)
+
+	caKeyBytes := x509.MarshalPKCS1PublicKey(&caKey.PublicKey)
+	caKeyHash := sha256.Sum256(caKeyBytes)
+	snCA, err := rand.Int(rand.Reader, snLimit)
+	require.NoError(tb, err)
+
+	caCert := &x509.Certificate{
+		SerialNumber:   snCA,
+		Subject:        pkix.Name{CommonName: "Test CA"},
+		SubjectKeyId:   caKeyHash[:],
+		AuthorityKeyId: caKeyHash[:],
+		NotBefore:      time.Now(),
+		NotAfter:       time.Now().Add(365 * 24 * time.Hour),
+		IsCA:           true,
+	}
+
+	genCertificate(tb, caCert, caCert, &caKey.PublicKey, caKey, caCertPath)
+
+	serverKey := genPrivateKey(tb, serverKeyPath)
+	serverKeyBytes := x509.MarshalPKCS1PublicKey(&serverKey.PublicKey)
+	serverKeyHash := sha256.Sum256(serverKeyBytes)
+	snServer, err := rand.Int(rand.Reader, snLimit)
+	require.NoError(tb, err)
+
+	serverCert := &x509.Certificate{
+		SerialNumber:   snServer,
+		Subject:        pkix.Name{CommonName: "Test DB"},
+		SubjectKeyId:   serverKeyHash[:],
+		AuthorityKeyId: caKeyHash[:],
+		IPAddresses:    []net.IP{net.IPv4(127, 0, 0, 1), net.IPv6loopback},
+		DNSNames:       []string{"localhost"},
+		NotBefore:      time.Now(),
+		NotAfter:       time.Now().Add(365 * 24 * time.Hour),
+	}
+	genCertificate(tb, serverCert, caCert, &serverKey.PublicKey, caKey, serverCertPath)
+}
+
 func Test_PostgreSQL_Connection_String_Options(t *testing.T) {
 	r := require.New(t)
 
-	url := "host=host port=1234 dbname=database user=user password=pass# sslmode=disable fallback_application_name=test_app connect_timeout=10 sslcert=/some/location sslkey=/some/other/location sslrootcert=/root/location"
+	tempDir := t.TempDir()
+	caKeyPath := filepath.Join(tempDir, "ca.key")
+	caCertPath := filepath.Join(tempDir, "ca.crt")
+	serverKeyPath := filepath.Join(tempDir, "server.key")
+	serverCertPath := filepath.Join(tempDir, "server.crt")
+	setupCerts(t, caKeyPath, caCertPath, serverKeyPath, serverCertPath)
+
+	url := fmt.Sprintf("host=host port=1234 dbname=database user=user password=pass# sslmode=disable fallback_application_name=test_app connect_timeout=10 sslcert=%s sslkey=%s sslrootcert=%s", serverCertPath, serverKeyPath, caCertPath)
 	cd := &ConnectionDetails{
 		Dialect: "postgres",
 		URL:     url,
 	}
-	err := cd.Finalize()
-	r.NoError(err)
+	r.NoError(cd.Finalize())
 
 	r.Equal(url, cd.URL)
 
