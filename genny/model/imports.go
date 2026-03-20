@@ -21,7 +21,7 @@ func buildImports(opts *Options) []string {
 	for _, a := range ats {
 		switch a.GoType() {
 		case "uuid", "uuid.UUID":
-			imps["github.com/gofrs/uuid/v"] = true
+			imps["github.com/gofrs/uuid"] = true
 		case "time.Time":
 			imps["time"] = true
 		default:
