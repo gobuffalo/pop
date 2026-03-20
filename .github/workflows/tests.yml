@@ -188,9 +188,6 @@ jobs:
         run: |
           go test -tags sqlite -race -cover ./...
       
-      - name: Test Fail
-        run: exit 1
-
   sqlite-tests:
     name: SQLite tests ${{ matrix.os }} - Go v${{ matrix.go-version }}
     runs-on: ${{ matrix.os }}
