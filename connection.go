@@ -143,6 +143,9 @@ func (c *Connection) Open() error {
 
 // Close destroys an active datasource connection
 func (c *Connection) Close() error {
+	if c.Store == nil {
+		return errors.New("connection is not open")
+	}
 	if err := c.Store.Close(); err != nil {
 		return fmt.Errorf("couldn't close connection: %w", err)
 	}
@@ -297,7 +300,7 @@ func (c *Connection) timeFunc(name string, fn func() error) error {
 // Connection type, TX.ID, and optionally a copy ID. It makes it easy to trace
 // related queries for a single request.
 //
-//  examples: "conn-7881415437117811350", "tx-4924907692359316530", "tx-831769923571164863-ytzxZa"
+//	examples: "conn-7881415437117811350", "tx-4924907692359316530", "tx-831769923571164863-ytzxZa"
 func (c *Connection) setID(id ...string) {
 	if len(id) == 1 {
 		idElems := strings.Split(id[0], "-")

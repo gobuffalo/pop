@@ -230,6 +230,7 @@ jobs:
         env:
           SODA_DIALECT: "sqlite"
         run: |
+          choco install sqlite
           go test -tags sqlite ./...
 
   tests-complete:
