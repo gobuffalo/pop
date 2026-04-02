@@ -17,7 +17,7 @@ require (
 	github.com/gofrs/uuid v4.4.0+incompatible
 	github.com/jackc/pgx/v5 v5.9.1
 	github.com/jmoiron/sqlx v1.4.0
-	github.com/lib/pq v1.12.0
+	github.com/lib/pq v1.12.2
 	github.com/luna-duclos/instrumentedsql v1.1.3
 	github.com/mattn/go-sqlite3 v1.14.37
 	github.com/spf13/cobra v1.10.2
