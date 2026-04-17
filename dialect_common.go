@@ -188,6 +188,11 @@ func genericLoadSchema(d dialect, r io.Reader) error {
 		return nil
 	}
 
+	// Strip psql backslash commands (e.g. \restrict, \unrestrict) that
+	// may be present in pg_dump output from PostgreSQL 17.6+. These are
+	// psql-only directives and are not valid SQL.
+	contents = stripPsqlBackslashCommands(contents)
+
 	_, err = db.Exec(string(contents))
 	if err != nil {
 		return fmt.Errorf("unable to load schema for %s: %w", deets.Database, err)
@@ -201,9 +206,8 @@ func genericDumpSchema(deets *ConnectionDetails, cmd *exec.Cmd, w io.Writer) err
 	log(logging.SQL, strings.Join(cmd.Args, " "))
 
 	bb := &bytes.Buffer{}
-	mw := io.MultiWriter(w, bb)
 
-	cmd.Stdout = mw
+	cmd.Stdout = bb
 	cmd.Stderr = os.Stderr
 
 	err := cmd.Run()
@@ -216,6 +220,29 @@ func genericDumpSchema(deets *ConnectionDetails, cmd *exec.Cmd, w io.Writer) err
 		return fmt.Errorf("unable to dump schema for %s", deets.Database)
 	}
 
+	// Strip psql backslash commands (e.g. \restrict, \unrestrict) from
+	// pg_dump output so schema.sql stays clean and loadable without psql.
+	clean := stripPsqlBackslashCommands(bb.Bytes())
+	if _, err := w.Write(clean); err != nil {
+		return err
+	}
+
 	log(logging.Info, "dumped schema for %s", deets.Database)
 	return nil
+}
+
+// stripPsqlBackslashCommands removes lines that start with a psql backslash
+// meta-command (e.g. \restrict, \unrestrict). These directives are emitted by
+// pg_dump 17.6+ but are not valid SQL and cause syntax errors when executed
+// directly via db.Exec().
+func stripPsqlBackslashCommands(data []byte) []byte {
+	var buf bytes.Buffer
+	for _, line := range bytes.SplitAfter(data, []byte("\n")) {
+		trimmed := bytes.TrimLeft(line, " \t")
+		if len(trimmed) > 0 && trimmed[0] == '\\' {
+			continue
+		}
+		buf.Write(line)
+	}
+	return buf.Bytes()
 }
