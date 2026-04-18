@@ -73,7 +73,7 @@ func Test_New(t *testing.T) {
 		r.NoError(err)
 
 		run := gentest.NewRunner()
-		run.With(g)
+		r.NoError(run.With(g))
 
 		r.NoError(run.Run())
 
@@ -116,7 +116,7 @@ func Test_New_SQL(t *testing.T) {
 	r.NoError(err)
 
 	run := gentest.NewRunner()
-	run.With(g)
+	r.NoError(run.With(g))
 
 	r.NoError(run.Run())
 

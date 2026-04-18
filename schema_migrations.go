@@ -25,6 +25,6 @@ func newSchemaMigrations(name string) fizz.Table {
 	// this is for https://github.com/gobuffalo/pop/issues/659.
 	// primary key is not necessary for the migration table but it looks like
 	// some database engine versions requires it for index.
-	tab.PrimaryKey("version")
+	_ = tab.PrimaryKey("version")
 	return tab
 }

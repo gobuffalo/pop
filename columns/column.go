@@ -1,3 +1,4 @@
+// Package columns provides types and functions for working with SQL table columns in the context of the pop package.
 package columns
 
 import "fmt"

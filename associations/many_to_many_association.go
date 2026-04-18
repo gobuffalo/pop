@@ -11,6 +11,9 @@ import (
 )
 
 type manyToManyAssociation struct {
+	*associationSkippable
+	*associationComposite
+
 	fieldType           reflect.Type
 	fieldValue          reflect.Value
 	model               reflect.Value
@@ -19,8 +22,6 @@ type manyToManyAssociation struct {
 	fkID                string
 	orderBy             string
 	primaryID           string
-	*associationSkipable
-	*associationComposite
 }
 
 func init() {
@@ -41,7 +42,7 @@ func init() {
 			fkID:                p.popTags.Find("fk_id").Value,
 			orderBy:             p.popTags.Find("order_by").Value,
 			primaryID:           p.popTags.Find("primary_id").Value,
-			associationSkipable: &associationSkipable{
+			associationSkippable: &associationSkippable{
 				skipped: skipped,
 			},
 			associationComposite: &associationComposite{innerAssociations: p.innerAssociations},
@@ -120,7 +121,7 @@ func (m *manyToManyAssociation) Statements() []AssociationStatement {
 		columnFieldID = fmt.Sprintf("%s%s", flect.Underscore(i.Type().Name()), "_id")
 	}
 
-	for i := 0; i < m.fieldValue.Len(); i++ {
+	for i := range m.fieldValue.Len() {
 		v := m.fieldValue.Index(i)
 		manyIDValue := v.FieldByName("ID").Interface()
 		modelIDValue := m.model.FieldByName("ID").Interface()

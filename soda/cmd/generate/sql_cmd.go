@@ -62,31 +62,29 @@ var SQLCmd = &cobra.Command{
 			return errors.New("invalid fizz translator")
 		}
 
+		var g *genny.Generator
 		if len(atts) == 0 {
-			g, err := cempty.New(&cempty.Options{
+			g, err = cempty.New(&cempty.Options{
 				Name:       name,
 				Path:       path,
 				Type:       "sql",
 				Translator: translator,
 			})
-			if err != nil {
-				return err
-			}
-			run.With(g)
 		} else {
-			g, err := ctable.New(&ctable.Options{
+			g, err = ctable.New(&ctable.Options{
 				TableName:  name,
 				Path:       path,
 				Type:       "sql",
 				Attrs:      atts,
 				Translator: t,
 			})
-			if err != nil {
-				return err
-			}
-			run.With(g)
 		}
-
+		if err != nil {
+			return err
+		}
+		if err := run.With(g); err != nil {
+			return err
+		}
 		return run.Run()
 	},
 }

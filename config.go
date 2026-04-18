@@ -74,7 +74,9 @@ func findConfigPath() (string, error) {
 
 // LoadFrom reads a configuration from the reader and sets up the connections
 func LoadFrom(r io.Reader) error {
-	envy.Load()
+	if err := envy.Load(); err != nil {
+		return fmt.Errorf("unable to load environment variables: %w", err)
+	}
 	deets, err := ParseConfig(r)
 	if err != nil {
 		return err

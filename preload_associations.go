@@ -60,7 +60,7 @@ func (mmi *ModelMetaInfo) init() {
 func (mmi *ModelMetaInfo) iterate(fn func(reflect.Value)) {
 	modelValue := reflect.Indirect(reflect.ValueOf(mmi.Model.Value))
 	if modelValue.Kind() == reflect.Slice || modelValue.Kind() == reflect.Array {
-		for i := 0; i < modelValue.Len(); i++ {
+		for i := range modelValue.Len() {
 			fn(modelValue.Index(i))
 		}
 		return
@@ -232,10 +232,13 @@ func preloadHasMany(tx *Connection, asoc *AssociationMetaInfo, mmi *ModelMetaInf
 	// 1) get all associations ids.
 	// 1.1) In here I pick ids from model meta info directly.
 	ids := []any{}
-	mmi.Model.iterate(func(m *Model) error {
+	err := mmi.Model.iterate(func(m *Model) error {
 		ids = append(ids, m.ID())
 		return nil
 	})
+	if err != nil {
+		return err
+	}
 
 	if len(ids) == 0 {
 		return nil
@@ -257,7 +260,7 @@ func preloadHasMany(tx *Connection, asoc *AssociationMetaInfo, mmi *ModelMetaInf
 		q.Order(asoc.Field.Tag.Get("order_by"))
 	}
 
-	err := q.Where(fk+" in (?)", ids).All(slice.Interface())
+	err = q.Where(fk+" in (?)", ids).All(slice.Interface())
 	if err != nil {
 		return err
 	}
@@ -274,7 +277,7 @@ func preloadHasMany(tx *Connection, asoc *AssociationMetaInfo, mmi *ModelMetaInf
 	// 3) iterate over every model and fill it with the assoc.
 	foreignField := asoc.getDBFieldTaggedWith(fk)
 	mmi.iterate(func(mvalue reflect.Value) {
-		for i := 0; i < slice.Elem().Len(); i++ {
+		for i := range slice.Elem().Len() {
 			asocValue := slice.Elem().Index(i)
 			valueField := reflect.Indirect(mmi.mapper.FieldByName(asocValue, foreignField.Path))
 			if mmi.mapper.FieldByName(mvalue, "ID").Interface() == valueField.Interface() ||
@@ -304,10 +307,13 @@ func preloadHasMany(tx *Connection, asoc *AssociationMetaInfo, mmi *ModelMetaInf
 func preloadHasOne(tx *Connection, asoc *AssociationMetaInfo, mmi *ModelMetaInfo) error {
 	// 1) get all associations ids.
 	ids := []any{}
-	mmi.Model.iterate(func(m *Model) error {
+	err := mmi.Model.iterate(func(m *Model) error {
 		ids = append(ids, m.ID())
 		return nil
 	})
+	if err != nil {
+		return err
+	}
 
 	if len(ids) == 0 {
 		return nil
@@ -324,7 +330,7 @@ func preloadHasOne(tx *Connection, asoc *AssociationMetaInfo, mmi *ModelMetaInfo
 	q.eagerFields = []string{}
 
 	slice := asoc.toSlice()
-	err := q.Where(fk+" in (?)", ids).All(slice.Interface())
+	err = q.Where(fk+" in (?)", ids).All(slice.Interface())
 	if err != nil {
 		return err
 	}
@@ -341,7 +347,7 @@ func preloadHasOne(tx *Connection, asoc *AssociationMetaInfo, mmi *ModelMetaInfo
 	//  3) iterate over every model and fill it with the assoc.
 	foreignField := asoc.getDBFieldTaggedWith(fk)
 	mmi.iterate(func(mvalue reflect.Value) {
-		for i := 0; i < slice.Elem().Len(); i++ {
+		for i := range slice.Elem().Len() {
 			asocValue := slice.Elem().Index(i)
 			if mmi.mapper.FieldByName(mvalue, "ID").
 				Interface() ==
@@ -418,7 +424,7 @@ func preloadBelongsTo(tx *Connection, asoc *AssociationMetaInfo, mmi *ModelMetaI
 		if isFieldNilPtr(mvalue, fi) {
 			return
 		}
-		for i := 0; i < slice.Elem().Len(); i++ {
+		for i := range slice.Elem().Len() {
 			asocValue := slice.Elem().Index(i)
 			fkField := reflect.Indirect(mmi.mapper.FieldByName(mvalue, fi.Path))
 			field := mmi.mapper.FieldByName(asocValue, "ID")
@@ -449,10 +455,13 @@ func preloadManyToMany(tx *Connection, asoc *AssociationMetaInfo, mmi *ModelMeta
 	// 1) get all associations ids.
 	// 1.1) In here I pick ids from model meta info directly.
 	ids := []any{}
-	mmi.Model.iterate(func(m *Model) error {
+	err := mmi.Model.iterate(func(m *Model) error {
 		ids = append(ids, m.ID())
 		return nil
 	})
+	if err != nil {
+		return err
+	}
 
 	if len(ids) == 0 {
 		return nil
@@ -522,7 +531,10 @@ func preloadManyToMany(tx *Connection, asoc *AssociationMetaInfo, mmi *ModelMeta
 	}
 
 	slice := asoc.toSlice()
-	q.Where("id in (?)", fkids).All(slice.Interface())
+	err = q.Where("id in (?)", fkids).All(slice.Interface())
+	if err != nil {
+		return err
+	}
 
 	// 2.2) load all nested associations from this assoc.
 	if asocNestedFields, ok := mmi.nestedFields[asoc.Path]; ok {
@@ -537,7 +549,7 @@ func preloadManyToMany(tx *Connection, asoc *AssociationMetaInfo, mmi *ModelMeta
 	mmi.iterate(func(mvalue reflect.Value) {
 		id := mmi.mapper.FieldByName(mvalue, "ID").Interface()
 		if assocFkIDs, ok := mapAssoc[fmt.Sprintf("%v", id)]; ok {
-			for i := 0; i < slice.Elem().Len(); i++ {
+			for i := range slice.Elem().Len() {
 				asocValue := slice.Elem().Index(i)
 				for _, fkid := range assocFkIDs {
 					if fmt.Sprintf(

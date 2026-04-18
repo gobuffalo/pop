@@ -1,3 +1,4 @@
+// Package fix provides functions for updating old migration files to the newer formats.
 package fix
 
 import (

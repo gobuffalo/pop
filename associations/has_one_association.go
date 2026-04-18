@@ -14,6 +14,9 @@ import (
 //
 // See the belongsToAssociation for the other side of the relation.
 type hasOneAssociation struct {
+	*associationSkippable
+	*associationComposite
+
 	ownedTableName string
 	ownedModel     reflect.Value
 	ownedType      reflect.Type
@@ -21,8 +24,6 @@ type hasOneAssociation struct {
 	ownerName      string
 	owner          any
 	fkID           string
-	*associationSkipable
-	*associationComposite
 }
 
 func init() {
@@ -49,7 +50,7 @@ func hasOneAssociationBuilder(p associationParams) (Association, error) {
 		ownerID:        ownerID.Interface(),
 		ownerName:      ownerName,
 		fkID:           fk,
-		associationSkipable: &associationSkipable{
+		associationSkippable: &associationSkippable{
 			skipped: skipped,
 		},
 		associationComposite: &associationComposite{innerAssociations: p.innerAssociations},

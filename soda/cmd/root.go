@@ -76,7 +76,7 @@ func setConfigLocation() {
 			return
 		}
 		dir, file := filepath.Split(abs)
-		pop.AddLookupPaths(dir)
+		_ = pop.AddLookupPaths(dir)
 		pop.ConfigName = file
 	}
 }

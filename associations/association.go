@@ -1,3 +1,5 @@
+// Package associations provides types and functions for defining and working with model associations in the pop
+// package.
 package associations
 
 import (
@@ -19,13 +21,13 @@ type Association interface {
 	Skipped() bool
 }
 
-// associationSkipable is a helper struct that helps
+// associationSkippable is a helper struct that helps
 // to include skippable behavior in associations.
-type associationSkipable struct {
+type associationSkippable struct {
 	skipped bool
 }
 
-func (a *associationSkipable) Skipped() bool {
+func (a *associationSkippable) Skipped() bool {
 	return a.skipped
 }
 

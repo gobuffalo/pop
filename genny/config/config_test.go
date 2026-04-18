@@ -22,7 +22,7 @@ func Test_New(t *testing.T) {
 		})
 
 		r.NoError(err)
-		run.With(g)
+		r.NoError(run.With(g))
 		r.NoError(run.Run())
 
 		res := run.Results()

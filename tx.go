@@ -4,15 +4,16 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"math/rand"
+	"math/rand/v2"
 
 	"github.com/jmoiron/sqlx"
 )
 
 // Tx stores a transaction with an ID to keep track.
 type Tx struct {
-	ID int
 	*sqlx.Tx
+
+	ID int
 }
 
 func newTX(ctx context.Context, db *dB, opts *sql.TxOptions) (*Tx, error) {

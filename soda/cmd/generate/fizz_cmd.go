@@ -46,29 +46,27 @@ var FizzCmd = &cobra.Command{
 			path = p.Value.String()
 		}
 
+		var g *genny.Generator
 		if len(atts) == 0 {
-			g, err := cempty.New(&cempty.Options{
+			g, err = cempty.New(&cempty.Options{
 				Name: name,
 				Path: path,
 				Type: "fizz",
 			})
-			if err != nil {
-				return err
-			}
-			run.With(g)
 		} else {
-			g, err := ctable.New(&ctable.Options{
+			g, err = ctable.New(&ctable.Options{
 				TableName: name,
 				Path:      path,
 				Type:      "fizz",
 				Attrs:     atts,
 			})
-			if err != nil {
-				return err
-			}
-			run.With(g)
 		}
-
+		if err != nil {
+			return err
+		}
+		if err := run.With(g); err != nil {
+			return err
+		}
 		return run.Run()
 	},
 }

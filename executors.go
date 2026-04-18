@@ -124,51 +124,55 @@ func (c *Connection) ValidateAndCreate(model any, excludeColumns ...string) (*va
 		return verrs, nil
 	}
 
-	if c.eager {
-		asos, err := associations.ForStruct(model, c.eagerFields...)
-		if err != nil {
-			return verrs, fmt.Errorf("could not retrieve associations: %w", err)
+	if !c.eager {
+		c.eager = isEager
+		c.eagerFields = hasEagerFields
+		return verrs, c.Create(model, excludeColumns...)
+	}
+
+	asos, err := associations.ForStruct(model, c.eagerFields...)
+	if err != nil {
+		return verrs, fmt.Errorf("could not retrieve associations: %w", err)
+	}
+
+	if len(asos) == 0 {
+		log(logging.Debug, "no associations found for given struct, disable eager mode")
+		c.disableEager()
+		return verrs, c.Create(model, excludeColumns...)
+	}
+
+	before := asos.AssociationsBeforeCreatable()
+	for index := range before {
+		i := before[index].BeforeInterface()
+		if i == nil {
+			continue
 		}
 
-		if len(asos) == 0 {
-			log(logging.Debug, "no associations found for given struct, disable eager mode")
-			c.disableEager()
-			return verrs, c.Create(model, excludeColumns...)
-		}
-
-		before := asos.AssociationsBeforeCreatable()
-		for index := range before {
-			i := before[index].BeforeInterface()
-			if i == nil {
-				continue
-			}
-
-			sm := NewModel(i, c.Context())
-			verrs, err := sm.validateAndOnlyCreate(c)
-			if err != nil || verrs.HasAny() {
-				return verrs, err
-			}
-		}
-
-		after := asos.AssociationsAfterCreatable()
-		for index := range after {
-			i := after[index].AfterInterface()
-			if i == nil {
-				continue
-			}
-
-			sm := NewModel(i, c.Context())
-			verrs, err := sm.validateAndOnlyCreate(c)
-			if err != nil || verrs.HasAny() {
-				return verrs, err
-			}
-		}
-
-		sm := NewModel(model, c.Context())
-		verrs, err = sm.validateCreate(c)
+		sm := NewModel(i, c.Context())
+		verrs, err := sm.validateAndOnlyCreate(c)
 		if err != nil || verrs.HasAny() {
 			return verrs, err
 		}
+	}
+
+	after := asos.AssociationsAfterCreatable()
+	for index := range after {
+		i := after[index].AfterInterface()
+		if i == nil {
+			continue
+		}
+
+		sm := NewModel(i, c.Context())
+		verrs, err := sm.validateAndOnlyCreate(c)
+		if err != nil || verrs.HasAny() {
+			return verrs, err
+		}
+	}
+
+	sm = NewModel(model, c.Context())
+	verrs, err = sm.validateCreate(c)
+	if err != nil || verrs.HasAny() {
+		return verrs, err
 	}
 
 	c.eager = isEager
@@ -212,36 +216,10 @@ func (c *Connection) Create(model any, excludeColumns ...string) error {
 			}
 
 			processAssoc := len(asos) > 0
-
 			if processAssoc {
-				before := asos.AssociationsBeforeCreatable()
-				for index := range before {
-					i := before[index].BeforeInterface()
-					if i == nil {
-						continue
-					}
-
-					if localIsEager {
-						sm := NewModel(i, c.Context())
-						err = sm.iterate(func(m *Model) error {
-							id, err := m.fieldByName("ID")
-							if err != nil {
-								return err
-							}
-							if IsZeroOfUnderlyingType(id.Interface()) {
-								return c.Create(m.Value)
-							}
-							return nil
-						})
-						if err != nil {
-							return err
-						}
-					}
-
-					err = before[index].BeforeSetup()
-					if err != nil {
-						return err
-					}
+				err := c.createMissingBeforeAssociations(asos, localIsEager)
+				if err != nil {
+					return err
 				}
 			}
 
@@ -261,58 +239,9 @@ func (c *Connection) Create(model any, excludeColumns ...string) error {
 			}
 
 			if processAssoc {
-				after := asos.AssociationsAfterCreatable()
-				for index := range after {
-					if localIsEager {
-						err = after[index].AfterSetup()
-						if err != nil {
-							return err
-						}
-
-						i := after[index].AfterInterface()
-						if i == nil {
-							continue
-						}
-
-						sm := NewModel(i, c.Context())
-						err = sm.iterate(func(m *Model) error {
-							fbn, err := m.fieldByName("ID")
-							if err != nil {
-								return err
-							}
-							id := fbn.Interface()
-							if IsZeroOfUnderlyingType(id) {
-								return c.Create(m.Value)
-							}
-
-							exists, errE := Q(c).Where(m.WhereID(), id).Exists(i)
-							if errE != nil || !exists {
-								return c.Create(m.Value)
-							}
-							return nil
-						})
-						if err != nil {
-							return err
-						}
-					}
-					stm := after[index].AfterProcess()
-					if c.TX != nil && !stm.Empty() {
-						err := c.RawQuery(c.Dialect.TranslateSQL(stm.Statement), stm.Args...).Exec()
-						if err != nil {
-							return err
-						}
-					}
-				}
-
-				stms := asos.AssociationsCreatableStatement()
-				for index := range stms {
-					statements := stms[index].Statements()
-					for _, stm := range statements {
-						err := c.RawQuery(c.Dialect.TranslateSQL(stm.Statement), stm.Args...).Exec()
-						if err != nil {
-							return err
-						}
-					}
+				err := c.processAfterCreateAssociations(asos, localIsEager)
+				if err != nil {
+					return err
 				}
 			}
 
@@ -323,6 +252,104 @@ func (c *Connection) Create(model any, excludeColumns ...string) error {
 			return m.afterSave(c)
 		})
 	})
+}
+
+func (c *Connection) processAfterCreateAssociations(asos associations.Associations, localIsEager bool) error {
+	after := asos.AssociationsAfterCreatable()
+	for index := range after {
+		if localIsEager {
+			err := c.eagerCreate(after, index)
+			if err != nil {
+				return err
+			}
+		}
+		stm := after[index].AfterProcess()
+		if c.TX != nil && !stm.Empty() {
+			err := c.RawQuery(c.Dialect.TranslateSQL(stm.Statement), stm.Args...).Exec()
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	stms := asos.AssociationsCreatableStatement()
+	for index := range stms {
+		statements := stms[index].Statements()
+		for _, stm := range statements {
+			err := c.RawQuery(c.Dialect.TranslateSQL(stm.Statement), stm.Args...).Exec()
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func (c *Connection) eagerCreate(after []associations.AssociationAfterCreatable, index int) error {
+	err := after[index].AfterSetup()
+	if err != nil {
+		return err
+	}
+
+	i := after[index].AfterInterface()
+	if i == nil {
+		return nil
+	}
+
+	sm := NewModel(i, c.Context())
+	err = sm.iterate(func(m *Model) error {
+		fbn, err := m.fieldByName("ID")
+		if err != nil {
+			return err
+		}
+		id := fbn.Interface()
+		if IsZeroOfUnderlyingType(id) {
+			return c.Create(m.Value)
+		}
+
+		exists, errE := Q(c).Where(m.WhereID(), id).Exists(i)
+		if errE != nil || !exists {
+			return c.Create(m.Value)
+		}
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (c *Connection) createMissingBeforeAssociations(asos associations.Associations, localIsEager bool) error {
+	before := asos.AssociationsBeforeCreatable()
+	for index := range before {
+		i := before[index].BeforeInterface()
+		if i == nil {
+			continue
+		}
+
+		if localIsEager {
+			sm := NewModel(i, c.Context())
+			err := sm.iterate(func(m *Model) error {
+				id, err := m.fieldByName("ID")
+				if err != nil {
+					return err
+				}
+				if IsZeroOfUnderlyingType(id.Interface()) {
+					return c.Create(m.Value)
+				}
+				return nil
+			})
+			if err != nil {
+				return err
+			}
+		}
+
+		err := before[index].BeforeSetup()
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // ValidateAndUpdate applies validation rules on the given entry, then update it

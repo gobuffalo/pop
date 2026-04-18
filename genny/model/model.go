@@ -1,3 +1,6 @@
+// Package model provides a generator for creating new models in a Buffalo application. It uses templates to generate
+// model files based on the provided options, such as the model name, attributes, and encoding. The generated model
+// includes validations and necessary imports based on the attributes defined.
 package model
 
 import (

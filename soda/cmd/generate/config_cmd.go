@@ -1,3 +1,4 @@
+// Package generate provides commands for generating various files related to the pop package.
 package generate
 
 import (
@@ -47,7 +48,9 @@ var ConfigCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		run.With(g)
+		if err := run.With(g); err != nil {
+			return err
+		}
 
 		return run.Run()
 	},

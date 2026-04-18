@@ -1,3 +1,4 @@
+// Package schema provides a command for interacting with the database schema, including dumping and loading the schema.
 package schema
 
 import (
@@ -44,7 +45,7 @@ var DumpCmd = &cobra.Command{
 				return err
 			}
 			rollback = func() {
-				os.RemoveAll(dumpOptions.output)
+				_ = os.RemoveAll(dumpOptions.output)
 			}
 		}
 		if err := c.Dialect.DumpSchema(out); err != nil {
