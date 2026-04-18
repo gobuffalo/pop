@@ -51,7 +51,6 @@ var ConfigCmd = &cobra.Command{
 		if err := run.With(g); err != nil {
 			return err
 		}
-
 		return run.Run()
 	},
 }
