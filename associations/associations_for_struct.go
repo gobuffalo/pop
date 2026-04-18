@@ -85,7 +85,7 @@ func forStruct(parent, s any, fields []string) (Associations, error) {
 		}
 	}
 
-	for i := 0; i < t.NumField(); i++ {
+	for i := range t.NumField() {
 		f := t.Field(i)
 
 		// inline embedded field
@@ -112,7 +112,7 @@ func forStruct(parent, s any, fields []string) (Associations, error) {
 		}
 
 		// ignores those fields not included in fields list.
-		if len(fields) > 0 && fieldIgnoredIn(fields, f.Name) {
+		if len(fields) > 0 && !slices.Contains(fields, f.Name) {
 			continue
 		}
 
@@ -162,15 +162,11 @@ func trimFields(fields []string) []string {
 	return trimFields
 }
 
-func fieldIgnoredIn(fields []string, field string) bool {
-	return !slices.Contains(fields, field)
-}
-
 func extractFieldAndInnerFields(field string) (string, string) {
 	if !strings.Contains(field, ".") {
 		return field, ""
 	}
 
-	dotIndex := strings.Index(field, ".")
-	return field[:dotIndex], field[dotIndex+1:]
+	before, after, _ := strings.Cut(field, ".")
+	return before, after
 }
