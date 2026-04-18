@@ -5,15 +5,16 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/gobuffalo/pop/v6/fix"
 	"github.com/spf13/cobra"
+
+	"github.com/gobuffalo/pop/v6/fix"
 )
 
 var fixCmd = &cobra.Command{
 	Use:     "fix",
 	Aliases: []string{"f", "update"},
 	Short:   "Brings pop, soda, and fizz files in line with the latest APIs",
-	RunE: func(cmd *cobra.Command, args []string) error {
+	RunE: func(_ *cobra.Command, _ []string) error {
 		return filepath.Walk(migrationPath, func(path string, info os.FileInfo, _ error) error {
 			if info == nil {
 				return nil

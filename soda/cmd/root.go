@@ -1,24 +1,27 @@
 package cmd
 
 import (
+	"cmp"
 	"fmt"
 	"os"
 	"path/filepath"
 
-	"github.com/gobuffalo/pop/v6"
-	"github.com/gobuffalo/pop/v6/internal/defaults"
 	"github.com/spf13/cobra"
+
+	"github.com/gobuffalo/pop/v6"
 )
 
-var cfgFile string
-var env string
-var version bool
+var (
+	cfgFile string
+	env     string
+	version bool
+)
 
 // RootCmd is the entry point of soda CLI.
 var RootCmd = &cobra.Command{
 	SilenceUsage: true,
 	Short:        "A tasty treat for all your database needs",
-	PersistentPreRun: func(c *cobra.Command, args []string) {
+	PersistentPreRunE: func(c *cobra.Command, _ []string) error {
 		fmt.Printf("pop %s\n\n", Version)
 
 		/* NOTE: Do not use c.PersistentFlags. `c` is not always the
@@ -36,13 +39,13 @@ var RootCmd = &cobra.Command{
 
 		// CLI flag has priority
 		if !c.Flags().Changed("env") {
-			env = defaults.String(os.Getenv("GO_ENV"), env)
+			env = cmp.Or(os.Getenv("GO_ENV"), env)
 		}
 		// TODO! Only do this when the command needs it.
 		setConfigLocation()
-		pop.LoadConfigFile()
+		return pop.LoadConfigFile()
 	},
-	RunE: func(cmd *cobra.Command, args []string) error {
+	RunE: func(cmd *cobra.Command, _ []string) error {
 		if !version {
 			return cmd.Help()
 		}
@@ -60,7 +63,9 @@ func Execute() {
 func init() {
 	RootCmd.Flags().BoolVarP(&version, "version", "v", false, "Show version information")
 	RootCmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", "", "The configuration file you would like to use.")
-	RootCmd.PersistentFlags().StringVarP(&env, "env", "e", "development", "The environment you want to run migrations against. Will use $GO_ENV if set.")
+	RootCmd.PersistentFlags().StringVarP(
+		&env, "env", "e", "development", "The environment you want to run migrations against. Will use $GO_ENV if set.",
+	)
 	RootCmd.PersistentFlags().BoolVarP(&pop.Debug, "debug", "d", false, "Use debug/verbose mode")
 }
 

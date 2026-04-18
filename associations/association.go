@@ -4,6 +4,7 @@ import (
 	"reflect"
 
 	"github.com/gobuffalo/nulls"
+
 	"github.com/gobuffalo/pop/v6/columns"
 )
 
@@ -12,8 +13,8 @@ import (
 // belongs_to or has_one, and other customized types.
 type Association interface {
 	Kind() reflect.Kind
-	Interface() interface{}
-	Constraint() (string, []interface{})
+	Interface() any
+	Constraint() (string, []any)
 	InnerAssociations() InnerAssociations
 	Skipped() bool
 }
@@ -58,7 +59,7 @@ type AssociationSortable interface {
 // AssociationBeforeCreatable allows an association to be created before
 // the parent structure.
 type AssociationBeforeCreatable interface {
-	BeforeInterface() interface{}
+	BeforeInterface() any
 	BeforeSetup() error
 	Association
 }
@@ -66,7 +67,7 @@ type AssociationBeforeCreatable interface {
 // AssociationAfterCreatable allows an association to be created after
 // the parent structure.
 type AssociationAfterCreatable interface {
-	AfterInterface() interface{}
+	AfterInterface() any
 	AfterSetup() error
 	AfterProcess() AssociationStatement
 	Association
@@ -83,7 +84,7 @@ type AssociationCreatableStatement interface {
 // executed.
 type AssociationStatement struct {
 	Statement string
-	Args      []interface{}
+	Args      []any
 }
 
 // Empty is true if the containing Statement is empty.
@@ -137,7 +138,7 @@ type associationParams struct {
 	modelType         reflect.Type        // the model type where this field is defined.
 	modelValue        reflect.Value       // the model value where this field is defined.
 	popTags           columns.Tags        // the tags defined in this association field.
-	model             interface{}         // the model, owner of the association.
+	model             any                 // the model, owner of the association.
 	innerAssociations InnerAssociations   // the data for the deep level associations.
 }
 
@@ -152,14 +153,14 @@ func fieldIsNil(f reflect.Value) bool {
 	if n := nulls.New(f.Interface()); n != nil {
 		return n.Interface() == nil
 	}
-	if f.Kind() == reflect.Interface || f.Kind() == reflect.Ptr {
+	if f.Kind() == reflect.Interface || f.Kind() == reflect.Pointer {
 		return f.IsNil()
 	}
 	return f.Interface() == nil
 }
 
 // IsZeroOfUnderlyingType will check if the value of anything is the equal to the Zero value of that type.
-func IsZeroOfUnderlyingType(x interface{}) bool {
+func IsZeroOfUnderlyingType(x any) bool {
 	if x == nil {
 		return true
 	}

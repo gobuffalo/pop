@@ -1,13 +1,14 @@
 package associations
 
 import (
+	"cmp"
 	"fmt"
 	"reflect"
 
 	"github.com/gobuffalo/flect"
 	"github.com/gobuffalo/nulls"
+
 	"github.com/gobuffalo/pop/v6/columns"
-	"github.com/gobuffalo/pop/v6/internal/defaults"
 )
 
 // belongsToAssociation is the implementation for the belongs_to association type in a model.
@@ -16,7 +17,7 @@ type belongsToAssociation struct {
 	ownerType  reflect.Type
 	ownerID    reflect.Value
 	primaryID  string
-	ownedModel interface{}
+	ownedModel any
 	*associationSkipable
 	*associationComposite
 
@@ -30,14 +31,14 @@ func init() {
 func belongsToAssociationBuilder(p associationParams) (Association, error) {
 	ownerVal := p.modelValue.FieldByName(p.field.Name)
 	tags := p.popTags
-	primaryIDField := defaults.String(tags.Find("primary_id").Value, "ID")
+	primaryIDField := cmp.Or(tags.Find("primary_id").Value, "ID")
 	ownerIDField := fmt.Sprintf("%s%s", p.field.Name, "ID")
 
 	if tags.Find("fk_id").Value != "" {
 		dbTag := tags.Find("fk_id").Value
 		if _, found := p.modelType.FieldByName(dbTag); !found {
 			t := p.modelValue.Type()
-			for i := 0; i < t.NumField(); i++ {
+			for i := range t.NumField() {
 				f := t.Field(i)
 				if f.Tag.Get("db") == dbTag {
 					ownerIDField = f.Name
@@ -66,10 +67,14 @@ func belongsToAssociationBuilder(p associationParams) (Association, error) {
 		ownerModel := reflect.Indirect(ownerVal)
 		ownerPrimaryField, found := ownerModel.Type().FieldByName(primaryIDField)
 		if !found {
-			return nil, fmt.Errorf("there is no primary field '%s' defined in model '%s'", primaryIDField, ownerModel.Type())
+			return nil, fmt.Errorf(
+				"there is no primary field '%s' defined in model '%s'",
+				primaryIDField,
+				ownerModel.Type(),
+			)
 		}
 		ownerPTags := columns.TagsFor(ownerPrimaryField)
-		ownerPk = defaults.String(ownerPTags.Find("db").Value, flect.Underscore(ownerPrimaryField.Name))
+		ownerPk = cmp.Or(ownerPTags.Find("db").Value, flect.Underscore(ownerPrimaryField.Name))
 	}
 
 	return &belongsToAssociation{
@@ -87,14 +92,14 @@ func belongsToAssociationBuilder(p associationParams) (Association, error) {
 }
 
 func (b *belongsToAssociation) Kind() reflect.Kind {
-	if b.ownerType.Kind() == reflect.Ptr {
+	if b.ownerType.Kind() == reflect.Pointer {
 		return b.ownerType.Elem().Kind()
 	}
 	return b.ownerType.Kind()
 }
 
-func (b *belongsToAssociation) Interface() interface{} {
-	if b.ownerModel.Kind() == reflect.Ptr {
+func (b *belongsToAssociation) Interface() any {
+	if b.ownerModel.Kind() == reflect.Pointer {
 		val := reflect.New(b.ownerType.Elem())
 		b.ownerModel.Set(val)
 		return b.ownerModel.Interface()
@@ -104,18 +109,18 @@ func (b *belongsToAssociation) Interface() interface{} {
 
 // Constraint returns the content for a where clause, and the args
 // needed to execute it.
-func (b *belongsToAssociation) Constraint() (string, []interface{}) {
-	return fmt.Sprintf("%s = ?", b.primaryTableID), []interface{}{b.ownerID.Interface()}
+func (b *belongsToAssociation) Constraint() (string, []any) {
+	return b.primaryTableID + " = ?", []any{b.ownerID.Interface()}
 }
 
-func (b *belongsToAssociation) BeforeInterface() interface{} {
+func (b *belongsToAssociation) BeforeInterface() any {
 	// if the owner field is set, don't try to create the association to prevent conflicts.
 	if !b.skipped {
 		return nil
 	}
 
 	m := b.ownerModel
-	if m.Kind() == reflect.Ptr && !m.IsNil() {
+	if m.Kind() == reflect.Pointer && !m.IsNil() {
 		m = b.ownerModel.Elem()
 	}
 
@@ -138,7 +143,7 @@ func (b *belongsToAssociation) BeforeSetup() error {
 	if toSet.CanSet() {
 		if n := nulls.New(toSet.Interface()); n != nil {
 			toSet.Set(reflect.ValueOf(n.Parse(ownerID.Interface())))
-		} else if toSet.Kind() == reflect.Ptr {
+		} else if toSet.Kind() == reflect.Pointer {
 			toSet.Set(ownerID.Addr())
 		} else {
 			toSet.Set(ownerID)

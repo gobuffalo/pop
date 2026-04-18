@@ -5,14 +5,9 @@ import (
 	"database/sql"
 	"fmt"
 	"math/rand"
-	"time"
 
 	"github.com/jmoiron/sqlx"
 )
-
-func init() {
-	rand.Seed(time.Now().UnixNano())
-}
 
 // Tx stores a transaction with an ID to keep track.
 type Tx struct {
@@ -34,7 +29,7 @@ func newTX(ctx context.Context, db *dB, opts *sql.TxOptions) (*Tx, error) {
 
 // TransactionContext simply returns the current transaction,
 // this is defined so it implements the `Store` interface.
-func (tx *Tx) TransactionContext(ctx context.Context) (*Tx, error) {
+func (tx *Tx) TransactionContext(_ context.Context) (*Tx, error) {
 	return tx, nil
 }
 
@@ -55,7 +50,9 @@ func (tx *Tx) Close() error {
 	return nil
 }
 
-// Workaround for https://github.com/jmoiron/sqlx/issues/447
-func (tx *Tx) NamedQueryContext(ctx context.Context, query string, arg interface{}) (*sqlx.Rows, error) {
+// NamedQueryContext binds a named query and then runs Query on the result using the Transaction.
+// It works with both structs and with map[string]any types.
+func (tx *Tx) NamedQueryContext(ctx context.Context, query string, arg any) (*sqlx.Rows, error) {
+	// Workaround for https://github.com/jmoiron/sqlx/issues/447
 	return sqlx.NamedQueryContext(ctx, tx, query, arg)
 }

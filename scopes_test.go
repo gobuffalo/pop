@@ -1,7 +1,6 @@
 package pop
 
 import (
-	"context"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -14,7 +13,7 @@ func Test_Scopes(t *testing.T) {
 	r := require.New(t)
 	oql := "SELECT enemies.A FROM enemies AS enemies"
 
-	m := NewModel(new(Enemy), context.Background())
+	m := NewModel(new(Enemy), t.Context())
 
 	q := PDB.Q()
 	s, _ := q.ToSQL(m)

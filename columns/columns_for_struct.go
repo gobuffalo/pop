@@ -6,13 +6,13 @@ import (
 
 // ForStruct returns a Columns instance for
 // the struct passed in.
-func ForStruct(s interface{}, tableName, idField string) (columns Columns) {
+func ForStruct(s any, tableName, idField string) (columns Columns) {
 	return ForStructWithAlias(s, tableName, "", idField)
 }
 
 // ForStructWithAlias returns a Columns instance for the struct passed in.
 // If the tableAlias is not empty, it will be used.
-func ForStructWithAlias(s interface{}, tableName, tableAlias, idField string) (columns Columns) {
+func ForStructWithAlias(s any, tableName, tableAlias, idField string) (columns Columns) {
 	columns = NewColumnsWithAlias(tableName, tableAlias, idField)
 	defer func() {
 		if r := recover(); r != nil {
@@ -21,12 +21,12 @@ func ForStructWithAlias(s interface{}, tableName, tableAlias, idField string) (c
 		}
 	}()
 	st := reflect.TypeOf(s)
-	if st.Kind() == reflect.Ptr {
+	if st.Kind() == reflect.Pointer {
 		st = st.Elem()
 	}
 	if st.Kind() == reflect.Slice {
 		st = st.Elem()
-		if st.Kind() == reflect.Ptr {
+		if st.Kind() == reflect.Pointer {
 			st = st.Elem()
 		}
 	}
@@ -34,12 +34,12 @@ func ForStructWithAlias(s interface{}, tableName, tableAlias, idField string) (c
 	// recursive functions to also find and add embedded struct fields
 	var findColumns func(st reflect.Type)
 	findColumns = func(t reflect.Type) {
-		if t.Kind() == reflect.Ptr {
+		if t.Kind() == reflect.Pointer {
 			t = t.Elem()
 		}
 
 		fc := t.NumField()
-		for i := 0; i < fc; i++ {
+		for i := range fc {
 			field := t.Field(i)
 
 			if field.Anonymous {

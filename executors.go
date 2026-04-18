@@ -1,19 +1,21 @@
 package pop
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 	"time"
 
+	"github.com/gobuffalo/validate/v3"
+	"github.com/gofrs/uuid"
+
 	"github.com/gobuffalo/pop/v6/associations"
 	"github.com/gobuffalo/pop/v6/columns"
 	"github.com/gobuffalo/pop/v6/logging"
-	"github.com/gobuffalo/validate/v3"
-	"github.com/gofrs/uuid"
 )
 
 // Reload fetch fresh data for a given model, using its ID.
-func (c *Connection) Reload(model interface{}) error {
+func (c *Connection) Reload(model any) error {
 	sm := NewModel(model, c.Context())
 	return sm.iterate(func(m *Model) error {
 		return c.Find(m.Value, m.ID())
@@ -27,7 +29,7 @@ func (q *Query) Exec() error {
 	return q.Connection.timeFunc("Exec", func() error {
 		sql, args := q.ToSQL(nil)
 		if sql == "" {
-			return fmt.Errorf("empty query")
+			return errors.New("empty query")
 		}
 
 		txlog(logging.SQL, q.Connection, sql, args...)
@@ -43,7 +45,7 @@ func (q *Query) ExecWithCount() (int, error) {
 	return int(count), q.Connection.timeFunc("Exec", func() error {
 		sql, args := q.ToSQL(nil)
 		if sql == "" {
-			return fmt.Errorf("empty query")
+			return errors.New("empty query")
 		}
 
 		txlog(logging.SQL, q.Connection, sql, args...)
@@ -61,7 +63,7 @@ func (q *Query) ExecWithCount() (int, error) {
 // if the validation succeed, excluding the given columns.
 //
 // If model is a slice, each item of the slice is validated then saved in the database.
-func (c *Connection) ValidateAndSave(model interface{}, excludeColumns ...string) (*validate.Errors, error) {
+func (c *Connection) ValidateAndSave(model any, excludeColumns ...string) (*validate.Errors, error) {
 	sm := NewModel(model, c.Context())
 	if err := sm.beforeValidate(c); err != nil {
 		return nil, err
@@ -79,7 +81,7 @@ func (c *Connection) ValidateAndSave(model interface{}, excludeColumns ...string
 var emptyUUID = uuid.Nil.String()
 
 // IsZeroOfUnderlyingType will check if the value of anything is the equal to the Zero value of that type.
-func IsZeroOfUnderlyingType(x interface{}) bool {
+func IsZeroOfUnderlyingType(x any) bool {
 	return reflect.DeepEqual(x, reflect.Zero(reflect.TypeOf(x)).Interface())
 }
 
@@ -87,7 +89,7 @@ func IsZeroOfUnderlyingType(x interface{}) bool {
 // or issues an Update otherwise.
 //
 // If model is a slice, each item of the slice is saved in the database.
-func (c *Connection) Save(model interface{}, excludeColumns ...string) error {
+func (c *Connection) Save(model any, excludeColumns ...string) error {
 	sm := NewModel(model, c.Context())
 	return sm.iterate(func(m *Model) error {
 		id, err := m.fieldByName("ID")
@@ -105,7 +107,7 @@ func (c *Connection) Save(model interface{}, excludeColumns ...string) error {
 // if the validation succeed, excluding the given columns.
 //
 // If model is a slice, each item of the slice is validated then created in the database.
-func (c *Connection) ValidateAndCreate(model interface{}, excludeColumns ...string) (*validate.Errors, error) {
+func (c *Connection) ValidateAndCreate(model any, excludeColumns ...string) (*validate.Errors, error) {
 	sm := NewModel(model, c.Context())
 
 	isEager := c.eager
@@ -182,15 +184,15 @@ func (c *Connection) ValidateAndCreate(model interface{}, excludeColumns ...stri
 // Create support two modes:
 // * Flat (default): Associate existing nested objects only. NO creation or update of nested objects.
 // * Eager: Associate existing nested objects and create non-existent objects. NO change to existing objects.
-func (c *Connection) Create(model interface{}, excludeColumns ...string) error {
-	var isEager = c.eager
+func (c *Connection) Create(model any, excludeColumns ...string) error {
+	isEager := c.eager
 
 	c.disableEager()
 
 	sm := NewModel(model, c.Context())
 	return sm.iterate(func(m *Model) error {
 		return c.timeFunc("Create", func() error {
-			var localIsEager = isEager
+			localIsEager := isEager
 			asos, err := associations.ForStruct(m.Value, c.eagerFields...)
 			if err != nil {
 				return fmt.Errorf("could not retrieve associations: %w", err)
@@ -231,7 +233,6 @@ func (c *Connection) Create(model interface{}, excludeColumns ...string) error {
 							}
 							return nil
 						})
-
 						if err != nil {
 							return err
 						}
@@ -290,7 +291,6 @@ func (c *Connection) Create(model interface{}, excludeColumns ...string) error {
 							}
 							return nil
 						})
-
 						if err != nil {
 							return err
 						}
@@ -329,7 +329,7 @@ func (c *Connection) Create(model interface{}, excludeColumns ...string) error {
 // if the validation succeed, excluding the given columns.
 //
 // If model is a slice, each item of the slice is validated then updated in the database.
-func (c *Connection) ValidateAndUpdate(model interface{}, excludeColumns ...string) (*validate.Errors, error) {
+func (c *Connection) ValidateAndUpdate(model any, excludeColumns ...string) (*validate.Errors, error) {
 	sm := NewModel(model, c.Context())
 	if err := sm.beforeValidate(c); err != nil {
 		return nil, err
@@ -348,7 +348,7 @@ func (c *Connection) ValidateAndUpdate(model interface{}, excludeColumns ...stri
 // It updates the `updated_at` column automatically.
 //
 // If model is a slice, each item of the slice is updated in the database.
-func (c *Connection) Update(model interface{}, excludeColumns ...string) error {
+func (c *Connection) Update(model any, excludeColumns ...string) error {
 	sm := NewModel(model, c.Context())
 	return sm.iterate(func(m *Model) error {
 		return c.timeFunc("Update", func() error {
@@ -394,7 +394,7 @@ func (c *Connection) Update(model interface{}, excludeColumns ...string) error {
 //
 // Calling UpdateQuery with no columnNames will result in only the UpdatedAt
 // column being updated.
-func (q *Query) UpdateQuery(model interface{}, columnNames ...string) (int64, error) {
+func (q *Query) UpdateQuery(model any, columnNames ...string) (int64, error) {
 	sm := NewModel(model, q.Connection.Context())
 	modelKind := reflect.TypeOf(reflect.Indirect(reflect.ValueOf(model))).Kind()
 	if modelKind != reflect.Struct {
@@ -418,7 +418,7 @@ func (q *Query) UpdateQuery(model interface{}, columnNames ...string) (int64, er
 // It updates the `updated_at` column automatically if you include `updated_at` in columnNames.
 //
 // If model is a slice, each item of the slice is updated in the database.
-func (c *Connection) UpdateColumns(model interface{}, columnNames ...string) error {
+func (c *Connection) UpdateColumns(model any, columnNames ...string) error {
 	sm := NewModel(model, c.Context())
 	return sm.iterate(func(m *Model) error {
 		return c.timeFunc("Update", func() error {
@@ -461,7 +461,7 @@ func (c *Connection) UpdateColumns(model interface{}, columnNames ...string) err
 // Destroy deletes a given entry from the database.
 //
 // If model is a slice, each item of the slice is deleted from the database.
-func (c *Connection) Destroy(model interface{}) error {
+func (c *Connection) Destroy(model any) error {
 	sm := NewModel(model, c.Context())
 	return sm.iterate(func(m *Model) error {
 		return c.timeFunc("Destroy", func() error {
@@ -479,8 +479,9 @@ func (c *Connection) Destroy(model interface{}) error {
 	})
 }
 
-func (q *Query) Delete(model interface{}) error {
-	q.Operation = Delete
+// Delete deletes all rows matched by the query.
+func (q *Query) Delete(model any) error {
+	q.Operation = deleteOp
 
 	return q.Connection.timeFunc("Delete", func() error {
 		m := NewModel(model, q.Connection.Context())

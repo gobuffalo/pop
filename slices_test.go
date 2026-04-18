@@ -11,8 +11,8 @@ type Cake struct {
 	Int       slices.Int    `db:"int_slice"`
 	Float     slices.Float  `db:"float_slice"`
 	String    slices.String `db:"string_slice"`
-	CreatedAt time.Time     `json:"created_at" db:"created_at"`
-	UpdatedAt time.Time     `json:"updated_at" db:"updated_at"`
+	CreatedAt time.Time     `db:"created_at"   json:"created_at"`
+	UpdatedAt time.Time     `db:"updated_at"   json:"updated_at"`
 }
 
 func (s *PostgreSQLSuite) Test_String() {

@@ -1,16 +1,17 @@
 package pop
 
 import (
+	"cmp"
 	"fmt"
 	"reflect"
 	"regexp"
 	"strings"
 
 	"github.com/gobuffalo/flect"
-	"github.com/gobuffalo/pop/v6/internal/defaults"
-	"github.com/gobuffalo/pop/v6/logging"
 	"github.com/jmoiron/sqlx"
 	"github.com/jmoiron/sqlx/reflectx"
+
+	"github.com/gobuffalo/pop/v6/logging"
 )
 
 var validFieldRegexp = regexp.MustCompile(`^(([a-zA-Z0-9]*)(\.[a-zA-Z0-9]+)?)+$`)
@@ -86,7 +87,11 @@ func (mmi *ModelMetaInfo) preloadFields(fields ...string) ([]*reflectx.FieldInfo
 	var preloadFields []*reflectx.FieldInfo
 	for _, f := range fields {
 		if !validFieldRegexp.MatchString(f) {
-			return preloadFields, fmt.Errorf("association field '%s' does not match the format %s", f, "'<field>' or '<field>.<nested-field>'")
+			return preloadFields, fmt.Errorf(
+				"association field '%s' does not match the format %s",
+				f,
+				"'<field>' or '<field>.<nested-field>'",
+			)
 		}
 		if strings.Contains(f, ".") {
 			fname := f[:strings.Index(f, ".")]
@@ -123,7 +128,7 @@ type AssociationMetaInfo struct {
 
 func (ami *AssociationMetaInfo) init() {
 	mapper := reflectx.NewMapper("")
-	t := reflectx.Deref(ami.FieldInfo.Field.Type)
+	t := reflectx.Deref(ami.Field.Type)
 	if t.Kind() == reflect.Slice || t.Kind() == reflect.Array {
 		t = reflectx.Deref(t.Elem())
 	}
@@ -161,12 +166,12 @@ func (ami *AssociationMetaInfo) fkName() string {
 	}
 	fkName := fmt.Sprintf("%s%s", flect.Underscore(flect.Singularize(t.Name())), "_id")
 	fkNameTag := flect.Underscore(ami.Field.Tag.Get("fk_id"))
-	return defaults.String(fkNameTag, fkName)
+	return cmp.Or(fkNameTag, fkName)
 }
 
 // preload is the query mode used to load associations from database
 // similar to the active record default approach on Rails.
-func preload(tx *Connection, model interface{}, fields ...string) error {
+func preload(tx *Connection, model any, fields ...string) error {
 	mmi := NewModelMetaInfo(NewModel(model, tx.Context()))
 
 	preloadFields, err := mmi.preloadFields(fields...)
@@ -225,7 +230,7 @@ func isFieldAssociation(field reflect.StructField) bool {
 func preloadHasMany(tx *Connection, asoc *AssociationMetaInfo, mmi *ModelMetaInfo) error {
 	// 1) get all associations ids.
 	// 1.1) In here I pick ids from model meta info directly.
-	ids := []interface{}{}
+	ids := []any{}
 	mmi.Model.iterate(func(m *Model) error {
 		ids = append(ids, m.ID())
 		return nil
@@ -251,7 +256,7 @@ func preloadHasMany(tx *Connection, asoc *AssociationMetaInfo, mmi *ModelMetaInf
 		q.Order(asoc.Field.Tag.Get("order_by"))
 	}
 
-	err := q.Where(fmt.Sprintf("%s in (?)", fk), ids).All(slice.Interface())
+	err := q.Where(fk+" in (?)", ids).All(slice.Interface())
 	if err != nil {
 		return err
 	}
@@ -283,7 +288,7 @@ func preloadHasMany(tx *Connection, asoc *AssociationMetaInfo, mmi *ModelMetaInf
 				switch {
 				case modelAssociationField.Kind() == reflect.Slice || modelAssociationField.Kind() == reflect.Array:
 					modelAssociationField.Set(reflect.Append(modelAssociationField, asocValue))
-				case modelAssociationField.Kind() == reflect.Ptr:
+				case modelAssociationField.Kind() == reflect.Pointer:
 					modelAssociationField.Elem().Set(reflect.Append(modelAssociationField.Elem(), asocValue))
 				default:
 					modelAssociationField.Set(asocValue)
@@ -297,7 +302,7 @@ func preloadHasMany(tx *Connection, asoc *AssociationMetaInfo, mmi *ModelMetaInf
 
 func preloadHasOne(tx *Connection, asoc *AssociationMetaInfo, mmi *ModelMetaInfo) error {
 	// 1) get all associations ids.
-	ids := []interface{}{}
+	ids := []any{}
 	mmi.Model.iterate(func(m *Model) error {
 		ids = append(ids, m.ID())
 		return nil
@@ -337,8 +342,14 @@ func preloadHasOne(tx *Connection, asoc *AssociationMetaInfo, mmi *ModelMetaInfo
 	mmi.iterate(func(mvalue reflect.Value) {
 		for i := 0; i < slice.Elem().Len(); i++ {
 			asocValue := slice.Elem().Index(i)
-			if mmi.mapper.FieldByName(mvalue, "ID").Interface() == mmi.mapper.FieldByName(asocValue, foreignField.Path).Interface() ||
-				reflect.DeepEqual(mmi.mapper.FieldByName(mvalue, "ID"), mmi.mapper.FieldByName(asocValue, foreignField.Path)) {
+			if mmi.mapper.FieldByName(mvalue, "ID").
+				Interface() ==
+				mmi.mapper.FieldByName(asocValue, foreignField.Path).
+					Interface() ||
+				reflect.DeepEqual(
+					mmi.mapper.FieldByName(mvalue, "ID"),
+					mmi.mapper.FieldByName(asocValue, foreignField.Path),
+				) {
 				// IMPORTANT
 				//
 				// FieldByName will initialize the value. It is important that this happens AFTER
@@ -349,7 +360,7 @@ func preloadHasOne(tx *Connection, asoc *AssociationMetaInfo, mmi *ModelMetaInfo
 				switch {
 				case modelAssociationField.Kind() == reflect.Slice || modelAssociationField.Kind() == reflect.Array:
 					modelAssociationField.Set(reflect.Append(modelAssociationField, asocValue))
-				case modelAssociationField.Kind() == reflect.Ptr:
+				case modelAssociationField.Kind() == reflect.Pointer:
 					modelAssociationField.Elem().Set(asocValue)
 				default:
 					modelAssociationField.Set(asocValue)
@@ -368,7 +379,7 @@ func preloadBelongsTo(tx *Connection, asoc *AssociationMetaInfo, mmi *ModelMetaI
 		fi = mmi.getDBFieldTaggedWith(fmt.Sprintf("%s%s", flect.Underscore(asoc.Path), "_id"))
 	}
 
-	fkids := []interface{}{}
+	fkids := []any{}
 	mmi.iterate(func(val reflect.Value) {
 		if !isFieldNilPtr(val, fi) {
 			fkids = append(fkids, mmi.mapper.FieldByName(val, fi.Path).Interface())
@@ -421,7 +432,7 @@ func preloadBelongsTo(tx *Connection, asoc *AssociationMetaInfo, mmi *ModelMetaI
 				switch {
 				case modelAssociationField.Kind() == reflect.Slice || modelAssociationField.Kind() == reflect.Array:
 					modelAssociationField.Set(reflect.Append(modelAssociationField, asocValue))
-				case modelAssociationField.Kind() == reflect.Ptr:
+				case modelAssociationField.Kind() == reflect.Pointer:
 					modelAssociationField.Elem().Set(asocValue)
 				default:
 					modelAssociationField.Set(asocValue)
@@ -436,7 +447,7 @@ func preloadBelongsTo(tx *Connection, asoc *AssociationMetaInfo, mmi *ModelMetaI
 func preloadManyToMany(tx *Connection, asoc *AssociationMetaInfo, mmi *ModelMetaInfo) error {
 	// 1) get all associations ids.
 	// 1.1) In here I pick ids from model meta info directly.
-	ids := []interface{}{}
+	ids := []any{}
 	mmi.Model.iterate(func(m *Model) error {
 		ids = append(ids, m.ID())
 		return nil
@@ -457,7 +468,13 @@ func preloadManyToMany(tx *Connection, asoc *AssociationMetaInfo, mmi *ModelMeta
 		manyToManyTableName = strings.TrimSpace(manyToManyTableName[:strings.Index(manyToManyTableName, ":")])
 	}
 
-	sql := fmt.Sprintf("SELECT %s, %s FROM %s WHERE %s in (?)", modelAssociationName, assocFkName, manyToManyTableName, modelAssociationName)
+	sql := fmt.Sprintf(
+		"SELECT %s, %s FROM %s WHERE %s in (?)",
+		modelAssociationName,
+		assocFkName,
+		manyToManyTableName,
+		modelAssociationName,
+	)
 	sql, args, _ := sqlx.In(sql, ids)
 	sql = tx.Dialect.TranslateSQL(sql)
 
@@ -472,8 +489,8 @@ func preloadManyToMany(tx *Connection, asoc *AssociationMetaInfo, mmi *ModelMeta
 		return err
 	}
 
-	mapAssoc := map[string][]interface{}{}
-	fkids := []interface{}{}
+	mapAssoc := map[string][]any{}
+	fkids := []any{}
 	for rows.Next() {
 		row, err := rows.SliceScan()
 		if err != nil {
@@ -518,11 +535,17 @@ func preloadManyToMany(tx *Connection, asoc *AssociationMetaInfo, mmi *ModelMeta
 	// 3) iterate over every model and fill it with the assoc.
 	mmi.iterate(func(mvalue reflect.Value) {
 		id := mmi.mapper.FieldByName(mvalue, "ID").Interface()
-		if assocFkIds, ok := mapAssoc[fmt.Sprintf("%v", id)]; ok {
+		if assocFkIDs, ok := mapAssoc[fmt.Sprintf("%v", id)]; ok {
 			for i := 0; i < slice.Elem().Len(); i++ {
 				asocValue := slice.Elem().Index(i)
-				for _, fkid := range assocFkIds {
-					if fmt.Sprintf("%v", fkid) == fmt.Sprintf("%v", mmi.mapper.FieldByName(asocValue, "ID").Interface()) {
+				for _, fkid := range assocFkIDs {
+					if fmt.Sprintf(
+						"%v",
+						fkid,
+					) == fmt.Sprintf(
+						"%v",
+						mmi.mapper.FieldByName(asocValue, "ID").Interface(),
+					) {
 						// IMPORTANT
 						//
 						// FieldByName will initialize the value. It is important that this happens AFTER
@@ -542,5 +565,5 @@ func preloadManyToMany(tx *Connection, asoc *AssociationMetaInfo, mmi *ModelMeta
 
 func isFieldNilPtr(val reflect.Value, fi *reflectx.FieldInfo) bool {
 	fieldValue := reflectx.FieldByIndexesReadOnly(val, fi.Index)
-	return fieldValue.Kind() == reflect.Ptr && fieldValue.IsNil()
+	return fieldValue.Kind() == reflect.Pointer && fieldValue.IsNil()
 }

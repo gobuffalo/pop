@@ -1,8 +1,9 @@
 package cmd
 
 import (
-	"github.com/gobuffalo/pop/v6"
 	"github.com/spf13/cobra"
+
+	"github.com/gobuffalo/pop/v6"
 )
 
 var migrationStepDown int
@@ -10,7 +11,7 @@ var migrationStepDown int
 var migrateDownCmd = &cobra.Command{
 	Use:   "down",
 	Short: "Apply one or more of the 'down' migrations.",
-	RunE: func(cmd *cobra.Command, args []string) error {
+	RunE: func(_ *cobra.Command, _ []string) error {
 		mig, err := pop.NewFileMigrator(migrationPath, getConn())
 		if err != nil {
 			return err

@@ -1,6 +1,9 @@
 package pop
 
-import "strings"
+import (
+	"slices"
+	"strings"
+)
 
 // EagerMode type for all eager modes supported in pop.
 type EagerMode uint8
@@ -48,12 +51,7 @@ var newConnection = make(map[string]func(*ConnectionDetails) (dialect, error))
 
 // DialectSupported checks support for the given database dialect
 func DialectSupported(d string) bool {
-	for _, ad := range AvailableDialects {
-		if ad == d {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(AvailableDialects, d)
 }
 
 // CanonicalDialect checks if the given synonym (could be a valid dialect too)

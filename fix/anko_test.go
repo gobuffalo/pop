@@ -3,7 +3,6 @@ package fix
 import (
 	"io"
 	"io/fs"
-	"io/ioutil"
 	"os"
 	"strings"
 	"testing"
@@ -29,40 +28,33 @@ func Test_Anko(t *testing.T) {
 		}
 
 		if strings.HasPrefix(path, "pass") {
-			t.Run(path, testPass(path, f))
+			t.Run(path, func(t *testing.T) {
+				r := require.New(t)
+				b, err := io.ReadAll(f)
+				r.NoError(err)
+
+				body := string(b)
+				fixed, err := Anko(body)
+				r.NoError(err)
+
+				if strings.Contains(path, "anko") {
+					r.NotEqual(body, fixed)
+				} else {
+					r.Equal(body, fixed)
+				}
+			})
 			return nil
 		}
-		t.Run(path, testFail(path, f))
+		t.Run(path, func(t *testing.T) {
+			r := require.New(t)
+			b, err := io.ReadAll(f)
+			r.NoError(err)
+
+			body := string(b)
+			_, err = Anko(body)
+			r.Error(err)
+		})
 		return nil
 	})
 	r.NoError(err)
-}
-
-func testPass(path string, info io.Reader) func(*testing.T) {
-	return func(t *testing.T) {
-		r := require.New(t)
-		b, err := ioutil.ReadAll(info)
-		r.NoError(err)
-
-		body := string(b)
-		fixed, err := Anko(body)
-		r.NoError(err)
-		if strings.Contains(path, "anko") {
-			r.NotEqual(body, fixed)
-		} else {
-			r.Equal(body, fixed)
-		}
-	}
-}
-
-func testFail(path string, info io.Reader) func(*testing.T) {
-	return func(t *testing.T) {
-		r := require.New(t)
-		b, err := ioutil.ReadAll(info)
-		r.NoError(err)
-
-		body := string(b)
-		_, err = Anko(body)
-		r.Error(err)
-	}
 }

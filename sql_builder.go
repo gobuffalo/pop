@@ -1,14 +1,16 @@
 package pop
 
 import (
+	"errors"
 	"fmt"
 	"regexp"
 	"strings"
 	"sync"
 
+	"github.com/jmoiron/sqlx"
+
 	"github.com/gobuffalo/pop/v6/columns"
 	"github.com/gobuffalo/pop/v6/logging"
-	"github.com/jmoiron/sqlx"
 )
 
 type sqlBuilder struct {
@@ -16,7 +18,7 @@ type sqlBuilder struct {
 	Model      *Model
 	AddColumns []string
 	sql        string
-	args       []interface{}
+	args       []any
 	isCompiled bool
 	err        error
 }
@@ -26,7 +28,7 @@ func newSQLBuilder(q Query, m *Model, addColumns ...string) *sqlBuilder {
 		Query:      q,
 		Model:      m,
 		AddColumns: addColumns,
-		args:       []interface{}{},
+		args:       []any{},
 		isCompiled: false,
 	}
 }
@@ -62,7 +64,7 @@ func (sq *sqlBuilder) String() string {
 	return sq.sql
 }
 
-func (sq *sqlBuilder) Args() []interface{} {
+func (sq *sqlBuilder) Args() []any {
 	if !sq.isCompiled {
 		sq.compile()
 	}
@@ -72,41 +74,52 @@ func (sq *sqlBuilder) Args() []interface{} {
 var inRegex = regexp.MustCompile(`(?i)in\s*\(\s*\?\s*\)`)
 
 func (sq *sqlBuilder) compile() {
-	if sq.sql == "" {
-		if sq.Query.RawSQL.Fragment != "" {
-			if sq.Query.Paginator != nil && !hasLimitOrOffset(sq.Query.RawSQL.Fragment) {
-				sq.sql = sq.buildPaginationClauses(sq.Query.RawSQL.Fragment)
-			} else {
-				if sq.Query.Paginator != nil {
-					log(logging.Warn, "Query already contains pagination")
-				}
-				sq.sql = sq.Query.RawSQL.Fragment
-			}
-			sq.args = sq.Query.RawSQL.Arguments
-		} else {
-			if sq.Model == nil {
-				sq.err = fmt.Errorf("sqlBuilder.compile() called but no RawSQL and Model specified")
-				return
-			}
-			switch sq.Query.Operation {
-			case Select:
-				sq.sql = sq.buildSelectSQL()
-			case Delete:
-				sq.sql = sq.buildDeleteSQL()
-			default:
-				panic("unexpected query operation " + sq.Query.Operation)
-			}
+	if sq.sql != "" {
+		return
+	}
+
+	if err := sq.buildQuery(); err != nil {
+		sq.err = err
+		return
+	}
+
+	if inRegex.MatchString(sq.sql) {
+		s, args, err := sqlx.In(sq.sql, sq.Args()...)
+		if err == nil {
+			sq.sql = s
+			sq.args = args
+		}
+	}
+	sq.sql = sq.Query.Connection.Dialect.TranslateSQL(sq.sql)
+}
+
+func (sq *sqlBuilder) buildQuery() error {
+	if sq.Query.RawSQL.Fragment != "" {
+		sq.args = sq.Query.RawSQL.Arguments
+		if sq.Query.Paginator != nil && !hasLimitOrOffset(sq.Query.RawSQL.Fragment) {
+			sq.sql = sq.buildPaginationClauses(sq.Query.RawSQL.Fragment)
+			return nil
 		}
 
-		if inRegex.MatchString(sq.sql) {
-			s, args, err := sqlx.In(sq.sql, sq.Args()...)
-			if err == nil {
-				sq.sql = s
-				sq.args = args
-			}
+		if sq.Query.Paginator != nil {
+			log(logging.Warn, "Query already contains pagination")
 		}
-		sq.sql = sq.Query.Connection.Dialect.TranslateSQL(sq.sql)
+		sq.sql = sq.Query.RawSQL.Fragment
+		return nil
 	}
+
+	if sq.Model == nil {
+		return errors.New("sqlBuilder.compile() called but no RawSQL and Model specified")
+	}
+	switch sq.Query.Operation {
+	case selectOp:
+		sq.sql = sq.buildSelectSQL()
+	case deleteOp:
+		sq.sql = sq.buildDeleteSQL()
+	default:
+		panic("unexpected query operation " + sq.Query.Operation)
+	}
+	return nil
 }
 
 func (sq *sqlBuilder) buildSelectSQL() string {
@@ -133,7 +146,8 @@ func (sq *sqlBuilder) buildDeleteSQL() string {
 	sql = sq.buildWhereClauses(sql)
 
 	// paginated delete supported by sqlite and mysql
-	// > If SQLite is compiled with the SQLITE_ENABLE_UPDATE_DELETE_LIMIT compile-time option [...] - from https://www.sqlite.org/lang_delete.html
+	// > If SQLite is compiled with the SQLITE_ENABLE_UPDATE_DELETE_LIMIT compile-time option [...] -
+	// from https://www.sqlite.org/lang_delete.html
 	//
 	// not generic enough IMO, therefore excluded
 	//
@@ -170,8 +184,13 @@ func (sq *sqlBuilder) buildfromClauses() fromClauses {
 func (sq *sqlBuilder) buildWhereClauses(sql string) string {
 	mcs := sq.Query.belongsToThroughClauses
 	for _, mc := range mcs {
-		sq.Query.Where(fmt.Sprintf("%s.%s = ?", mc.Through.TableName(), mc.BelongsTo.associationName()), mc.BelongsTo.ID())
-		sq.Query.Where(fmt.Sprintf("%s.id = %s.%s", sq.Model.TableName(), mc.Through.TableName(), sq.Model.associationName()))
+		sq.Query.Where(
+			fmt.Sprintf("%s.%s = ?", mc.Through.TableName(), mc.BelongsTo.associationName()),
+			mc.BelongsTo.ID(),
+		)
+		sq.Query.Where(
+			fmt.Sprintf("%s.id = %s.%s", sq.Model.TableName(), mc.Through.TableName(), sq.Model.associationName()),
+		)
 	}
 
 	wc := sq.Query.whereClauses
@@ -240,8 +259,10 @@ func (sq *sqlBuilder) buildPaginationClauses(sql string) string {
 }
 
 // columnCache is used to prevent columns rebuilding.
-var columnCache = map[string]columns.Columns{}
-var columnCacheMutex = sync.RWMutex{}
+var (
+	columnCache      = map[string]columns.Columns{}
+	columnCacheMutex = sync.RWMutex{}
+)
 
 func (sq *sqlBuilder) buildColumns() columns.Columns {
 	tableName := sq.Model.TableName()

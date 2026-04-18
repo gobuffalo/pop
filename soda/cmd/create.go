@@ -1,26 +1,25 @@
 package cmd
 
 import (
-	"github.com/gobuffalo/pop/v6"
 	"github.com/spf13/cobra"
+
+	"github.com/gobuffalo/pop/v6"
 )
 
 var createCmd = &cobra.Command{
 	Use:   "create",
 	Short: "Creates databases for you",
-	RunE: func(cmd *cobra.Command, args []string) error {
-		var err error
-		if all {
-			for _, conn := range pop.Connections {
-				err = pop.CreateDB(conn)
-				if err != nil {
-					return err
-				}
-			}
-		} else {
-			err = pop.CreateDB(getConn())
+	RunE: func(_ *cobra.Command, _ []string) error {
+		if !all {
+			return pop.CreateDB(getConn())
 		}
-		return err
+		for _, conn := range pop.Connections {
+			err := pop.CreateDB(conn)
+			if err != nil {
+				return err
+			}
+		}
+		return nil
 	},
 }
 

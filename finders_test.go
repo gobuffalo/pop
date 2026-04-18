@@ -758,7 +758,11 @@ func Test_Count(t *testing.T) {
 		_, err = Q(tx).Select("users_addresses.*").LeftJoin("users", "users.id=users_addresses.user_id").Count(&uAQ)
 		r.NoError(err)
 
-		_, err = Q(tx).Select("users_addresses.*", "users.name", "users.email").LeftJoin("users", "users.id=users_addresses.user_id").Count(&uAQ)
+		_, err = Q(
+			tx,
+		).Select("users_addresses.*", "users.name", "users.email").
+			LeftJoin("users", "users.id=users_addresses.user_id").
+			Count(&uAQ)
 		r.NoError(err)
 	})
 }
@@ -937,7 +941,10 @@ func Test_FindManyToMany(t *testing.T) {
 		student := &Student{}
 		r.NoError(tx.Create(student))
 
-		r.NoError(tx.RawQuery("INSERT INTO parents_students (student_id, parent_id) VALUES(?,?)", student.ID, parent.ID).Exec())
+		r.NoError(
+			tx.RawQuery("INSERT INTO parents_students (student_id, parent_id) VALUES(?,?)", student.ID, parent.ID).
+				Exec(),
+		)
 
 		p := &Parent{}
 		err := tx.Eager("Students").Find(p, parent.ID)

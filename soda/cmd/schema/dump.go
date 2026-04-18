@@ -6,8 +6,9 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/gobuffalo/pop/v6"
 	"github.com/spf13/cobra"
+
+	"github.com/gobuffalo/pop/v6"
 )
 
 var dumpOptions = struct {
@@ -19,7 +20,7 @@ var dumpOptions = struct {
 var DumpCmd = &cobra.Command{
 	Use:   "dump",
 	Short: "Dumps out the schema of the selected database",
-	RunE: func(cmd *cobra.Command, args []string) error {
+	RunE: func(cmd *cobra.Command, _ []string) error {
 		env := cmd.Flag("env")
 		if env == nil {
 			return errors.New("env is required")
@@ -34,7 +35,7 @@ var DumpCmd = &cobra.Command{
 		if dumpOptions.output == "-" {
 			out = os.Stdout
 		} else {
-			err = os.MkdirAll(filepath.Dir(dumpOptions.output), 0755)
+			err = os.MkdirAll(filepath.Dir(dumpOptions.output), 0o755)
 			if err != nil {
 				return err
 			}
@@ -55,5 +56,6 @@ var DumpCmd = &cobra.Command{
 }
 
 func init() {
-	DumpCmd.Flags().StringVarP(&dumpOptions.output, "output", "o", "./migrations/schema.sql", "The path to dump the schema to.")
+	DumpCmd.Flags().
+		StringVarP(&dumpOptions.output, "output", "o", "./migrations/schema.sql", "The path to dump the schema to.")
 }

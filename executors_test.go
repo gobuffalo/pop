@@ -535,11 +535,11 @@ func Test_Create_Non_PK_ID(t *testing.T) {
 }
 
 func Test_Create_Parallel(t *testing.T) {
+	t.Parallel()
 	if PDB == nil {
 		t.Skip("skipping integration tests")
 	}
-	for i := 0; i < 5; i++ {
-		i := i
+	for i := range 5 {
 		t.Run(fmt.Sprintf("case=%d", i), func(t *testing.T) {
 			t.Parallel()
 			require.NoError(t, PDB.Create(&CrookedColour{Name: fmt.Sprintf("Singer %d", i)}))
@@ -1018,7 +1018,7 @@ func Test_Flat_Validate_And_Create_Parental_With_Partial_Existing(t *testing.T) 
 
 		user := User{
 			Name: nulls.NewString("Mark 'Awesome' Bates"),
-			//TODO: add another existing here and test for it to make sure this works with multiples (books)
+			// TODO: add another existing here and test for it to make sure this works with multiples (books)
 			Books:        Books{Book{ID: book.ID}},
 			FavoriteSong: Song{ID: song.ID},
 			Houses: Addresses{
@@ -1260,9 +1260,10 @@ func Test_Eager_Embedded_Struct(t *testing.T) {
 		r := require.New(t)
 
 		type AssocFields struct {
-			Books        Books     `has_many:"books" order_by:"title asc"`
-			FavoriteSong Song      `has_one:"song" fk_id:"u_id"`
-			Houses       Addresses `many_to_many:"users_addresses"`
+			Books        Books `has_many:"books" order_by:"title asc"`
+			FavoriteSong Song  `                                      has_one:"song" fk_id:"u_id"`
+
+			Houses Addresses `                                                                  many_to_many:"users_addresses"`
 		}
 
 		type User struct {
@@ -1276,7 +1277,7 @@ func Test_Eager_Embedded_Struct(t *testing.T) {
 			BirthDate nulls.Time    `db:"birth_date"`
 			Bio       nulls.String  `db:"bio"`
 			Price     nulls.Float64 `db:"price"`
-			FullName  nulls.String  `db:"full_name" select:"name as full_name"`
+			FullName  nulls.String  `db:"full_name"  select:"name as full_name"`
 
 			AssocFields
 		}
@@ -1286,7 +1287,13 @@ func Test_Eager_Embedded_Struct(t *testing.T) {
 			UserName: "dumb-dumb",
 			Name:     nulls.NewString("Arthur Dent"),
 			AssocFields: AssocFields{
-				Books:        Books{{Title: "The Hitchhiker's Guide to the Galaxy", Description: "Comedy Science Fiction somewhere in Space", Isbn: "PB42"}},
+				Books: Books{
+					{
+						Title:       "The Hitchhiker's Guide to the Galaxy",
+						Description: "Comedy Science Fiction somewhere in Space",
+						Isbn:        "PB42",
+					},
+				},
 				FavoriteSong: Song{Title: "Wish You Were Here", ComposedBy: Composer{Name: "Pink Floyd"}},
 				Houses: Addresses{
 					Address{HouseNumber: 155, Street: "Country Lane"},
@@ -1332,9 +1339,10 @@ func Test_Eager_Embedded_Ptr_Struct(t *testing.T) {
 		r := require.New(t)
 
 		type AssocFields struct {
-			Books        Books     `has_many:"books" order_by:"title asc"`
-			FavoriteSong Song      `has_one:"song" fk_id:"u_id"`
-			Houses       Addresses `many_to_many:"users_addresses"`
+			Books        Books `has_many:"books" order_by:"title asc"`
+			FavoriteSong Song  `                                      has_one:"song" fk_id:"u_id"`
+
+			Houses Addresses `                                                                  many_to_many:"users_addresses"`
 		}
 
 		type User struct {
@@ -1348,7 +1356,7 @@ func Test_Eager_Embedded_Ptr_Struct(t *testing.T) {
 			BirthDate nulls.Time    `db:"birth_date"`
 			Bio       nulls.String  `db:"bio"`
 			Price     nulls.Float64 `db:"price"`
-			FullName  nulls.String  `db:"full_name" select:"name as full_name"`
+			FullName  nulls.String  `db:"full_name"  select:"name as full_name"`
 
 			*AssocFields
 		}
@@ -1358,7 +1366,13 @@ func Test_Eager_Embedded_Ptr_Struct(t *testing.T) {
 			UserName: "dumb-dumb",
 			Name:     nulls.NewString("Arthur Dent"),
 			AssocFields: &AssocFields{
-				Books:        Books{{Title: "The Hitchhiker's Guide to the Galaxy", Description: "Comedy Science Fiction somewhere in Space", Isbn: "PB42"}},
+				Books: Books{
+					{
+						Title:       "The Hitchhiker's Guide to the Galaxy",
+						Description: "Comedy Science Fiction somewhere in Space",
+						Isbn:        "PB42",
+					},
+				},
 				FavoriteSong: Song{Title: "Wish You Were Here", ComposedBy: Composer{Name: "Pink Floyd"}},
 				Houses: Addresses{
 					Address{HouseNumber: 155, Street: "Country Lane"},
@@ -1443,7 +1457,6 @@ func Test_Create_Existing_UUID(t *testing.T) {
 
 		ctx, _ := tx.Count(&Song{})
 		r.Equal(count+1, ctx)
-
 	})
 }
 
@@ -1520,7 +1533,7 @@ func Test_UpdateQuery_NoUpdatedAt(t *testing.T) {
 	if PDB == nil {
 		t.Skip("skipping integration tests")
 	}
-	transaction(func(tx *Connection) {
+	transaction(func(_ *Connection) {
 		r := require.New(t)
 		existing, err := PDB.Count(&NonStandardID{}) // from previous test runs
 		r.NoError(err)

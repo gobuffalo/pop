@@ -36,7 +36,11 @@ func Test_ConnectionDetails_Finalize_SQLite_OverrideOptions_URL_Only(t *testing.
 	r.NoError(err)
 	r.Equal("sqlite3", cd.Dialect, "given dialect: N/A")
 	r.Equal("/tmp/foo.db", cd.Database, "given url: sqlite3:///tmp/foo.db?_fk=false&foo=bar")
-	r.EqualValues(map[string]string{"_fk": "false", "foo": "bar", "_busy_timeout": "5000"}, cd.Options, "given url: sqlite3:///tmp/foo.db?_fk=false&foo=bar")
+	r.EqualValues(
+		map[string]string{"_fk": "false", "foo": "bar", "_busy_timeout": "5000"},
+		cd.Options,
+		"given url: sqlite3:///tmp/foo.db?_fk=false&foo=bar",
+	)
 }
 
 func Test_ConnectionDetails_Finalize_SQLite_SynURL_Only(t *testing.T) {
@@ -127,7 +131,11 @@ func Test_ConnectionDetails_Finalize_SQLite_OverrideOptions_Synonym_Path(t *test
 	r.NoError(err)
 	r.Equal("sqlite3", cd.Dialect, "given dialect: N/A")
 	r.Equal("/tmp/foo.db", cd.Database, "given url: sqlite3:///tmp/foo.db")
-	r.EqualValues(map[string]string{"_fk": "false", "foo": "bar", "_busy_timeout": "5000"}, cd.Options, "given url: sqlite3:///tmp/foo.db?_fk=false&foo=bar")
+	r.EqualValues(
+		map[string]string{"_fk": "false", "foo": "bar", "_busy_timeout": "5000"},
+		cd.Options,
+		"given url: sqlite3:///tmp/foo.db?_fk=false&foo=bar",
+	)
 }
 
 func Test_ConnectionDetails_FinalizeOSPath(t *testing.T) {
@@ -187,9 +195,11 @@ func TestSqlite_CreateDB(t *testing.T) {
 		cd.Database = filepath.Join(dir, "testdb.sqlite")
 
 		r.NoError(dialect.CreateDB())
-		r.EqualError(dialect.CreateDB(), fmt.Sprintf("could not create SQLite database '%s'; database exists", cd.Database))
+		r.EqualError(
+			dialect.CreateDB(),
+			fmt.Sprintf("could not create SQLite database '%s'; database exists", cd.Database),
+		)
 	})
-
 }
 
 func TestSqlite_NewDriver(t *testing.T) {

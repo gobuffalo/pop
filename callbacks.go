@@ -44,7 +44,7 @@ func (m *Model) afterFind(c *Connection, eager bool) error {
 	}
 
 	wg := &errgroup.Group{}
-	for i := 0; i < rv.Len(); i++ {
+	for i := range rv.Len() {
 		elem := rv.Index(i).Addr()
 
 		if eager {

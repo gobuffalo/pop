@@ -1,16 +1,12 @@
 package cmd
 
 import (
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 )
 
 func Test_RootCmd_Environment(t *testing.T) {
-	oldEnv := os.Getenv("GO_ENV")
-	defer os.Setenv("GO_ENV", oldEnv)
-
 	r := require.New(t)
 	c := RootCmd
 
@@ -22,7 +18,7 @@ func Test_RootCmd_Environment(t *testing.T) {
 
 	// Override with GO_ENV
 	c.SetArgs([]string{"help"})
-	os.Setenv("GO_ENV", "test")
+	t.Setenv("GO_ENV", "test")
 	err = c.Execute()
 	r.NoError(err)
 	r.Equal("test", env)
@@ -33,7 +29,7 @@ func Test_RootCmd_Environment(t *testing.T) {
 		"production",
 		"help",
 	})
-	os.Setenv("GO_ENV", "test")
+	t.Setenv("GO_ENV", "test")
 	err = c.Execute()
 	r.NoError(err)
 	r.Equal("production", env)
@@ -45,7 +41,7 @@ func Test_RootCmd_Environment(t *testing.T) {
 		"--env",
 		"production",
 	})
-	os.Setenv("GO_ENV", "test")
+	t.Setenv("GO_ENV", "test")
 	err = c.Execute()
 	r.NoError(err)
 	r.Equal("production", env)

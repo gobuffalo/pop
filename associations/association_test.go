@@ -12,7 +12,7 @@ import (
 
 func Test_IsZeroOfUnderlyingType(t *testing.T) {
 	for k, tc := range []struct {
-		in   interface{}
+		in   any
 		zero bool
 	}{
 		{in: nil, zero: true},
@@ -20,7 +20,7 @@ func Test_IsZeroOfUnderlyingType(t *testing.T) {
 		{in: 1, zero: false},
 		{in: false, zero: true},
 		{in: "", zero: true},
-		{in: interface{}(nil), zero: true},
+		{in: any(nil), zero: true},
 		{in: uuid.NullUUID{}, zero: true},
 		{in: uuid.UUID{}, zero: true},
 		{in: uuid.NullUUID{Valid: true}, zero: false},

@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/gobuffalo/pop/v6"
 	"github.com/spf13/cobra"
+
+	"github.com/gobuffalo/pop/v6"
 )
 
 var loadOptions = struct {
@@ -18,7 +19,7 @@ var loadOptions = struct {
 var LoadCmd = &cobra.Command{
 	Use:   "load",
 	Short: "Load a schema.sql file into a database",
-	RunE: func(cmd *cobra.Command, args []string) error {
+	RunE: func(cmd *cobra.Command, _ []string) error {
 		env := cmd.Flag("env")
 		if env == nil {
 			return errors.New("env is required")
@@ -42,5 +43,7 @@ var LoadCmd = &cobra.Command{
 }
 
 func init() {
-	LoadCmd.Flags().StringVarP(&loadOptions.input, "input", "i", "./migrations/schema.sql", "The path to the schema file you want to load")
+	LoadCmd.Flags().StringVarP(
+		&loadOptions.input, "input", "i", "./migrations/schema.sql", "The path to the schema file you want to load",
+	)
 }

@@ -3,8 +3,9 @@ package cmd
 import (
 	"os"
 
-	"github.com/gobuffalo/pop/v6"
 	"github.com/spf13/cobra"
+
+	"github.com/gobuffalo/pop/v6"
 )
 
 var resetOptions = struct {
@@ -15,7 +16,7 @@ var resetOptions = struct {
 var resetCmd = &cobra.Command{
 	Use:   "reset",
 	Short: "Drop, then recreate databases",
-	RunE: func(cmd *cobra.Command, args []string) error {
+	RunE: func(_ *cobra.Command, _ []string) error {
 		var schema *os.File
 		useMigrations := false
 
@@ -48,8 +49,10 @@ var resetCmd = &cobra.Command{
 }
 
 func init() {
-	resetCmd.Flags().BoolVarP(&resetOptions.all, "all", "a", false, "Drops and recreate all of the databases in the database.yml")
-	resetCmd.Flags().StringVarP(&resetOptions.input, "input", "i", "schema.sql", "The path to the schema file you want to load")
+	resetCmd.Flags().
+		BoolVarP(&resetOptions.all, "all", "a", false, "Drops and recreate all of the databases in the database.yml")
+	resetCmd.Flags().
+		StringVarP(&resetOptions.input, "input", "i", "schema.sql", "The path to the schema file you want to load")
 	RootCmd.AddCommand(resetCmd)
 }
 

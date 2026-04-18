@@ -1,9 +1,10 @@
 package pop
 
 import (
+	"testing"
+
 	"github.com/gobuffalo/nulls"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func Test_New_Implementation_For_Nplus1(t *testing.T) {
@@ -75,7 +76,7 @@ func Test_New_Implementation_For_Nplus1_With_UUID(t *testing.T) {
 		a := require.New(t)
 
 		courses := []Course{}
-		for i := 0; i < 3; i++ {
+		for i := range 3 {
 			course := Course{}
 			a.NoError(tx.Create(&course))
 			courses = append(courses, course)
@@ -100,7 +101,10 @@ func Test_New_Implementation_For_Nplus1_With_UUID(t *testing.T) {
 		parent := Parent{}
 		a.NoError(tx.Create(&parent))
 
-		a.NoError(tx.RawQuery("insert into parents_students(parent_id, student_id) values(?,?)", parent.ID.String(), student.ID.String()).Exec())
+		a.NoError(tx.RawQuery(
+			"insert into parents_students(parent_id, student_id) values(?,?)", parent.ID.String(), student.ID.String()).
+			Exec(),
+		)
 
 		parents := []Parent{}
 		a.NoError(tx.All(&parents))
@@ -133,7 +137,8 @@ func Test_New_Implementation_For_Nplus1_With_NullUUIDs_And_FK_ID(t *testing.T) {
 			Hops: []Hop{
 				{Server: &server},
 				{},
-			}}
+			},
+		}
 
 		// This code basically just sets up
 		a.NoError(tx.Eager().Create(class))

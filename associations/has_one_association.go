@@ -1,12 +1,12 @@
 package associations
 
 import (
+	"cmp"
 	"fmt"
 	"reflect"
 
 	"github.com/gobuffalo/flect"
 	"github.com/gobuffalo/nulls"
-	"github.com/gobuffalo/pop/v6/internal/defaults"
 )
 
 // hasOneAssociation is a 1 to 1 kind of association. It's used on
@@ -17,9 +17,9 @@ type hasOneAssociation struct {
 	ownedTableName string
 	ownedModel     reflect.Value
 	ownedType      reflect.Type
-	ownerID        interface{}
+	ownerID        any
 	ownerName      string
-	owner          interface{}
+	owner          any
 	fkID           string
 	*associationSkipable
 	*associationComposite
@@ -38,7 +38,7 @@ func hasOneAssociationBuilder(p associationParams) (Association, error) {
 	}
 
 	ownerName := p.modelType.Name()
-	fk := defaults.String(p.popTags.Find("fk_id").Value, flect.Underscore(ownerName)+"_id")
+	fk := cmp.Or(p.popTags.Find("fk_id").Value, flect.Underscore(ownerName)+"_id")
 
 	fval := p.modelValue.FieldByName(p.field.Name)
 	return &hasOneAssociation{
@@ -57,14 +57,14 @@ func hasOneAssociationBuilder(p associationParams) (Association, error) {
 }
 
 func (h *hasOneAssociation) Kind() reflect.Kind {
-	if h.ownedType.Kind() == reflect.Ptr {
+	if h.ownedType.Kind() == reflect.Pointer {
 		return h.ownedType.Elem().Kind()
 	}
 	return h.ownedType.Kind()
 }
 
-func (h *hasOneAssociation) Interface() interface{} {
-	if h.ownedModel.Kind() == reflect.Ptr {
+func (h *hasOneAssociation) Interface() any {
+	if h.ownedModel.Kind() == reflect.Pointer {
 		val := reflect.New(h.ownedType.Elem())
 		h.ownedModel.Set(val)
 		return h.ownedModel.Interface()
@@ -74,8 +74,8 @@ func (h *hasOneAssociation) Interface() interface{} {
 
 // Constraint returns the content for the WHERE clause, and the args
 // needed to execute it.
-func (h *hasOneAssociation) Constraint() (string, []interface{}) {
-	return fmt.Sprintf("%s = ?", h.fkID), []interface{}{h.ownerID}
+func (h *hasOneAssociation) Constraint() (string, []any) {
+	return h.fkID + " = ?", []any{h.ownerID}
 }
 
 func (h *hasOneAssociation) AfterSetup() error {
@@ -103,12 +103,12 @@ func (h *hasOneAssociation) AfterSetup() error {
 // AfterInterface gets the value of the model to create after
 // creating the parent model. It returns nil if its value is
 // not set.
-func (h *hasOneAssociation) AfterInterface() interface{} {
+func (h *hasOneAssociation) AfterInterface() any {
 	m := h.ownedModel
 	if fieldIsNil(m) {
 		return nil
 	}
-	if m.Kind() == reflect.Ptr {
+	if m.Kind() == reflect.Pointer {
 		return m.Interface()
 	}
 	if IsZeroOfUnderlyingType(m.Interface()) {
@@ -121,28 +121,28 @@ func (h *hasOneAssociation) AfterInterface() interface{} {
 func (h *hasOneAssociation) AfterProcess() AssociationStatement {
 	belongingIDFieldName := "ID"
 	om := h.ownedModel
-	if om.Kind() == reflect.Ptr {
+	if om.Kind() == reflect.Pointer {
 		om = om.Elem()
 	}
 	// Skip if the related model is not set
 	if IsZeroOfUnderlyingType(om) {
 		return AssociationStatement{
 			Statement: "",
-			Args:      []interface{}{},
+			Args:      []any{},
 		}
 	}
 	id := om.FieldByName(belongingIDFieldName).Interface()
 	if IsZeroOfUnderlyingType(id) {
 		return AssociationStatement{
 			Statement: "",
-			Args:      []interface{}{},
+			Args:      []any{},
 		}
 	}
 
 	ownerIDFieldName := "ID"
 	ownerID := reflect.Indirect(reflect.ValueOf(h.owner)).FieldByName(ownerIDFieldName).Interface()
 
-	ids := []interface{}{ownerID}
+	ids := []any{ownerID}
 	ids = append(ids, id)
 
 	ret := fmt.Sprintf("UPDATE %s SET %s = ? WHERE %s = ?", h.ownedTableName, h.fkID, belongingIDFieldName)

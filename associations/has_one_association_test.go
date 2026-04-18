@@ -5,14 +5,15 @@ import (
 	"testing"
 
 	"github.com/gobuffalo/nulls"
-	"github.com/gobuffalo/pop/v6/associations"
 	"github.com/gofrs/uuid"
 	"github.com/stretchr/testify/require"
+
+	"github.com/gobuffalo/pop/v6/associations"
 )
 
 type FooHasOne struct {
 	ID        uuid.UUID `db:"id"`
-	BarHasOne barHasOne `has_one:"barHasOne"`
+	BarHasOne barHasOne `        has_one:"barHasOne"`
 }
 
 type barHasOne struct {
@@ -23,7 +24,7 @@ type barHasOne struct {
 
 type bazHasOne struct {
 	ID        uuid.UUID  `db:"id"`
-	BarHasOne *barHasOne `has_one:"barHasOne" fk_id:"baz_id"`
+	BarHasOne *barHasOne `        has_one:"barHasOne" fk_id:"baz_id"`
 }
 
 func Test_Has_One_Association(t *testing.T) {

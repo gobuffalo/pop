@@ -1,12 +1,12 @@
 package associations
 
 import (
+	"cmp"
 	"fmt"
 	"reflect"
 	"time"
 
 	"github.com/gobuffalo/flect"
-	"github.com/gobuffalo/pop/v6/internal/defaults"
 	"github.com/gofrs/uuid"
 )
 
@@ -15,7 +15,7 @@ type manyToManyAssociation struct {
 	fieldValue          reflect.Value
 	model               reflect.Value
 	manyToManyTableName string
-	owner               interface{}
+	owner               any
 	fkID                string
 	orderBy             string
 	primaryID           string
@@ -53,9 +53,9 @@ func (m *manyToManyAssociation) Kind() reflect.Kind {
 	return m.fieldType.Kind()
 }
 
-func (m *manyToManyAssociation) Interface() interface{} {
+func (m *manyToManyAssociation) Interface() any {
 	val := reflect.New(m.fieldType.Elem())
-	if m.fieldValue.Kind() == reflect.Ptr {
+	if m.fieldValue.Kind() == reflect.Pointer {
 		m.fieldValue.Set(val)
 		return m.fieldValue.Interface()
 	}
@@ -72,8 +72,8 @@ func (m *manyToManyAssociation) Interface() interface{} {
 
 // Constraint returns the content for a where clause, and the args
 // needed to execute it.
-func (m *manyToManyAssociation) Constraint() (string, []interface{}) {
-	modelColumnID := defaults.String(m.primaryID, fmt.Sprintf("%s%s", flect.Underscore(m.model.Type().Name()), "_id"))
+func (m *manyToManyAssociation) Constraint() (string, []any) {
+	modelColumnID := cmp.Or(m.primaryID, fmt.Sprintf("%s%s", flect.Underscore(m.model.Type().Name()), "_id"))
 
 	var columnFieldID string
 	i := reflect.Indirect(m.fieldValue)
@@ -81,23 +81,23 @@ func (m *manyToManyAssociation) Constraint() (string, []interface{}) {
 	if i.Kind() == reflect.Slice || i.Kind() == reflect.Array {
 		t = t.Elem()
 	}
-	if t.Kind() == reflect.Ptr {
+	if t.Kind() == reflect.Pointer {
 		t = t.Elem()
 	}
-	columnFieldID = defaults.String(m.fkID, fmt.Sprintf("%s%s", flect.Underscore(t.Name()), "_id"))
+	columnFieldID = cmp.Or(m.fkID, fmt.Sprintf("%s%s", flect.Underscore(t.Name()), "_id"))
 
 	subQuery := fmt.Sprintf("select %s from %s where %s = ?", columnFieldID, m.manyToManyTableName, modelColumnID)
 	modelIDValue := m.model.FieldByName("ID").Interface()
 
-	return fmt.Sprintf("id in (%s)", subQuery), []interface{}{modelIDValue}
+	return fmt.Sprintf("id in (%s)", subQuery), []any{modelIDValue}
 }
 
 func (m *manyToManyAssociation) OrderBy() string {
 	return m.orderBy
 }
 
-func (m *manyToManyAssociation) BeforeInterface() interface{} {
-	if m.fieldValue.Kind() == reflect.Ptr {
+func (m *manyToManyAssociation) BeforeInterface() any {
+	if m.fieldValue.Kind() == reflect.Pointer {
 		return m.fieldValue.Interface()
 	}
 	return m.fieldValue.Addr().Interface()
@@ -131,16 +131,37 @@ func (m *manyToManyAssociation) Statements() []AssociationStatement {
 		}
 
 		associationStm := AssociationStatement{
-			Statement: fmt.Sprintf(stm, m.manyToManyTableName, modelColumnID, columnFieldID, "created_at", "updated_at", m.manyToManyTableName, modelColumnID, columnFieldID),
-			Args:      []interface{}{modelIDValue, manyIDValue, time.Now(), time.Now(), modelIDValue, manyIDValue},
+			Statement: fmt.Sprintf(
+				stm,
+				m.manyToManyTableName,
+				modelColumnID,
+				columnFieldID,
+				"created_at",
+				"updated_at",
+				m.manyToManyTableName,
+				modelColumnID,
+				columnFieldID,
+			),
+			Args: []any{modelIDValue, manyIDValue, time.Now(), time.Now(), modelIDValue, manyIDValue},
 		}
 
 		if m.model.FieldByName("ID").Type().Name() == "UUID" {
 			stm = "INSERT INTO %s (%s,%s,%s,%s,%s) SELECT ?,?,?,?,? WHERE NOT EXISTS (SELECT * FROM %s WHERE %s = ? AND %s = ?)"
 			id, _ := uuid.NewV4()
 			associationStm = AssociationStatement{
-				Statement: fmt.Sprintf(stm, m.manyToManyTableName, "id", modelColumnID, columnFieldID, "created_at", "updated_at", m.manyToManyTableName, modelColumnID, columnFieldID),
-				Args:      []interface{}{id, modelIDValue, manyIDValue, time.Now(), time.Now(), modelIDValue, manyIDValue},
+				Statement: fmt.Sprintf(
+					stm,
+					m.manyToManyTableName,
+					"id",
+					modelColumnID,
+					columnFieldID,
+					"created_at",
+					"updated_at",
+					m.manyToManyTableName,
+					modelColumnID,
+					columnFieldID,
+				),
+				Args: []any{id, modelIDValue, manyIDValue, time.Now(), time.Now(), modelIDValue, manyIDValue},
 			}
 		}
 

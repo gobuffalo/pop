@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"text/template"
 
 	"github.com/gobuffalo/fizz"
@@ -12,7 +11,7 @@ import (
 
 // MigrationContent returns the content of a migration.
 func MigrationContent(mf Migration, c *Connection, r io.Reader, usingTemplate bool) (string, error) {
-	b, err := ioutil.ReadAll(r)
+	b, err := io.ReadAll(r)
 	if err != nil {
 		return "", nil
 	}

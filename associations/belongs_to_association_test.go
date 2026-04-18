@@ -4,9 +4,10 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/gobuffalo/pop/v6/associations"
 	"github.com/gofrs/uuid"
 	"github.com/stretchr/testify/require"
+
+	"github.com/gobuffalo/pop/v6/associations"
 )
 
 type fooBelongsTo struct {

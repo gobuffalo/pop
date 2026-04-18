@@ -37,7 +37,10 @@ func Test_ParseMigrationFilenameFizzUpPostgres(t *testing.T) {
 
 	m, err := ParseMigrationFilename("20190611004000_create_providers.pg.up.fizz")
 	r.NotNil(err)
-	r.Equal(err.Error(), "invalid database type \"postgres\", expected \"all\" because fizz is database type independent")
+	r.Equal(
+		err.Error(),
+		"invalid database type \"postgres\", expected \"all\" because fizz is database type independent",
+	)
 	r.Nil(m)
 }
 
@@ -46,7 +49,10 @@ func Test_ParseMigrationFilenameFizzDownPostgres(t *testing.T) {
 
 	m, err := ParseMigrationFilename("20190611004000_create_providers.pg.down.fizz")
 	r.NotNil(err)
-	r.Equal(err.Error(), "invalid database type \"postgres\", expected \"all\" because fizz is database type independent")
+	r.Equal(
+		err.Error(),
+		"invalid database type \"postgres\", expected \"all\" because fizz is database type independent",
+	)
 	r.Nil(m)
 }
 

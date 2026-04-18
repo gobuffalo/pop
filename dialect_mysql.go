@@ -2,24 +2,28 @@ package pop
 
 import (
 	"bytes"
+	"cmp"
 	"fmt"
 	"io"
 	"os/exec"
 	"regexp"
 	"strings"
 
-	_mysql "github.com/go-sql-driver/mysql" // Load MySQL Go driver
 	"github.com/gobuffalo/fizz"
 	"github.com/gobuffalo/fizz/translators"
-	"github.com/gobuffalo/pop/v6/columns"
-	"github.com/gobuffalo/pop/v6/internal/defaults"
-	"github.com/gobuffalo/pop/v6/logging"
 	"github.com/jmoiron/sqlx"
+
+	_mysql "github.com/go-sql-driver/mysql" // Load MySQL Go driver
+
+	"github.com/gobuffalo/pop/v6/columns"
+	"github.com/gobuffalo/pop/v6/logging"
 )
 
-const nameMySQL = "mysql"
-const hostMySQL = "localhost"
-const portMySQL = "3306"
+const (
+	nameMySQL = "mysql"
+	hostMySQL = "localhost"
+	portMySQL = "3306"
+)
 
 func init() {
 	AvailableDialects = append(AvailableDialects, nameMySQL)
@@ -97,11 +101,11 @@ func (m *mysql) Update(c *Connection, model *Model, cols columns.Columns) error 
 }
 
 func (m *mysql) UpdateQuery(c *Connection, model *Model, cols columns.Columns, query Query) (int64, error) {
-	if n, err := genericUpdateQuery(c, model, cols, m, query, sqlx.QUESTION); err != nil {
+	n, err := genericUpdateQuery(c, model, cols, m, query, sqlx.QUESTION)
+	if err != nil {
 		return n, fmt.Errorf("mysql update query: %w", err)
-	} else {
-		return n, nil
 	}
+	return n, nil
 }
 
 func (m *mysql) Destroy(c *Connection, model *Model) error {
@@ -148,9 +152,14 @@ func (m *mysql) CreateDB() error {
 		return fmt.Errorf("error creating MySQL database %s: %w", deets.Database, err)
 	}
 	defer db.Close()
-	charset := defaults.String(deets.option("charset"), "utf8mb4")
-	encoding := defaults.String(deets.option("collation"), "utf8mb4_general_ci")
-	query := fmt.Sprintf("CREATE DATABASE `%s` DEFAULT CHARSET `%s` DEFAULT COLLATE `%s`", deets.Database, charset, encoding)
+	charset := cmp.Or(deets.option("charset"), "utf8mb4")
+	encoding := cmp.Or(deets.option("collation"), "utf8mb4_general_ci")
+	query := fmt.Sprintf(
+		"CREATE DATABASE `%s` DEFAULT CHARSET `%s` DEFAULT COLLATE `%s`",
+		deets.Database,
+		charset,
+		encoding,
+	)
 	log(logging.SQL, query)
 
 	_, err = db.Exec(query)
@@ -199,7 +208,7 @@ func (m *mysql) DumpSchema(w io.Writer) error {
 		"-P", deets.Port,
 		"-u", deets.User,
 		"--set-gtid-purged=OFF",
-		fmt.Sprintf("--password=%s", deets.Password),
+		"--password="+deets.Password,
 		deets.Database,
 	)
 	if deets.Port == "socket" {
@@ -208,7 +217,7 @@ func (m *mysql) DumpSchema(w io.Writer) error {
 			"-S", deets.Host,
 			"-u", deets.User,
 			"--set-gtid-purged=OFF",
-			fmt.Sprintf("--password=%s", deets.Password),
+			"--password="+deets.Password,
 			deets.Database,
 		)
 	}
@@ -276,8 +285,8 @@ func urlParserMySQL(cd *ConnectionDetails) error {
 }
 
 func finalizerMySQL(cd *ConnectionDetails) {
-	cd.Host = defaults.String(cd.Host, hostMySQL)
-	cd.Port = defaults.String(cd.Port, portMySQL)
+	cd.Host = cmp.Or(cd.Host, hostMySQL)
+	cd.Port = cmp.Or(cd.Port, portMySQL)
 
 	defs := map[string]string{
 		"readTimeout": "3s",
@@ -296,11 +305,23 @@ func finalizerMySQL(cd *ConnectionDetails) {
 		// respect user specified options but print warning!
 		cd.setOptionWithDefault(k, cd.option(k), v)
 		if cd.option(k) != v { // when user-defined option exists
-			log(logging.Warn, "IMPORTANT! '%s: %s' option is required to work properly but your current setting is '%v: %v'.", k, v, k, cd.option(k))
+			log(
+				logging.Warn,
+				"IMPORTANT! '%s: %s' option is required to work properly but your current setting is '%v: %v'.",
+				k,
+				v,
+				k,
+				cd.option(k),
+			)
 			log(logging.Warn, "It is highly recommended to remove '%v: %v' option from your config!", k, cd.option(k))
 		} // or override with `cd.Options[k] = v`?
 		if cd.URL != "" && !strings.Contains(cd.URL, k+"="+v) {
-			log(logging.Warn, "IMPORTANT! '%s=%s' option is required to work properly. Please add it to the database URL in the config!", k, v)
+			log(
+				logging.Warn,
+				"IMPORTANT! '%s=%s' option is required to work properly. Please add it to the database URL in the config!",
+				k,
+				v,
+			)
 		} // or fix user specified url?
 	}
 }

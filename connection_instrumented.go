@@ -4,13 +4,16 @@ import (
 	"database/sql"
 	"database/sql/driver"
 	"fmt"
+	"slices"
 	"sync"
 
-	mysqld "github.com/go-sql-driver/mysql"
-	"github.com/gobuffalo/pop/v6/logging"
-	pgx "github.com/jackc/pgx/v5/stdlib"
 	"github.com/jmoiron/sqlx"
 	"github.com/luna-duclos/instrumentedsql"
+
+	mysqld "github.com/go-sql-driver/mysql"
+	pgx "github.com/jackc/pgx/v5/stdlib"
+
+	"github.com/gobuffalo/pop/v6/logging"
 )
 
 const instrumentedDriverName = "instrumented-sql-driver"
@@ -26,7 +29,10 @@ func instrumentDriver(deets *ConnectionDetails, defaultDriverName string) (drive
 
 	if !deets.UseInstrumentedDriver {
 		if len(deets.InstrumentedDriverOptions) > 0 {
-			log(logging.Warn, "SQL driver instrumentation is disabled but `ConnectionDetails.InstrumentedDriverOptions` is not empty. Please double-check if this is a error.")
+			log(
+				logging.Warn,
+				"SQL driver instrumentation is disabled but `ConnectionDetails.InstrumentedDriverOptions` is not empty. Please double-check if this is a error.",
+			)
 		}
 
 		// If instrumentation is disabled, we just return the driver name we got (e.g. "pgx").
@@ -34,7 +40,10 @@ func instrumentDriver(deets *ConnectionDetails, defaultDriverName string) (drive
 	}
 
 	if len(deets.InstrumentedDriverOptions) == 0 {
-		log(logging.Warn, "SQL driver instrumentation was enabled but no options have been passed to `ConnectionDetails.InstrumentedDriverOptions`. Instrumentation will therefore not result in any output.")
+		log(
+			logging.Warn,
+			"SQL driver instrumentation was enabled but no options have been passed to `ConnectionDetails.InstrumentedDriverOptions`. Instrumentation will therefore not result in any output.",
+		)
 	}
 
 	var dr driver.Driver
@@ -63,11 +72,8 @@ func instrumentDriver(deets *ConnectionDetails, defaultDriverName string) (drive
 	defer sqlDriverLock.Unlock()
 
 	var found bool
-	for _, n := range sql.Drivers() {
-		if n == newDriverName {
-			found = true
-			break
-		}
+	if slices.Contains(sql.Drivers(), newDriverName) {
+		found = true
 	}
 
 	if !found {

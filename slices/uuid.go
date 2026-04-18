@@ -15,13 +15,13 @@ import (
 type UUID []uuid.UUID
 
 // Interface implements the nulls.nullable interface.
-func (s UUID) Interface() interface{} {
+func (s UUID) Interface() any {
 	return []uuid.UUID(s)
 }
 
 // Scan implements the sql.Scanner interface.
 // It allows to read the UUID slice from the database value.
-func (s *UUID) Scan(src interface{}) error {
+func (s *UUID) Scan(src any) error {
 	var b []byte
 	switch t := src.(type) {
 	case []byte:
@@ -68,7 +68,7 @@ func (s *UUID) UnmarshalJSON(data []byte) error {
 // the UUID slice representation of this value.
 func (s *UUID) UnmarshalText(text []byte) error {
 	var ss []string
-	for _, x := range strings.Split(string(text), ",") {
+	for x := range strings.SplitSeq(string(text), ",") {
 		ss = append(ss, strings.TrimSpace(x))
 	}
 	us, err := strSliceToUUIDSlice(ss)

@@ -58,38 +58,39 @@ func (fm *FileMigrator) findMigrations(runner func(mf Migration, tx *Connection)
 		// directory doesn't exist
 		return nil
 	}
-	return filepath.Walk(dir, func(p string, info os.FileInfo, err error) error {
-		if !info.IsDir() {
-			match, err := ParseMigrationFilename(info.Name())
-			if err != nil {
-				if strings.HasPrefix(err.Error(), "unsupported dialect") {
-					log(logging.Warn, "ignoring migration file with %s", err.Error())
-					return nil
-				}
-				return err
-			}
-			if match == nil {
-				log(logging.Warn, "ignoring file %s because it does not match the migration file pattern", info.Name())
+	return filepath.Walk(dir, func(p string, info os.FileInfo, _ error) error {
+		if info.IsDir() {
+			return nil
+		}
+		match, err := ParseMigrationFilename(info.Name())
+		if err != nil {
+			if strings.HasPrefix(err.Error(), "unsupported dialect") {
+				log(logging.Warn, "ignoring migration file with %s", err.Error())
 				return nil
 			}
-			mf := Migration{
-				Path:      p,
-				Version:   match.Version,
-				Name:      match.Name,
-				DBType:    match.DBType,
-				Direction: match.Direction,
-				Type:      match.Type,
-				Runner:    runner,
-			}
-			switch mf.Direction {
-			case "up":
-				fm.UpMigrations.Migrations = append(fm.UpMigrations.Migrations, mf)
-			case "down":
-				fm.DownMigrations.Migrations = append(fm.DownMigrations.Migrations, mf)
-			default:
-				// the regex only matches `(up|down)` for direction, so a panic here is appropriate
-				panic("got unknown migration direction " + mf.Direction)
-			}
+			return err
+		}
+		if match == nil {
+			log(logging.Warn, "ignoring file %s because it does not match the migration file pattern", info.Name())
+			return nil
+		}
+		mf := Migration{
+			Path:      p,
+			Version:   match.Version,
+			Name:      match.Name,
+			DBType:    match.DBType,
+			Direction: match.Direction,
+			Type:      match.Type,
+			Runner:    runner,
+		}
+		switch mf.Direction {
+		case "up":
+			fm.UpMigrations.Migrations = append(fm.UpMigrations.Migrations, mf)
+		case "down":
+			fm.DownMigrations.Migrations = append(fm.DownMigrations.Migrations, mf)
+		default:
+			// the regex only matches `(up|down)` for direction, so a panic here is appropriate
+			panic("got unknown migration direction " + mf.Direction)
 		}
 		return nil
 	})

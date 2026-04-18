@@ -15,7 +15,6 @@ type Match struct {
 
 // ParseMigrationFilename parses a migration filename.
 func ParseMigrationFilename(filename string) (*Match, error) {
-
 	matches := mrx.FindAllStringSubmatch(filename, -1)
 	if len(matches) == 0 {
 		return nil, nil
@@ -33,7 +32,10 @@ func ParseMigrationFilename(filename string) (*Match, error) {
 	}
 
 	if m[5] == "fizz" && dbType != "all" {
-		return nil, fmt.Errorf("invalid database type %q, expected \"all\" because fizz is database type independent", dbType)
+		return nil, fmt.Errorf(
+			"invalid database type %q, expected \"all\" because fizz is database type independent",
+			dbType,
+		)
 	}
 
 	match := &Match{

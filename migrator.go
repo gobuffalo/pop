@@ -125,7 +125,7 @@ func (m Migrator) UpTo(step int) (applied int, err error) {
 		}
 		return nil
 	})
-	return
+	return applied, err
 }
 
 // Down runs pending "down" migrations and rolls back the
@@ -197,7 +197,7 @@ func CreateSchemaMigrations(c *Connection) error {
 	if err != nil {
 		return fmt.Errorf("could not open connection: %w", err)
 	}
-	_, err = c.Store.Exec(fmt.Sprintf("select * from %s", mtn))
+	_, err = c.Store.Exec("select * from " + mtn)
 	if err == nil {
 		return nil
 	}

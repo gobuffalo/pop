@@ -4,19 +4,20 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/gobuffalo/pop/v6/associations"
 	"github.com/gofrs/uuid"
 	"github.com/stretchr/testify/require"
+
+	"github.com/gobuffalo/pop/v6/associations"
 )
 
 type fooManyToMany struct {
 	ID              uuid.UUID       `db:"id"`
-	BarManyToManies barManyToManies `many_to_many:"foos_and_bars"`
+	BarManyToManies barManyToManies `        many_to_many:"foos_and_bars"`
 }
 
 type fooManyToMany2 struct {
 	ID              uuid.UUID       `db:"id"`
-	BarManyToManies barManyToManies `many_to_many:"foos_and_bars" primary_id:"fufu_id"`
+	BarManyToManies barManyToManies `        many_to_many:"foos_and_bars" primary_id:"fufu_id"`
 }
 
 type barManyToMany struct {
