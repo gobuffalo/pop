@@ -36,8 +36,8 @@ func Test_genericDumpSchema(t *testing.T) {
 func Test_genericDumpSchema_stripsBackslashCommands(t *testing.T) {
 	r := require.New(t)
 
-	// Use printf to simulate pg_dump output containing backslash commands
-	cmd := exec.Command("printf", "\\\\restrict abc123\\nCREATE TABLE t (id int);\\n\\\\unrestrict abc123\\n")
+	// Use printf with %s so backslashes are treated as data, not escape sequences.
+	cmd := exec.Command("printf", "%s", "\\restrict abc123\nCREATE TABLE t (id int);\n\\unrestrict abc123\n")
 	bb := &bytes.Buffer{}
 	err := genericDumpSchema(&ConnectionDetails{}, cmd, bb)
 	r.NoError(err)
