@@ -7,11 +7,11 @@ import (
 )
 
 type beforeValidatable interface {
-	BeforeValidations(*Connection) error
+	BeforeValidations(conn *Connection) error
 }
 
 type validateable interface {
-	Validate(*Connection) (*validate.Errors, error)
+	Validate(conn *Connection) (*validate.Errors, error)
 }
 
 type modelIterableValidator func(*Model) (*validate.Errors, error)
@@ -29,7 +29,7 @@ func (m *Model) validate(c *Connection) (*validate.Errors, error) {
 }
 
 type validateCreateable interface {
-	ValidateCreate(*Connection) (*validate.Errors, error)
+	ValidateCreate(conn *Connection) (*validate.Errors, error)
 }
 
 func (m *Model) validateCreate(c *Connection) (*validate.Errors, error) {
@@ -81,7 +81,7 @@ func (m *Model) validateAndOnlyCreate(c *Connection) (*validate.Errors, error) {
 }
 
 type validateSaveable interface {
-	ValidateSave(*Connection) (*validate.Errors, error)
+	ValidateSave(conn *Connection) (*validate.Errors, error)
 }
 
 func (m *Model) validateSave(c *Connection) (*validate.Errors, error) {
@@ -105,7 +105,7 @@ func (m *Model) validateSave(c *Connection) (*validate.Errors, error) {
 }
 
 type validateUpdateable interface {
-	ValidateUpdate(*Connection) (*validate.Errors, error)
+	ValidateUpdate(conn *Connection) (*validate.Errors, error)
 }
 
 func (m *Model) validateUpdate(c *Connection) (*validate.Errors, error) {
@@ -131,7 +131,7 @@ func (m *Model) validateUpdate(c *Connection) (*validate.Errors, error) {
 func (m *Model) iterateAndValidate(fn modelIterableValidator) (*validate.Errors, error) {
 	v := reflect.Indirect(reflect.ValueOf(m.Value))
 	if v.Kind() == reflect.Slice || v.Kind() == reflect.Array {
-		for i := 0; i < v.Len(); i++ {
+		for i := range v.Len() {
 			val := v.Index(i)
 			newModel := NewModel(val.Addr().Interface(), m.ctx)
 			verrs, err := fn(newModel)

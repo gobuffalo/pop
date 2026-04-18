@@ -9,14 +9,14 @@ import (
 // AfterFindable callback will be called after a record, or records,
 // has been retrieved from the database.
 type AfterFindable interface {
-	AfterFind(*Connection) error
+	AfterFind(con *Connection) error
 }
 
 // AfterEagerFindable callback will be called after a record, or records,
 // has been retrieved from the database and their associations have been
 // eagerly loaded.
 type AfterEagerFindable interface {
-	AfterEagerFind(*Connection) error
+	AfterEagerFind(con *Connection) error
 }
 
 func (m *Model) afterFind(c *Connection, eager bool) error {
@@ -68,7 +68,7 @@ func (m *Model) afterFind(c *Connection, eager bool) error {
 // BeforeSaveable callback will be called before a record is
 // either created or updated in the database.
 type BeforeSaveable interface {
-	BeforeSave(*Connection) error
+	BeforeSave(conn *Connection) error
 }
 
 func (m *Model) beforeSave(c *Connection) error {
@@ -81,7 +81,7 @@ func (m *Model) beforeSave(c *Connection) error {
 // BeforeCreateable callback will be called before a record is
 // created in the database.
 type BeforeCreateable interface {
-	BeforeCreate(*Connection) error
+	BeforeCreate(conn *Connection) error
 }
 
 func (m *Model) beforeCreate(c *Connection) error {
@@ -94,7 +94,7 @@ func (m *Model) beforeCreate(c *Connection) error {
 // BeforeUpdateable callback will be called before a record is
 // updated in the database.
 type BeforeUpdateable interface {
-	BeforeUpdate(*Connection) error
+	BeforeUpdate(conn *Connection) error
 }
 
 func (m *Model) beforeUpdate(c *Connection) error {
@@ -107,7 +107,7 @@ func (m *Model) beforeUpdate(c *Connection) error {
 // BeforeDestroyable callback will be called before a record is
 // destroyed in the database.
 type BeforeDestroyable interface {
-	BeforeDestroy(*Connection) error
+	BeforeDestroy(conn *Connection) error
 }
 
 func (m *Model) beforeDestroy(c *Connection) error {
@@ -121,7 +121,7 @@ func (m *Model) beforeDestroy(c *Connection) error {
 // validated during
 // ValidateAndCreate, ValidateAndUpdate, or ValidateAndSave
 type BeforeValidateable interface {
-	BeforeValidate(*Connection) error
+	BeforeValidate(conn *Connection) error
 }
 
 func (m *Model) beforeValidate(c *Connection) error {
@@ -134,7 +134,7 @@ func (m *Model) beforeValidate(c *Connection) error {
 // AfterDestroyable callback will be called after a record is
 // destroyed in the database.
 type AfterDestroyable interface {
-	AfterDestroy(*Connection) error
+	AfterDestroy(conn *Connection) error
 }
 
 func (m *Model) afterDestroy(c *Connection) error {
@@ -147,7 +147,7 @@ func (m *Model) afterDestroy(c *Connection) error {
 // AfterUpdateable callback will be called after a record is
 // updated in the database.
 type AfterUpdateable interface {
-	AfterUpdate(*Connection) error
+	AfterUpdate(conn *Connection) error
 }
 
 func (m *Model) afterUpdate(c *Connection) error {
@@ -160,7 +160,7 @@ func (m *Model) afterUpdate(c *Connection) error {
 // AfterCreateable callback will be called after a record is
 // created in the database.
 type AfterCreateable interface {
-	AfterCreate(*Connection) error
+	AfterCreate(conn *Connection) error
 }
 
 func (m *Model) afterCreate(c *Connection) error {
@@ -173,7 +173,7 @@ func (m *Model) afterCreate(c *Connection) error {
 // AfterSaveable callback will be called after a record is
 // either created or updated in the database.
 type AfterSaveable interface {
-	AfterSave(*Connection) error
+	AfterSave(conn *Connection) error
 }
 
 func (m *Model) afterSave(c *Connection) error {

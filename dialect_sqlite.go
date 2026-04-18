@@ -19,6 +19,7 @@ import (
 	"github.com/gobuffalo/fizz"
 	"github.com/gobuffalo/fizz/translators"
 	"github.com/jmoiron/sqlx"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/gobuffalo/pop/v6/columns"
 	"github.com/gobuffalo/pop/v6/logging"
@@ -210,7 +211,9 @@ func (m *sqlite) CreateDB() error {
 	if err != nil {
 		return fmt.Errorf("could not create SQLite database '%s': %w", durl, err)
 	}
-	_ = f.Close()
+	if err := f.Close(); err != nil {
+		return fmt.Errorf("could not close SQLite database '%s': %w", durl, err)
+	}
 
 	log(logging.Info, "created database '%s'", durl)
 	return nil
@@ -245,10 +248,11 @@ func (m *sqlite) LoadSchema(r io.Reader) error {
 	if err != nil {
 		return fmt.Errorf("could not open stdin to SQLite database %s: %w", m.ConnectionDetails.Database, err)
 	}
-	go func() {
-		defer in.Close()
-		io.Copy(in, r)
-	}()
+	var eg errgroup.Group
+	eg.Go(func() error {
+		_, err := io.Copy(in, r)
+		return err
+	})
 	log(logging.SQL, strings.Join(cmd.Args, " "))
 	err = cmd.Start()
 	if err != nil {
@@ -258,6 +262,10 @@ func (m *sqlite) LoadSchema(r io.Reader) error {
 	err = cmd.Wait()
 	if err != nil {
 		return fmt.Errorf("command failure loading schema to SQLite database %s: %w", m.ConnectionDetails.Database, err)
+	}
+	err = eg.Wait()
+	if err != nil {
+		return fmt.Errorf("error copying schema to SQLite database %s: %w", m.ConnectionDetails.Database, err)
 	}
 
 	log(logging.Info, "loaded schema for %s", m.Details().Database)

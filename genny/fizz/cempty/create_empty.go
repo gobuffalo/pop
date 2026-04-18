@@ -1,3 +1,6 @@
+// Package cempty provides a generator for creating empty migration files in either SQL or Fizz format, depending on
+// the specified options. It allows users to generate migration files with the appropriate naming conventions and
+// file extensions based on the chosen translator.
 package cempty
 
 import (

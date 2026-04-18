@@ -21,7 +21,7 @@ func Test_LoadsConnectionsFromConfig(t *testing.T) {
 
 func Test_AddLookupPaths(t *testing.T) {
 	r := require.New(t)
-	AddLookupPaths("./foo")
+	r.NoError(AddLookupPaths("./foo"))
 	r.Contains(LookupPaths(), "./foo")
 }
 

@@ -10,26 +10,26 @@ import (
 // Store is an interface that must be implemented in order for Pop
 // to be able to use the value as a way of talking to a datastore.
 type store interface {
-	Select(any, string, ...any) error
-	Get(any, string, ...any) error
-	NamedExec(string, any) (sql.Result, error)
+	Select(dest any, query string, args ...any) error
+	Get(dest any, query string, args ...any) error
+	NamedExec(query string, arg any) (sql.Result, error)
 	NamedQuery(query string, arg any) (*sqlx.Rows, error)
-	Exec(string, ...any) (sql.Result, error)
-	PrepareNamed(string) (*sqlx.NamedStmt, error)
+	Exec(query string, args ...any) (sql.Result, error)
+	PrepareNamed(query string) (*sqlx.NamedStmt, error)
 	Transaction() (*Tx, error)
 	Rollback() error
 	Commit() error
 	Close() error
 
 	// Context versions to wrap with contextStore
-	SelectContext(context.Context, any, string, ...any) error
-	GetContext(context.Context, any, string, ...any) error
-	NamedExecContext(context.Context, string, any) (sql.Result, error)
+	SelectContext(ctx context.Context, dest any, query string, args ...any) error
+	GetContext(ctx context.Context, dest any, query string, args ...any) error
+	NamedExecContext(ctx context.Context, query string, arg any) (sql.Result, error)
 	NamedQueryContext(ctx context.Context, query string, arg any) (*sqlx.Rows, error)
-	ExecContext(context.Context, string, ...any) (sql.Result, error)
-	PrepareNamedContext(context.Context, string) (*sqlx.NamedStmt, error)
-	TransactionContext(context.Context) (*Tx, error)
-	TransactionContextOptions(context.Context, *sql.TxOptions) (*Tx, error)
+	ExecContext(ctx context.Context, query string, args ...any) (sql.Result, error)
+	PrepareNamedContext(ctx context.Context, query string) (*sqlx.NamedStmt, error)
+	TransactionContext(ctx context.Context) (*Tx, error)
+	TransactionContextOptions(ctx context.Context, opts *sql.TxOptions) (*Tx, error)
 }
 
 // ContextStore wraps a store with a Context, so passes it with the functions that don't take it.

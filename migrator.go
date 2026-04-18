@@ -258,7 +258,7 @@ func (m Migrator) DumpMigrationSchema() error {
 	}
 	err = c.Dialect.DumpSchema(f)
 	if err != nil {
-		os.RemoveAll(schema)
+		_ = os.RemoveAll(schema)
 		return err
 	}
 	return nil

@@ -13,13 +13,14 @@ import (
 
 // belongsToAssociation is the implementation for the belongs_to association type in a model.
 type belongsToAssociation struct {
+	*associationSkippable
+	*associationComposite
+
 	ownerModel reflect.Value
 	ownerType  reflect.Type
 	ownerID    reflect.Value
 	primaryID  string
 	ownedModel any
-	*associationSkipable
-	*associationComposite
 
 	primaryTableID string
 }
@@ -34,8 +35,7 @@ func belongsToAssociationBuilder(p associationParams) (Association, error) {
 	primaryIDField := cmp.Or(tags.Find("primary_id").Value, "ID")
 	ownerIDField := fmt.Sprintf("%s%s", p.field.Name, "ID")
 
-	if tags.Find("fk_id").Value != "" {
-		dbTag := tags.Find("fk_id").Value
+	if dbTag := tags.Find("fk_id").Value; dbTag != "" {
 		if _, found := p.modelType.FieldByName(dbTag); !found {
 			t := p.modelValue.Type()
 			for i := range t.NumField() {
@@ -83,7 +83,7 @@ func belongsToAssociationBuilder(p associationParams) (Association, error) {
 		ownerID:    f,
 		primaryID:  primaryIDField,
 		ownedModel: p.model,
-		associationSkipable: &associationSkipable{
+		associationSkippable: &associationSkippable{
 			skipped: skipped,
 		},
 		associationComposite: &associationComposite{innerAssociations: p.innerAssociations},

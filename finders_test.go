@@ -42,8 +42,7 @@ func Test_Create_MissingID(t *testing.T) {
 		r := require.New(t)
 		client := Client{ClientID: "client-0001"}
 		err := tx.Create(&client)
-		r.Error(err)
-		r.Contains(err.Error(), "model *pop.Client is missing required field ID")
+		r.ErrorContains(err, "model *pop.Client is missing required field ID")
 	})
 }
 
@@ -698,8 +697,7 @@ func Test_All_Eager_Field_Not_Found_Error(t *testing.T) {
 
 		u := Users{}
 		err = tx.Eager("FieldNotFound").Where("name = 'Mark'").All(&u)
-		r.Error(err)
-		r.Equal("could not retrieve associations: field FieldNotFound does not exist in model User", err.Error())
+		r.EqualError(err, "could not retrieve associations: field FieldNotFound does not exist in model User")
 	})
 }
 

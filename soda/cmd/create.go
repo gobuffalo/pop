@@ -1,3 +1,5 @@
+// Package cmd contains the command-line interface (CLI) commands for the soda tool, which is used for managing
+// databases with pop. It includes commands for creating databases, running migrations, and seeding data.
 package cmd
 
 import (

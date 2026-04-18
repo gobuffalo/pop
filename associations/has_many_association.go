@@ -12,6 +12,9 @@ import (
 // hasManyAssociation is the implementation for the has_many
 // association type in a model.
 type hasManyAssociation struct {
+	*associationSkippable
+	*associationComposite
+
 	tableName string
 	field     reflect.StructField
 	value     reflect.Value
@@ -20,8 +23,6 @@ type hasManyAssociation struct {
 	owner     any
 	fkID      string
 	orderBy   string
-	*associationSkipable
-	*associationComposite
 }
 
 func init() {
@@ -45,7 +46,7 @@ func hasManyAssociationBuilder(p associationParams) (Association, error) {
 		ownerID:   ownerID.Interface(),
 		fkID:      p.popTags.Find("fk_id").Value,
 		orderBy:   p.popTags.Find("order_by").Value,
-		associationSkipable: &associationSkipable{
+		associationSkippable: &associationSkippable{
 			skipped: skipped,
 		},
 		associationComposite: &associationComposite{innerAssociations: p.innerAssociations},
@@ -106,7 +107,7 @@ func (a *hasManyAssociation) AfterSetup() error {
 		v = v.Elem()
 	}
 
-	for i := 0; i < v.Len(); i++ {
+	for i := range v.Len() {
 		fval := v.Index(i).FieldByName(a.ownerName + "ID")
 		if fval.CanSet() {
 			if n := nulls.New(fval.Interface()); n != nil {
@@ -139,7 +140,7 @@ func (a *hasManyAssociation) AfterProcess() AssociationStatement {
 
 	var ids []any
 
-	for i := 0; i < v.Len(); i++ {
+	for i := range v.Len() {
 		id := v.Index(i).FieldByName(belongingIDFieldName).Interface()
 		if !IsZeroOfUnderlyingType(id) {
 			ids = append(ids, id)

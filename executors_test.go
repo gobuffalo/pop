@@ -336,7 +336,7 @@ func Test_ExecCount(t *testing.T) {
 		r := require.New(t)
 
 		user := User{Name: nulls.NewString("Mark 'Awesome' Bates")}
-		tx.Create(&user)
+		r.NoError(tx.Create(&user))
 
 		ctx, _ := tx.Count(user)
 		r.Equal(1, ctx)
@@ -1267,6 +1267,8 @@ func Test_Eager_Embedded_Struct(t *testing.T) {
 		}
 
 		type User struct {
+			AssocFields
+
 			ID        int           `db:"id"`
 			UserName  string        `db:"user_name"`
 			Email     string        `db:"email"`
@@ -1278,8 +1280,6 @@ func Test_Eager_Embedded_Struct(t *testing.T) {
 			Bio       nulls.String  `db:"bio"`
 			Price     nulls.Float64 `db:"price"`
 			FullName  nulls.String  `db:"full_name"  select:"name as full_name"`
-
-			AssocFields
 		}
 
 		count, _ := tx.Count(&User{})
@@ -1346,6 +1346,8 @@ func Test_Eager_Embedded_Ptr_Struct(t *testing.T) {
 		}
 
 		type User struct {
+			*AssocFields
+
 			ID        int           `db:"id"`
 			UserName  string        `db:"user_name"`
 			Email     string        `db:"email"`
@@ -1357,8 +1359,6 @@ func Test_Eager_Embedded_Ptr_Struct(t *testing.T) {
 			Bio       nulls.String  `db:"bio"`
 			Price     nulls.Float64 `db:"price"`
 			FullName  nulls.String  `db:"full_name"  select:"name as full_name"`
-
-			*AssocFields
 		}
 
 		count, _ := tx.Count(&User{})
@@ -1491,7 +1491,7 @@ func Test_Update(t *testing.T) {
 		r := require.New(t)
 
 		user := User{Name: nulls.NewString("Mark")}
-		tx.Create(&user)
+		r.NoError(tx.Create(&user))
 
 		r.NotZero(user.CreatedAt)
 		r.NotZero(user.UpdatedAt)
@@ -1513,7 +1513,7 @@ func Test_UpdateColumns(t *testing.T) {
 		r := require.New(t)
 
 		user := User{Name: nulls.NewString("Mark")}
-		tx.Create(&user)
+		r.NoError(tx.Create(&user))
 
 		r.NotZero(user.CreatedAt)
 		r.NotZero(user.UpdatedAt)
@@ -1578,9 +1578,9 @@ func Test_UpdateQuery(t *testing.T) {
 		u1 := User{Name: nulls.NewString("Foo"), Bio: nulls.NewString("must-not-change-1")}
 		u2 := User{Name: nulls.NewString("Foo"), Bio: nulls.NewString("must-not-change-2")}
 		u3 := User{Name: nulls.NewString("Baz"), Bio: nulls.NewString("must-not-change-3")}
-		tx.Create(&u1)
-		tx.Create(&u2)
-		tx.Create(&u3)
+		r.NoError(tx.Create(&u1))
+		r.NoError(tx.Create(&u2))
+		r.NoError(tx.Create(&u3))
 		r.NoError(tx.Reload(&u1))
 		r.NoError(tx.Reload(&u2))
 		r.NoError(tx.Reload(&u3))
@@ -1617,7 +1617,8 @@ func Test_UpdateQuery(t *testing.T) {
 		r.Equal(u3.UpdatedAt, u3b.UpdatedAt)
 
 		// ID is ignored
-		count, err = tx.Where("true").UpdateQuery(&User{ID: 123, Name: nulls.NewString("Bar")}, "id", "name")
+		_, err = tx.Where("true").UpdateQuery(&User{ID: 123, Name: nulls.NewString("Bar")}, "id", "name")
+		r.NoError(err)
 		r.NoError(tx.Find(u1b, u1.ID))
 		r.NoError(tx.Find(u2b, u2.ID))
 		r.NoError(tx.Find(u3b, u3.ID))
@@ -1626,10 +1627,11 @@ func Test_UpdateQuery(t *testing.T) {
 		r.Equal(u3b.Name.String, "Bar")
 
 		// Invalid column yields an error
-		count, err = tx.Where("name = ?", "Foo").UpdateQuery(&User{Name: nulls.NewString("Bar")}, "mistake")
-		r.Contains(err.Error(), "could not find name mistake")
+		_, err = tx.Where("name = ?", "Foo").UpdateQuery(&User{Name: nulls.NewString("Bar")}, "mistake")
+		r.ErrorContains(err, "could not find name mistake")
 
-		tx.Where("true").Delete(&User{})
+		err = tx.Where("true").Delete(&User{})
+		r.NoError(err)
 	})
 }
 
@@ -1641,7 +1643,7 @@ func Test_UpdateColumns_UpdatedAt(t *testing.T) {
 		r := require.New(t)
 
 		user := User{Name: nulls.NewString("Foo")}
-		tx.Create(&user)
+		r.NoError(tx.Create(&user))
 
 		r.NotZero(user.CreatedAt)
 		r.NotZero(user.UpdatedAt)
@@ -1664,7 +1666,7 @@ func Test_UpdateColumns_MultipleColumns(t *testing.T) {
 		r := require.New(t)
 
 		user := User{Name: nulls.NewString("Mark"), UserName: "Sagan", Email: "test@example.com"}
-		tx.Create(&user)
+		r.NoError(tx.Create(&user))
 
 		r.NotZero(user.CreatedAt)
 		r.NotZero(user.UpdatedAt)
@@ -1690,7 +1692,7 @@ func Test_UpdateColumns_All(t *testing.T) {
 		r := require.New(t)
 
 		user := User{Name: nulls.NewString("Mark"), UserName: "Sagan"}
-		tx.Create(&user)
+		r.NoError(tx.Create(&user))
 
 		r.NotZero(user.CreatedAt)
 		r.NotZero(user.UpdatedAt)
@@ -1725,7 +1727,7 @@ func Test_UpdateColumns_With_Slice(t *testing.T) {
 				UserName: "Pong",
 			},
 		}
-		tx.Create(&user)
+		r.NoError(tx.Create(&user))
 
 		r.NotZero(user[0].CreatedAt)
 		r.NotZero(user[0].UpdatedAt)
@@ -1760,7 +1762,7 @@ func Test_Update_With_Slice(t *testing.T) {
 			{Name: nulls.NewString("Mark")},
 			{Name: nulls.NewString("Larry")},
 		}
-		tx.Create(&user)
+		r.NoError(tx.Create(&user))
 
 		r.NotZero(user[0].CreatedAt)
 		r.NotZero(user[0].UpdatedAt)

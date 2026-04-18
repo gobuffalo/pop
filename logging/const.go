@@ -1,3 +1,4 @@
+// Package logging provides types for logging levels used in the pop package.
 package logging
 
 // Level is the logger level

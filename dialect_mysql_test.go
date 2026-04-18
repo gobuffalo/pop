@@ -200,8 +200,9 @@ func (s *MySQLSuite) Test_MySQL_DDL_Operations() {
 		PDB.Dialect.Details().Database = origDatabase
 	}()
 
-	PDB.Dialect.DropDB() // clean up
-	err := PDB.Dialect.CreateDB()
+	err := PDB.Dialect.DropDB() // clean up
+	r.Error(err)
+	err = PDB.Dialect.CreateDB()
 	r.NoError(err)
 	err = PDB.Dialect.CreateDB()
 	r.Error(err)
@@ -214,12 +215,9 @@ func (s *MySQLSuite) Test_MySQL_DDL_Operations() {
 func (s *MySQLSuite) Test_MySQL_DDL_Schema() {
 	r := s.Require()
 
-	f, err := os.CreateTemp(os.TempDir(), "pop_test_mysql_dump")
+	f, err := os.CreateTemp(s.T().TempDir(), "pop_test_mysql_dump")
 	r.NoError(err)
-	defer func() {
-		f.Close()
-		os.Remove(f.Name())
-	}()
+	defer f.Close()
 
 	// do it against "pop_test"
 	err = PDB.Dialect.DumpSchema(f)

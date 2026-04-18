@@ -1,3 +1,4 @@
+// Package ctable provides a generator for creating migration files that define new database tables.
 package ctable
 
 import (

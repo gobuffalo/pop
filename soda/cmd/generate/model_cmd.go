@@ -83,7 +83,9 @@ var ModelCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		run.With(g)
+		if err := run.With(g); err != nil {
+			return err
+		}
 
 		// format generated go files
 		pwd, _ := os.Getwd()
@@ -91,13 +93,17 @@ var ModelCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		run.With(g)
+		if err := run.With(g); err != nil {
+			return err
+		}
 
 		// generated modules may have new dependencies
 		if _, err := os.Stat("go.mod"); err == nil {
 			g = genny.New()
 			g.Command(exec.Command("go", "mod", "tidy"))
-			run.With(g)
+			if err := run.With(g); err != nil {
+				return err
+			}
 		}
 
 		// Mount migrations generator
@@ -129,7 +135,9 @@ var ModelCmd = &cobra.Command{
 			if err != nil {
 				return err
 			}
-			run.With(g)
+			if err := run.With(g); err != nil {
+				return err
+			}
 		}
 
 		return run.Run()

@@ -21,7 +21,7 @@ func Test_New(t *testing.T) {
 	r.NoError(err)
 
 	run := gentest.NewRunner()
-	run.With(g)
+	r.NoError(run.With(g))
 
 	r.NoError(run.Run())
 

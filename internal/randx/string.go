@@ -1,3 +1,4 @@
+// Package randx provides functions for generating random data.
 package randx
 
 import (

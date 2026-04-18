@@ -225,7 +225,7 @@ func (q *Query) eagerDefaultAssociations(model any) error {
 	kind := reflect.Indirect(v).Kind()
 	if kind == reflect.Slice || kind == reflect.Array {
 		v = v.Elem()
-		for i := 0; i < v.Len(); i++ {
+		for i := range v.Len() {
 			e := v.Index(i)
 			if e.Type().Kind() == reflect.Pointer {
 				// Already a pointer

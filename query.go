@@ -10,7 +10,10 @@ import (
 type operation string
 
 const (
+	// Select is the default operation for a query.
 	Select operation = "SELECT"
+
+	// Delete is the operation for a delete query.
 	Delete operation = "DELETE"
 )
 
