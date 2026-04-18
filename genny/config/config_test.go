@@ -1,20 +1,20 @@
 package config
 
 import (
-	"context"
 	"path/filepath"
 	"testing"
 
 	"github.com/gobuffalo/genny/v2"
-	"github.com/gobuffalo/pop/v6"
 	"github.com/stretchr/testify/require"
+
+	"github.com/gobuffalo/pop/v6"
 )
 
 func Test_New(t *testing.T) {
 	r := require.New(t)
 
 	for _, d := range pop.AvailableDialects {
-		run := genny.DryRunner(context.Background())
+		run := genny.DryRunner(t.Context())
 
 		g, err := New(&Options{
 			Prefix:  "foo",

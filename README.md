@@ -27,6 +27,7 @@ Want to know more? Take a look at the documentation!
 Please visit [http://gobuffalo.io](https://gobuffalo.io/docs/db/getting-started) for the latest documentation, examples, and more.
 
 ### Quick Start
+
 * [CLI Installation](https://gobuffalo.io/docs/db/toolbox)
 * [Configuration](https://gobuffalo.io/docs/db/configuration)
 

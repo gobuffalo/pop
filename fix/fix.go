@@ -2,14 +2,13 @@ package fix
 
 import (
 	"io"
-	"io/ioutil"
 	"strings"
 )
 
 // Fizz fixes a fizz file to use the most up to date format.
 // It takes the original contents from the Reader, and writes the fixed contents in the Writer.
 func Fizz(r io.Reader, w io.Writer) error {
-	b, err := ioutil.ReadAll(r)
+	b, err := io.ReadAll(r)
 	if err != nil {
 		return err
 	}

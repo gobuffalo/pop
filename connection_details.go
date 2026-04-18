@@ -1,6 +1,7 @@
 package pop
 
 import (
+	"cmp"
 	"errors"
 	"fmt"
 	"net/url"
@@ -10,9 +11,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/gobuffalo/pop/v6/internal/defaults"
-	"github.com/gobuffalo/pop/v6/logging"
 	"github.com/luna-duclos/instrumentedsql"
+
+	"github.com/gobuffalo/pop/v6/logging"
 )
 
 // ConnectionDetails stores the data needed to connect to a datasource
@@ -57,11 +58,11 @@ type ConnectionDetails struct {
 	// information in the Open Tracing, Open Census, Google, and AWS Xray format. This is useful when using
 	// tracing with Jaeger, DataDog, Zipkin, or other tracing software.
 	UseInstrumentedDriver bool
-	// InstrumentedDriverOptions sets the options for the instrumented driver. These options are empty by default meaning
-	// that instrumentation is disabled.
+	// InstrumentedDriverOptions sets the options for the instrumented driver. These options are empty by default
+	// meaning that instrumentation is disabled.
 	//
-	// For more information check out the docs at https://github.com/luna-duclos/instrumentedsql. If you use Open Tracing, these options
-	// could looks as follows:
+	// For more information check out the docs at https://github.com/luna-duclos/instrumentedsql. If you use Open
+	// Tracing, these options could looks as follows:
 	//
 	//		InstrumentedDriverOptions: []instrumentedsql.Opt{instrumentedsql.WithTracer(opentracing.NewTracer(true))}
 	//
@@ -96,7 +97,10 @@ func (cd *ConnectionDetails) withURL() error {
 	// warning message is required to prevent confusion
 	// even though this behavior was documented.
 	if cd.Database+cd.Host+cd.Port+cd.User+cd.Password != "" {
-		log(logging.Warn, "One or more of connection details are specified in database.yml. Override them with values in URL.")
+		log(
+			logging.Warn,
+			"One or more of connection details are specified in database.yml. Override them with values in URL.",
+		)
 	}
 
 	if up, ok := urlParser[cd.Dialect]; ok {
@@ -156,7 +160,7 @@ func (cd *ConnectionDetails) Finalize() error {
 
 // RetrySleep returns the amount of time to wait between two connection retries
 func (cd *ConnectionDetails) RetrySleep() time.Duration {
-	d, err := time.ParseDuration(defaults.String(cd.Options["retry_sleep"], "1ms"))
+	d, err := time.ParseDuration(cmp.Or(cd.Options["retry_sleep"], "1ms"))
 	if err != nil {
 		return 1 * time.Millisecond
 	}
@@ -165,7 +169,7 @@ func (cd *ConnectionDetails) RetrySleep() time.Duration {
 
 // RetryLimit returns the maximum number of accepted connection retries
 func (cd *ConnectionDetails) RetryLimit() int {
-	i, err := strconv.Atoi(defaults.String(cd.Options["retry_limit"], "1000"))
+	i, err := strconv.Atoi(cmp.Or(cd.Options["retry_limit"], "1000"))
 	if err != nil {
 		return 100
 	}
@@ -174,7 +178,7 @@ func (cd *ConnectionDetails) RetryLimit() int {
 
 // MigrationTableName returns the name of the table to track migrations
 func (cd *ConnectionDetails) MigrationTableName() string {
-	return defaults.String(cd.Options["migration_table_name"], "schema_migration")
+	return cmp.Or(cd.Options["migration_table_name"], "schema_migration")
 }
 
 // OptionsString returns URL parameter encoded string from options.
@@ -199,14 +203,14 @@ func (cd *ConnectionDetails) option(k string) string {
 	if cd.Options == nil {
 		return ""
 	}
-	return defaults.String(cd.Options[k], "")
+	return cmp.Or(cd.Options[k], "")
 }
 
 // setOptionWithDefault stores given value v in ConnectionDetails.Options
 // with key k. If v is empty string, it stores def instead.
 // It uses locking mechanism to make the operation safe.
 func (cd *ConnectionDetails) setOptionWithDefault(k, v, def string) {
-	cd.setOption(k, defaults.String(v, def))
+	cd.setOption(k, cmp.Or(v, def))
 }
 
 // setOption stores given value v in ConnectionDetails.Options with key k.

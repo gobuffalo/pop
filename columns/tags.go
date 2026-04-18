@@ -42,7 +42,7 @@ func (t Tags) Find(name string) Tag {
 // in model field.
 func TagsFor(field reflect.StructField) Tags {
 	pTags := Tags{}
-	for _, tag := range strings.Fields(tags) {
+	for tag := range strings.FieldsSeq(tags) {
 		if valTag := field.Tag.Get(tag); valTag != "" {
 			pTags = append(pTags, Tag{valTag, tag})
 		}

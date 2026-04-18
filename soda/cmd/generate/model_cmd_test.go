@@ -1,7 +1,6 @@
 package generate
 
 import (
-	"os"
 	"path/filepath"
 	"testing"
 
@@ -14,13 +13,9 @@ func Test_ModelCmd_NoArg(t *testing.T) {
 	c.SetArgs([]string{})
 
 	tdir := t.TempDir()
+	t.Chdir(tdir)
 
-	pwd, err := os.Getwd()
-	r.NoError(err)
-	os.Chdir(tdir)
-	defer os.Chdir(pwd)
-
-	err = c.Execute()
+	err := c.Execute()
 	r.EqualError(err, "you must set a name for your model")
 }
 
@@ -30,13 +25,9 @@ func Test_ModelCmd_NameOnly(t *testing.T) {
 	c.SetArgs([]string{"users"})
 
 	tdir := t.TempDir()
+	t.Chdir(tdir)
 
-	pwd, err := os.Getwd()
-	r.NoError(err)
-	os.Chdir(tdir)
-	defer os.Chdir(pwd)
-
-	err = c.Execute()
+	err := c.Execute()
 	r.NoError(err)
 
 	r.DirExists(filepath.Join(tdir, "migrations"))

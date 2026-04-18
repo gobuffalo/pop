@@ -1,16 +1,142 @@
+# yaml-language-server: $schema=https://golangci-lint.run/jsonschema/golangci.jsonschema.json
+version: "2"
+
 run:
-  deadline: 1m
   build-tags:
-    - sqlite
-  linters:
-    enable:
-      - nakedret
-      - maligned
-      - megacheck
-      - misspell
-      - golint
-      - unconvert
-  linters-settings:
-    govet:
-      # report about shadowed variables
-      check-shadowing: true
+    - lint
+
+linters:
+  # Default set of linters.
+  # The value can be: `standard`, `all`, `none`, or `fast`.
+  default: standard
+  # Enable specific linter.
+  enable:
+    - copyloopvar
+    - depguard
+    - dupl
+    - embeddedstructfieldcheck
+    - errname
+    - errorlint
+    - exptostd
+    - fatcontext
+    - gocyclo
+    - godoclint
+    - inamedparam
+    - ineffassign
+    - intrange
+    - lll
+    - misspell
+    - modernize
+    - nakedret
+    - nestif
+    # - paralleltest
+    - perfsprint
+    - predeclared
+    - revive
+    - staticcheck
+    - testableexamples
+    # - testpackage
+    - thelper
+    - tparallel
+    - unused
+    - usestdlibvars
+    - usetesting
+  settings:
+    copyloopvar:
+      # Check all assigning the loop variable to another variable.
+      check-alias: true
+    depguard:
+      rules:
+        main:
+          # List of packages that are not allowed.
+          # Entries can be a variable (starting with $), a string prefix, or an exact match (if ending with $).
+          # Default: []
+          deny:
+            - pkg: "math/rand$"
+              desc: use math/rand/v2
+            - pkg: "github.com/pkg/errors"
+              desc: Should be replaced by standard lib errors package
+    gocyclo:
+      # Minimal code complexity to report.
+      min-complexity: 15
+    godoclint:
+      default: basic
+      disable:
+        # Disable single-pkg-doc check, as some packages also contain generated code which often produces package-level
+        # comments.
+        - single-pkg-doc
+    lll:
+      # Max line length, lines longer will be reported.
+      # '\t' is counted as 1 character by default, and can be changed with the tab-width option.
+      line-length: 120
+      # Tab width in spaces.
+      tab-width: 4
+    misspell:
+      # Correct spellings using locale preferences for US or UK.
+      locale: US
+    nakedret:
+      # Make an issue if func has more lines of code than this setting, and it has naked returns.
+      max-func-lines: 20
+    nestif:
+      # Minimal complexity of if statements to report.
+      min-complexity: 4
+    paralleltest:
+      # Ignore missing calls to `t.Parallel()` and only report incorrect uses of it.
+      ignore-missing: false
+      # Ignore missing calls to `t.Parallel()` in subtests. Top-level tests are
+      # still required to have `t.Parallel`, but subtests are allowed to skip it.
+      ignore-missing-subtests: false
+    predeclared:
+      # Include method names and field names in checks.
+      qualified-name: true
+    staticcheck:
+      dot-import-whitelist:
+        - github.com/buffalo/pop/v6
+    usestdlibvars:
+      # Suggest the use of crypto.Hash.String().
+      crypto-hash: true
+    usetesting:
+      # Enable/disable `os.TempDir()` detections.
+      os-temp-dir: true
+      # Enable/disable `context.Background()` detections.
+      context-background: true
+      # Enable/disable `context.TODO()` detections.
+      context-todo: true
+  exclusions:
+    rules:
+      - source: "`(json|yaml).*"
+        linters:
+          - lll
+      - source: "defer"
+        linters:
+          - errcheck
+      - path: "_test\\.go"
+        linters:
+          - dupl
+
+formatters:
+  enable:
+    - gci
+    - gofumpt
+    - golines
+  settings:
+    gci:
+      sections:
+        - standard # Standard section: captures all standard packages.
+        - default # Default section: contains all imports that could not be matched to another section type.
+        - blank # Blank section: contains all blank imports. This section is not present unless explicitly enabled.
+        - dot # Dot section: contains all dot imports. This section is not present unless explicitly enabled.
+        - alias # Alias section: contains all alias imports. This section is not present unless explicitly enabled.
+        - localmodule # Local module section: contains all local packages. This section is not present unless explicitly enabled.
+      # Checks that no inline comments are present.
+      no-inline-comments: true
+      # Checks that no prefix comments (comment lines above an import) are present.
+      no-prefix-comments: true
+    gofumpt:
+      # Module path which contains the source code being formatted.
+      module-path: github.com/buffalo/pop/v6
+      # Choose whether to use the extra rules.
+      extra-rules: true
+    golines:
+      # Target maximum line length.
+      max-len: 120

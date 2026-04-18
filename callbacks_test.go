@@ -68,7 +68,7 @@ func Test_Callbacks_on_Slice(t *testing.T) {
 	}
 	transaction(func(tx *Connection) {
 		r := require.New(t)
-		for i := 0; i < 2; i++ {
+		for range 2 {
 			r.NoError(tx.Create(&CallbacksUser{}))
 		}
 

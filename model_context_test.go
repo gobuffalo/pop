@@ -55,7 +55,7 @@ func Test_ModelContext(t *testing.T) {
 			r := require.New(t)
 
 			expected := ContextTable{ID: prefix, Value: prefix}
-			c := PDB.WithContext(context.WithValue(context.Background(), "prefix", prefix))
+			c := PDB.WithContext(context.WithValue(t.Context(), "prefix", prefix))
 			r.NoError(c.Create(&expected))
 
 			var actual ContextTable
@@ -102,8 +102,14 @@ func Test_ModelContext(t *testing.T) {
 	t.Run("cache_busting", func(t *testing.T) {
 		r := require.New(t)
 
-		r.NoError(PDB.WithContext(context.WithValue(context.Background(), "prefix", "a")).Destroy(&ContextTable{ID: "expectedA"}))
-		r.NoError(PDB.WithContext(context.WithValue(context.Background(), "prefix", "b")).Destroy(&ContextTable{ID: "expectedB"}))
+		r.NoError(
+			PDB.WithContext(context.WithValue(context.Background(), "prefix", "a")).
+				Destroy(&ContextTable{ID: "expectedA"}),
+		)
+		r.NoError(
+			PDB.WithContext(context.WithValue(context.Background(), "prefix", "b")).
+				Destroy(&ContextTable{ID: "expectedB"}),
+		)
 
 		var expectedA, expectedB ContextTable
 		expectedA.ID = "expectedA"

@@ -1,25 +1,30 @@
 package pop
 
 import (
+	"cmp"
 	"database/sql"
 	"fmt"
 	"io"
 	"net/url"
 	"os/exec"
+	"strconv"
 	"sync"
 
 	"github.com/gobuffalo/fizz"
 	"github.com/gobuffalo/fizz/translators"
-	"github.com/gobuffalo/pop/v6/columns"
-	"github.com/gobuffalo/pop/v6/internal/defaults"
-	"github.com/gobuffalo/pop/v6/logging"
 	"github.com/jackc/pgx/v5/pgconn"
-	_ "github.com/jackc/pgx/v5/stdlib" // Load pgx driver
 	"github.com/jmoiron/sqlx"
+
+	_ "github.com/jackc/pgx/v5/stdlib" // Load pgx driver
+
+	"github.com/gobuffalo/pop/v6/columns"
+	"github.com/gobuffalo/pop/v6/logging"
 )
 
-const namePostgreSQL = "postgres"
-const portPostgreSQL = "5432"
+const (
+	namePostgreSQL = "postgres"
+	portPostgreSQL = "5432"
+)
 
 func init() {
 	AvailableDialects = append(AvailableDialects, namePostgreSQL)
@@ -62,9 +67,19 @@ func (p *postgresql) Create(c *Connection, model *Model, cols columns.Columns) e
 		w := cols.Writeable()
 		var query string
 		if len(w.Cols) > 0 {
-			query = fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s) RETURNING %s", p.Quote(model.TableName()), w.QuotedString(p), w.SymbolizedString(), model.IDField())
+			query = fmt.Sprintf(
+				"INSERT INTO %s (%s) VALUES (%s) RETURNING %s",
+				p.Quote(model.TableName()),
+				w.QuotedString(p),
+				w.SymbolizedString(),
+				model.IDField(),
+			)
 		} else {
-			query = fmt.Sprintf("INSERT INTO %s DEFAULT VALUES RETURNING %s", p.Quote(model.TableName()), model.IDField())
+			query = fmt.Sprintf(
+				"INSERT INTO %s DEFAULT VALUES RETURNING %s",
+				p.Quote(model.TableName()),
+				model.IDField(),
+			)
 		}
 		txlog(logging.SQL, c, query, model.Value)
 		rows, err := c.Store.NamedQueryContext(model.ctx, query, model.Value)
@@ -78,7 +93,7 @@ func (p *postgresql) Create(c *Connection, model *Model, cols columns.Columns) e
 			}
 			return fmt.Errorf("named insert: %w", sql.ErrNoRows)
 		}
-		var id interface{}
+		var id any
 		if err := rows.Scan(&id); err != nil {
 			return fmt.Errorf("named insert: scan: %w", err)
 		}
@@ -100,7 +115,9 @@ func (p *postgresql) UpdateQuery(c *Connection, model *Model, cols columns.Colum
 }
 
 func (p *postgresql) Destroy(c *Connection, model *Model) error {
-	stmt := p.TranslateSQL(fmt.Sprintf("DELETE FROM %s AS %s WHERE %s", p.Quote(model.TableName()), model.Alias(), model.WhereID()))
+	stmt := p.TranslateSQL(
+		fmt.Sprintf("DELETE FROM %s AS %s WHERE %s", p.Quote(model.TableName()), model.Alias(), model.WhereID()),
+	)
 	_, err := genericExec(c, stmt, model.ID())
 	if err != nil {
 		return err
@@ -129,7 +146,7 @@ func (p *postgresql) CreateDB() error {
 		return fmt.Errorf("error creating PostgreSQL database %s: %w", deets.Database, err)
 	}
 	defer db.Close()
-	query := fmt.Sprintf("CREATE DATABASE %s", p.Quote(deets.Database))
+	query := "CREATE DATABASE " + p.Quote(deets.Database)
 	log(logging.SQL, query)
 
 	_, err = db.Exec(query)
@@ -149,7 +166,7 @@ func (p *postgresql) DropDB() error {
 		return fmt.Errorf("error dropping PostgreSQL database %s: %w", deets.Database, err)
 	}
 	defer db.Close()
-	query := fmt.Sprintf("DROP DATABASE %s", p.Quote(deets.Database))
+	query := "DROP DATABASE " + p.Quote(deets.Database)
 	log(logging.SQL, query)
 
 	_, err = db.Exec(query)
@@ -202,7 +219,7 @@ func (p *postgresql) FizzTranslator() fizz.Translator {
 }
 
 func (p *postgresql) DumpSchema(w io.Writer) error {
-	cmd := exec.Command("pg_dump", "-s", fmt.Sprintf("--dbname=%s", p.URL()))
+	cmd := exec.Command("pg_dump", "-s", "--dbname="+p.URL())
 	return genericDumpSchema(p.Details(), cmd, w)
 }
 
@@ -238,7 +255,7 @@ func urlParserPostgreSQL(cd *ConnectionDetails) error {
 	cd.Host = conf.Host
 	cd.User = conf.User
 	cd.Password = conf.Password
-	cd.Port = fmt.Sprintf("%d", conf.Port)
+	cd.Port = strconv.FormatUint(uint64(conf.Port), 10)
 
 	options := []string{"fallback_application_name"}
 	for i := range options {
@@ -255,7 +272,7 @@ func urlParserPostgreSQL(cd *ConnectionDetails) error {
 }
 
 func finalizerPostgreSQL(cd *ConnectionDetails) {
-	cd.Port = defaults.String(cd.Port, portPostgreSQL)
+	cd.Port = cmp.Or(cd.Port, portPostgreSQL)
 }
 
 const pgTruncate = `DO

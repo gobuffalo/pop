@@ -20,36 +20,34 @@ func Anko(content string) (string, error) {
 	for i := 0; i < l; i++ {
 		line := lines[i]
 		tl := strings.TrimSpace(line)
-		if strings.HasPrefix(tl, "create_table") {
-			// skip already converted create_table
-			if fre.MatchString(line) {
-				// fix create_table
-				line = fre.ReplaceAllString(line, ") {")
-				ll := i
-				lines[i] = line
-				waitParen := false
-				for {
-					if strings.HasPrefix(tl, "})") {
-						line = "}" + tl[2:]
-						break
-					} else if strings.HasPrefix(tl, "}") {
-						// Now, we have to make sure to match the missing ")"
-						waitParen = true
-					} else if waitParen && strings.HasPrefix(tl, ")") {
-						line = tl[1:]
-						break
-					}
-					i++
-					if l == i {
-						return "", fmt.Errorf("unclosed create_table statement line %d", ll+1)
-					}
-					line = lines[i]
-					tl = strings.TrimSpace(line)
+		switch {
+		case strings.HasPrefix(tl, "create_table") && fre.MatchString(line):
+			// fix create_table
+			line = fre.ReplaceAllString(line, ") {")
+			ll := i
+			lines[i] = line
+			waitParen := false
+			for {
+				if strings.HasPrefix(tl, "})") {
+					line = "}" + tl[2:]
+					break
+				} else if strings.HasPrefix(tl, "}") {
+					// Now, we have to make sure to match the missing ")"
+					waitParen = true
+				} else if waitParen && strings.HasPrefix(tl, ")") {
+					line = tl[1:]
+					break
 				}
+				i++
+				if l == i {
+					return "", fmt.Errorf("unclosed create_table statement line %d", ll+1)
+				}
+				line = lines[i]
+				tl = strings.TrimSpace(line)
 			}
-		} else if strings.HasPrefix(tl, "raw(") {
+		case strings.HasPrefix(tl, "raw("):
 			// fix raw
-			line = strings.Replace(line, "raw(", "sql(", -1)
+			line = strings.ReplaceAll(line, "raw(", "sql(")
 		}
 		lines[i] = line
 	}

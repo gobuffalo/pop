@@ -17,13 +17,13 @@ import (
 type String []string
 
 // Interface implements the nulls.nullable interface.
-func (s String) Interface() interface{} {
+func (s String) Interface() any {
 	return []string(s)
 }
 
 // Scan implements the sql.Scanner interface.
 // It allows to read the string slice from the database value.
-func (s *String) Scan(src interface{}) error {
+func (s *String) Scan(src any) error {
 	// Still relying on pq driver to help with string arrays.
 	ss := pq.StringArray(*s)
 	err := ss.Scan(src)

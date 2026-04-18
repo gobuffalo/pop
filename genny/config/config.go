@@ -28,7 +28,7 @@ func New(opts *Options) (*genny.Generator, error) {
 	gf := genny.NewFile(name, f)
 	g.File(gf)
 
-	data := map[string]interface{}{
+	data := map[string]any{
 		"opts": opts,
 	}
 

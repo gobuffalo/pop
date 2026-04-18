@@ -7,24 +7,23 @@ import (
 )
 
 func Test_Float_Scan(t *testing.T) {
-	r := require.New(t)
 	t.Run("empty slice", func(t *testing.T) {
 		in := "{}"
 		v := &Float{}
-		r.NoError(v.Scan(in))
-		r.Len(*v, 0)
+		require.NoError(t, v.Scan(in))
+		require.Len(t, *v, 0)
 	})
 
 	t.Run("non-empty slice", func(t *testing.T) {
 		in := "{3.14,9.999}"
 		v := &Float{}
-		r.NoError(v.Scan(in))
-		r.Equal([]float64(*v), []float64{3.14, 9.999})
+		require.NoError(t, v.Scan(in))
+		require.Equal(t, []float64(*v), []float64{3.14, 9.999})
 	})
 
 	t.Run("invalid entry", func(t *testing.T) {
 		in := "{44,word}"
 		v := &Float{}
-		r.Error(v.Scan(in))
+		require.Error(t, v.Scan(in))
 	})
 }

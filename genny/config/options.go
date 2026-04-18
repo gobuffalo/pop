@@ -13,6 +13,7 @@ type Options struct {
 	Prefix   string // required - <prefix>_development
 }
 
+// Validate checks the options and sets defaults where needed.
 func (opts *Options) Validate() error {
 	if opts.Root == "" {
 		pwd, _ := os.Getwd()

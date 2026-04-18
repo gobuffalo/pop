@@ -1,6 +1,7 @@
 package pop
 
 import (
+	"cmp"
 	"database/sql"
 	"database/sql/driver"
 	"errors"
@@ -10,16 +11,17 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"slices"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/gobuffalo/fizz"
 	"github.com/gobuffalo/fizz/translators"
-	"github.com/gobuffalo/pop/v6/columns"
-	"github.com/gobuffalo/pop/v6/internal/defaults"
-	"github.com/gobuffalo/pop/v6/logging"
 	"github.com/jmoiron/sqlx"
+
+	"github.com/gobuffalo/pop/v6/columns"
+	"github.com/gobuffalo/pop/v6/logging"
 )
 
 const nameSQLite3 = "sqlite3"
@@ -41,10 +43,8 @@ type sqlite struct {
 }
 
 func requireSQLite3() error {
-	for _, driverName := range sql.Drivers() {
-		if driverName == nameSQLite3 {
-			return nil
-		}
+	if slices.Contains(sql.Drivers(), nameSQLite3) {
+		return nil
 	}
 	return errors.New("sqlite3 support was not compiled into the binary")
 }
@@ -83,7 +83,12 @@ func (m *sqlite) Create(c *Connection, model *Model, cols columns.Columns) error
 			w := cols.Writeable()
 			var query string
 			if len(w.Cols) > 0 {
-				query = fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s)", m.Quote(model.TableName()), w.QuotedString(m), w.SymbolizedString())
+				query = fmt.Sprintf(
+					"INSERT INTO %s (%s) VALUES (%s)",
+					m.Quote(model.TableName()),
+					w.QuotedString(m),
+					w.SymbolizedString(),
+				)
 			} else {
 				query = fmt.Sprintf("INSERT INTO %s DEFAULT VALUES", m.Quote(model.TableName()))
 			}
@@ -120,13 +125,12 @@ func (m *sqlite) Update(c *Connection, model *Model, cols columns.Columns) error
 func (m *sqlite) UpdateQuery(c *Connection, model *Model, cols columns.Columns, query Query) (int64, error) {
 	rowsAffected := int64(0)
 	err := m.locker(m.smGil, func() error {
-		if n, err := genericUpdateQuery(c, model, cols, m, query, sqlx.QUESTION); err != nil {
-			rowsAffected = n
+		n, err := genericUpdateQuery(c, model, cols, m, query, sqlx.QUESTION)
+		rowsAffected = n
+		if err != nil {
 			return fmt.Errorf("sqlite update query: %w", err)
-		} else {
-			rowsAffected = n
-			return nil
 		}
+		return nil
 	})
 	return rowsAffected, err
 }
@@ -167,7 +171,7 @@ func (m *sqlite) Lock(fn func() error) error {
 }
 
 func (m *sqlite) locker(l *sync.Mutex, fn func() error) error {
-	if defaults.String(m.Details().option("lock"), "true") == "true" {
+	if cmp.Or(m.Details().option("lock"), "true") == "true" {
 		defer l.Unlock()
 		l.Lock()
 	}
@@ -197,7 +201,7 @@ func (m *sqlite) CreateDB() error {
 		return fmt.Errorf("could not create SQLite database '%s'; database exists", durl)
 	}
 	dir := filepath.Dir(durl)
-	err = os.MkdirAll(dir, 0766)
+	err = os.MkdirAll(dir, 0o766)
 	if err != nil {
 		return fmt.Errorf("could not create SQLite database '%s': %w", durl, err)
 	}
@@ -274,7 +278,7 @@ func (m *sqlite) TruncateAll(tx *Connection) error {
 	}
 	stmts := []string{}
 	for _, n := range names {
-		stmts = append(stmts, fmt.Sprintf("DELETE FROM %s", m.Quote(n.Name)))
+		stmts = append(stmts, "DELETE FROM "+m.Quote(n.Name))
 	}
 	return tx.RawQuery(strings.Join(stmts, "; ")).Exec()
 }
@@ -284,7 +288,7 @@ func newSQLite(deets *ConnectionDetails) (dialect, error) {
 	if err != nil {
 		return nil, err
 	}
-	deets.URL = fmt.Sprintf("sqlite3://%s", deets.Database)
+	deets.URL = "sqlite3://" + deets.Database
 	cd := &sqlite{
 		gil:           &sync.Mutex{},
 		smGil:         &sync.Mutex{},
@@ -333,11 +337,23 @@ func finalizerSQLite(cd *ConnectionDetails) {
 		// respect user specified options but print warning!
 		cd.setOptionWithDefault(k, cd.option(k), v)
 		if cd.option(k) != v { // when user-defined option exists
-			log(logging.Warn, "IMPORTANT! '%s: %s' option is required to work properly but your current setting is '%v: %v'.", k, v, k, cd.option(k))
+			log(
+				logging.Warn,
+				"IMPORTANT! '%s: %s' option is required to work properly but your current setting is '%v: %v'.",
+				k,
+				v,
+				k,
+				cd.option(k),
+			)
 			log(logging.Warn, "It is highly recommended to remove '%v: %v' option from your config!", k, cd.option(k))
 		} // or override with `cd.Options[k] = v`?
 		if cd.URL != "" && !strings.Contains(cd.URL, k+"="+v) {
-			log(logging.Warn, "IMPORTANT! '%s=%s' option is required to work properly. Please add it to the database URL in the config!", k, v)
+			log(
+				logging.Warn,
+				"IMPORTANT! '%s=%s' option is required to work properly. Please add it to the database URL in the config!",
+				k,
+				v,
+			)
 		} // or fix user specified url?
 	}
 }

@@ -8,9 +8,11 @@ import (
 	"time"
 
 	"github.com/gobuffalo/flect"
-	nflect "github.com/gobuffalo/flect/name"
-	"github.com/gobuffalo/pop/v6/columns"
 	"github.com/gofrs/uuid"
+
+	nflect "github.com/gobuffalo/flect/name"
+
+	"github.com/gobuffalo/pop/v6/columns"
 )
 
 var nowFunc = time.Now
@@ -21,7 +23,7 @@ func SetNowFunc(f func() time.Time) {
 }
 
 // Value is the contents of a `Model`.
-type Value interface{}
+type Value any
 
 type modelIterable func(*Model) error
 
@@ -40,7 +42,7 @@ func NewModel(v Value, ctx context.Context) *Model {
 
 // ID returns the ID of the Model. All models must have an `ID` field this is
 // of type `int`,`int64` or of type `uuid.UUID`.
-func (m *Model) ID() interface{} {
+func (m *Model) ID() any {
 	fbn, err := m.fieldByName("ID")
 	if err != nil {
 		return nil
@@ -57,7 +59,7 @@ func (m *Model) IDField() string {
 	modelType := reflect.TypeOf(m.Value)
 
 	// remove all indirections
-	for modelType.Kind() == reflect.Slice || modelType.Kind() == reflect.Ptr || modelType.Kind() == reflect.Array {
+	for modelType.Kind() == reflect.Slice || modelType.Kind() == reflect.Pointer || modelType.Kind() == reflect.Array {
 		modelType = modelType.Elem()
 	}
 
@@ -121,36 +123,31 @@ func (m *Model) TableName() string {
 	return m.typeName(reflect.TypeOf(m.Value))
 }
 
+// Columns returns the columns of the underlying database table for a given `Model`.
 func (m *Model) Columns() columns.Columns {
 	return columns.ForStructWithAlias(m.Value, m.TableName(), m.As, m.IDField())
 }
 
-func (m *Model) cacheKey(t reflect.Type) string {
-	return t.PkgPath() + "." + t.Name()
-}
-
 func (m *Model) typeName(t reflect.Type) (name string) {
-	if t.Kind() == reflect.Ptr {
+	if t.Kind() == reflect.Pointer {
 		t = t.Elem()
 	}
 	switch t.Kind() {
 	case reflect.Slice, reflect.Array:
 		el := t.Elem()
-		if el.Kind() == reflect.Ptr {
+		if el.Kind() == reflect.Pointer {
 			el = el.Elem()
 		}
 
 		// validates if the elem of slice or array implements TableNameAble interface.
-		var tableNameAble *TableNameAble
-		if el.Implements(reflect.TypeOf(tableNameAble).Elem()) {
+		if el.Implements(reflect.TypeFor[TableNameAble]()) {
 			v := reflect.New(el)
 			out := v.MethodByName("TableName").Call([]reflect.Value{})
 			return out[0].String()
 		}
 
 		// validates if the elem of slice or array implements TableNameAbleWithContext interface.
-		var tableNameAbleWithContext *TableNameAbleWithContext
-		if el.Implements(reflect.TypeOf(tableNameAbleWithContext).Elem()) {
+		if el.Implements(reflect.TypeFor[TableNameAbleWithContext]()) {
 			v := reflect.New(el)
 			out := v.MethodByName("TableName").Call([]reflect.Value{reflect.ValueOf(m.ctx)})
 			return out[0].String()
@@ -175,10 +172,10 @@ func (m *Model) fieldByName(s string) (reflect.Value, error) {
 
 func (m *Model) associationName() string {
 	tn := flect.Singularize(m.TableName())
-	return fmt.Sprintf("%s_id", tn)
+	return tn + "_id"
 }
 
-func (m *Model) setID(i interface{}) {
+func (m *Model) setID(i any) {
 	fbn, err := m.fieldByName("ID")
 	if err == nil {
 		v := reflect.ValueOf(i)
@@ -221,10 +218,13 @@ func (m *Model) setUpdatedAt(now time.Time) {
 	}
 }
 
+// WhereID returns a string with the format "alias.id = ?" where alias is the alias of the model and id
+// is the name of the ID field.
 func (m *Model) WhereID() string {
 	return fmt.Sprintf("%s.%s = ?", m.Alias(), m.IDField())
 }
 
+// Alias returns the alias of the model if it is set, otherwise it returns the table name.
 func (m *Model) Alias() string {
 	as := m.As
 	if as == "" {
@@ -233,6 +233,8 @@ func (m *Model) Alias() string {
 	return as
 }
 
+// WhereNamedID returns a string with the format "alias.id = :id" where alias is the alias of the model and
+// id is the name of the ID field.
 func (m *Model) WhereNamedID() string {
 	return fmt.Sprintf("%s.%s = :%s", m.Alias(), m.IDField(), m.IDField())
 }
@@ -245,14 +247,13 @@ func (m *Model) isSlice() bool {
 func (m *Model) iterate(fn modelIterable) error {
 	if m.isSlice() {
 		v := reflect.Indirect(reflect.ValueOf(m.Value))
-		for i := 0; i < v.Len(); i++ {
+		for i := range v.Len() {
 			val := v.Index(i)
 			newModel := &Model{
 				Value: val.Addr().Interface(),
 				ctx:   m.ctx,
 			}
 			err := fn(newModel)
-
 			if err != nil {
 				return err
 			}

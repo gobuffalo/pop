@@ -10,8 +10,8 @@ import (
 type operation string
 
 const (
-	Select operation = "SELECT"
-	Delete operation = "DELETE"
+	selectOp operation = "SELECT"
+	deleteOp operation = "DELETE"
 )
 
 // Query is the main value that is used to build up a query
@@ -68,7 +68,7 @@ func (q *Query) Clone(targetQ *Query) {
 // to use the `?` argument syntax.
 //
 //	c.RawQuery("select * from foo where id = ?", 1)
-func (c *Connection) RawQuery(stmt string, args ...interface{}) *Query {
+func (c *Connection) RawQuery(stmt string, args ...any) *Query {
 	return Q(c).RawQuery(stmt, args...)
 }
 
@@ -77,7 +77,7 @@ func (c *Connection) RawQuery(stmt string, args ...interface{}) *Query {
 // to use the `?` argument syntax.
 //
 //	q.RawQuery("select * from foo where id = ?", 1)
-func (q *Query) RawQuery(stmt string, args ...interface{}) *Query {
+func (q *Query) RawQuery(stmt string, args ...any) *Query {
 	q.RawSQL = &clause{stmt, args}
 	return q
 }
@@ -86,8 +86,8 @@ func (q *Query) RawQuery(stmt string, args ...interface{}) *Query {
 // by defaults loads all the associations on the model,
 // but can take a variadic list of associations to load.
 //
-// 	c.Eager().Find(model, 1) // will load all associations for model.
-// 	c.Eager("Books").Find(model, 1) // will load only Book association for model.
+//	c.Eager().Find(model, 1) // will load all associations for model.
+//	c.Eager("Books").Find(model, 1) // will load only Book association for model.
 //
 // Eager also enable nested models creation:
 //
@@ -95,7 +95,7 @@ func (q *Query) RawQuery(stmt string, args ...interface{}) *Query {
 //	c.Eager().Create(&model) // will create all associations for model.
 //	c.Eager("Child").Create(&model) // will only create the Child association for model.
 func (c *Connection) Eager(fields ...string) *Connection {
-	con := c.copy()
+	con := c.copyConnection()
 	con.eager = true
 	con.eagerFields = append(c.eagerFields, fields...)
 	return con
@@ -105,8 +105,8 @@ func (c *Connection) Eager(fields ...string) *Connection {
 // by defaults loads all the associations on the model,
 // but can take a variadic list of associations to load.
 //
-// 	q.Eager().Find(model, 1) // will load all associations for model.
-// 	q.Eager("Books").Find(model, 1) // will load only Book association for model.
+//	q.Eager().Find(model, 1) // will load all associations for model.
+//	q.Eager("Books").Find(model, 1) // will load only Book association for model.
 func (q *Query) Eager(fields ...string) *Query {
 	q.eager = true
 	q.eagerFields = append(q.eagerFields, fields...)
@@ -122,9 +122,9 @@ func (q *Query) disableEager() {
 // Where will append a where clause to the query. You may use `?` in place of
 // arguments.
 //
-// 	c.Where("id = ?", 1)
-// 	q.Where("id in (?)", 1, 2, 3)
-func (c *Connection) Where(stmt string, args ...interface{}) *Query {
+//	c.Where("id = ?", 1)
+//	q.Where("id in (?)", 1, 2, 3)
+func (c *Connection) Where(stmt string, args ...any) *Query {
 	q := Q(c)
 	return q.Where(stmt, args...)
 }
@@ -132,16 +132,16 @@ func (c *Connection) Where(stmt string, args ...interface{}) *Query {
 // Where will append a where clause to the query. You may use `?` in place of
 // arguments.
 //
-// 	q.Where("id = ?", 1)
-// 	q.Where("id in (?)", 1, 2, 3)
-func (q *Query) Where(stmt string, args ...interface{}) *Query {
+//	q.Where("id = ?", 1)
+//	q.Where("id in (?)", 1, 2, 3)
+func (q *Query) Where(stmt string, args ...any) *Query {
 	if q.RawSQL.Fragment != "" {
 		log(logging.Warn, "Query is setup to use raw SQL")
 		return q
 	}
 	if inRegex.MatchString(stmt) {
 		var inq []string
-		for i := 0; i < len(args); i++ {
+		for range args {
 			inq = append(inq, "?")
 		}
 		qs := fmt.Sprintf("(%s)", strings.Join(inq, ","))
@@ -153,15 +153,15 @@ func (q *Query) Where(stmt string, args ...interface{}) *Query {
 
 // Order will append an order clause to the query.
 //
-// 	c.Order("name desc")
-func (c *Connection) Order(stmt string, args ...interface{}) *Query {
+//	c.Order("name desc")
+func (c *Connection) Order(stmt string, args ...any) *Query {
 	return Q(c).Order(stmt, args...)
 }
 
 // Order will append an order clause to the query.
 //
-// 	q.Order("name desc")
-func (q *Query) Order(stmt string, args ...interface{}) *Query {
+//	q.Order("name desc")
+func (q *Query) Order(stmt string, args ...any) *Query {
 	if q.RawSQL.Fragment != "" {
 		log(logging.Warn, "Query is setup to use raw SQL")
 		return q
@@ -172,25 +172,25 @@ func (q *Query) Order(stmt string, args ...interface{}) *Query {
 
 // Limit will create a query and add a limit clause to it.
 //
-// 	c.Limit(10)
+//	c.Limit(10)
 func (c *Connection) Limit(limit int) *Query {
 	return Q(c).Limit(limit)
 }
 
 // Limit will add a limit clause to the query.
 //
-// 	q.Limit(10)
+//	q.Limit(10)
 func (q *Query) Limit(limit int) *Query {
 	q.limitResults = limit
 	return q
 }
 
-// Preload activates preload eager Mode automatically.
+// EagerPreload activates preload eager Mode automatically.
 func (c *Connection) EagerPreload(fields ...string) *Query {
 	return Q(c).EagerPreload(fields...)
 }
 
-// Preload activates preload eager Mode automatically.
+// EagerPreload activates preload eager Mode automatically.
 func (q *Query) EagerPreload(fields ...string) *Query {
 	q.Eager(fields...)
 	q.eagerMode = EagerPreload
@@ -205,13 +205,13 @@ func Q(c *Connection) *Query {
 		eager:       c.eager,
 		eagerFields: c.eagerFields,
 		eagerMode:   eagerModeNil,
-		Operation:   Select,
+		Operation:   selectOp,
 	}
 }
 
 // ToSQL will generate SQL and the appropriate arguments for that SQL
 // from the `Model` passed in.
-func (q Query) ToSQL(model *Model, addColumns ...string) (string, []interface{}) {
+func (q Query) ToSQL(model *Model, addColumns ...string) (string, []any) {
 	sb := q.toSQLBuilder(model, addColumns...)
 	// nil model is allowed only when if RawSQL is provided.
 	if model == nil && (q.RawSQL == nil || q.RawSQL.Fragment == "") {

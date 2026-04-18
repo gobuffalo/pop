@@ -4,19 +4,20 @@ import (
 	"os"
 	"testing"
 
-	"github.com/gobuffalo/pop/v6/logging"
 	"github.com/stretchr/testify/require"
+
+	"github.com/gobuffalo/pop/v6/logging"
 )
 
 type logEntry struct {
 	lvl  logging.Level
 	s    string
-	args []interface{}
+	args []any
 }
 
 func setNewTestLogger() *[]logEntry {
 	var logs []logEntry
-	log = func(lvl logging.Level, s string, args ...interface{}) {
+	log = func(lvl logging.Level, s string, args ...any) {
 		logs = append(logs, logEntry{lvl, s, args})
 	}
 	return &logs
@@ -49,7 +50,7 @@ func Test_MigrationBox(t *testing.T) {
 		r.Equal(1, len(*logs))
 		r.Equal(logging.Warn, (*logs)[0].lvl)
 		r.Contains((*logs)[0].s, "ignoring file")
-		r.Equal([]interface{}{"clutter.txt"}, (*logs)[0].args)
+		r.Equal([]any{"clutter.txt"}, (*logs)[0].args)
 	})
 
 	t.Run("ignores unsupported files", func(t *testing.T) {
@@ -62,6 +63,6 @@ func Test_MigrationBox(t *testing.T) {
 		r.Equal(1, len(*logs))
 		r.Equal(logging.Warn, (*logs)[0].lvl)
 		r.Contains((*logs)[0].s, "ignoring migration")
-		r.Equal([]interface{}{"unsupported dialect unsupported"}, (*logs)[0].args)
+		r.Equal([]any{"unsupported dialect unsupported"}, (*logs)[0].args)
 	})
 }

@@ -16,8 +16,8 @@ type hasManyAssociation struct {
 	field     reflect.StructField
 	value     reflect.Value
 	ownerName string
-	ownerID   interface{}
-	owner     interface{}
+	ownerID   any
+	owner     any
 	fkID      string
 	orderBy   string
 	*associationSkipable
@@ -53,14 +53,14 @@ func hasManyAssociationBuilder(p associationParams) (Association, error) {
 }
 
 func (a *hasManyAssociation) Kind() reflect.Kind {
-	if a.field.Type.Kind() == reflect.Ptr {
+	if a.field.Type.Kind() == reflect.Pointer {
 		return a.field.Type.Elem().Kind()
 	}
 	return a.field.Type.Kind()
 }
 
-func (a *hasManyAssociation) Interface() interface{} {
-	if a.value.Kind() == reflect.Ptr {
+func (a *hasManyAssociation) Interface() any {
+	if a.value.Kind() == reflect.Pointer {
 		val := reflect.New(a.field.Type.Elem())
 		a.value.Set(val)
 		return a.value.Interface()
@@ -78,21 +78,21 @@ func (a *hasManyAssociation) Interface() interface{} {
 
 // Constraint returns the content for a where clause, and the args
 // needed to execute it.
-func (a *hasManyAssociation) Constraint() (string, []interface{}) {
+func (a *hasManyAssociation) Constraint() (string, []any) {
 	tn := flect.Underscore(a.ownerName)
-	condition := fmt.Sprintf("%s_id = ?", tn)
+	condition := tn + "_id = ?"
 	if a.fkID != "" {
-		condition = fmt.Sprintf("%s = ?", a.fkID)
+		condition = a.fkID + " = ?"
 	}
-	return condition, []interface{}{a.ownerID}
+	return condition, []any{a.ownerID}
 }
 
 func (a *hasManyAssociation) OrderBy() string {
 	return a.orderBy
 }
 
-func (a *hasManyAssociation) AfterInterface() interface{} {
-	if a.value.Kind() == reflect.Ptr {
+func (a *hasManyAssociation) AfterInterface() any {
+	if a.value.Kind() == reflect.Pointer {
 		return a.value.Interface()
 	}
 	return a.value.Addr().Interface()
@@ -102,7 +102,7 @@ func (a *hasManyAssociation) AfterSetup() error {
 	ownerID := reflect.Indirect(reflect.ValueOf(a.owner)).FieldByName("ID").Interface()
 
 	v := a.value
-	if v.Kind() == reflect.Ptr {
+	if v.Kind() == reflect.Pointer {
 		v = v.Elem()
 	}
 
@@ -115,7 +115,12 @@ func (a *hasManyAssociation) AfterSetup() error {
 				fval.Set(reflect.ValueOf(ownerID))
 			}
 		} else {
-			return fmt.Errorf("could not set field '%s' in table '%s' to value '%s' for 'has_many' relation", a.ownerName+"ID", a.tableName, ownerID)
+			return fmt.Errorf(
+				"could not set field '%s' in table '%s' to value '%s' for 'has_many' relation",
+				a.ownerName+"ID",
+				a.tableName,
+				ownerID,
+			)
 		}
 	}
 	return nil
@@ -123,7 +128,7 @@ func (a *hasManyAssociation) AfterSetup() error {
 
 func (a *hasManyAssociation) AfterProcess() AssociationStatement {
 	v := a.value
-	if v.Kind() == reflect.Ptr {
+	if v.Kind() == reflect.Pointer {
 		v = v.Elem()
 	}
 
@@ -132,7 +137,7 @@ func (a *hasManyAssociation) AfterProcess() AssociationStatement {
 	ownerIDFieldName := "ID"
 	ownerID := reflect.Indirect(reflect.ValueOf(a.owner)).FieldByName(ownerIDFieldName).Interface()
 
-	var ids []interface{}
+	var ids []any
 
 	for i := 0; i < v.Len(); i++ {
 		id := v.Index(i).FieldByName(belongingIDFieldName).Interface()
@@ -143,7 +148,7 @@ func (a *hasManyAssociation) AfterProcess() AssociationStatement {
 	if len(ids) == 0 {
 		return AssociationStatement{
 			Statement: "",
-			Args:      []interface{}{},
+			Args:      []any{},
 		}
 	}
 
@@ -159,7 +164,7 @@ func (a *hasManyAssociation) AfterProcess() AssociationStatement {
 	if err != nil {
 		return AssociationStatement{
 			Statement: "",
-			Args:      []interface{}{},
+			Args:      []any{},
 		}
 	}
 

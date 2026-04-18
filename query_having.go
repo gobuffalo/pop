@@ -3,7 +3,7 @@ package pop
 import "github.com/gobuffalo/pop/v6/logging"
 
 // Having will append a HAVING clause to the query
-func (q *Query) Having(condition string, args ...interface{}) *Query {
+func (q *Query) Having(condition string, args ...any) *Query {
 	if q.RawSQL.Fragment != "" {
 		log(logging.Warn, "Query is setup to use raw SQL")
 		return q

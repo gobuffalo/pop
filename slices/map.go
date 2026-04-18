@@ -4,19 +4,20 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
+	"maps"
 )
 
 // Map is a map[string]interface.
-type Map map[string]interface{}
+type Map map[string]any
 
 // Interface implements the nulls.nullable interface.
-func (m Map) Interface() interface{} {
-	return map[string]interface{}(m)
+func (m Map) Interface() any {
+	return map[string]any(m)
 }
 
 // Scan implements the sql.Scanner interface.
 // It allows to read the map from the database value.
-func (m *Map) Scan(src interface{}) error {
+func (m *Map) Scan(src any) error {
 	var b []byte
 	switch t := src.(type) {
 	case nil:
@@ -48,7 +49,7 @@ func (m Map) Value() (driver.Value, error) {
 // UnmarshalJSON will unmarshall JSON value into
 // the map representation of this value.
 func (m *Map) UnmarshalJSON(b []byte) error {
-	var stuff map[string]interface{}
+	var stuff map[string]any
 	err := json.Unmarshal(b, &stuff)
 	if err != nil {
 		return err
@@ -56,9 +57,7 @@ func (m *Map) UnmarshalJSON(b []byte) error {
 	if *m == nil {
 		*m = Map{}
 	}
-	for key, value := range stuff {
-		(*m)[key] = value
-	}
+	maps.Copy((*m), stuff)
 	return nil
 }
 

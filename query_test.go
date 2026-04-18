@@ -1,7 +1,6 @@
 package pop
 
 import (
-	"context"
 	"fmt"
 	"testing"
 
@@ -14,22 +13,22 @@ func Test_Where(t *testing.T) {
 		t.Skip("skipping integration tests")
 	}
 	a := require.New(t)
-	m := NewModel(new(Enemy), context.Background())
+	m := NewModel(new(Enemy), t.Context())
 
 	q := PDB.Where("id = ?", 1)
 	sql, args := q.ToSQL(m)
 	a.Equal(ts("SELECT enemies.A FROM enemies AS enemies WHERE id = ?"), sql)
-	a.Equal([]interface{}{1}, args)
+	a.Equal([]any{1}, args)
 
 	q.Where("first_name = ? and last_name = ?", "Mark", "Bates")
 	sql, args = q.ToSQL(m)
 	a.Equal(ts("SELECT enemies.A FROM enemies AS enemies WHERE id = ? AND first_name = ? and last_name = ?"), sql)
-	a.Equal([]interface{}{1, "Mark", "Bates"}, args)
+	a.Equal([]any{1, "Mark", "Bates"}, args)
 
 	q = PDB.Where("name = ?", "Mark 'Awesome' Bates")
 	sql, args = q.ToSQL(m)
 	a.Equal(ts("SELECT enemies.A FROM enemies AS enemies WHERE name = ?"), sql)
-	a.Equal([]interface{}{"Mark 'Awesome' Bates"}, args)
+	a.Equal([]any{"Mark 'Awesome' Bates"}, args)
 
 	q = PDB.Where("name = ?", "'; truncate users; --")
 	sql, _ = q.ToSQL(m)
@@ -38,7 +37,7 @@ func Test_Where(t *testing.T) {
 	q = PDB.Where("id is not null") // no args
 	sql, args = q.ToSQL(m)
 	a.Equal(ts("SELECT enemies.A FROM enemies AS enemies WHERE id is not null"), sql)
-	a.Equal([]interface{}{}, args)
+	a.Equal([]any{}, args)
 }
 
 func Test_Where_In(t *testing.T) {
@@ -187,7 +186,7 @@ func Test_Order(t *testing.T) {
 	}
 	a := require.New(t)
 
-	m := NewModel(&Enemy{}, context.Background())
+	m := NewModel(&Enemy{}, t.Context())
 	q := PDB.Order("id desc")
 	sql, _ := q.ToSQL(m)
 	a.Equal(ts("SELECT enemies.A FROM enemies AS enemies ORDER BY id desc"), sql)
@@ -228,7 +227,7 @@ func Test_GroupBy(t *testing.T) {
 	}
 	a := require.New(t)
 
-	m := NewModel(&Enemy{}, context.Background())
+	m := NewModel(&Enemy{}, t.Context())
 	q := PDB.Q()
 	q.GroupBy("A")
 	sql, _ := q.ToSQL(m)
@@ -252,9 +251,15 @@ func Test_GroupBy(t *testing.T) {
 	q.GroupBy("A", "B").Having("enemies.A=?", "test").Having("enemies.B=enemies.A")
 	sql, _ = q.ToSQL(m)
 	if PDB.Dialect.Details().Dialect == "postgres" {
-		a.Equal(ts("SELECT enemies.A FROM enemies AS enemies GROUP BY A, B HAVING enemies.A=$1 AND enemies.B=enemies.A"), sql)
+		a.Equal(
+			ts("SELECT enemies.A FROM enemies AS enemies GROUP BY A, B HAVING enemies.A=$1 AND enemies.B=enemies.A"),
+			sql,
+		)
 	} else {
-		a.Equal(ts("SELECT enemies.A FROM enemies AS enemies GROUP BY A, B HAVING enemies.A=? AND enemies.B=enemies.A"), sql)
+		a.Equal(
+			ts("SELECT enemies.A FROM enemies AS enemies GROUP BY A, B HAVING enemies.A=? AND enemies.B=enemies.A"),
+			sql,
+		)
 	}
 }
 
@@ -277,10 +282,16 @@ func Test_ToSQL(t *testing.T) {
 		a.Equal(fmt.Sprintf("%s ORDER BY id desc", s), q)
 
 		q, _ = query.ToSQL(&Model{Value: &User{}, As: "u", ctx: tx.Context()})
-		a.Equal("SELECT name as full_name, u.alive, u.bio, u.birth_date, u.created_at, u.email, u.id, u.name, u.price, u.updated_at, u.user_name FROM users AS u ORDER BY id desc", q)
+		a.Equal(
+			"SELECT name as full_name, u.alive, u.bio, u.birth_date, u.created_at, u.email, u.id, u.name, u.price, u.updated_at, u.user_name FROM users AS u ORDER BY id desc",
+			q,
+		)
 
 		q, _ = query.ToSQL(&Model{Value: &Family{}, ctx: tx.Context()})
-		a.Equal("SELECT family_members.created_at, family_members.first_name, family_members.id, family_members.last_name, family_members.updated_at FROM family.members AS family_members ORDER BY id desc", q)
+		a.Equal(
+			"SELECT family_members.created_at, family_members.first_name, family_members.id, family_members.last_name, family_members.updated_at FROM family.members AS family_members ORDER BY id desc",
+			q,
+		)
 
 		query = tx.Where("id = 1")
 		q, _ = query.ToSQL(user)
@@ -383,7 +394,7 @@ func Test_ToSQL_RawQuery(t *testing.T) {
 		query := tx.RawQuery("this is some ? raw ?", "random", "query")
 		q, args := query.ToSQL(nil)
 		a.Equal(q, tx.Dialect.TranslateSQL("this is some ? raw ?"))
-		a.Equal(args, []interface{}{"random", "query"})
+		a.Equal(args, []any{"random", "query"})
 	})
 }
 

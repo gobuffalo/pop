@@ -9,25 +9,28 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/gofrs/uuid"
+
 	"github.com/gobuffalo/pop/v6/associations"
 	"github.com/gobuffalo/pop/v6/logging"
-	"github.com/gofrs/uuid"
 )
 
-var rLimitOffset = regexp.MustCompile("(?i)(limit [0-9]+ offset [0-9]+)$")
-var rLimit = regexp.MustCompile("(?i)(limit [0-9]+)$")
+var (
+	rLimitOffset = regexp.MustCompile("(?i)(limit [0-9]+ offset [0-9]+)$")
+	rLimit       = regexp.MustCompile("(?i)(limit [0-9]+)$")
+)
 
 // Find the first record of the model in the database with a particular id.
 //
 //	c.Find(&User{}, 1)
-func (c *Connection) Find(model interface{}, id interface{}) error {
+func (c *Connection) Find(model, id any) error {
 	return Q(c).Find(model, id)
 }
 
 // Find the first record of the model in the database with a particular id.
 //
 //	q.Find(&User{}, 1)
-func (q *Query) Find(model interface{}, id interface{}) error {
+func (q *Query) Find(model, id any) error {
 	m := NewModel(model, q.Connection.Context())
 	idq := m.WhereID()
 	switch t := id.(type) {
@@ -58,14 +61,14 @@ func (q *Query) Find(model interface{}, id interface{}) error {
 // First record of the model in the database that matches the query.
 //
 //	c.First(&User{})
-func (c *Connection) First(model interface{}) error {
+func (c *Connection) First(model any) error {
 	return Q(c).First(model)
 }
 
 // First record of the model in the database that matches the query.
 //
 //	q.Where("name = ?", "mark").First(&User{})
-func (q *Query) First(model interface{}) error {
+func (q *Query) First(model any) error {
 	var m *Model
 	err := q.Connection.timeFunc("First", func() error {
 		q.Limit(1)
@@ -75,7 +78,6 @@ func (q *Query) First(model interface{}) error {
 		}
 		return m.afterFind(q.Connection, false)
 	})
-
 	if err != nil {
 		return err
 	}
@@ -95,14 +97,14 @@ func (q *Query) First(model interface{}) error {
 // Last record of the model in the database that matches the query.
 //
 //	c.Last(&User{})
-func (c *Connection) Last(model interface{}) error {
+func (c *Connection) Last(model any) error {
 	return Q(c).Last(model)
 }
 
 // Last record of the model in the database that matches the query.
 //
 //	q.Where("name = ?", "mark").Last(&User{})
-func (q *Query) Last(model interface{}) error {
+func (q *Query) Last(model any) error {
 	var m *Model
 	err := q.Connection.timeFunc("Last", func() error {
 		q.Limit(1)
@@ -113,7 +115,6 @@ func (q *Query) Last(model interface{}) error {
 		}
 		return m.afterFind(q.Connection, false)
 	})
-
 	if err != nil {
 		return err
 	}
@@ -133,14 +134,14 @@ func (q *Query) Last(model interface{}) error {
 // All retrieves all of the records in the database that match the query.
 //
 //	c.All(&[]User{})
-func (c *Connection) All(models interface{}) error {
+func (c *Connection) All(models any) error {
 	return Q(c).All(models)
 }
 
 // All retrieves all of the records in the database that match the query.
 //
 //	q.Where("name = ?", "mark").All(&[]User{})
-func (q *Query) All(models interface{}) error {
+func (q *Query) All(models any) error {
 	var m *Model
 	err := q.Connection.timeFunc("All", func() error {
 		m = NewModel(models, q.Connection.Context())
@@ -156,7 +157,6 @@ func (q *Query) All(models interface{}) error {
 
 		return m.afterFind(q.Connection, false)
 	})
-
 	if err != nil {
 		return fmt.Errorf("unable to fetch records: %w", err)
 	}
@@ -173,7 +173,7 @@ func (q *Query) All(models interface{}) error {
 	return nil
 }
 
-func (q *Query) paginateModel(models interface{}) error {
+func (q *Query) paginateModel(models any) error {
 	if q.Paginator == nil {
 		return nil
 	}
@@ -198,7 +198,7 @@ func (q *Query) paginateModel(models interface{}) error {
 //
 // tx.First(&u)
 // tx.Load(&u)
-func (c *Connection) Load(model interface{}, fields ...string) error {
+func (c *Connection) Load(model any, fields ...string) error {
 	q := Q(c)
 	q.eagerFields = fields
 	err := q.eagerAssociations(model)
@@ -206,7 +206,7 @@ func (c *Connection) Load(model interface{}, fields ...string) error {
 	return err
 }
 
-func (q *Query) eagerAssociations(model interface{}) error {
+func (q *Query) eagerAssociations(model any) error {
 	if q.eagerMode == eagerModeNil {
 		q.eagerMode = loadingAssociationsStrategy
 	}
@@ -217,7 +217,7 @@ func (q *Query) eagerAssociations(model interface{}) error {
 	return q.eagerDefaultAssociations(model)
 }
 
-func (q *Query) eagerDefaultAssociations(model interface{}) error {
+func (q *Query) eagerDefaultAssociations(model any) error {
 	var err error
 
 	// eagerAssociations for a slice or array model passed as a param.
@@ -227,7 +227,7 @@ func (q *Query) eagerDefaultAssociations(model interface{}) error {
 		v = v.Elem()
 		for i := 0; i < v.Len(); i++ {
 			e := v.Index(i)
-			if e.Type().Kind() == reflect.Ptr {
+			if e.Type().Kind() == reflect.Pointer {
 				// Already a pointer
 				err = q.eagerAssociations(e.Interface())
 			} else {
@@ -261,9 +261,8 @@ func (q *Query) eagerDefaultAssociations(model interface{}) error {
 		query = query.Where(whereCondition, args...)
 
 		// validates if association is Sortable
-		sortable := (*associations.AssociationSortable)(nil)
 		t := reflect.TypeOf(association)
-		if t.Implements(reflect.TypeOf(sortable).Elem()) {
+		if t.Implements(reflect.TypeFor[associations.AssociationSortable]()) {
 			m := reflect.ValueOf(association).MethodByName("OrderBy")
 			out := m.Call([]reflect.Value{})
 			orderClause := out[0].String()
@@ -299,7 +298,7 @@ func (q *Query) eagerDefaultAssociations(model interface{}) error {
 			innerQuery.eagerFields = inner.Fields
 
 			switch v.Kind() {
-			case reflect.Ptr:
+			case reflect.Pointer:
 				err = innerQuery.eagerAssociations(v.Interface())
 			default:
 				err = innerQuery.eagerAssociations(v.Addr().Interface())
@@ -317,7 +316,7 @@ func (q *Query) eagerDefaultAssociations(model interface{}) error {
 // the query.
 //
 //	q.Where("name = ?", "mark").Exists(&User{})
-func (q *Query) Exists(model interface{}) (bool, error) {
+func (q *Query) Exists(model any) (bool, error) {
 	tmpQuery := Q(q.Connection)
 	q.Clone(tmpQuery) // avoid meddling with original query
 
@@ -349,21 +348,21 @@ func (q *Query) Exists(model interface{}) (bool, error) {
 // Count the number of records in the database.
 //
 //	c.Count(&User{})
-func (c *Connection) Count(model interface{}) (int, error) {
+func (c *Connection) Count(model any) (int, error) {
 	return Q(c).Count(model)
 }
 
 // Count the number of records in the database.
 //
 //	q.Where("name = ?", "mark").Count(&User{})
-func (q Query) Count(model interface{}) (int, error) {
+func (q Query) Count(model any) (int, error) {
 	return q.CountByField(model, "*")
 }
 
 // CountByField counts the number of records in the database, for a given field.
 //
 //	q.Where("sex = ?", "f").Count(&User{}, "name")
-func (q Query) CountByField(model interface{}, field string) (int, error) {
+func (q Query) CountByField(model any, field string) (int, error) {
 	tmpQuery := Q(q.Connection)
 	q.Clone(tmpQuery) // avoid meddling with original query
 

@@ -5,7 +5,7 @@ import (
 )
 
 // Join will append a JOIN clause to the query
-func (q *Query) Join(table string, on string, args ...interface{}) *Query {
+func (q *Query) Join(table, on string, args ...any) *Query {
 	if q.RawSQL.Fragment != "" {
 		log(logging.Warn, "Query is setup to use raw SQL")
 		return q
@@ -15,7 +15,7 @@ func (q *Query) Join(table string, on string, args ...interface{}) *Query {
 }
 
 // LeftJoin will append a LEFT JOIN clause to the query
-func (q *Query) LeftJoin(table string, on string, args ...interface{}) *Query {
+func (q *Query) LeftJoin(table, on string, args ...any) *Query {
 	if q.RawSQL.Fragment != "" {
 		log(logging.Warn, "Query is setup to use raw SQL")
 		return q
@@ -25,7 +25,7 @@ func (q *Query) LeftJoin(table string, on string, args ...interface{}) *Query {
 }
 
 // RightJoin will append a RIGHT JOIN clause to the query
-func (q *Query) RightJoin(table string, on string, args ...interface{}) *Query {
+func (q *Query) RightJoin(table, on string, args ...any) *Query {
 	if q.RawSQL.Fragment != "" {
 		log(logging.Warn, "Query is setup to use raw SQL")
 		return q
@@ -35,7 +35,7 @@ func (q *Query) RightJoin(table string, on string, args ...interface{}) *Query {
 }
 
 // LeftOuterJoin will append a LEFT OUTER JOIN clause to the query
-func (q *Query) LeftOuterJoin(table string, on string, args ...interface{}) *Query {
+func (q *Query) LeftOuterJoin(table, on string, args ...any) *Query {
 	if q.RawSQL.Fragment != "" {
 		log(logging.Warn, "Query is setup to use raw SQL")
 		return q
@@ -45,7 +45,7 @@ func (q *Query) LeftOuterJoin(table string, on string, args ...interface{}) *Que
 }
 
 // RightOuterJoin will append a RIGHT OUTER JOIN clause to the query
-func (q *Query) RightOuterJoin(table string, on string, args ...interface{}) *Query {
+func (q *Query) RightOuterJoin(table, on string, args ...any) *Query {
 	if q.RawSQL.Fragment != "" {
 		log(logging.Warn, "Query is setup to use raw SQL")
 		return q
@@ -55,7 +55,7 @@ func (q *Query) RightOuterJoin(table string, on string, args ...interface{}) *Qu
 }
 
 // InnerJoin will append an INNER JOIN clause to the query
-func (q *Query) InnerJoin(table string, on string, args ...interface{}) *Query {
+func (q *Query) InnerJoin(table, on string, args ...any) *Query {
 	if q.RawSQL.Fragment != "" {
 		log(logging.Warn, "Query is setup to use raw SQL")
 		return q

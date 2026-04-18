@@ -2,6 +2,7 @@ package pop
 
 import (
 	"bytes"
+	"cmp"
 	"database/sql"
 	"fmt"
 	"io"
@@ -15,19 +16,24 @@ import (
 
 	"github.com/gobuffalo/fizz"
 	"github.com/gobuffalo/fizz/translators"
-	"github.com/gobuffalo/pop/v6/columns"
-	"github.com/gobuffalo/pop/v6/internal/defaults"
-	"github.com/gobuffalo/pop/v6/logging"
 	"github.com/gofrs/uuid"
-	_ "github.com/jackc/pgx/v5/stdlib" // Import PostgreSQL driver
 	"github.com/jmoiron/sqlx"
+
+	_ "github.com/jackc/pgx/v5/stdlib" // Import PostgreSQL driver
+
+	"github.com/gobuffalo/pop/v6/columns"
+	"github.com/gobuffalo/pop/v6/logging"
 )
 
-const nameCockroach = "cockroach"
-const portCockroach = "26257"
+const (
+	nameCockroach = "cockroach"
+	portCockroach = "26257"
+)
 
-const selectTablesQueryCockroach = "select table_name from information_schema.tables where table_schema = 'public' and table_type = 'BASE TABLE' and table_name <> ? and table_catalog = ?"
-const selectTablesQueryCockroachV1 = "select table_name from information_schema.tables where table_name <> ? and table_schema = ?"
+const (
+	selectTablesQueryCockroach   = "select table_name from information_schema.tables where table_schema = 'public' and table_type = 'BASE TABLE' and table_name <> ? and table_catalog = ?"
+	selectTablesQueryCockroachV1 = "select table_name from information_schema.tables where table_name <> ? and table_schema = ?"
+)
 
 func init() {
 	AvailableDialects = append(AvailableDialects, nameCockroach)
@@ -79,9 +85,19 @@ func (p *cockroach) Create(c *Connection, model *Model, cols columns.Columns) er
 		w := cols.Writeable()
 		var query string
 		if len(w.Cols) > 0 {
-			query = fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s) RETURNING %s", p.Quote(model.TableName()), w.QuotedString(p), w.SymbolizedString(), model.IDField())
+			query = fmt.Sprintf(
+				"INSERT INTO %s (%s) VALUES (%s) RETURNING %s",
+				p.Quote(model.TableName()),
+				w.QuotedString(p),
+				w.SymbolizedString(),
+				model.IDField(),
+			)
 		} else {
-			query = fmt.Sprintf("INSERT INTO %s DEFAULT VALUES RETURNING %s", p.Quote(model.TableName()), model.IDField())
+			query = fmt.Sprintf(
+				"INSERT INTO %s DEFAULT VALUES RETURNING %s",
+				p.Quote(model.TableName()),
+				model.IDField(),
+			)
 		}
 		txlog(logging.SQL, c, query, model.Value)
 		rows, err := c.Store.NamedQueryContext(model.ctx, query, model.Value)
@@ -95,7 +111,7 @@ func (p *cockroach) Create(c *Connection, model *Model, cols columns.Columns) er
 			}
 			return fmt.Errorf("named insert: %w", sql.ErrNoRows)
 		}
-		var id interface{}
+		var id any
 		if err := rows.Scan(&id); err != nil {
 			return fmt.Errorf("named insert: scan: %w", err)
 		}
@@ -111,14 +127,32 @@ func (p *cockroach) Create(c *Connection, model *Model, cols columns.Columns) er
 			cols.Remove(model.IDField())
 			w := cols.Writeable()
 			if len(w.Cols) > 0 {
-				query = fmt.Sprintf("INSERT INTO %s (%s, %s) VALUES (gen_random_uuid(), %s) RETURNING %s", p.Quote(model.TableName()), model.IDField(), w.QuotedString(p), w.SymbolizedString(), model.IDField())
+				query = fmt.Sprintf(
+					"INSERT INTO %s (%s, %s) VALUES (gen_random_uuid(), %s) RETURNING %s",
+					p.Quote(model.TableName()),
+					model.IDField(),
+					w.QuotedString(p),
+					w.SymbolizedString(),
+					model.IDField(),
+				)
 			} else {
-				query = fmt.Sprintf("INSERT INTO %s (%s) VALUES (gen_random_uuid()) RETURNING %s", p.Quote(model.TableName()), model.IDField(), model.IDField())
+				query = fmt.Sprintf(
+					"INSERT INTO %s (%s) VALUES (gen_random_uuid()) RETURNING %s",
+					p.Quote(model.TableName()),
+					model.IDField(),
+					model.IDField(),
+				)
 			}
 		} else {
 			w := cols.Writeable()
 			w.Add(model.IDField())
-			query = fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s) RETURNING %s", p.Quote(model.TableName()), w.QuotedString(p), w.SymbolizedString(), model.IDField())
+			query = fmt.Sprintf(
+				"INSERT INTO %s (%s) VALUES (%s) RETURNING %s",
+				p.Quote(model.TableName()),
+				w.QuotedString(p),
+				w.SymbolizedString(),
+				model.IDField(),
+			)
 		}
 		txlog(logging.SQL, c, query, model.Value)
 		rows, err := c.Store.NamedQueryContext(model.ctx, query, model.Value)
@@ -154,7 +188,9 @@ func (p *cockroach) UpdateQuery(c *Connection, model *Model, cols columns.Column
 }
 
 func (p *cockroach) Destroy(c *Connection, model *Model) error {
-	stmt := p.TranslateSQL(fmt.Sprintf("DELETE FROM %s AS %s WHERE %s", p.Quote(model.TableName()), model.Alias(), model.WhereID()))
+	stmt := p.TranslateSQL(
+		fmt.Sprintf("DELETE FROM %s AS %s WHERE %s", p.Quote(model.TableName()), model.Alias(), model.WhereID()),
+	)
 	_, err := genericExec(c, stmt, model.ID())
 	return err
 }
@@ -180,7 +216,7 @@ func (p *cockroach) CreateDB() error {
 		return fmt.Errorf("error creating Cockroach database %s: %w", deets.Database, err)
 	}
 	defer db.Close()
-	query := fmt.Sprintf("CREATE DATABASE %s", p.Quote(deets.Database))
+	query := "CREATE DATABASE " + p.Quote(deets.Database)
 	log(logging.SQL, query)
 
 	_, err = db.Exec(query)
@@ -249,10 +285,20 @@ func (p *cockroach) FizzTranslator() fizz.Translator {
 }
 
 func (p *cockroach) DumpSchema(w io.Writer) error {
-	cmd := exec.Command("cockroach", "sql", "-e", "SHOW CREATE ALL TABLES", "-d", p.Details().Database, "--format", "raw")
+	cmd := exec.Command(
+		"cockroach",
+		"sql",
+		"-e",
+		"SHOW CREATE ALL TABLES",
+		"-d",
+		p.Details().Database,
+		"--format",
+		"raw",
+	)
 
 	c := p.ConnectionDetails
-	if defaults.String(c.option("sslmode"), "disable") == "disable" || strings.Contains(c.RawOptions, "sslmode=disable") {
+	if cmp.Or(c.option("sslmode"), "disable") == "disable" ||
+		strings.Contains(c.RawOptions, "sslmode=disable") {
 		cmd.Args = append(cmd.Args, "--insecure")
 	}
 	return cockroachDumpSchema(p.Details(), cmd, w)
@@ -313,7 +359,7 @@ func (p *cockroach) TruncateAll(tx *Connection) error {
 		//! work around for current limitation of DDL and DML at the same transaction.
 		//  it should be fixed when cockroach support it or with other approach.
 		//  https://www.cockroachlabs.com/docs/stable/known-limitations.html#schema-changes-within-transactions
-		if err := tx.RawQuery(fmt.Sprintf("delete from %s", p.Quote(t.TableName))).Exec(); err != nil {
+		if err := tx.RawQuery("delete from " + p.Quote(t.TableName)).Exec(); err != nil {
 			return err
 		}
 	}
@@ -351,7 +397,7 @@ func newCockroach(deets *ConnectionDetails) (dialect, error) {
 func finalizerCockroach(cd *ConnectionDetails) {
 	appName := filepath.Base(os.Args[0])
 	cd.setOptionWithDefault("application_name", cd.option("application_name"), appName)
-	cd.Port = defaults.String(cd.Port, portCockroach)
+	cd.Port = cmp.Or(cd.Port, portCockroach)
 	if cd.URL != "" {
 		cd.URL = "postgres://" + trimCockroachPrefix(cd.URL)
 	}
@@ -366,7 +412,7 @@ func trimCockroachPrefix(u string) string {
 }
 
 func (p *cockroach) tablesQuery() string {
-	// See https://www.cockroachlabs.com/docs/stable/information-schema.html for more info about information schema changes
+	// See https://www.cockroachlabs.com/docs/stable/information-schema.html for more info about schema changes
 	tableQuery := selectTablesQueryCockroach
 	if strings.HasPrefix(p.info.version, "v1.") {
 		tableQuery = selectTablesQueryCockroachV1

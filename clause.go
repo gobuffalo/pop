@@ -7,7 +7,7 @@ import (
 
 type clause struct {
 	Fragment  string
-	Arguments []interface{}
+	Arguments []any
 }
 
 type clauses []clause
@@ -20,11 +20,11 @@ func (c clauses) Join(sep string) string {
 	return strings.Join(out, sep)
 }
 
-func (c clauses) Args() (args []interface{}) {
+func (c clauses) Args() (args []any) {
 	for _, clause := range c {
 		args = append(args, clause.Arguments...)
 	}
-	return
+	return args
 }
 
 type fromClause struct {

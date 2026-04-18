@@ -5,21 +5,22 @@ import (
 	"time"
 
 	"github.com/gobuffalo/nulls"
-	"github.com/gobuffalo/pop/v6"
 	"github.com/gobuffalo/validate/v3"
 	"github.com/gobuffalo/validate/v3/validators"
 	"github.com/gofrs/uuid"
+
+	"github.com/gobuffalo/pop/v6"
 )
 
 // Widget is used by pop to map your widgets database table to your go code.
 type Widget struct {
-	ID          uuid.UUID    `xml:"id" db:"id"`
-	CreatedAt   time.Time    `xml:"created_at" db:"created_at"`
-	UpdatedAt   time.Time    `xml:"updated_at" db:"updated_at"`
-	Name        string       `xml:"name" db:"name"`
+	ID          uuid.UUID    `xml:"id"          db:"id"`
+	CreatedAt   time.Time    `xml:"created_at"  db:"created_at"`
+	UpdatedAt   time.Time    `xml:"updated_at"  db:"updated_at"`
+	Name        string       `xml:"name"        db:"name"`
 	Description string       `xml:"description" db:"description"`
-	Age         int          `xml:"age" db:"age"`
-	Bar         nulls.String `xml:"bar" db:"bar"`
+	Age         int          `xml:"age"         db:"age"`
+	Bar         nulls.String `xml:"bar"         db:"bar"`
 }
 
 // String is not required by pop and may be deleted

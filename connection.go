@@ -1,6 +1,7 @@
 package pop
 
 import (
+	"cmp"
 	"context"
 	"database/sql"
 	"errors"
@@ -10,7 +11,6 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/gobuffalo/pop/v6/internal/defaults"
 	"github.com/gobuffalo/pop/v6/internal/randx"
 	"github.com/gobuffalo/pop/v6/logging"
 )
@@ -90,7 +90,7 @@ func Connect(e string) (*Connection, error) {
 			return nil, err
 		}
 	}
-	e = defaults.String(e, "development")
+	e = cmp.Or(e, "development")
 	c := Connections[e]
 	if c == nil {
 		return c, fmt.Errorf("could not find connection named %s", e)
@@ -192,7 +192,6 @@ func (c *Connection) Transaction(fn func(tx *Connection) error) error {
 
 		return err
 	})
-
 }
 
 // Rollback will open a new transaction and automatically rollback that transaction
@@ -219,7 +218,8 @@ func (c *Connection) NewTransactionContext(ctx context.Context) (*Connection, er
 	return c.NewTransactionContextOptions(ctx, nil)
 }
 
-// NewTransactionContextOptions starts a new transaction on the connection using the provided context and transaction options
+// NewTransactionContextOptions starts a new transaction on the connection using the provided context and transaction
+// options
 func (c *Connection) NewTransactionContextOptions(ctx context.Context, options *sql.TxOptions) (*Connection, error) {
 	var cn *Connection
 	if c.TX == nil {
@@ -242,7 +242,7 @@ func (c *Connection) NewTransactionContextOptions(ctx context.Context, options *
 
 // WithContext returns a copy of the connection, wrapped with a context.
 func (c *Connection) WithContext(ctx context.Context) *Connection {
-	cn := c.copy()
+	cn := c.copyConnection()
 	cn.Store = contextStore{
 		store: cn.Store,
 		ctx:   ctx,
@@ -250,7 +250,7 @@ func (c *Connection) WithContext(ctx context.Context) *Connection {
 	return cn
 }
 
-func (c *Connection) copy() *Connection {
+func (c *Connection) copyConnection() *Connection {
 	// TODO: checkme. it copies and creates a new Connection (and a new ID)
 	// with the same TX which could make confusions and complexity in usage.
 	// related PRs: #72/#73, #79/#80, and #497
@@ -286,7 +286,7 @@ func (c *Connection) TruncateAll() error {
 	return c.Dialect.TruncateAll(c)
 }
 
-func (c *Connection) timeFunc(name string, fn func() error) error {
+func (c *Connection) timeFunc(_ string, fn func() error) error {
 	start := time.Now()
 	err := fn()
 	atomic.AddInt64(&c.Elapsed, int64(time.Since(start)))
@@ -304,10 +304,7 @@ func (c *Connection) timeFunc(name string, fn func() error) error {
 func (c *Connection) setID(id ...string) {
 	if len(id) == 1 {
 		idElems := strings.Split(id[0], "-")
-		l := 2
-		if len(idElems) < 2 {
-			l = len(idElems)
-		}
+		l := min(len(idElems), 2)
 		prefix := strings.Join(idElems[0:l], "-")
 		body := randx.String(6)
 

@@ -11,13 +11,13 @@ import (
 type Int []int
 
 // Interface implements the nulls.nullable interface.
-func (i Int) Interface() interface{} {
+func (i Int) Interface() any {
 	return []int(i)
 }
 
 // Scan implements the sql.Scanner interface.
 // It allows to read the int slice from the database value.
-func (i *Int) Scan(src interface{}) error {
+func (i *Int) Scan(src any) error {
 	var str string
 	switch t := src.(type) {
 	case []byte:
@@ -47,7 +47,7 @@ func (i Int) Value() (driver.Value, error) {
 // the int slice representation of this value.
 func (i *Int) UnmarshalText(text []byte) error {
 	var ss []int
-	for _, x := range strings.Split(string(text), ",") {
+	for x := range strings.SplitSeq(string(text), ",") {
 		f, err := strconv.Atoi(x)
 		if err != nil {
 			return err

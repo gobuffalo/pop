@@ -5,14 +5,14 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"text/template"
 
 	"github.com/gobuffalo/envy"
-	"github.com/gobuffalo/pop/v6/logging"
 	"gopkg.in/yaml.v2"
+
+	"github.com/gobuffalo/pop/v6/logging"
 )
 
 // ErrConfigFileNotFound is returned when the pop config file can't be found,
@@ -94,7 +94,7 @@ func LoadFrom(r io.Reader) error {
 // the parsed ConnectionDetails map.
 func ParseConfig(r io.Reader) (map[string]*ConnectionDetails, error) {
 	tmpl := template.New("test")
-	tmpl.Funcs(map[string]interface{}{
+	tmpl.Funcs(map[string]any{
 		"envOr": func(s1, s2 string) string {
 			return envy.Get(s1, s2)
 		},
@@ -102,7 +102,7 @@ func ParseConfig(r io.Reader) (map[string]*ConnectionDetails, error) {
 			return envy.Get(s1, "")
 		},
 	})
-	b, err := ioutil.ReadAll(r)
+	b, err := io.ReadAll(r)
 	if err != nil {
 		return nil, err
 	}

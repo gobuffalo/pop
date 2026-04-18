@@ -1,17 +1,19 @@
 package pop
 
 import (
-	stdlog "log"
 	"os"
 	"testing"
 	"time"
 
 	"github.com/gobuffalo/nulls"
-	"github.com/gobuffalo/pop/v6/logging"
 	"github.com/gobuffalo/validate/v3"
 	"github.com/gobuffalo/validate/v3/validators"
 	"github.com/gofrs/uuid"
 	"github.com/stretchr/testify/suite"
+
+	stdlog "log"
+
+	"github.com/gobuffalo/pop/v6/logging"
 )
 
 var PDB *Connection
@@ -47,7 +49,9 @@ func TestSpecificSuites(t *testing.T) {
 
 func init() {
 	Debug = false
-	AddLookupPaths("./")
+	if err := AddLookupPaths("./"); err != nil {
+		stdlog.Panic(err)
+	}
 
 	dialect := os.Getenv("SODA_DIALECT")
 
@@ -90,37 +94,41 @@ func (c Client) TableName() string {
 }
 
 type User struct {
-	ID           int           `db:"id"`
-	UserName     string        `db:"user_name"`
-	Email        string        `db:"email"`
-	Name         nulls.String  `db:"name"`
-	Alive        nulls.Bool    `db:"alive"`
-	CreatedAt    time.Time     `db:"created_at"`
-	UpdatedAt    time.Time     `db:"updated_at"`
-	BirthDate    nulls.Time    `db:"birth_date"`
-	Bio          nulls.String  `db:"bio"`
-	Price        nulls.Float64 `db:"price"`
-	FullName     nulls.String  `db:"full_name" select:"name as full_name"`
-	Books        Books         `has_many:"books" order_by:"title asc"`
-	FavoriteSong Song          `has_one:"song" fk_id:"u_id"`
-	Houses       Addresses     `many_to_many:"users_addresses"`
+	ID        int           `db:"id"`
+	UserName  string        `db:"user_name"`
+	Email     string        `db:"email"`
+	Name      nulls.String  `db:"name"`
+	Alive     nulls.Bool    `db:"alive"`
+	CreatedAt time.Time     `db:"created_at"`
+	UpdatedAt time.Time     `db:"updated_at"`
+	BirthDate nulls.Time    `db:"birth_date"`
+	Bio       nulls.String  `db:"bio"`
+	Price     nulls.Float64 `db:"price"`
+	FullName  nulls.String  `db:"full_name"  select:"name as full_name"`
+
+	Books        Books `has_many:"books" order_by:"title asc"`
+	FavoriteSong Song  `                                      has_one:"song" fk_id:"u_id"`
+
+	Houses Addresses `many_to_many:"users_addresses"`
 }
 
 type UserPointerAssocs struct {
-	ID           int           `db:"id"`
-	UserName     string        `db:"user_name"`
-	Email        string        `db:"email"`
-	Name         nulls.String  `db:"name"`
-	Alive        nulls.Bool    `db:"alive"`
-	CreatedAt    time.Time     `db:"created_at"`
-	UpdatedAt    time.Time     `db:"updated_at"`
-	BirthDate    nulls.Time    `db:"birth_date"`
-	Bio          nulls.String  `db:"bio"`
-	Price        nulls.Float64 `db:"price"`
-	FullName     nulls.String  `db:"full_name" select:"name as full_name"`
-	Books        Books         `has_many:"books" order_by:"title asc" fk_id:"user_id"`
-	FavoriteSong *Song         `has_one:"song" fk_id:"u_id"`
-	Houses       Addresses     `many_to_many:"users_addresses"`
+	ID        int           `db:"id"`
+	UserName  string        `db:"user_name"`
+	Email     string        `db:"email"`
+	Name      nulls.String  `db:"name"`
+	Alive     nulls.Bool    `db:"alive"`
+	CreatedAt time.Time     `db:"created_at"`
+	UpdatedAt time.Time     `db:"updated_at"`
+	BirthDate nulls.Time    `db:"birth_date"`
+	Bio       nulls.String  `db:"bio"`
+	Price     nulls.Float64 `db:"price"`
+	FullName  nulls.String  `db:"full_name"  select:"name as full_name"`
+
+	Books        Books `has_many:"books" order_by:"title asc" fk_id:"user_id"`
+	FavoriteSong *Song `                                      fk_id:"u_id"    has_one:"song"`
+
+	Houses Addresses `many_to_many:"users_addresses"`
 }
 
 func (UserPointerAssocs) TableName() string {
@@ -129,7 +137,7 @@ func (UserPointerAssocs) TableName() string {
 
 // Validate gets run every time you call a "Validate*" (ValidateAndSave, ValidateAndCreate, ValidateAndUpdate) method.
 // This method is not required and may be deleted.
-func (u *User) Validate(tx *Connection) (*validate.Errors, error) {
+func (u *User) Validate(_ *Connection) (*validate.Errors, error) {
 	return validate.Validate(
 		&validators.StringIsPresent{Field: u.Name.String, Name: "Name"},
 	), nil
@@ -150,11 +158,11 @@ type Book struct {
 	Title       string    `db:"title"`
 	Isbn        string    `db:"isbn"`
 	UserID      nulls.Int `db:"user_id"`
-	User        User      `belongs_to:"user"`
+	User        User      `                 belongs_to:"user"`
 	Description string    `db:"description"`
-	Writers     Writers   `has_many:"writers"`
+	Writers     Writers   `                                   has_many:"writers"`
 	TaxiID      nulls.Int `db:"taxi_id"`
-	Taxi        Taxi      `belongs_to:"taxi"`
+	Taxi        Taxi      `                 belongs_to:"taxi"`
 	CreatedAt   time.Time `db:"created_at"`
 	UpdatedAt   time.Time `db:"updated_at"`
 }
@@ -164,10 +172,10 @@ type Taxi struct {
 	Model       string    `db:"model"`
 	UserID      nulls.Int `db:"user_id"`
 	AddressID   nulls.Int `db:"address_id"`
-	Driver      *User     `belongs_to:"user" fk_id:"user_id"`
-	Address     Address   `belongs_to:"address"`
+	Driver      *User     `                   belongs_to:"user"    fk_id:"user_id"`
+	Address     Address   `                   belongs_to:"address"`
 	ToAddressID *int      `db:"to_address_id"`
-	ToAddress   *Address  `belongs_to:"address"`
+	ToAddress   *Address  `                   belongs_to:"address"`
 	CreatedAt   time.Time `db:"created_at"`
 	UpdatedAt   time.Time `db:"updated_at"`
 }
@@ -191,10 +199,10 @@ type Books []Book
 type Writer struct {
 	ID        int       `db:"id"`
 	Name      string    `db:"name"`
-	Addresses Addresses `has_many:"addresses"`
-	Friends   []Friend  `has_many:"friends"`
+	Addresses Addresses `                has_many:"addresses"`
+	Friends   []Friend  `                has_many:"friends"`
 	BookID    int       `db:"book_id"`
-	Book      Book      `belongs_to:"book"`
+	Book      Book      `                                     belongs_to:"book"`
 	CreatedAt time.Time `db:"created_at"`
 	UpdatedAt time.Time `db:"updated_at"`
 }
@@ -208,7 +216,7 @@ type Address struct {
 	HouseNumber int       `db:"house_number"`
 	CreatedAt   time.Time `db:"created_at"`
 	UpdatedAt   time.Time `db:"updated_at"`
-	TaxisToHere Taxis     `has_many:"taxis" fk_id:"to_address_id" order_by:"created_at asc"`
+	TaxisToHere Taxis     `                  has_many:"taxis" fk_id:"to_address_id" order_by:"created_at asc"`
 }
 
 type Addresses []Address
@@ -228,7 +236,7 @@ type UsersAddressQuery struct {
 	CreatedAt time.Time `db:"created_at"`
 	UpdatedAt time.Time `db:"updated_at"`
 
-	UserName  *string `db:"name" json:"user_name"`
+	UserName  *string `db:"name"  json:"user_name"`
 	UserEmail *string `db:"email" json:"user_email"`
 }
 
@@ -270,10 +278,10 @@ type Song struct {
 	ID           uuid.UUID `db:"id"`
 	Title        string    `db:"title"`
 	UserID       int       `db:"u_id"`
-	CreatedAt    time.Time `json:"created_at" db:"created_at"`
-	UpdatedAt    time.Time `json:"updated_at" db:"updated_at"`
-	ComposedByID int       `json:"composed_by_id" db:"composed_by_id"`
-	ComposedBy   Composer  `belongs_to:"composer"`
+	CreatedAt    time.Time `db:"created_at"     json:"created_at"`
+	UpdatedAt    time.Time `db:"updated_at"     json:"updated_at"`
+	ComposedByID int       `db:"composed_by_id" json:"composed_by_id"`
+	ComposedBy   Composer  `                                          belongs_to:"composer"`
 }
 
 type Composer struct {
@@ -284,31 +292,31 @@ type Composer struct {
 }
 
 type Course struct {
-	ID        uuid.UUID `json:"id" db:"id"`
+	ID        uuid.UUID `json:"id"         db:"id"`
 	CreatedAt time.Time `json:"created_at" db:"created_at"`
 	UpdatedAt time.Time `json:"updated_at" db:"updated_at"`
 }
 
 type CourseCode struct {
-	ID        uuid.UUID `json:"id" db:"id"`
+	ID        uuid.UUID `json:"id"         db:"id"`
 	CreatedAt time.Time `json:"created_at" db:"created_at"`
 	UpdatedAt time.Time `json:"updated_at" db:"updated_at"`
-	CourseID  uuid.UUID `json:"course_id" db:"course_id"`
-	Course    Course    `json:"-" belongs_to:"course"`
+	CourseID  uuid.UUID `json:"course_id"  db:"course_id"`
+	Course    Course    `json:"-"                          belongs_to:"course"`
 	// Course Course `belongs_to:"course"`
 }
 
 type NetClient struct {
-	ID   uuid.UUID `json:"id" db:"id"`
-	Hops []Hop     `json:"hop_id" has_many:"hops"`
+	ID   uuid.UUID `json:"id"     db:"id"`
+	Hops []Hop     `json:"hop_id"         has_many:"hops"`
 }
 
 type Hop struct {
-	ID          uuid.UUID     `json:"id" db:"id"`
-	NetClient   *NetClient    `json:"net_client" belongs_to:"net_client" fk_id:"NetClientID"`
+	ID          uuid.UUID     `json:"id"            db:"id"`
+	NetClient   *NetClient    `json:"net_client"                       belongs_to:"net_client" fk_id:"NetClientID"`
 	NetClientID uuid.UUID     `json:"net_client_id" db:"net_client_id"`
-	Server      *Server       `json:"course" belongs_to:"server" fk_id:"ServerID" oder_by:"id asc"`
-	ServerID    uuid.NullUUID `json:"server_id" db:"server_id"`
+	Server      *Server       `json:"course"                           belongs_to:"server"     fk_id:"ServerID"    oder_by:"id asc"`
+	ServerID    uuid.NullUUID `json:"server_id"     db:"server_id"`
 }
 
 type Server struct {
@@ -318,29 +326,29 @@ type Server struct {
 type ValidatableCar struct {
 	ID        int64     `db:"id"`
 	Name      string    `db:"name"`
-	CreatedAt time.Time `json:"created_at" db:"created_at"`
-	UpdatedAt time.Time `json:"updated_at" db:"updated_at"`
+	CreatedAt time.Time `db:"created_at" json:"created_at"`
+	UpdatedAt time.Time `db:"updated_at" json:"updated_at"`
 }
 
 var validationLogs []string
 
-func (v *ValidatableCar) Validate(tx *Connection) (*validate.Errors, error) {
+func (v *ValidatableCar) Validate(_ *Connection) (*validate.Errors, error) {
 	validationLogs = append(validationLogs, "Validate")
 	verrs := validate.Validate(&validators.StringIsPresent{Field: v.Name, Name: "Name"})
 	return verrs, nil
 }
 
-func (v *ValidatableCar) ValidateSave(tx *Connection) (*validate.Errors, error) {
+func (v *ValidatableCar) ValidateSave(_ *Connection) (*validate.Errors, error) {
 	validationLogs = append(validationLogs, "ValidateSave")
 	return nil, nil
 }
 
-func (v *ValidatableCar) ValidateUpdate(tx *Connection) (*validate.Errors, error) {
+func (v *ValidatableCar) ValidateUpdate(_ *Connection) (*validate.Errors, error) {
 	validationLogs = append(validationLogs, "ValidateUpdate")
 	return nil, nil
 }
 
-func (v *ValidatableCar) ValidateCreate(tx *Connection) (*validate.Errors, error) {
+func (v *ValidatableCar) ValidateCreate(_ *Connection) (*validate.Errors, error) {
 	validationLogs = append(validationLogs, "ValidateCreate")
 	return nil, nil
 }
@@ -348,8 +356,8 @@ func (v *ValidatableCar) ValidateCreate(tx *Connection) (*validate.Errors, error
 type NotValidatableCar struct {
 	ID        int       `db:"id"`
 	Name      string    `db:"name"`
-	CreatedAt time.Time `json:"created_at" db:"created_at"`
-	UpdatedAt time.Time `json:"updated_at" db:"updated_at"`
+	CreatedAt time.Time `db:"created_at" json:"created_at"`
+	UpdatedAt time.Time `db:"updated_at" json:"updated_at"`
 }
 
 type CallbacksUser struct {
@@ -365,63 +373,63 @@ type CallbacksUser struct {
 	AfterD    string    `db:"after_d"`
 	AfterF    string    `db:"after_f"`
 	AfterEF   string    `db:"after_ef"`
-	CreatedAt time.Time `json:"created_at" db:"created_at"`
-	UpdatedAt time.Time `json:"updated_at" db:"updated_at"`
+	CreatedAt time.Time `db:"created_at" json:"created_at"`
+	UpdatedAt time.Time `db:"updated_at" json:"updated_at"`
 }
 
 type CallbacksUsers []CallbacksUser
 
-func (u *CallbacksUser) BeforeSave(tx *Connection) error {
+func (u *CallbacksUser) BeforeSave(_ *Connection) error {
 	u.BeforeS = "BeforeSave"
 	return nil
 }
 
-func (u *CallbacksUser) BeforeUpdate(tx *Connection) error {
+func (u *CallbacksUser) BeforeUpdate(_ *Connection) error {
 	u.BeforeU = "BeforeUpdate"
 	return nil
 }
 
-func (u *CallbacksUser) BeforeCreate(tx *Connection) error {
+func (u *CallbacksUser) BeforeCreate(_ *Connection) error {
 	u.BeforeC = "BeforeCreate"
 	return nil
 }
 
-func (u *CallbacksUser) BeforeDestroy(tx *Connection) error {
+func (u *CallbacksUser) BeforeDestroy(_ *Connection) error {
 	u.BeforeD = "BeforeDestroy"
 	return nil
 }
 
-func (u *CallbacksUser) BeforeValidate(tx *Connection) error {
+func (u *CallbacksUser) BeforeValidate(_ *Connection) error {
 	u.BeforeV = "BeforeValidate"
 	return nil
 }
 
-func (u *CallbacksUser) AfterSave(tx *Connection) error {
+func (u *CallbacksUser) AfterSave(_ *Connection) error {
 	u.AfterS = "AfterSave"
 	return nil
 }
 
-func (u *CallbacksUser) AfterUpdate(tx *Connection) error {
+func (u *CallbacksUser) AfterUpdate(_ *Connection) error {
 	u.AfterU = "AfterUpdate"
 	return nil
 }
 
-func (u *CallbacksUser) AfterCreate(tx *Connection) error {
+func (u *CallbacksUser) AfterCreate(_ *Connection) error {
 	u.AfterC = "AfterCreate"
 	return nil
 }
 
-func (u *CallbacksUser) AfterDestroy(tx *Connection) error {
+func (u *CallbacksUser) AfterDestroy(_ *Connection) error {
 	u.AfterD = "AfterDestroy"
 	return nil
 }
 
-func (u *CallbacksUser) AfterFind(tx *Connection) error {
+func (u *CallbacksUser) AfterFind(_ *Connection) error {
 	u.AfterF = "AfterFind"
 	return nil
 }
 
-func (u *CallbacksUser) AfterEagerFind(tx *Connection) error {
+func (u *CallbacksUser) AfterEagerFind(_ *Connection) error {
 	u.AfterEF = "AfterEagerFind"
 	return nil
 }
@@ -435,34 +443,34 @@ type SingleID struct {
 }
 
 type Body struct {
-	ID   int   `json:"id" db:"id"`
-	Head *Head `json:"head" has_one:"head"`
+	ID   int   `json:"id"   db:"id"`
+	Head *Head `json:"head"         has_one:"head"`
 }
 
 type Head struct {
-	ID     int   `json:"id,omitempty" db:"id"`
-	BodyID int   `json:"-" db:"body_id"`
-	Body   *Body `json:"body,omitempty" belongs_to:"body"`
+	ID     int   `json:"id,omitempty"   db:"id"`
+	BodyID int   `json:"-"              db:"body_id"`
+	Body   *Body `json:"body,omitempty"              belongs_to:"body"`
 }
 
 type HeadPtr struct {
-	ID     int   `json:"id,omitempty" db:"id"`
-	BodyID *int  `json:"-" db:"body_id"`
-	Body   *Body `json:"body,omitempty" belongs_to:"body"`
+	ID     int   `json:"id,omitempty"   db:"id"`
+	BodyID *int  `json:"-"              db:"body_id"`
+	Body   *Body `json:"body,omitempty"              belongs_to:"body"`
 }
 
 type Student struct {
-	ID        uuid.UUID `json:"id" db:"id"`
+	ID        uuid.UUID `json:"id"         db:"id"`
 	CreatedAt time.Time `json:"created_at" db:"created_at"`
 	UpdatedAt time.Time `json:"updated_at" db:"updated_at"`
 }
 
 // https://github.com/gobuffalo/pop/issues/302
 type Parent struct {
-	ID        uuid.UUID  `json:"id" db:"id"`
+	ID        uuid.UUID  `json:"id"         db:"id"`
 	CreatedAt time.Time  `json:"created_at" db:"created_at"`
 	UpdatedAt time.Time  `json:"updated_at" db:"updated_at"`
-	Students  []*Student `many_to_many:"parents_students"`
+	Students  []*Student `                                  many_to_many:"parents_students"`
 }
 
 type CrookedColour struct {

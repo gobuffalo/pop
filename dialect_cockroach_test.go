@@ -80,11 +80,19 @@ func Test_Cockroach_URL_Build(t *testing.T) {
 	r.Contains(m.URL(), "option1=value1")
 	r.Contains(m.URL(), "application_name=pop.test")
 
-	r.True(strings.HasPrefix(m.urlWithoutDb(), "postgres://user:pass%23@host:port/?"), "urlWithoutDb() returns %v", m.urlWithoutDb())
+	r.True(
+		strings.HasPrefix(m.urlWithoutDb(), "postgres://user:pass%23@host:port/?"),
+		"urlWithoutDb() returns %v",
+		m.urlWithoutDb(),
+	)
 	r.Contains(m.urlWithoutDb(), "option1=value1")
 	r.Contains(m.urlWithoutDb(), "application_name=pop.test")
 
-	r.True(strings.HasPrefix(m.MigrationURL(), "postgres://user:pass%23@host:port/database?"), "MigrationURL() returns %v", m.MigrationURL())
+	r.True(
+		strings.HasPrefix(m.MigrationURL(), "postgres://user:pass%23@host:port/database?"),
+		"MigrationURL() returns %v",
+		m.MigrationURL(),
+	)
 }
 
 func Test_Cockroach_URL_UserDefinedAppName(t *testing.T) {

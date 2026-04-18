@@ -1,10 +1,9 @@
 package pop
 
 import (
+	"cmp"
 	"encoding/json"
 	"strconv"
-
-	"github.com/gobuffalo/pop/v6/internal/defaults"
 )
 
 // PaginatorPerPageDefault is the amount of results per page
@@ -52,7 +51,7 @@ func (p Paginator) String() string {
 
 // NewPaginator returns a new `Paginator` value with the appropriate
 // defaults set.
-func NewPaginator(page int, perPage int) *Paginator {
+func NewPaginator(page, perPage int) *Paginator {
 	if page < 1 {
 		page = 1
 	}
@@ -75,9 +74,9 @@ type PaginationParams interface {
 // `PaginatorPerPageKey`. Defaults are `1` for the page and
 // PaginatorPerPageDefault for the per page value.
 func NewPaginatorFromParams(params PaginationParams) *Paginator {
-	page := defaults.String(params.Get(PaginatorPageKey), "1")
+	page := cmp.Or(params.Get(PaginatorPageKey), "1")
 
-	perPage := defaults.String(params.Get(PaginatorPerPageKey), strconv.Itoa(PaginatorPerPageDefault))
+	perPage := cmp.Or(params.Get(PaginatorPerPageKey), strconv.Itoa(PaginatorPerPageDefault))
 
 	p, err := strconv.Atoi(page)
 	if err != nil {
@@ -96,7 +95,7 @@ func NewPaginatorFromParams(params PaginationParams) *Paginator {
 //	q := c.Paginate(2, 15)
 //	q.All(&[]User{})
 //	q.Paginator
-func (c *Connection) Paginate(page int, perPage int) *Query {
+func (c *Connection) Paginate(page, perPage int) *Query {
 	return Q(c).Paginate(page, perPage)
 }
 
@@ -105,7 +104,7 @@ func (c *Connection) Paginate(page int, perPage int) *Query {
 //	q = q.Paginate(2, 15)
 //	q.All(&[]User{})
 //	q.Paginator
-func (q *Query) Paginate(page int, perPage int) *Query {
+func (q *Query) Paginate(page, perPage int) *Query {
 	q.Paginator = NewPaginator(page, perPage)
 	return q
 }

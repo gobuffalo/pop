@@ -19,7 +19,10 @@ func New(opts *Options) (*genny.Generator, error) {
 	if opts.Type == "sql" {
 		f = genny.NewFileS(filepath.Join(opts.Path, fmt.Sprintf("%s.%s.up.sql", opts.Name, opts.Translator.Name())), "")
 		g.File(f)
-		f = genny.NewFileS(filepath.Join(opts.Path, fmt.Sprintf("%s.%s.down.sql", opts.Name, opts.Translator.Name())), "")
+		f = genny.NewFileS(
+			filepath.Join(opts.Path, fmt.Sprintf("%s.%s.down.sql", opts.Name, opts.Translator.Name())),
+			"",
+		)
 		g.File(f)
 	} else {
 		f = genny.NewFileS(filepath.Join(opts.Path, opts.Name+".up.fizz"), "")

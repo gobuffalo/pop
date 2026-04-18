@@ -4,8 +4,9 @@ import (
 	"errors"
 	"os"
 
-	"github.com/gobuffalo/pop/v6"
 	"github.com/spf13/cobra"
+
+	"github.com/gobuffalo/pop/v6"
 )
 
 var migrationPath string
@@ -15,10 +16,12 @@ var migrateCmd = &cobra.Command{
 	Aliases: []string{"m"},
 	Short:   "Runs migrations against your database.",
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
-		RootCmd.PersistentPreRun(cmd, args)
-		return os.MkdirAll(migrationPath, 0766)
+		if err := RootCmd.PersistentPreRunE(cmd, args); err != nil {
+			return err
+		}
+		return os.MkdirAll(migrationPath, 0o766)
 	},
-	RunE: func(cmd *cobra.Command, args []string) error {
+	RunE: func(_ *cobra.Command, args []string) error {
 		if len(args) > 0 {
 			return errors.New("migrate command does not accept any argument")
 		}

@@ -4,17 +4,18 @@ import (
 	"bytes"
 	"database/sql"
 	"encoding/gob"
+	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"strings"
 
-	"github.com/gobuffalo/pop/v6/columns"
-	"github.com/gobuffalo/pop/v6/logging"
 	"github.com/gofrs/uuid"
 	"github.com/jmoiron/sqlx"
+
+	"github.com/gobuffalo/pop/v6/columns"
+	"github.com/gobuffalo/pop/v6/logging"
 )
 
 func init() {
@@ -52,7 +53,12 @@ func genericCreate(c *Connection, model *Model, cols columns.Columns, quoter quo
 		var id int64
 		cols.Remove(model.IDField())
 		w := cols.Writeable()
-		query := fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s)", quoter.Quote(model.TableName()), w.QuotedString(quoter), w.SymbolizedString())
+		query := fmt.Sprintf(
+			"INSERT INTO %s (%s) VALUES (%s)",
+			quoter.Quote(model.TableName()),
+			w.QuotedString(quoter),
+			w.SymbolizedString(),
+		)
 		txlog(logging.SQL, c, query, model.Value)
 		res, err := c.Store.NamedExecContext(model.ctx, query, model.Value)
 		if err != nil {
@@ -67,31 +73,40 @@ func genericCreate(c *Connection, model *Model, cols columns.Columns, quoter quo
 		}
 		return nil
 	case "UUID", "string":
-		if keyType == "UUID" {
-			if model.ID() == emptyUUID {
-				u, err := uuid.NewV4()
-				if err != nil {
-					return err
-				}
-				model.setID(u)
+		if keyType == "UUID" && model.ID() == emptyUUID {
+			u, err := uuid.NewV4()
+			if err != nil {
+				return err
 			}
+			model.setID(u)
 		} else if model.ID() == "" {
-			return fmt.Errorf("missing ID value")
+			return errors.New("missing ID value")
 		}
 		w := cols.Writeable()
 		w.Add(model.IDField())
-		query := fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s)", quoter.Quote(model.TableName()), w.QuotedString(quoter), w.SymbolizedString())
+		query := fmt.Sprintf(
+			"INSERT INTO %s (%s) VALUES (%s)",
+			quoter.Quote(model.TableName()),
+			w.QuotedString(quoter),
+			w.SymbolizedString(),
+		)
 		txlog(logging.SQL, c, query, model.Value)
 		if _, err := c.Store.NamedExecContext(model.ctx, query, model.Value); err != nil {
 			return fmt.Errorf("named insert: %w", err)
 		}
 		return nil
 	}
-	return fmt.Errorf("can not use %s as a primary key type!", keyType)
+	return fmt.Errorf("can not use %s as a primary key type", keyType)
 }
 
 func genericUpdate(c *Connection, model *Model, cols columns.Columns, quoter quotable) error {
-	stmt := fmt.Sprintf("UPDATE %s AS %s SET %s WHERE %s", quoter.Quote(model.TableName()), model.Alias(), cols.Writeable().QuotedUpdateString(quoter), model.WhereNamedID())
+	stmt := fmt.Sprintf(
+		"UPDATE %s AS %s SET %s WHERE %s",
+		quoter.Quote(model.TableName()),
+		model.Alias(),
+		cols.Writeable().QuotedUpdateString(quoter),
+		model.WhereNamedID(),
+	)
 	txlog(logging.SQL, c, stmt, model.ID())
 	_, err := c.Store.NamedExecContext(model.ctx, stmt, model.Value)
 	if err != nil {
@@ -100,8 +115,20 @@ func genericUpdate(c *Connection, model *Model, cols columns.Columns, quoter quo
 	return nil
 }
 
-func genericUpdateQuery(c *Connection, model *Model, cols columns.Columns, quoter quotable, query Query, bindType int) (int64, error) {
-	q := fmt.Sprintf("UPDATE %s AS %s SET %s", quoter.Quote(model.TableName()), model.Alias(), cols.Writeable().QuotedUpdateString(quoter))
+func genericUpdateQuery(
+	c *Connection,
+	model *Model,
+	cols columns.Columns,
+	quoter quotable,
+	query Query,
+	bindType int,
+) (int64, error) {
+	q := fmt.Sprintf(
+		"UPDATE %s AS %s SET %s",
+		quoter.Quote(model.TableName()),
+		model.Alias(),
+		cols.Writeable().QuotedUpdateString(quoter),
+	)
 
 	q, updateArgs, err := sqlx.Named(q, model.Value)
 	if err != nil {
@@ -127,7 +154,12 @@ func genericUpdateQuery(c *Connection, model *Model, cols columns.Columns, quote
 }
 
 func genericDestroy(c *Connection, model *Model, quoter quotable) error {
-	stmt := fmt.Sprintf("DELETE FROM %s AS %s WHERE %s", quoter.Quote(model.TableName()), model.Alias(), model.WhereID())
+	stmt := fmt.Sprintf(
+		"DELETE FROM %s AS %s WHERE %s",
+		quoter.Quote(model.TableName()),
+		model.Alias(),
+		model.WhereID(),
+	)
 	_, err := genericExec(c, stmt, model.ID())
 	if err != nil {
 		return err
@@ -141,7 +173,7 @@ func genericDelete(c *Connection, model *Model, query Query) error {
 	return err
 }
 
-func genericExec(c *Connection, stmt string, args ...interface{}) (sql.Result, error) {
+func genericExec(c *Connection, stmt string, args ...any) (sql.Result, error) {
 	txlog(logging.SQL, c, stmt, args...)
 	res, err := c.Store.ExecContext(c.Context(), stmt, args...)
 	return res, err
@@ -178,7 +210,7 @@ func genericLoadSchema(d dialect, r io.Reader) error {
 	defer db.Close()
 
 	// Get reader contents
-	contents, err := ioutil.ReadAll(r)
+	contents, err := io.ReadAll(r)
 	if err != nil {
 		return err
 	}

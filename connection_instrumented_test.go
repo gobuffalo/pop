@@ -39,9 +39,7 @@ func testInstrumentedDriver(p *suite.Suite) {
 		query = queryMySQL
 	}
 
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 		var messages []string
 		var found bool
 		for {
@@ -58,15 +56,20 @@ func testInstrumentedDriver(p *suite.Suite) {
 				}
 			case <-ctx.Done():
 				if !found {
-					r.FailNow(fmt.Sprintf("Expected tracer to return the \"%s\" query but only the following messages have been received:\n\n\t%s", query, strings.Join(messages, "\n\t")))
+					r.FailNowf(
+						"Expected tracer to return the \"%s\" query "+
+							"but only the following messages have been received:\n\n\t%s",
+						query,
+						strings.Join(messages, "\n\t"),
+					)
 					return
 				}
 				return
 			}
 		}
-	}()
+	})
 
-	var checker = instrumentedsql.LoggerFunc(func(ctx context.Context, msg string, keyvals ...interface{}) {
+	checker := instrumentedsql.LoggerFunc(func(_ context.Context, msg string, keyvals ...any) {
 		p.T().Logf("Instrumentation received message: %s - %+v", msg, keyvals)
 		mc <- fmt.Sprintf("%s - %+v", msg, keyvals)
 	})

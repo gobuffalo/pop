@@ -6,16 +6,17 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
 	"github.com/gobuffalo/pop/v6/testdata/models/a"
 	"github.com/gobuffalo/pop/v6/testdata/models/ac"
 	"github.com/gobuffalo/pop/v6/testdata/models/b"
 	"github.com/gobuffalo/pop/v6/testdata/models/bc"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func Test_Model_TableName(t *testing.T) {
-	for k, v := range []interface{}{
+	for k, v := range []any{
 		User{},
 		&User{},
 
@@ -71,7 +72,7 @@ func Test_TableNameContextCache(t *testing.T) {
 func Test_TableName(t *testing.T) {
 	r := require.New(t)
 
-	cases := []interface{}{
+	cases := []any{
 		tn{},
 		&tn{},
 		[]tn{},
@@ -89,9 +90,9 @@ func Test_TableNameContext(t *testing.T) {
 	r := require.New(t)
 
 	tn := "context_table_names"
-	ctx := context.WithValue(context.Background(), "name", tn)
+	ctx := context.WithValue(t.Context(), "name", tn)
 
-	cases := []interface{}{
+	cases := []any{
 		tnc{},
 		[]tnc{},
 	}
@@ -116,7 +117,7 @@ type UnixTimestamp struct {
 func Test_Touch_Time_Timestamp(t *testing.T) {
 	r := require.New(t)
 
-	m := NewModel(&TimeTimestamp{}, context.Background())
+	m := NewModel(&TimeTimestamp{}, t.Context())
 
 	// Override time.Now()
 	t0, _ := time.Parse(time.RFC3339, "2019-07-14T00:00:00Z")
@@ -136,7 +137,7 @@ func Test_Touch_Time_Timestamp_With_Existing_Value(t *testing.T) {
 
 	createdAt := nowFunc().Add(-36 * time.Hour)
 
-	m := NewModel(&TimeTimestamp{CreatedAt: createdAt}, context.Background())
+	m := NewModel(&TimeTimestamp{CreatedAt: createdAt}, t.Context())
 	m.setCreatedAt(t0)
 	m.setUpdatedAt(t0)
 
@@ -148,8 +149,7 @@ func Test_Touch_Time_Timestamp_With_Existing_Value(t *testing.T) {
 func Test_Touch_Unix_Timestamp(t *testing.T) {
 	r := require.New(t)
 
-	m := NewModel(&UnixTimestamp{}, context.Background())
-
+	m := NewModel(&UnixTimestamp{}, t.Context())
 	// Override time.Now()
 	t0, _ := time.Parse(time.RFC3339, "2019-07-14T00:00:00Z")
 
@@ -168,10 +168,7 @@ func Test_Touch_Unix_Timestamp_With_Existing_Value(t *testing.T) {
 
 	createdAt := int(time.Now().Add(-36 * time.Hour).Unix())
 
-	m := NewModel(&UnixTimestamp{CreatedAt: createdAt}, context.Background())
-	m.setCreatedAt(t0)
-	m.setUpdatedAt(t0)
-
+	m := NewModel(&UnixTimestamp{CreatedAt: createdAt}, t.Context())
 	v := m.Value.(*UnixTimestamp)
 	r.Equal(createdAt, v.CreatedAt)
 	r.Equal(int(t0.Unix()), v.UpdatedAt)

@@ -9,7 +9,7 @@ type joinClause struct {
 	JoinType  string
 	Table     string
 	On        string
-	Arguments []interface{}
+	Arguments []any
 }
 
 type joinClauses []joinClause

@@ -2,10 +2,12 @@ package pop
 
 import (
 	"fmt"
-	stdlog "log"
 	"os"
 
 	"github.com/fatih/color"
+
+	stdlog "log"
+
 	"github.com/gobuffalo/pop/v6/logging"
 )
 
@@ -16,22 +18,22 @@ var Debug = false
 var Color = true
 
 // SetLogger overrides the default logger.
-func SetLogger(logger func(level logging.Level, s string, args ...interface{})) {
+func SetLogger(logger func(level logging.Level, s string, args ...any)) {
 	log = logger
 }
 
-// SetLogger overrides the default logger.
-func SetTxLogger(logger func(level logging.Level, anon interface{}, s string, args ...interface{})) {
+// SetTxLogger overrides the default transaction logger.
+func SetTxLogger(logger func(level logging.Level, anon any, s string, args ...any)) {
 	txlog = logger
 }
 
 var defaultStdLogger = stdlog.New(os.Stderr, "[POP] ", stdlog.LstdFlags)
 
-var log = func(lvl logging.Level, s string, args ...interface{}) {
+var log = func(lvl logging.Level, s string, args ...any) {
 	txlog(lvl, nil, s, args...)
 }
 
-var txlog = func(lvl logging.Level, anon interface{}, s string, args ...interface{}) {
+var txlog = func(lvl logging.Level, anon any, s string, args ...any) {
 	if !Debug && lvl <= logging.Debug {
 		return
 	}
@@ -90,7 +92,13 @@ var txlog = func(lvl logging.Level, anon interface{}, s string, args ...interfac
 func printStats(s *store) string {
 	if db, ok := (*s).(*dB); ok {
 		s := db.Stats()
-		return fmt.Sprintf(", maxconn: %d, openconn: %d, in-use: %d, idle: %d", s.MaxOpenConnections, s.OpenConnections, s.InUse, s.Idle)
+		return fmt.Sprintf(
+			", maxconn: %d, openconn: %d, in-use: %d, idle: %d",
+			s.MaxOpenConnections,
+			s.OpenConnections,
+			s.InUse,
+			s.Idle,
+		)
 	}
 
 	return ""

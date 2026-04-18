@@ -14,9 +14,9 @@ import (
 
 func clean(s string) string {
 	s = strings.TrimSpace(s)
-	s = strings.Replace(s, "\r\n", "\n", -1)
-	s = strings.Replace(s, "\r", "\n", -1)
-	s = strings.Replace(s, "\t", "", -1)
+	s = strings.ReplaceAll(s, "\r\n", "\n")
+	s = strings.ReplaceAll(s, "\r", "\n")
+	s = strings.ReplaceAll(s, "\t", "")
 	return s
 }
 
@@ -43,7 +43,15 @@ func Test_New(t *testing.T) {
 func Test_New_Standard(t *testing.T) {
 	r := require.New(t)
 
-	ats, err := attrs.ParseArgs("id:uuid", "created_at:timestamp", "updated_at:timestamp", "name", "description:text", "age:int", "bar:nulls.String")
+	ats, err := attrs.ParseArgs(
+		"id:uuid",
+		"created_at:timestamp",
+		"updated_at:timestamp",
+		"name",
+		"description:text",
+		"age:int",
+		"bar:nulls.String",
+	)
 	r.NoError(err)
 	g, err := New(&Options{
 		Name:  "widget",
@@ -119,7 +127,15 @@ func Test_New_No_Attrs(t *testing.T) {
 func Test_New_XML(t *testing.T) {
 	r := require.New(t)
 
-	ats, err := attrs.ParseArgs("id:uuid", "created_at:timestamp", "updated_at:timestamp", "name", "description:text", "age:int", "bar:nulls.String")
+	ats, err := attrs.ParseArgs(
+		"id:uuid",
+		"created_at:timestamp",
+		"updated_at:timestamp",
+		"name",
+		"description:text",
+		"age:int",
+		"bar:nulls.String",
+	)
 	r.NoError(err)
 	g, err := New(&Options{
 		Name:     "widget",
@@ -167,7 +183,15 @@ func Test_New_XML(t *testing.T) {
 func Test_New_JSONAPI(t *testing.T) {
 	r := require.New(t)
 
-	ats, err := attrs.ParseArgs("id:uuid", "created_at:timestamp", "updated_at:timestamp", "name", "description:text", "age:int", "bar:nulls.String")
+	ats, err := attrs.ParseArgs(
+		"id:uuid",
+		"created_at:timestamp",
+		"updated_at:timestamp",
+		"name",
+		"description:text",
+		"age:int",
+		"bar:nulls.String",
+	)
 	r.NoError(err)
 	g, err := New(&Options{
 		Name:     "widget",

@@ -13,6 +13,7 @@ import (
 	"os"
 	"os/user"
 	"path/filepath"
+	"slices"
 	"testing"
 	"time"
 
@@ -74,7 +75,15 @@ func genPrivateKey(tb testing.TB, caKeyPath string) *rsa.PrivateKey {
 	return key
 }
 
-func genCertificate(tb testing.TB, template, parent *x509.Certificate, pub *rsa.PublicKey, priv *rsa.PrivateKey, path string) {
+func genCertificate(
+	tb testing.TB,
+	template, parent *x509.Certificate,
+	pub *rsa.PublicKey,
+	priv *rsa.PrivateKey,
+	path string,
+) {
+	tb.Helper()
+
 	caBytes, err := x509.CreateCertificate(rand.Reader, template, parent, pub, priv)
 	require.NoError(tb, err)
 
@@ -87,7 +96,7 @@ func genCertificate(tb testing.TB, template, parent *x509.Certificate, pub *rsa.
 	}))
 }
 
-func setupCerts(tb testing.TB, caKeyPath string, caCertPath string, serverKeyPath string, serverCertPath string) {
+func setupCerts(tb testing.TB, caKeyPath, caCertPath, serverKeyPath, serverCertPath string) {
 	tb.Helper()
 	snLimit := new(big.Int).Lsh(big.NewInt(1), 128) // 128-bit serial number limit
 
@@ -139,7 +148,12 @@ func Test_PostgreSQL_Connection_String_Options(t *testing.T) {
 	serverCertPath := filepath.Join(tempDir, "server.crt")
 	setupCerts(t, caKeyPath, caCertPath, serverKeyPath, serverCertPath)
 
-	url := fmt.Sprintf("host=host port=1234 dbname=database user=user password=pass# sslmode=disable fallback_application_name=test_app connect_timeout=10 sslcert=%s sslkey=%s sslrootcert=%s", serverCertPath, serverKeyPath, caCertPath)
+	url := fmt.Sprintf(
+		"host=host port=1234 dbname=database user=user password=pass# sslmode=disable fallback_application_name=test_app connect_timeout=10 sslcert=%s sslkey=%s sslrootcert=%s",
+		serverCertPath,
+		serverKeyPath,
+		caCertPath,
+	)
 	cd := &ConnectionDetails{
 		Dialect: "postgres",
 		URL:     url,
@@ -175,16 +189,13 @@ func Test_PostgreSQL_Connection_String_Without_User(t *testing.T) {
 	r.Equal("postgres", cd.Dialect)
 
 	var foundHost bool
-	for _, host := range []string{
-		"/var/run/postgresql", // Debian
-		"/private/tmp",        // OSX - homebrew
-		"/tmp",                // standard PostgreSQL
-		"localhost",           // Windows does not do sockets
-	} {
-		if cd.Host == host {
-			foundHost = true
-			break
-		}
+	if slices.Contains([]string{
+		"/var/run/postgresql",
+		"/private/tmp",
+		"/tmp",
+		"localhost",
+	}, cd.Host) {
+		foundHost = true
 	}
 	r.True(foundHost, `Got host: "%s"`, cd.Host)
 

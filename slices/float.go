@@ -11,13 +11,13 @@ import (
 type Float []float64
 
 // Interface implements the nulls.nullable interface.
-func (f Float) Interface() interface{} {
+func (f Float) Interface() any {
 	return []float64(f)
 }
 
 // Scan implements the sql.Scanner interface.
 // It allows to read the float slice from the database value.
-func (f *Float) Scan(src interface{}) error {
+func (f *Float) Scan(src any) error {
 	var str string
 	switch t := src.(type) {
 	case []byte:
@@ -46,7 +46,7 @@ func (f Float) Value() (driver.Value, error) {
 // the float slice representation of this value.
 func (f *Float) UnmarshalText(text []byte) error {
 	var ss []float64
-	for _, x := range strings.Split(string(text), ",") {
+	for x := range strings.SplitSeq(string(text), ",") {
 		f, err := strconv.ParseFloat(x, 64)
 		if err != nil {
 			return err

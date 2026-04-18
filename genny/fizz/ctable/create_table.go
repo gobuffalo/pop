@@ -19,7 +19,7 @@ func New(opts *Options) (*genny.Generator, error) {
 		return g, err
 	}
 
-	t := fizz.NewTable(opts.TableName, map[string]interface{}{
+	t := fizz.NewTable(opts.TableName, map[string]any{
 		"timestamps": opts.ForceDefaultTimestamps,
 	})
 	for _, attr := range opts.Attrs {
@@ -51,13 +51,19 @@ func New(opts *Options) (*genny.Generator, error) {
 		if err != nil {
 			return g, err
 		}
-		f = genny.NewFileS(filepath.Join(opts.Path, fmt.Sprintf("%s.%s.up.sql", opts.Name, translatorNameable.Name())), m)
+		f = genny.NewFileS(
+			filepath.Join(opts.Path, fmt.Sprintf("%s.%s.up.sql", opts.Name, translatorNameable.Name())),
+			m,
+		)
 		g.File(f)
 		m, err = fizz.AString(down, opts.Translator)
 		if err != nil {
 			return g, err
 		}
-		f = genny.NewFileS(filepath.Join(opts.Path, fmt.Sprintf("%s.%s.down.sql", opts.Name, translatorNameable.Name())), m)
+		f = genny.NewFileS(
+			filepath.Join(opts.Path, fmt.Sprintf("%s.%s.down.sql", opts.Name, translatorNameable.Name())),
+			m,
+		)
 		g.File(f)
 		return g, nil
 	}
@@ -92,7 +98,7 @@ func fizzColType(s string) string {
 		return "blob"
 	default:
 		if strings.HasPrefix(s, "nulls.") {
-			return fizzColType(strings.Replace(s, "nulls.", "", -1))
+			return fizzColType(strings.ReplaceAll(s, "nulls.", ""))
 		}
 		return strings.ToLower(s)
 	}

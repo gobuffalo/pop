@@ -38,11 +38,11 @@ func New(opts *Options) (*genny.Generator, error) {
 		Imports:     buildImports(opts),
 	}
 
-	ctx := map[string]interface{}{
+	ctx := map[string]any{
 		"opts":  opts,
 		"model": m,
 	}
-	help := map[string]interface{}{
+	help := map[string]any{
 		"capitalize": flect.Capitalize,
 		"trim_package": func(t string) string {
 			i := strings.LastIndex(t, ".")

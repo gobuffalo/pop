@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"reflect"
 	"regexp"
+	"slices"
 	"strings"
 
 	"github.com/gobuffalo/pop/v6/columns"
@@ -26,12 +27,12 @@ var associationBuilders = map[string]associationBuilder{}
 // associations like has_many, belongs_to, has_one.
 // it throws an error when it finds a field that does
 // not exist for a model.
-func ForStruct(s interface{}, fields ...string) (Associations, error) {
+func ForStruct(s any, fields ...string) (Associations, error) {
 	return forStruct(s, s, fields)
 }
 
 // forStruct is a recursive helper that passes the root model down for embedded fields
-func forStruct(parent, s interface{}, fields []string) (Associations, error) {
+func forStruct(parent, s any, fields []string) (Associations, error) {
 	t, v := getModelDefinition(s)
 	if t.Kind() != reflect.Struct {
 		return nil, fmt.Errorf("could not get struct associations: not a struct but %T", s)
@@ -46,7 +47,11 @@ func forStruct(parent, s interface{}, fields []string) (Associations, error) {
 		var innerField string
 
 		if !validAssociationExpRegexp.MatchString(fields[i]) {
-			return associations, fmt.Errorf("association '%s' does not match the format %s", fields[i], "'<field>' or '<field>.<nested-field>'")
+			return associations, fmt.Errorf(
+				"association '%s' does not match the format %s",
+				fields[i],
+				"'<field>' or '<field>.<nested-field>'",
+			)
 		}
 
 		fields[i], innerField = extractFieldAndInnerFields(fields[i])
@@ -62,14 +67,20 @@ func forStruct(parent, s interface{}, fields []string) (Associations, error) {
 			for j := range fieldsWithInnerAssociation[fields[i]] {
 				f, _ := extractFieldAndInnerFields(fieldsWithInnerAssociation[fields[i]][j].Fields[0])
 				if innerF == f {
-					fieldsWithInnerAssociation[fields[i]][j].Fields = append(fieldsWithInnerAssociation[fields[i]][j].Fields, innerField)
+					fieldsWithInnerAssociation[fields[i]][j].Fields = append(
+						fieldsWithInnerAssociation[fields[i]][j].Fields,
+						innerField,
+					)
 					found = true
 					break
 				}
 			}
 
 			if !found {
-				fieldsWithInnerAssociation[fields[i]] = append(fieldsWithInnerAssociation[fields[i]], InnerAssociation{fields[i], []string{innerField}})
+				fieldsWithInnerAssociation[fields[i]] = append(
+					fieldsWithInnerAssociation[fields[i]],
+					InnerAssociation{fields[i], []string{innerField}},
+				)
 			}
 		}
 	}
@@ -82,7 +93,7 @@ func forStruct(parent, s interface{}, fields []string) (Associations, error) {
 			field := v.Field(i)
 			// we need field to be a pointer, so that we can later set the value
 			// if the embedded field is of type struct {...}, we have to take its address
-			if field.Kind() != reflect.Ptr {
+			if field.Kind() != reflect.Pointer {
 				field = field.Addr()
 			}
 			if fieldIsNil(field) {
@@ -134,7 +145,7 @@ func forStruct(parent, s interface{}, fields []string) (Associations, error) {
 	return associations, nil
 }
 
-func getModelDefinition(s interface{}) (reflect.Type, reflect.Value) {
+func getModelDefinition(s any) (reflect.Type, reflect.Value) {
 	v := reflect.ValueOf(s)
 	v = reflect.Indirect(v)
 	t := v.Type()
@@ -152,12 +163,7 @@ func trimFields(fields []string) []string {
 }
 
 func fieldIgnoredIn(fields []string, field string) bool {
-	for _, f := range fields {
-		if f == field {
-			return false
-		}
-	}
-	return true
+	return !slices.Contains(fields, field)
 }
 
 func extractFieldAndInnerFields(field string) (string, string) {
