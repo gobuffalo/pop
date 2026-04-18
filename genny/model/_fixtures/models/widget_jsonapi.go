@@ -7,23 +7,22 @@ import (
 	"time"
 
 	"github.com/gobuffalo/nulls"
+	"github.com/gobuffalo/pop/v6"
 	"github.com/gobuffalo/validate/v3"
 	"github.com/gobuffalo/validate/v3/validators"
 	"github.com/gofrs/uuid"
 	"github.com/google/jsonapi"
-
-	"github.com/gobuffalo/pop/v6"
 )
 
 // Widget is used by pop to map your widgets database table to your go code.
 type Widget struct {
-	ID          uuid.UUID    `jsonapi:"primary,id"       db:"id"`
-	CreatedAt   time.Time    `jsonapi:"attr,created_at"  db:"created_at"`
-	UpdatedAt   time.Time    `jsonapi:"attr,updated_at"  db:"updated_at"`
-	Name        string       `jsonapi:"attr,name"        db:"name"`
+	ID          uuid.UUID    `jsonapi:"primary,id" db:"id"`
+	CreatedAt   time.Time    `jsonapi:"attr,created_at" db:"created_at"`
+	UpdatedAt   time.Time    `jsonapi:"attr,updated_at" db:"updated_at"`
+	Name        string       `jsonapi:"attr,name" db:"name"`
 	Description string       `jsonapi:"attr,description" db:"description"`
-	Age         int          `jsonapi:"attr,age"         db:"age"`
-	Bar         nulls.String `jsonapi:"attr,bar"         db:"bar"`
+	Age         int          `jsonapi:"attr,age" db:"age"`
+	Bar         nulls.String `jsonapi:"attr,bar" db:"bar"`
 }
 
 // String is not required by pop and may be deleted
