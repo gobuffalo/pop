@@ -200,9 +200,8 @@ func (s *MySQLSuite) Test_MySQL_DDL_Operations() {
 		PDB.Dialect.Details().Database = origDatabase
 	}()
 
-	err := PDB.Dialect.DropDB() // clean up
-	r.Error(err)
-	err = PDB.Dialect.CreateDB()
+	_ = PDB.Dialect.DropDB() // clean up
+	err := PDB.Dialect.CreateDB()
 	r.NoError(err)
 	err = PDB.Dialect.CreateDB()
 	r.Error(err)

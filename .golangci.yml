@@ -1,10 +1,6 @@
 # yaml-language-server: $schema=https://golangci-lint.run/jsonschema/golangci.jsonschema.json
 version: "2"
 
-run:
-  build-tags:
-    - lint
-
 linters:
   # Default set of linters.
   # The value can be: `standard`, `all`, `none`, or `fast`.
