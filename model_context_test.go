@@ -90,7 +90,7 @@ func Test_ModelContext(t *testing.T) {
 
 	t.Run("prefix=unknown", func(t *testing.T) {
 		r := require.New(t)
-		c := PDB.WithContext(context.WithValue(context.Background(), "prefix", "unknown"))
+		c := PDB.WithContext(context.WithValue(t.Context(), "prefix", "unknown"))
 		err := c.Create(&ContextTable{ID: "unknown"})
 		r.Error(err)
 
@@ -103,11 +103,11 @@ func Test_ModelContext(t *testing.T) {
 		r := require.New(t)
 
 		r.NoError(
-			PDB.WithContext(context.WithValue(context.Background(), "prefix", "a")).
+			PDB.WithContext(context.WithValue(t.Context(), "prefix", "a")).
 				Destroy(&ContextTable{ID: "expectedA"}),
 		)
 		r.NoError(
-			PDB.WithContext(context.WithValue(context.Background(), "prefix", "b")).
+			PDB.WithContext(context.WithValue(t.Context(), "prefix", "b")).
 				Destroy(&ContextTable{ID: "expectedB"}),
 		)
 
@@ -115,10 +115,10 @@ func Test_ModelContext(t *testing.T) {
 		expectedA.ID = "expectedA"
 		expectedB.ID = "expectedB"
 
-		cA := PDB.WithContext(context.WithValue(context.Background(), "prefix", "a"))
+		cA := PDB.WithContext(context.WithValue(t.Context(), "prefix", "a"))
 		r.NoError(cA.Create(&expectedA))
 
-		cB := PDB.WithContext(context.WithValue(context.Background(), "prefix", "b"))
+		cB := PDB.WithContext(context.WithValue(t.Context(), "prefix", "b"))
 		r.NoError(cB.Create(&expectedB))
 
 		var actualA, actualB []ContextTable

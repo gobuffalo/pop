@@ -57,6 +57,7 @@ type cockroachInfo struct {
 
 type cockroach struct {
 	commonDialect
+
 	translateCache map[string]string
 	mu             sync.Mutex
 	info           cockroachInfo

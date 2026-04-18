@@ -3,8 +3,6 @@
 package pop
 
 import (
-	"fmt"
-
 	"github.com/gobuffalo/fizz"
 )
 
@@ -21,7 +19,7 @@ func newSchemaMigrations(name string) fizz.Table {
 			},
 		},
 		Indexes: []fizz.Index{
-			{Name: fmt.Sprintf("%s_version_idx", name), Columns: []string{"version"}, Unique: true},
+			{Name: name + "_version_idx", Columns: []string{"version"}, Unique: true},
 		},
 	}
 	// this is for https://github.com/gobuffalo/pop/issues/659.

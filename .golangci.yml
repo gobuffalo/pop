@@ -91,7 +91,7 @@ linters:
       qualified-name: true
     staticcheck:
       dot-import-whitelist:
-        - github.com/buffalo/pop/v6
+        - github.com/gobuffalo/pop/v6
     usestdlibvars:
       # Suggest the use of crypto.Hash.String().
       crypto-hash: true
@@ -134,7 +134,7 @@ formatters:
       no-prefix-comments: true
     gofumpt:
       # Module path which contains the source code being formatted.
-      module-path: github.com/buffalo/pop/v6
+      module-path: github.com/gobuffalo/pop/v6
       # Choose whether to use the extra rules.
       extra-rules: true
     golines:

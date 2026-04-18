@@ -38,6 +38,7 @@ func NewAssociationMetaInfo(fi *reflectx.FieldInfo) *AssociationMetaInfo {
 // database.
 type ModelMetaInfo struct {
 	*reflectx.StructMap
+
 	Model        *Model
 	mapper       *reflectx.Mapper
 	nestedFields map[string][]string
@@ -323,7 +324,7 @@ func preloadHasOne(tx *Connection, asoc *AssociationMetaInfo, mmi *ModelMetaInfo
 	q.eagerFields = []string{}
 
 	slice := asoc.toSlice()
-	err := q.Where(fmt.Sprintf("%s in (?)", fk), ids).All(slice.Interface())
+	err := q.Where(fk+" in (?)", ids).All(slice.Interface())
 	if err != nil {
 		return err
 	}
@@ -398,7 +399,7 @@ func preloadBelongsTo(tx *Connection, asoc *AssociationMetaInfo, mmi *ModelMetaI
 	q.eagerFields = []string{}
 
 	slice := asoc.toSlice()
-	err := q.Where(fmt.Sprintf("%s in (?)", fk), fkids).All(slice.Interface())
+	err := q.Where(fk+" in (?)", fkids).All(slice.Interface())
 	if err != nil {
 		return err
 	}

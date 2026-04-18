@@ -14,6 +14,7 @@ import (
 // inside of a compiled binary.
 type MigrationBox struct {
 	Migrator
+
 	FS fs.FS
 }
 

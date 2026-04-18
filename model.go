@@ -31,6 +31,7 @@ type modelIterable func(*Model) error
 // that is passed in to many functions.
 type Model struct {
 	Value
+
 	ctx context.Context
 	As  string
 }

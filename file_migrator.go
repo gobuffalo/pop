@@ -13,6 +13,7 @@ import (
 // files on disk at a specified path.
 type FileMigrator struct {
 	Migrator
+
 	Path string
 }
 
