@@ -192,6 +192,11 @@ func genericLoadSchema(d dialect, r io.Reader) error {
 	// may be present in pg_dump output from PostgreSQL 17.6+. These are
 	// psql-only directives and are not valid SQL.
 	contents = stripPsqlBackslashCommands(contents)
+	contents = bytes.TrimSpace(contents)
+	if len(contents) == 0 {
+		log(logging.Info, "schema is empty after stripping psql meta-commands for %s, skipping", deets.Database)
+		return nil
+	}
 
 	_, err = db.Exec(string(contents))
 	if err != nil {
@@ -223,6 +228,9 @@ func genericDumpSchema(deets *ConnectionDetails, cmd *exec.Cmd, w io.Writer) err
 	// Strip psql backslash commands (e.g. \restrict, \unrestrict) from
 	// pg_dump output so schema.sql stays clean and loadable without psql.
 	clean := stripPsqlBackslashCommands(bb.Bytes())
+	if len(bytes.TrimSpace(clean)) == 0 {
+		return fmt.Errorf("unable to dump schema for %s", deets.Database)
+	}
 	if _, err := w.Write(clean); err != nil {
 		return err
 	}
