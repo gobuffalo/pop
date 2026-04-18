@@ -250,6 +250,7 @@ func (m *sqlite) LoadSchema(r io.Reader) error {
 	}
 	var eg errgroup.Group
 	eg.Go(func() error {
+		defer in.Close()
 		_, err := io.Copy(in, r)
 		return err
 	})
