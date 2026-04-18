@@ -59,7 +59,10 @@ func (fm *FileMigrator) findMigrations(runner func(mf Migration, tx *Connection)
 		// directory doesn't exist
 		return nil
 	}
-	return filepath.Walk(dir, func(p string, info os.FileInfo, _ error) error {
+	return filepath.Walk(dir, func(p string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
 		if info.IsDir() {
 			return nil
 		}

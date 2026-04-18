@@ -10,7 +10,7 @@ import (
 )
 
 // Widget is used by pop to map your widgets database table to your go code.
-type Widget struct{
+type Widget struct {
 }
 
 // String is not required by pop and may be deleted
