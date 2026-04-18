@@ -169,6 +169,9 @@ func Test_Touch_Unix_Timestamp_With_Existing_Value(t *testing.T) {
 	createdAt := int(time.Now().Add(-36 * time.Hour).Unix())
 
 	m := NewModel(&UnixTimestamp{CreatedAt: createdAt}, t.Context())
+	m.setCreatedAt(t0)
+	m.setUpdatedAt(t0)
+
 	v := m.Value.(*UnixTimestamp)
 	r.Equal(createdAt, v.CreatedAt)
 	r.Equal(int(t0.Unix()), v.UpdatedAt)
