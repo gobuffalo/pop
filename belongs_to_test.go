@@ -42,10 +42,10 @@ func Test_BelongsToThrough(t *testing.T) {
 	r := require.New(t)
 
 	q := PDB.BelongsToThrough(&User{ID: 1}, &Friend{})
-	qs := strings.TrimSpace(`
-	SELECT enemies.A FROM enemies AS enemies, good_friends AS good_friends
-	WHERE good_friends.user_id = ? AND enemies.id = good_friends.enemy_id
-	`)
+	qs := strings.Join([]string{
+		"SELECT enemies.A FROM enemies AS enemies, good_friends AS good_friends",
+		"WHERE good_friends.user_id = ? AND enemies.id = good_friends.enemy_id",
+	}, " ")
 
 	m := NewModel(new(Enemy), t.Context())
 	sql, _ := q.ToSQL(m)
