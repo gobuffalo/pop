@@ -91,6 +91,7 @@ func (sq *sqlBuilder) compile() {
 		}
 	}
 	sq.sql = sq.Query.Connection.Dialect.TranslateSQL(sq.sql)
+	sq.isCompiled = true
 }
 
 func (sq *sqlBuilder) buildQuery() error {
