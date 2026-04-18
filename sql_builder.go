@@ -58,23 +58,19 @@ func hasLimitOrOffset(sqlString string) bool {
 }
 
 func (sq *sqlBuilder) String() string {
-	if !sq.isCompiled {
-		sq.compile()
-	}
+	sq.compile()
 	return sq.sql
 }
 
 func (sq *sqlBuilder) Args() []any {
-	if !sq.isCompiled {
-		sq.compile()
-	}
+	sq.compile()
 	return sq.args
 }
 
 var inRegex = regexp.MustCompile(`(?i)in\s*\(\s*\?\s*\)`)
 
 func (sq *sqlBuilder) compile() {
-	if sq.sql != "" {
+	if sq.isCompiled {
 		return
 	}
 
@@ -84,7 +80,7 @@ func (sq *sqlBuilder) compile() {
 	}
 
 	if inRegex.MatchString(sq.sql) {
-		s, args, err := sqlx.In(sq.sql, sq.Args()...)
+		s, args, err := sqlx.In(sq.sql, sq.args...)
 		if err == nil {
 			sq.sql = s
 			sq.args = args
