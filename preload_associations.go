@@ -522,6 +522,10 @@ func preloadManyToMany(tx *Connection, asoc *AssociationMetaInfo, mmi *ModelMeta
 		return err
 	}
 
+	if len(fkids) == 0 {
+		return nil
+	}
+
 	q := tx.Q()
 	q.eager = false
 	q.eagerFields = []string{}
