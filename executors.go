@@ -258,7 +258,17 @@ func (c *Connection) processAfterCreateAssociations(asos associations.Associatio
 	after := asos.AssociationsAfterCreatable()
 	for index := range after {
 		if localIsEager {
-			err := c.eagerCreate(after, index)
+			err := after[index].AfterSetup()
+			if err != nil {
+				return err
+			}
+
+			i := after[index].AfterInterface()
+			if i == nil {
+				continue
+			}
+
+			err = c.eagerCreate(i)
 			if err != nil {
 				return err
 			}
@@ -285,19 +295,9 @@ func (c *Connection) processAfterCreateAssociations(asos associations.Associatio
 	return nil
 }
 
-func (c *Connection) eagerCreate(after []associations.AssociationAfterCreatable, index int) error {
-	err := after[index].AfterSetup()
-	if err != nil {
-		return err
-	}
-
-	i := after[index].AfterInterface()
-	if i == nil {
-		return nil
-	}
-
+func (c *Connection) eagerCreate(i any) error {
 	sm := NewModel(i, c.Context())
-	err = sm.iterate(func(m *Model) error {
+	return sm.iterate(func(m *Model) error {
 		fbn, err := m.fieldByName("ID")
 		if err != nil {
 			return err
@@ -313,10 +313,6 @@ func (c *Connection) eagerCreate(after []associations.AssociationAfterCreatable,
 		}
 		return nil
 	})
-	if err != nil {
-		return err
-	}
-	return nil
 }
 
 func (c *Connection) createMissingBeforeAssociations(asos associations.Associations, localIsEager bool) error {
