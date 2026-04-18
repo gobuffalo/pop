@@ -1263,7 +1263,7 @@ func Test_Eager_Embedded_Struct(t *testing.T) {
 			Books        Books `has_many:"books" order_by:"title asc"`
 			FavoriteSong Song  `                                      has_one:"song" fk_id:"u_id"`
 
-			Houses Addresses `                                                                  many_to_many:"users_addresses"`
+			Houses Addresses `many_to_many:"users_addresses"`
 		}
 
 		type User struct {
@@ -1342,7 +1342,7 @@ func Test_Eager_Embedded_Ptr_Struct(t *testing.T) {
 			Books        Books `has_many:"books" order_by:"title asc"`
 			FavoriteSong Song  `                                      has_one:"song" fk_id:"u_id"`
 
-			Houses Addresses `                                                                  many_to_many:"users_addresses"`
+			Houses Addresses `many_to_many:"users_addresses"`
 		}
 
 		type User struct {

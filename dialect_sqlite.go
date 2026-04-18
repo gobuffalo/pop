@@ -38,6 +38,7 @@ var _ dialect = &sqlite{}
 
 type sqlite struct {
 	commonDialect
+
 	gil   *sync.Mutex
 	smGil *sync.Mutex
 }

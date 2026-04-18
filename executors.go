@@ -481,7 +481,7 @@ func (c *Connection) Destroy(model any) error {
 
 // Delete deletes all rows matched by the query.
 func (q *Query) Delete(model any) error {
-	q.Operation = deleteOp
+	q.Operation = Delete
 
 	return q.Connection.timeFunc("Delete", func() error {
 		m := NewModel(model, q.Connection.Context())

@@ -1,7 +1,6 @@
 package pop
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/gofrs/uuid"
@@ -279,7 +278,7 @@ func Test_ToSQL(t *testing.T) {
 
 		query.Order("id desc")
 		q, _ = query.ToSQL(user)
-		a.Equal(fmt.Sprintf("%s ORDER BY id desc", s), q)
+		a.Equal(s+" ORDER BY id desc", q)
 
 		q, _ = query.ToSQL(&Model{Value: &User{}, As: "u", ctx: tx.Context()})
 		a.Equal(
@@ -295,36 +294,36 @@ func Test_ToSQL(t *testing.T) {
 
 		query = tx.Where("id = 1")
 		q, _ = query.ToSQL(user)
-		a.Equal(fmt.Sprintf("%s WHERE id = 1", s), q)
+		a.Equal(s+" WHERE id = 1", q)
 
 		query = tx.Where("id = 1").Where("name = 'Mark'")
 		q, _ = query.ToSQL(user)
-		a.Equal(fmt.Sprintf("%s WHERE id = 1 AND name = 'Mark'", s), q)
+		a.Equal(s+" WHERE id = 1 AND name = 'Mark'", q)
 
 		query.Order("id desc")
 		q, _ = query.ToSQL(user)
-		a.Equal(fmt.Sprintf("%s WHERE id = 1 AND name = 'Mark' ORDER BY id desc", s), q)
+		a.Equal(s+" WHERE id = 1 AND name = 'Mark' ORDER BY id desc", q)
 
 		query.Order("name asc")
 		q, _ = query.ToSQL(user)
-		a.Equal(fmt.Sprintf("%s WHERE id = 1 AND name = 'Mark' ORDER BY id desc, name asc", s), q)
+		a.Equal(s+" WHERE id = 1 AND name = 'Mark' ORDER BY id desc, name asc", q)
 
 		query = tx.Limit(10)
 		q, _ = query.ToSQL(user)
-		a.Equal(fmt.Sprintf("%s LIMIT 10", s), q)
+		a.Equal(s+" LIMIT 10", q)
 
 		query = tx.Paginate(3, 10)
 		q, _ = query.ToSQL(user)
-		a.Equal(fmt.Sprintf("%s LIMIT 10 OFFSET 20", s), q)
+		a.Equal(s+" LIMIT 10 OFFSET 20", q)
 
 		// join must come first
 		query = Q(tx).Where("id = ?", 1).Join("books b", "b.user_id=?", "xx").Order("name asc")
 		q, args := query.ToSQL(user)
 
 		if tx.Dialect.Details().Dialect == "postgres" {
-			a.Equal(fmt.Sprintf("%s JOIN books b ON b.user_id=$1 WHERE id = $2 ORDER BY name asc", s), q)
+			a.Equal(s+" JOIN books b ON b.user_id=$1 WHERE id = $2 ORDER BY name asc", q)
 		} else {
-			a.Equal(fmt.Sprintf("%s JOIN books b ON b.user_id=? WHERE id = ? ORDER BY name asc", s), q)
+			a.Equal(s+" JOIN books b ON b.user_id=? WHERE id = ? ORDER BY name asc", q)
 		}
 		// join arguments comes 1st
 		a.Equal(args[0], "xx")

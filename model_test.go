@@ -60,7 +60,7 @@ func Test_TableNameCache(t *testing.T) {
 
 // A failing test case for #477
 func Test_TableNameContextCache(t *testing.T) {
-	ctx := context.WithValue(context.Background(), "name", "context_table")
+	ctx := context.WithValue(t.Context(), "name", "context_table")
 
 	r := assert.New(t)
 	r.Equal("context_table_useras", (&Model{Value: ac.User{}, ctx: ctx}).TableName())

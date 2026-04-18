@@ -499,5 +499,6 @@ type InnerStruct struct {
 
 type EmbeddingStruct struct {
 	InnerStruct
+
 	AdditionalField string `db:"additional_field"`
 }

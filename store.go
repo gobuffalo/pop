@@ -35,6 +35,7 @@ type store interface {
 // ContextStore wraps a store with a Context, so passes it with the functions that don't take it.
 type contextStore struct {
 	store
+
 	ctx context.Context
 }
 

@@ -10,8 +10,8 @@ import (
 type operation string
 
 const (
-	selectOp operation = "SELECT"
-	deleteOp operation = "DELETE"
+	Select operation = "SELECT"
+	Delete operation = "DELETE"
 )
 
 // Query is the main value that is used to build up a query
@@ -205,7 +205,7 @@ func Q(c *Connection) *Query {
 		eager:       c.eager,
 		eagerFields: c.eagerFields,
 		eagerMode:   eagerModeNil,
-		Operation:   selectOp,
+		Operation:   Select,
 	}
 }
 

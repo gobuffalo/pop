@@ -40,6 +40,7 @@ var _ dialect = &postgresql{}
 
 type postgresql struct {
 	commonDialect
+
 	translateCache map[string]string
 	mu             sync.Mutex
 }

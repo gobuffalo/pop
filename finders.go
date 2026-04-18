@@ -286,7 +286,7 @@ func (q *Query) eagerDefaultAssociations(model any) error {
 			return err
 		}
 
-		if err == sql.ErrNoRows {
+		if errors.Is(err, sql.ErrNoRows) {
 			continue
 		}
 

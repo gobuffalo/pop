@@ -112,9 +112,9 @@ func (sq *sqlBuilder) buildQuery() error {
 		return errors.New("sqlBuilder.compile() called but no RawSQL and Model specified")
 	}
 	switch sq.Query.Operation {
-	case selectOp:
+	case Select:
 		sq.sql = sq.buildSelectSQL()
-	case deleteOp:
+	case Delete:
 		sq.sql = sq.buildDeleteSQL()
 	default:
 		panic("unexpected query operation " + sq.Query.Operation)
@@ -236,7 +236,7 @@ func (sq *sqlBuilder) buildOrderClauses(sql string) string {
 	if len(oc) > 0 {
 		orderSQL := oc.Join(", ")
 		if regexpMatchNames.MatchString(orderSQL) {
-			warningMsg := fmt.Sprintf("Order clause(s) contains invalid characters: %s", orderSQL)
+			warningMsg := "Order clause(s) contains invalid characters: " + orderSQL
 			log(logging.Warn, warningMsg)
 			return sql
 		}
