@@ -59,7 +59,6 @@ func Test_ValidateAndSave(t *testing.T) {
 		r.NotZero(car.ID)
 		r.NotZero(car.CreatedAt)
 
-		car.resetLogs()
 		car = &ValidatableCar{Name: ""}
 		verrs, err = tx.ValidateAndSave(car)
 		r.NoError(err)
@@ -395,6 +394,7 @@ func Test_Save_With_Slice(t *testing.T) {
 		r.NotZero(u[1].ID)
 
 		uat := u[0].UpdatedAt.UnixNano()
+		time.Sleep(2 * time.Second) // mysql timestamps are in seconds, wait to ensure the timestamp will be different
 
 		r.NoError(tx.Save(u))
 		r.Greater(u[0].UpdatedAt.UnixNano(), uat)
