@@ -1640,6 +1640,7 @@ func Test_UpdateColumns_UpdatedAt(t *testing.T) {
 		r.NotZero(user.UpdatedAt)
 		updatedAtBefore := user.UpdatedAt
 
+		time.Sleep(time.Second * 2) // Ensure updated_at will be different
 		user.Name.String = "Bar"
 		err := tx.UpdateColumns(&user, "name", "updated_at") // Update name and updated_at
 		r.NoError(err)
