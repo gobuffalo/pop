@@ -328,29 +328,33 @@ type ValidatableCar struct {
 	Name      string    `db:"name"`
 	CreatedAt time.Time `db:"created_at" json:"created_at"`
 	UpdatedAt time.Time `db:"updated_at" json:"updated_at"`
+
+	validationLogs []string `db:"-" json:"-"`
 }
 
-var validationLogs []string
-
 func (v *ValidatableCar) Validate(_ *Connection) (*validate.Errors, error) {
-	validationLogs = append(validationLogs, "Validate")
+	v.validationLogs = append(v.validationLogs, "Validate")
 	verrs := validate.Validate(&validators.StringIsPresent{Field: v.Name, Name: "Name"})
 	return verrs, nil
 }
 
 func (v *ValidatableCar) ValidateSave(_ *Connection) (*validate.Errors, error) {
-	validationLogs = append(validationLogs, "ValidateSave")
+	v.validationLogs = append(v.validationLogs, "ValidateSave")
 	return nil, nil
 }
 
 func (v *ValidatableCar) ValidateUpdate(_ *Connection) (*validate.Errors, error) {
-	validationLogs = append(validationLogs, "ValidateUpdate")
+	v.validationLogs = append(v.validationLogs, "ValidateUpdate")
 	return nil, nil
 }
 
 func (v *ValidatableCar) ValidateCreate(_ *Connection) (*validate.Errors, error) {
-	validationLogs = append(validationLogs, "ValidateCreate")
+	v.validationLogs = append(v.validationLogs, "ValidateCreate")
 	return nil, nil
+}
+
+func (v *ValidatableCar) resetLogs() {
+	v.validationLogs = []string{}
 }
 
 type NotValidatableCar struct {
