@@ -7,6 +7,7 @@ import (
 
 	"github.com/gobuffalo/nulls"
 	"github.com/gofrs/uuid"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -14,7 +15,7 @@ func Test_IsZeroOfUnderlyingType(t *testing.T) {
 	if PDB == nil {
 		t.Skip("skipping integration tests")
 	}
-	r := require.New(t)
+	r := assert.New(t)
 	transaction(func(tx *Connection) {
 		car := &ValidatableCar{Name: "VW"}
 		r.True(IsZeroOfUnderlyingType(car.ID))
@@ -47,33 +48,32 @@ func Test_ValidateAndSave(t *testing.T) {
 	if PDB == nil {
 		t.Skip("skipping integration tests")
 	}
-	r := require.New(t)
-	validationLogs = []string{}
+	r := assert.New(t)
 	transaction(func(tx *Connection) {
 		car := &ValidatableCar{Name: "VW"}
 		verrs, err := tx.ValidateAndSave(car)
 		r.NoError(err)
 		r.False(verrs.HasAny())
-		r.Len(validationLogs, 2)
-		r.Equal([]string{"Validate", "ValidateSave"}, validationLogs)
+		r.Len(car.validationLogs, 2)
+		r.Equal([]string{"Validate", "ValidateSave"}, car.validationLogs)
 		r.NotZero(car.ID)
 		r.NotZero(car.CreatedAt)
 
-		validationLogs = []string{}
+		car.resetLogs()
 		car = &ValidatableCar{Name: ""}
 		verrs, err = tx.ValidateAndSave(car)
 		r.NoError(err)
 		r.True(verrs.HasAny())
-		r.Len(validationLogs, 2)
+		r.Len(car.validationLogs, 2)
 		errs := verrs.Get("name")
 		r.Len(errs, 1)
 
-		validationLogs = []string{}
+		car.resetLogs()
 		ncar := &NotValidatableCar{Name: ""}
 		verrs, err = tx.ValidateAndSave(ncar)
 		r.NoError(err)
 		r.False(verrs.HasAny())
-		r.Len(validationLogs, 0)
+		r.Len(car.validationLogs, 0)
 	})
 }
 
@@ -81,8 +81,7 @@ func Test_ValidateAndSave_With_Slice(t *testing.T) {
 	if PDB == nil {
 		t.Skip("skipping integration tests")
 	}
-	r := require.New(t)
-	validationLogs = []string{}
+	r := assert.New(t)
 	transaction(func(tx *Connection) {
 		car := []ValidatableCar{
 			{Name: "VW"},
@@ -91,15 +90,18 @@ func Test_ValidateAndSave_With_Slice(t *testing.T) {
 		verrs, err := tx.ValidateAndSave(&car)
 		r.NoError(err)
 		r.False(verrs.HasAny())
-		r.Len(validationLogs, 4)
-		r.Equal([]string{"Validate", "ValidateSave", "Validate", "ValidateSave"}, validationLogs)
+		r.Len(car[0].validationLogs, 2)
+		r.Equal([]string{"Validate", "ValidateSave"}, car[0].validationLogs)
+		r.Len(car[1].validationLogs, 2)
+		r.Equal([]string{"Validate", "ValidateSave"}, car[1].validationLogs)
 
 		r.NotZero(car[0].ID)
 		r.NotZero(car[0].CreatedAt)
 		r.NotZero(car[1].ID)
 		r.NotZero(car[1].CreatedAt)
 
-		validationLogs = []string{}
+		car[0].resetLogs()
+		car[1].resetLogs()
 		car = []ValidatableCar{
 			{Name: ""},
 			{Name: "AU"},
@@ -107,11 +109,12 @@ func Test_ValidateAndSave_With_Slice(t *testing.T) {
 		verrs, err = tx.ValidateAndSave(&car)
 		r.NoError(err)
 		r.True(verrs.HasAny())
-		r.Len(validationLogs, 2)
+		r.Len(car[0].validationLogs, 2)
 		errs := verrs.Get("name")
 		r.Len(errs, 1)
 
-		validationLogs = []string{}
+		car[0].resetLogs()
+		car[1].resetLogs()
 		ncar := []NotValidatableCar{
 			{Name: ""},
 			{Name: "AU"},
@@ -119,7 +122,8 @@ func Test_ValidateAndSave_With_Slice(t *testing.T) {
 		verrs, err = tx.ValidateAndSave(&ncar)
 		r.NoError(err)
 		r.False(verrs.HasAny())
-		r.Len(validationLogs, 0)
+		r.Len(car[0].validationLogs, 0)
+		r.Len(car[1].validationLogs, 0)
 	})
 }
 
@@ -127,33 +131,32 @@ func Test_ValidateAndCreate(t *testing.T) {
 	if PDB == nil {
 		t.Skip("skipping integration tests")
 	}
-	r := require.New(t)
-	validationLogs = []string{}
+	r := assert.New(t)
 	transaction(func(tx *Connection) {
 		car := &ValidatableCar{Name: "VW"}
 		verrs, err := tx.ValidateAndCreate(car)
 		r.NoError(err)
 		r.False(verrs.HasAny())
-		r.Len(validationLogs, 2)
-		r.Equal([]string{"Validate", "ValidateCreate"}, validationLogs)
+		r.Len(car.validationLogs, 2)
+		r.Equal([]string{"Validate", "ValidateCreate"}, car.validationLogs)
 		r.NotZero(car.ID)
 		r.NotZero(car.CreatedAt)
 
-		validationLogs = []string{}
+		car.resetLogs()
 		car = &ValidatableCar{Name: ""}
 		verrs, err = tx.ValidateAndSave(car)
 		r.NoError(err)
 		r.True(verrs.HasAny())
-		r.Len(validationLogs, 2)
+		r.Len(car.validationLogs, 2)
 		errs := verrs.Get("name")
 		r.Len(errs, 1)
 
-		validationLogs = []string{}
+		car.resetLogs()
 		ncar := &NotValidatableCar{Name: ""}
 		verrs, err = tx.ValidateAndCreate(ncar)
 		r.NoError(err)
 		r.False(verrs.HasAny())
-		r.Len(validationLogs, 0)
+		r.Len(car.validationLogs, 0)
 	})
 }
 
@@ -161,8 +164,7 @@ func Test_Create_Single_Incremental_ID(t *testing.T) {
 	if PDB == nil {
 		t.Skip("skipping integration tests")
 	}
-	r := require.New(t)
-	validationLogs = []string{}
+	r := assert.New(t)
 	transaction(func(tx *Connection) {
 		singleID := &SingleID{}
 		err := tx.Create(singleID)
@@ -175,8 +177,7 @@ func Test_ValidateAndCreate_With_Slice(t *testing.T) {
 	if PDB == nil {
 		t.Skip("skipping integration tests")
 	}
-	r := require.New(t)
-	validationLogs = []string{}
+	r := assert.New(t)
 	transaction(func(tx *Connection) {
 		car := []ValidatableCar{
 			{Name: "VW"},
@@ -185,14 +186,17 @@ func Test_ValidateAndCreate_With_Slice(t *testing.T) {
 		verrs, err := tx.ValidateAndCreate(&car)
 		r.NoError(err)
 		r.False(verrs.HasAny())
-		r.Len(validationLogs, 4)
-		r.Equal([]string{"Validate", "ValidateCreate", "Validate", "ValidateCreate"}, validationLogs)
+		r.Len(car[0].validationLogs, 2)
+		r.Equal([]string{"Validate", "ValidateCreate"}, car[0].validationLogs)
+		r.Len(car[1].validationLogs, 2)
+		r.Equal([]string{"Validate", "ValidateCreate"}, car[1].validationLogs)
 		r.NotZero(car[0].ID)
 		r.NotZero(car[0].CreatedAt)
 		r.NotZero(car[1].ID)
 		r.NotZero(car[1].CreatedAt)
 
-		validationLogs = []string{}
+		car[0].resetLogs()
+		car[1].resetLogs()
 		car = []ValidatableCar{
 			{Name: ""},
 			{Name: "AU"},
@@ -200,11 +204,12 @@ func Test_ValidateAndCreate_With_Slice(t *testing.T) {
 		verrs, err = tx.ValidateAndSave(&car)
 		r.NoError(err)
 		r.True(verrs.HasAny())
-		r.Len(validationLogs, 2)
+		r.Len(car[0].validationLogs, 2)
 		errs := verrs.Get("name")
 		r.Len(errs, 1)
 
-		validationLogs = []string{}
+		car[0].resetLogs()
+		car[1].resetLogs()
 		ncar := []NotValidatableCar{
 			{Name: ""},
 			{Name: "AU"},
@@ -212,7 +217,8 @@ func Test_ValidateAndCreate_With_Slice(t *testing.T) {
 		verrs, err = tx.ValidateAndCreate(ncar)
 		r.NoError(err)
 		r.False(verrs.HasAny())
-		r.Len(validationLogs, 0)
+		r.Len(car[0].validationLogs, 0)
+		r.Len(car[1].validationLogs, 0)
 	})
 }
 
@@ -220,40 +226,38 @@ func Test_ValidateAndUpdate(t *testing.T) {
 	if PDB == nil {
 		t.Skip("skipping integration tests")
 	}
-	r := require.New(t)
-	validationLogs = []string{}
+	r := assert.New(t)
 	transaction(func(tx *Connection) {
 		car := &ValidatableCar{Name: "VW"}
 		verrs, err := tx.ValidateAndCreate(car)
 		r.NoError(err)
 		r.False(verrs.HasAny())
-		r.Len(validationLogs, 2)
-		r.Equal([]string{"Validate", "ValidateCreate"}, validationLogs)
+		r.Len(car.validationLogs, 2)
+		r.Equal([]string{"Validate", "ValidateCreate"}, car.validationLogs)
 		r.NotZero(car.ID)
 		r.NotZero(car.CreatedAt)
 
-		validationLogs = []string{}
+		car.resetLogs()
 		car.Name = ""
 		verrs, err = tx.ValidateAndUpdate(car)
 		r.NoError(err)
 		r.True(verrs.HasAny())
-		r.Len(validationLogs, 2)
+		r.Len(car.validationLogs, 2)
 		errs := verrs.Get("name")
 		r.Len(errs, 1)
 
-		validationLogs = []string{}
+		car.resetLogs()
 		ncar := &NotValidatableCar{Name: ""}
 		verrs, err = tx.ValidateAndCreate(ncar)
 		r.NoError(err)
 		r.False(verrs.HasAny())
-		r.Len(validationLogs, 0)
+		r.Len(car.validationLogs, 0)
 
-		validationLogs = []string{}
 		ncar.Name = ""
 		verrs, err = tx.ValidateAndUpdate(ncar)
 		r.NoError(err)
 		r.False(verrs.HasAny())
-		r.Len(validationLogs, 0)
+		r.Len(car.validationLogs, 0)
 	})
 }
 
@@ -261,8 +265,7 @@ func Test_ValidateAndUpdate_With_Slice(t *testing.T) {
 	if PDB == nil {
 		t.Skip("skipping integration tests")
 	}
-	r := require.New(t)
-	validationLogs = []string{}
+	r := assert.New(t)
 	transaction(func(tx *Connection) {
 		car := []ValidatableCar{
 			{Name: "VW"},
@@ -271,23 +274,27 @@ func Test_ValidateAndUpdate_With_Slice(t *testing.T) {
 		verrs, err := tx.ValidateAndCreate(&car)
 		r.NoError(err)
 		r.False(verrs.HasAny())
-		r.Len(validationLogs, 4)
-		r.Equal([]string{"Validate", "ValidateCreate", "Validate", "ValidateCreate"}, validationLogs)
+		r.Len(car[0].validationLogs, 2)
+		r.Equal([]string{"Validate", "ValidateCreate"}, car[0].validationLogs)
+		r.Len(car[1].validationLogs, 2)
+		r.Equal([]string{"Validate", "ValidateCreate"}, car[1].validationLogs)
 		r.NotZero(car[0].ID)
 		r.NotZero(car[0].CreatedAt)
 		r.NotZero(car[1].ID)
 		r.NotZero(car[1].CreatedAt)
 
-		validationLogs = []string{}
+		car[0].resetLogs()
+		car[1].resetLogs()
 		car[0].Name = ""
 		verrs, err = tx.ValidateAndUpdate(&car)
 		r.NoError(err)
 		r.True(verrs.HasAny())
-		r.Len(validationLogs, 2)
+		r.Len(car[0].validationLogs, 2)
 		errs := verrs.Get("name")
 		r.Len(errs, 1)
 
-		validationLogs = []string{}
+		car[0].resetLogs()
+		car[1].resetLogs()
 		ncar := []NotValidatableCar{
 			{Name: ""},
 			{Name: "AU"},
@@ -295,14 +302,15 @@ func Test_ValidateAndUpdate_With_Slice(t *testing.T) {
 		verrs, err = tx.ValidateAndCreate(&ncar)
 		r.NoError(err)
 		r.False(verrs.HasAny())
-		r.Len(validationLogs, 0)
+		r.Len(car[0].validationLogs, 0)
+		r.Len(car[1].validationLogs, 0)
 
-		validationLogs = []string{}
 		ncar[1].Name = ""
 		verrs, err = tx.ValidateAndUpdate(&ncar)
 		r.NoError(err)
 		r.False(verrs.HasAny())
-		r.Len(validationLogs, 0)
+		r.Len(car[0].validationLogs, 0)
+		r.Len(car[1].validationLogs, 0)
 	})
 }
 
@@ -310,9 +318,8 @@ func Test_Exec(t *testing.T) {
 	if PDB == nil {
 		t.Skip("skipping integration tests")
 	}
+	r := assert.New(t)
 	transaction(func(tx *Connection) {
-		r := require.New(t)
-
 		user := User{Name: nulls.NewString("Mark 'Awesome' Bates")}
 		r.NoError(tx.Create(&user))
 
@@ -332,9 +339,8 @@ func Test_ExecCount(t *testing.T) {
 	if PDB == nil {
 		t.Skip("skipping integration tests")
 	}
+	r := assert.New(t)
 	transaction(func(tx *Connection) {
-		r := require.New(t)
-
 		user := User{Name: nulls.NewString("Mark 'Awesome' Bates")}
 		r.NoError(tx.Create(&user))
 
@@ -356,7 +362,7 @@ func Test_Save(t *testing.T) {
 	if PDB == nil {
 		t.Skip("skipping integration tests")
 	}
-	r := require.New(t)
+	r := assert.New(t)
 	transaction(func(tx *Connection) {
 		u := &User{Name: nulls.NewString("Mark")}
 		r.Zero(u.ID)
@@ -364,10 +370,10 @@ func Test_Save(t *testing.T) {
 		r.NotZero(u.ID)
 
 		uat := u.UpdatedAt.UnixNano()
+		time.Sleep(2 * time.Second) // mysql timestamps are in seconds, wait to ensure the timestamp will be different
 
 		r.NoError(tx.Save(u))
-		time.Sleep(1 * time.Second)
-		r.NotEqual(uat, u.UpdatedAt.UnixNano())
+		r.Greater(u.UpdatedAt.UnixNano(), uat)
 	})
 }
 
@@ -375,7 +381,7 @@ func Test_Save_With_Slice(t *testing.T) {
 	if PDB == nil {
 		t.Skip("skipping integration tests")
 	}
-	r := require.New(t)
+	r := assert.New(t)
 	transaction(func(tx *Connection) {
 		u := Users{
 			{Name: nulls.NewString("Mark")},
@@ -391,7 +397,7 @@ func Test_Save_With_Slice(t *testing.T) {
 		uat := u[0].UpdatedAt.UnixNano()
 
 		r.NoError(tx.Save(u))
-		r.NotEqual(uat, u[0].UpdatedAt.UnixNano())
+		r.Greater(u[0].UpdatedAt.UnixNano(), uat)
 	})
 }
 
@@ -399,9 +405,9 @@ func Test_Create(t *testing.T) {
 	if PDB == nil {
 		t.Skip("skipping integration tests")
 	}
-	transaction(func(tx *Connection) {
-		r := require.New(t)
 
+	r := assert.New(t)
+	transaction(func(tx *Connection) {
 		count, _ := tx.Count(&User{})
 		user := User{Name: nulls.NewString("Mark 'Awesome' Bates")}
 		err := tx.Create(&user)
@@ -423,9 +429,8 @@ func Test_Create_stringID(t *testing.T) {
 	if PDB == nil {
 		t.Skip("skipping integration tests")
 	}
+	r := assert.New(t)
 	transaction(func(tx *Connection) {
-		r := require.New(t)
-
 		count, err := tx.Count(&Label{})
 		r.NoError(err)
 		label := Label{ID: "red"}
@@ -448,9 +453,8 @@ func Test_Create_With_Slice(t *testing.T) {
 	if PDB == nil {
 		t.Skip("skipping integration tests")
 	}
+	r := assert.New(t)
 	transaction(func(tx *Connection) {
-		r := require.New(t)
-
 		count, _ := tx.Count(&User{})
 		users := Users{
 			{Name: nulls.NewString("Mark Bates")},
@@ -469,9 +473,8 @@ func Test_Create_With_Non_ID_PK(t *testing.T) {
 	if PDB == nil {
 		t.Skip("skipping integration tests")
 	}
+	r := assert.New(t)
 	transaction(func(tx *Connection) {
-		r := require.New(t)
-
 		count, _ := tx.Count(&CrookedColour{})
 		djs := []CrookedColour{
 			{Name: "Phil Slabber"},
@@ -492,9 +495,8 @@ func Test_Create_With_Non_ID_PK_String(t *testing.T) {
 	if PDB == nil {
 		t.Skip("skipping integration tests")
 	}
+	r := assert.New(t)
 	transaction(func(tx *Connection) {
-		r := require.New(t)
-
 		count, _ := tx.Count(&CrookedSong{})
 		djs := []CrookedSong{
 			{ID: "Flow"},
@@ -515,9 +517,8 @@ func Test_Create_Non_PK_ID(t *testing.T) {
 	if PDB == nil {
 		t.Skip("skipping integration tests")
 	}
+	r := assert.New(t)
 	transaction(func(tx *Connection) {
-		r := require.New(t)
-
 		r.NoError(tx.Create(&NonStandardID{OutfacingID: "make sure the tested entry does not have pk=0"}))
 
 		count, err := tx.Count(&NonStandardID{})
@@ -542,7 +543,7 @@ func Test_Create_Parallel(t *testing.T) {
 	for i := range 5 {
 		t.Run(fmt.Sprintf("case=%d", i), func(t *testing.T) {
 			t.Parallel()
-			require.NoError(t, PDB.Create(&CrookedColour{Name: fmt.Sprintf("Singer %d", i)}))
+			assert.NoError(t, PDB.Create(&CrookedColour{Name: fmt.Sprintf("Singer %d", i)}))
 		})
 	}
 }
@@ -551,9 +552,8 @@ func Test_Embedded_Struct(t *testing.T) {
 	if PDB == nil {
 		t.Skip("skipping integration tests")
 	}
+	r := assert.New(t)
 	transaction(func(tx *Connection) {
-		r := require.New(t)
-
 		entry := &EmbeddingStruct{
 			InnerStruct:     InnerStruct{},
 			AdditionalField: "I am also important!",
@@ -585,8 +585,8 @@ func Test_Eager_Create_Has_Many(t *testing.T) {
 	if PDB == nil {
 		t.Skip("skipping integration tests")
 	}
+	r := assert.New(t)
 	transaction(func(tx *Connection) {
-		r := require.New(t)
 		count, _ := tx.Count(&User{})
 		user := User{
 			Name:         nulls.NewString("Mark 'Awesome' Bates"),
@@ -630,9 +630,8 @@ func Test_Eager_Create_Has_Many_With_Existing(t *testing.T) {
 	if PDB == nil {
 		t.Skip("skipping integration tests")
 	}
+	r := assert.New(t)
 	transaction(func(tx *Connection) {
-		r := require.New(t)
-
 		addr := Address{HouseNumber: 42, Street: "Life"}
 		addrVerrs, addrErr := tx.ValidateAndCreate(&addr)
 		r.NoError(addrErr)
@@ -691,8 +690,8 @@ func Test_Eager_Create_Has_Many_Reset_Eager_Mode_Connection(t *testing.T) {
 	if PDB == nil {
 		t.Skip("skipping integration tests")
 	}
+	r := assert.New(t)
 	transaction(func(tx *Connection) {
-		r := require.New(t)
 		count, _ := tx.Count(&User{})
 		user1 := User{
 			Name:  nulls.NewString("Mark 'Awesome' Bates"),
@@ -719,7 +718,7 @@ func Test_Eager_Validate_And_Create_Has_Many(t *testing.T) {
 	if PDB == nil {
 		t.Skip("skipping integration tests")
 	}
-	r := require.New(t)
+	r := assert.New(t)
 	transaction(func(tx *Connection) {
 		user := User{
 			Name:         nulls.NewString("Mark 'Awesome' Bates"),
@@ -742,7 +741,7 @@ func Test_Eager_Validate_And_Create_Parental(t *testing.T) {
 	if PDB == nil {
 		t.Skip("skipping integration tests")
 	}
-	r := require.New(t)
+	r := assert.New(t)
 	transaction(func(tx *Connection) {
 		user := User{
 			Name:         nulls.NewString(""),
@@ -765,7 +764,7 @@ func Test_Eager_Validate_And_Create_Parental_With_Existing(t *testing.T) {
 	if PDB == nil {
 		t.Skip("skipping integration tests")
 	}
-	r := require.New(t)
+	r := assert.New(t)
 	transaction(func(tx *Connection) {
 		addr := Address{HouseNumber: 42, Street: "Life"}
 		addrVerrs, addrErr := tx.ValidateAndCreate(&addr)
@@ -829,7 +828,7 @@ func Test_Eager_Validate_And_Create_Parental_With_Partial_Existing(t *testing.T)
 	if PDB == nil {
 		t.Skip("skipping integration tests")
 	}
-	r := require.New(t)
+	r := assert.New(t)
 	transaction(func(tx *Connection) {
 		addr := Address{HouseNumber: 42, Street: "Life"}
 		addrVerrs, addrErr := tx.ValidateAndCreate(&addr)
@@ -893,7 +892,7 @@ func Test_Flat_Validate_And_Create_Parental_With_Existing(t *testing.T) {
 	if PDB == nil {
 		t.Skip("skipping integration tests")
 	}
-	r := require.New(t)
+	r := assert.New(t)
 	transaction(func(tx *Connection) {
 		addr := Address{HouseNumber: 42, Street: "Life"}
 		addrVerrs, addrErr := tx.ValidateAndCreate(&addr)
@@ -986,7 +985,7 @@ func Test_Flat_Validate_And_Create_Parental_With_Partial_Existing(t *testing.T) 
 	if PDB == nil {
 		t.Skip("skipping integration tests")
 	}
-	r := require.New(t)
+	r := assert.New(t)
 	transaction(func(tx *Connection) {
 		addr := Address{HouseNumber: 42, Street: "Life"}
 		addrVerrs, addrErr := tx.ValidateAndCreate(&addr)
@@ -1067,8 +1066,8 @@ func Test_Eager_Create_Belongs_To(t *testing.T) {
 	if PDB == nil {
 		t.Skip("skipping integration tests")
 	}
+	r := assert.New(t)
 	transaction(func(tx *Connection) {
-		r := require.New(t)
 		book := Book{
 			Title:       "Pop Book",
 			Description: "Pop Book",
@@ -1111,8 +1110,8 @@ func Test_Eager_Create_Belongs_To_Pointers(t *testing.T) {
 	if PDB == nil {
 		t.Skip("skipping integration tests")
 	}
+	r := assert.New(t)
 	transaction(func(tx *Connection) {
-		r := require.New(t)
 		// Create a body with a head
 		body := Body{
 			Head: &Head{},
@@ -1157,8 +1156,8 @@ func Test_Create_Belongs_To_Pointers(t *testing.T) {
 	if PDB == nil {
 		t.Skip("skipping integration tests")
 	}
+	r := assert.New(t)
 	transaction(func(tx *Connection) {
-		r := require.New(t)
 		// Create a body without a head:
 		body := Body{
 			Head: nil,
@@ -1187,8 +1186,8 @@ func Test_Flat_Create_Belongs_To(t *testing.T) {
 	if PDB == nil {
 		t.Skip("skipping integration tests")
 	}
+	r := assert.New(t)
 	transaction(func(tx *Connection) {
-		r := require.New(t)
 		user := User{
 			Name: nulls.NewString("Larry"),
 		}
@@ -1238,8 +1237,8 @@ func Test_Eager_Creation_Without_Associations(t *testing.T) {
 	if PDB == nil {
 		t.Skip("skipping integration tests")
 	}
+	r := assert.New(t)
 	transaction(func(tx *Connection) {
-		r := require.New(t)
 		code := CourseCode{
 			Course: Course{},
 		}
@@ -1256,9 +1255,8 @@ func Test_Eager_Embedded_Struct(t *testing.T) {
 	if PDB == nil {
 		t.Skip("skipping integration tests")
 	}
+	r := assert.New(t)
 	transaction(func(tx *Connection) {
-		r := require.New(t)
-
 		type AssocFields struct {
 			Books        Books `has_many:"books" order_by:"title asc"`
 			FavoriteSong Song  `                                      has_one:"song" fk_id:"u_id"`
@@ -1335,8 +1333,8 @@ func Test_Eager_Embedded_Ptr_Struct(t *testing.T) {
 	if PDB == nil {
 		t.Skip("skipping integration tests")
 	}
+	r := assert.New(t)
 	transaction(func(tx *Connection) {
-		r := require.New(t)
 
 		type AssocFields struct {
 			Books        Books `has_many:"books" order_by:"title asc"`
@@ -1414,9 +1412,8 @@ func Test_Create_UUID(t *testing.T) {
 	if PDB == nil {
 		t.Skip("skipping integration tests")
 	}
+	r := assert.New(t)
 	transaction(func(tx *Connection) {
-		r := require.New(t)
-
 		count, _ := tx.Count(&Song{})
 		song := Song{Title: "Automatic Buffalo"}
 		r.Equal(uuid.Nil, song.ID)
@@ -1439,8 +1436,8 @@ func Test_Create_Existing_UUID(t *testing.T) {
 	if PDB == nil {
 		t.Skip("skipping integration tests")
 	}
+	r := assert.New(t)
 	transaction(func(tx *Connection) {
-		r := require.New(t)
 		id, err := uuid.NewV4()
 		r.NoError(err)
 
@@ -1464,9 +1461,8 @@ func Test_Create_Timestamps(t *testing.T) {
 	if PDB == nil {
 		t.Skip("skipping integration tests")
 	}
+	r := assert.New(t)
 	transaction(func(tx *Connection) {
-		r := require.New(t)
-
 		user := User{Name: nulls.NewString("Mark 'Awesome' Bates")}
 		r.Zero(user.CreatedAt)
 		r.Zero(user.UpdatedAt)
@@ -1487,9 +1483,8 @@ func Test_Update(t *testing.T) {
 	if PDB == nil {
 		t.Skip("skipping integration tests")
 	}
+	r := assert.New(t)
 	transaction(func(tx *Connection) {
-		r := require.New(t)
-
 		user := User{Name: nulls.NewString("Mark")}
 		r.NoError(tx.Create(&user))
 
@@ -1509,9 +1504,8 @@ func Test_UpdateColumns(t *testing.T) {
 	if PDB == nil {
 		t.Skip("skipping integration tests")
 	}
+	r := assert.New(t)
 	transaction(func(tx *Connection) {
-		r := require.New(t)
-
 		user := User{Name: nulls.NewString("Mark")}
 		r.NoError(tx.Create(&user))
 
@@ -1533,8 +1527,8 @@ func Test_UpdateQuery_NoUpdatedAt(t *testing.T) {
 	if PDB == nil {
 		t.Skip("skipping integration tests")
 	}
+	r := assert.New(t)
 	transaction(func(_ *Connection) {
-		r := require.New(t)
 		existing, err := PDB.Count(&NonStandardID{}) // from previous test runs
 		r.NoError(err)
 		r.GreaterOrEqual(existing, 0)
@@ -1559,22 +1553,21 @@ func Test_UpdateQuery_NoTransaction(t *testing.T) {
 	r.NoError(PDB.Reload(&u1))
 	count, err := PDB.Where("name = ?", "Nemo").UpdateQuery(&User{Bio: nulls.NewString("did-change")}, "bio")
 	r.NoError(err)
-	require.Equal(t, int64(0), count)
+	r.Equal(int64(0), count)
 
 	count, err = PDB.Where("name = ?", "Foo").UpdateQuery(&User{Name: nulls.NewString("Bar")}, "name")
 	r.NoError(err)
 	r.Equal(int64(1), count)
 
-	require.NoError(t, PDB.Destroy(&u1))
+	r.NoError(PDB.Destroy(&u1))
 }
 
 func Test_UpdateQuery(t *testing.T) {
 	if PDB == nil {
 		t.Skip("skipping integration tests")
 	}
+	r := assert.New(t)
 	transaction(func(tx *Connection) {
-		r := require.New(t)
-
 		u1 := User{Name: nulls.NewString("Foo"), Bio: nulls.NewString("must-not-change-1")}
 		u2 := User{Name: nulls.NewString("Foo"), Bio: nulls.NewString("must-not-change-2")}
 		u3 := User{Name: nulls.NewString("Baz"), Bio: nulls.NewString("must-not-change-3")}
@@ -1596,6 +1589,7 @@ func Test_UpdateQuery(t *testing.T) {
 		r.Equal(u1.UpdatedAt, mustUnchanged.UpdatedAt)
 
 		// Correct rows are updated, including updated_at
+		time.Sleep(time.Second * 2) // Ensure updated_at will be different
 		count, err = tx.Where("name = ?", "Foo").UpdateQuery(&User{Name: nulls.NewString("Bar")}, "name")
 		r.NoError(err)
 		r.Equal(int64(2), count)
@@ -1610,10 +1604,8 @@ func Test_UpdateQuery(t *testing.T) {
 		r.Equal(u1b.Bio.String, "must-not-change-1")
 		r.Equal(u2b.Bio.String, "must-not-change-2")
 		r.Equal(u3b.Bio.String, "must-not-change-3")
-		if tx.Dialect.Name() != nameMySQL { // MySQL timestamps are in seconds
-			r.NotEqual(u1.UpdatedAt, u1b.UpdatedAt)
-			r.NotEqual(u2.UpdatedAt, u2b.UpdatedAt)
-		}
+		r.Less(u1.UpdatedAt, u1b.UpdatedAt)
+		r.Less(u2.UpdatedAt, u2b.UpdatedAt)
 		r.Equal(u3.UpdatedAt, u3b.UpdatedAt)
 
 		// ID is ignored
@@ -1639,9 +1631,8 @@ func Test_UpdateColumns_UpdatedAt(t *testing.T) {
 	if PDB == nil {
 		t.Skip("skipping integration tests")
 	}
+	r := assert.New(t)
 	transaction(func(tx *Connection) {
-		r := require.New(t)
-
 		user := User{Name: nulls.NewString("Foo")}
 		r.NoError(tx.Create(&user))
 
@@ -1654,7 +1645,7 @@ func Test_UpdateColumns_UpdatedAt(t *testing.T) {
 		r.NoError(err)
 
 		r.NoError(tx.Reload(&user))
-		r.NotEqual(user.UpdatedAt, updatedAtBefore) // UpdatedAt should be updated automatically
+		r.Greater(user.UpdatedAt, updatedAtBefore) // UpdatedAt should be updated automatically
 	})
 }
 
@@ -1662,9 +1653,8 @@ func Test_UpdateColumns_MultipleColumns(t *testing.T) {
 	if PDB == nil {
 		t.Skip("skipping integration tests")
 	}
+	r := assert.New(t)
 	transaction(func(tx *Connection) {
-		r := require.New(t)
-
 		user := User{Name: nulls.NewString("Mark"), UserName: "Sagan", Email: "test@example.com"}
 		r.NoError(tx.Create(&user))
 
@@ -1688,9 +1678,8 @@ func Test_UpdateColumns_All(t *testing.T) {
 	if PDB == nil {
 		t.Skip("skipping integration tests")
 	}
+	r := assert.New(t)
 	transaction(func(tx *Connection) {
-		r := require.New(t)
-
 		user := User{Name: nulls.NewString("Mark"), UserName: "Sagan"}
 		r.NoError(tx.Create(&user))
 
@@ -1714,9 +1703,8 @@ func Test_UpdateColumns_With_Slice(t *testing.T) {
 	if PDB == nil {
 		t.Skip("skipping integration tests")
 	}
+	r := assert.New(t)
 	transaction(func(tx *Connection) {
-		r := require.New(t)
-
 		user := Users{
 			{
 				Name:     nulls.NewString("Mark"),
@@ -1755,9 +1743,8 @@ func Test_Update_With_Slice(t *testing.T) {
 	if PDB == nil {
 		t.Skip("skipping integration tests")
 	}
+	r := assert.New(t)
 	transaction(func(tx *Connection) {
-		r := require.New(t)
-
 		user := Users{
 			{Name: nulls.NewString("Mark")},
 			{Name: nulls.NewString("Larry")},
@@ -1786,9 +1773,8 @@ func Test_Update_UUID(t *testing.T) {
 	if PDB == nil {
 		t.Skip("skipping integration tests")
 	}
+	r := assert.New(t)
 	transaction(func(tx *Connection) {
-		r := require.New(t)
-
 		song := Song{Title: "Automatic Buffalo"}
 		err := tx.Create(&song)
 		r.NoError(err)
@@ -1810,9 +1796,8 @@ func Test_Update_With_Non_ID_PK(t *testing.T) {
 	if PDB == nil {
 		t.Skip("skipping integration tests")
 	}
+	r := assert.New(t)
 	transaction(func(tx *Connection) {
-		r := require.New(t)
-
 		r.NoError(tx.Create(&CrookedColour{Name: "cc is not the first one"}))
 
 		cc := CrookedColour{
@@ -1838,9 +1823,8 @@ func Test_Update_Non_PK_ID(t *testing.T) {
 	if PDB == nil {
 		t.Skip("skipping integration tests")
 	}
+	r := assert.New(t)
 	transaction(func(tx *Connection) {
-		r := require.New(t)
-
 		client := &NonStandardID{
 			OutfacingID: "my awesome hydra client",
 		}
@@ -1858,9 +1842,8 @@ func Test_Destroy(t *testing.T) {
 	if PDB == nil {
 		t.Skip("skipping integration tests")
 	}
+	r := assert.New(t)
 	transaction(func(tx *Connection) {
-		r := require.New(t)
-
 		count, err := tx.Count("users")
 		r.NoError(err)
 		user := User{Name: nulls.NewString("Mark")}
@@ -1884,9 +1867,8 @@ func Test_Destroy_With_Slice(t *testing.T) {
 	if PDB == nil {
 		t.Skip("skipping integration tests")
 	}
+	r := assert.New(t)
 	transaction(func(tx *Connection) {
-		r := require.New(t)
-
 		count, err := tx.Count("users")
 		r.NoError(err)
 		user := Users{
@@ -1914,9 +1896,8 @@ func Test_Destroy_UUID(t *testing.T) {
 	if PDB == nil {
 		t.Skip("skipping integration tests")
 	}
+	r := assert.New(t)
 	transaction(func(tx *Connection) {
-		r := require.New(t)
-
 		count, err := tx.Count("songs")
 		r.NoError(err)
 		song := Song{Title: "Automatic Buffalo"}
@@ -1940,12 +1921,9 @@ func Test_TruncateAll(t *testing.T) {
 	if PDB == nil {
 		t.Skip("skipping integration tests")
 	}
-	count := int(0)
+	r := assert.New(t)
 	transaction(func(tx *Connection) {
-		r := require.New(t)
-
-		var err error
-		count, err = tx.Count("users")
+		count, err := tx.Count("users")
 		r.NoError(err)
 		user := User{Name: nulls.NewString("Mark")}
 		err = tx.Create(&user)
@@ -1968,10 +1946,8 @@ func Test_Delete(t *testing.T) {
 	if PDB == nil {
 		t.Skip("skipping integration tests")
 	}
-
+	r := assert.New(t)
 	transaction(func(tx *Connection) {
-		r := require.New(t)
-
 		songTitles := []string{"Yoshimi Battles the Pink Robots, Pt. 1", "Face Down In The Gutter Of Your Love"}
 		user := User{Name: nulls.NewString("Patrik")}
 
@@ -2003,9 +1979,8 @@ func Test_Create_Timestamps_With_NowFunc(t *testing.T) {
 	if PDB == nil {
 		t.Skip("skipping integration tests")
 	}
+	r := assert.New(t)
 	transaction(func(tx *Connection) {
-		r := require.New(t)
-
 		originalNowFunc := nowFunc
 		// ensure the original function is restored
 		defer func() {
