@@ -1,6 +1,6 @@
 module github.com/gobuffalo/pop/v6
 
-go 1.25.0
+go 1.26.0
 
 require (
 	github.com/fatih/color v1.19.0
@@ -22,7 +22,7 @@ require (
 	github.com/mattn/go-sqlite3 v1.14.52
 	github.com/spf13/cobra v1.10.2
 	github.com/stretchr/testify v1.12.1
-	golang.org/x/sync v0.22.0
+	golang.org/x/sync v0.23.0
 	gopkg.in/yaml.v2 v2.4.0
 )
 
