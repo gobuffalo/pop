@@ -21,8 +21,6 @@ import (
 )
 
 func Test_PostgreSQL_ConnectionDetails_Values_Finalize(t *testing.T) {
-	r := require.New(t)
-
 	cd := &ConnectionDetails{
 		Dialect:  "postgres",
 		Database: "database",
@@ -32,31 +30,29 @@ func Test_PostgreSQL_ConnectionDetails_Values_Finalize(t *testing.T) {
 		Password: "pass#",
 	}
 	err := cd.Finalize()
-	r.NoError(err)
+	require.NoError(t, err)
 
 	p := &postgresql{commonDialect: commonDialect{ConnectionDetails: cd}}
 
-	r.Equal("postgres://user:pass%23@host:1234/database?", p.URL())
+	require.Equal(t, "postgres://user:pass%23@host:1234/database?", p.URL())
 }
 
 func Test_PostgreSQL_Connection_String(t *testing.T) {
-	r := require.New(t)
-
 	url := "host=host port=1234 dbname=database user=user password=pass#"
 	cd := &ConnectionDetails{
 		Dialect: "postgres",
 		URL:     url,
 	}
 	err := cd.Finalize()
-	r.NoError(err)
+	require.NoError(t, err)
 
-	r.Equal(url, cd.URL)
-	r.Equal("postgres", cd.Dialect)
-	r.Equal("host", cd.Host)
-	r.Equal("pass#", cd.Password)
-	r.Equal("1234", cd.Port)
-	r.Equal("user", cd.User)
-	r.Equal("database", cd.Database)
+	require.Equal(t, url, cd.URL)
+	require.Equal(t, "postgres", cd.Dialect)
+	require.Equal(t, "host", cd.Host)
+	require.Equal(t, "pass#", cd.Password)
+	require.Equal(t, "1234", cd.Port)
+	require.Equal(t, "user", cd.User)
+	require.Equal(t, "database", cd.Database)
 }
 
 func genPrivateKey(tb testing.TB, caKeyPath string) *rsa.PrivateKey {
@@ -139,8 +135,6 @@ func setupCerts(tb testing.TB, caKeyPath, caCertPath, serverKeyPath, serverCertP
 }
 
 func Test_PostgreSQL_Connection_String_Options(t *testing.T) {
-	r := require.New(t)
-
 	tempDir := t.TempDir()
 	caKeyPath := filepath.Join(tempDir, "ca.key")
 	caCertPath := filepath.Join(tempDir, "ca.crt")
@@ -149,33 +143,32 @@ func Test_PostgreSQL_Connection_String_Options(t *testing.T) {
 	setupCerts(t, caKeyPath, caCertPath, serverKeyPath, serverCertPath)
 
 	url := fmt.Sprintf(
-		"host=host port=1234 dbname=database user=user password=pass# sslmode=disable fallback_application_name=test_app connect_timeout=10 sslcert=%s sslkey=%s sslrootcert=%s",
-		serverCertPath,
-		serverKeyPath,
-		caCertPath,
+		"host=host port=1234 dbname=database user=user password=pass# sslmode=disable "+
+			"fallback_application_name=test_app connect_timeout=10 sslcert=%s sslkey=%s sslrootcert=%s",
+		filepath.ToSlash(serverCertPath),
+		filepath.ToSlash(serverKeyPath),
+		filepath.ToSlash(caCertPath),
 	)
 	cd := &ConnectionDetails{
 		Dialect: "postgres",
 		URL:     url,
 	}
-	r.NoError(cd.Finalize())
+	require.NoError(t, cd.Finalize())
 
-	r.Equal(url, cd.URL)
+	require.Equal(t, url, cd.URL)
 
-	r.Equal("disable", cd.Options["sslmode"])
-	r.Equal("test_app", cd.Options["fallback_application_name"])
+	require.Equal(t, "disable", cd.Options["sslmode"])
+	require.Equal(t, "test_app", cd.Options["fallback_application_name"])
 }
 
 func Test_PostgreSQL_Connection_String_Without_User(t *testing.T) {
-	r := require.New(t)
-
 	url := "dbname=database"
 	cd := &ConnectionDetails{
 		Dialect: "postgres",
 		URL:     url,
 	}
 	err := cd.Finalize()
-	r.NoError(err)
+	require.NoError(t, err)
 
 	uc := os.Getenv("PGUSER")
 	if uc == "" {
@@ -185,8 +178,8 @@ func Test_PostgreSQL_Connection_String_Without_User(t *testing.T) {
 		}
 	}
 
-	r.Equal(url, cd.URL)
-	r.Equal("postgres", cd.Dialect)
+	require.Equal(t, url, cd.URL)
+	require.Equal(t, "postgres", cd.Dialect)
 
 	var foundHost bool
 	if slices.Contains([]string{
@@ -197,32 +190,29 @@ func Test_PostgreSQL_Connection_String_Without_User(t *testing.T) {
 	}, cd.Host) {
 		foundHost = true
 	}
-	r.True(foundHost, `Got host: "%s"`, cd.Host)
+	require.True(t, foundHost, `Got host: "%s"`, cd.Host)
 
-	r.Equal(os.Getenv("PGPASSWORD"), cd.Password)
-	r.Equal(portPostgreSQL, cd.Port) // fallback
-	r.Equal(uc, cd.User)
-	r.Equal("database", cd.Database)
+	require.Equal(t, os.Getenv("PGPASSWORD"), cd.Password)
+	require.Equal(t, portPostgreSQL, cd.Port) // fallback
+	require.Equal(t, uc, cd.User)
+	require.Equal(t, "database", cd.Database)
 }
 
 func Test_PostgreSQL_Connection_String_Failure(t *testing.T) {
-	r := require.New(t)
-
 	url := "abc"
 	cd := &ConnectionDetails{
 		Dialect: "postgres",
 		URL:     url,
 	}
 	err := cd.Finalize()
-	r.Error(err)
-	r.Equal("postgres", cd.Dialect)
+	require.Error(t, err)
+	require.Equal(t, "postgres", cd.Dialect)
 }
 
 func Test_PostgreSQL_Quotable(t *testing.T) {
-	r := require.New(t)
 	p := postgresql{}
 
-	r.Equal(`"table_name"`, p.Quote("table_name"))
-	r.Equal(`"schema"."table_name"`, p.Quote("schema.table_name"))
-	r.Equal(`"schema"."table name"`, p.Quote(`"schema"."table name"`))
+	require.Equal(t, `"table_name"`, p.Quote("table_name"))
+	require.Equal(t, `"schema"."table_name"`, p.Quote("schema.table_name"))
+	require.Equal(t, `"schema"."table name"`, p.Quote(`"schema"."table name"`))
 }

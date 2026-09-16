@@ -32,4 +32,3 @@ sqlite:
   database: "tmp/test.sqlite"
   options:
     lock: true
-
