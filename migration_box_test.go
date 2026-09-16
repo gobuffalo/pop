@@ -15,8 +15,12 @@ type logEntry struct {
 	args []any
 }
 
-func setNewTestLogger() *[]logEntry {
+func setNewTestLogger(tb testing.TB) *[]logEntry {
 	var logs []logEntry
+	oldLog := log
+	tb.Cleanup(func() {
+		log = oldLog
+	})
 	log = func(lvl logging.Level, s string, args ...any) {
 		logs = append(logs, logEntry{lvl, s, args})
 	}
@@ -41,7 +45,7 @@ func Test_MigrationBox(t *testing.T) {
 	})
 
 	t.Run("ignores clutter files", func(t *testing.T) {
-		logs := setNewTestLogger()
+		logs := setNewTestLogger(t)
 		r := require.New(t)
 
 		b, err := NewMigrationBox(os.DirFS("testdata/migrations/cluttered"), PDB)
@@ -54,7 +58,7 @@ func Test_MigrationBox(t *testing.T) {
 	})
 
 	t.Run("ignores unsupported files", func(t *testing.T) {
-		logs := setNewTestLogger()
+		logs := setNewTestLogger(t)
 		r := require.New(t)
 
 		b, err := NewMigrationBox(os.DirFS("testdata/migrations/unsupported_dialect"), PDB)
