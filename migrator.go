@@ -56,7 +56,7 @@ func (m Migrator) UpLogOnly() error {
 				if !m.migrationIsCompatible(c.Dialect, mi) {
 					continue
 				}
-				exists, err := c.Where("version = ?", mi.Version).Exists(mtn)
+				exists, err := tx.Where("version = ?", mi.Version).Exists(mtn)
 				if err != nil {
 					return fmt.Errorf("problem checking for migration version %s: %w", mi.Version, err)
 				}
